@@ -12,6 +12,7 @@ import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
 import ClimateShift from '../../components/charts/ClimateShift';
+import { LazyMount } from '../../components/SectionNav';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
 import { useStore } from '../../store';
 import { startTour } from '../../components/DemoTour';
@@ -81,7 +82,7 @@ export default function Home() {
       <Suspense fallback={<section className="py-16 sm:py-20"><div className="page-shell min-h-[760px]" /></section>}><CountryCrops /></Suspense>
 
       {/* Climate risk: the drought/flood split photo beside 25 seasons of NASA data for Godagari or Dhamrai. */}
-      <div id="climate-shift" className="scroll-mt-20"><ClimateShift /></div>
+      <div id="climate-shift" className="scroll-mt-20"><LazyMount height={720}><ClimateShift /></LazyMount></div>
       <NeighbourPhotos />
 
       {/* How it works: a real sequence, so it is numbered. */}

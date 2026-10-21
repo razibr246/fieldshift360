@@ -1,16 +1,9 @@
 // App-wide state: the selected farmer, their field, choices, requests and officer actions.
 // All data is local demo data. Each "service" this store calls (weather, places, the engine) is a plain function,
 // so swapping in a backend later means replacing those calls, not the components.
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
-import climGodagari from './data/climate_godagari.json';
-import climDhamrai from './data/climate_dhamrai.json';
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import soilGodagari from './data/soil_godagari.json';
 import soilDhamrai from './data/soil_dhamrai.json';
-import climSitakunda from './data/climate_sitakunda.json';
-import climDacope from './data/climate_dacope.json';
-import climBakerganj from './data/climate_bakerganj.json';
-import climGangachara from './data/climate_gangachara.json';
-import climGowainghat from './data/climate_gowainghat.json';
 import soilSitakunda from './data/soil_sitakunda.json';
 import soilDacope from './data/soil_dacope.json';
 import soilBakerganj from './data/soil_bakerganj.json';
@@ -39,22 +32,24 @@ import { loadSharedPlans, sendSharedPlan } from './engine/sharedPlans.js';
 import { loadMessages, postMessage } from './engine/sharedMessages.js';
 import { PLAN_SEASON } from './engine/climate.js';
 
-// One NASA POWER record per upazila. `clim` and `tm` (Godagari) stay for the public pages; farmer and officer screens
-// read their own upazila's from the store (useStore().clim / .tm / .officerClim).
+// One NASA POWER record per upazila (60–100 KB each over the wire), fetched only when a page needs it: Godagari before
+// the first screen (the default farmer and the public pages' `clim` / `tm`), any other upazila when a farmer or officer
+// there is chosen, and all seven when the climate comparison scrolls into view. Farmer and officer screens read their
+// own upazila's from the store (useStore().clim / .tm / .officerClim).
 // Temperatures are corrected to the nearest BMD station's normals first (see stationCorrect in engine/climate.js).
-export const climates = {
-  godagari: makeClimate(stationCorrect(climGodagari, normals.stations.godagari)),
-  dhamrai: makeClimate(stationCorrect(climDhamrai, normals.stations.dhamrai)),
-  sitakunda: makeClimate(stationCorrect(climSitakunda, normals.stations.sitakunda)),
-  dacope: makeClimate(stationCorrect(climDacope, normals.stations.dacope)),
-  bakerganj: makeClimate(stationCorrect(climBakerganj, normals.stations.bakerganj)),
-  gangachara: makeClimate(stationCorrect(climGangachara, normals.stations.gangachara)),
-  gowainghat: makeClimate(stationCorrect(climGowainghat, normals.stations.gowainghat)),
-};
-export const clim = climates.godagari;
-export const tm = timeMachine(clim);
+const CLIMATE_FILES = import.meta.glob('./data/climate_*.json', { import: 'default' });
+export const climates = {};
+const loading = {};
+export function loadClimate(id) {
+  if (climates[id]) return Promise.resolve(climates[id]);
+  if (!CLIMATE_FILES[`./data/climate_${id}.json`]) return Promise.reject(new Error(`no climate file for ${id}`));
+  return (loading[id] ??= CLIMATE_FILES[`./data/climate_${id}.json`]().then((j) => (climates[id] = makeClimate(stationCorrect(j, normals.stations[id])))));
+}
+export let clim = null; // Godagari, set by bootClimate() before the app first renders
+export let tm = null;
 // Each upazila's 25-season summary is worked out the first time a page asks for it, not for every upazila on start.
-const tmCache = { godagari: tm };
+const tmCache = {};
+export const bootClimate = () => loadClimate('godagari').then((c) => { clim = c; tm = tmCache.godagari = timeMachine(c); });
 export const tms = new Proxy(tmCache, { get: (o, k) => (k in o || typeof k !== 'string' || !climates[k] ? o[k] : (o[k] = timeMachine(climates[k]))) });
 // Soil: ISRIC SoilGrids at every union centre and registered field, and SRDI's fertilizer advice per union (all REAL).
 export const soilData = { provenance: soilGodagari.provenance, unions: Object.assign({}, ...[soilGodagari, soilDhamrai, soilSitakunda, soilDacope, soilBakerganj, soilGangachara, soilGowainghat].map((x) => x.unions)) };
@@ -205,9 +200,16 @@ export function StoreProvider({ children }) {
   }, [unionSoil, activeParcel, farmer.lat, farmer.lon, farmer.union, srdiUnion]);
   // The farmer's upazila (from their union) sets the climate and neighbours they are planned against.
   const upazila = upazilaOfUnion(farmer.union);
-  const fclim = climates[upazila.id];
   const officerUpazila = UPAZILAS[s.officerUpazila] ?? UPAZILAS.godagari;
-  const officerClim = climates[officerUpazila.id];
+  // Until another upazila's climate has arrived, the figures are worked on Godagari's and nothing is shown (below).
+  const [, climateArrived] = useState(0);
+  const climReady = !!climates[upazila.id] && !!climates[officerUpazila.id];
+  useEffect(() => {
+    if (climReady) return;
+    Promise.all([loadClimate(upazila.id), loadClimate(officerUpazila.id)]).then(() => climateArrived((n) => n + 1), () => climateArrived((n) => n + 1));
+  }, [climReady, upazila.id, officerUpazila.id]);
+  const fclim = climates[upazila.id] ?? clim;
+  const officerClim = climates[officerUpazila.id] ?? clim;
 
   // Every confirmed plan: all users' from the shared board, with this browser's own on top (it may not have synced yet).
   const confirmedAll = useMemo(() => {
@@ -330,7 +332,7 @@ export function StoreProvider({ children }) {
     myAdvisories, unreadMsgs, unreadAdvisories: unreadMsgs.length, markSeen: (ids) => dispatch({ type: 'markSeen', id: farmer.id, ids: ids ?? myAdvisories.map((a) => a.id) }), confirmedPlan, landConfirmed,
     parcels, myParcels, activeParcel, srdiUnion, econ, shared: s.shared, refreshShared, confirmPlan, confirmedAll,
   };
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={value}>{climReady ? children : <div className="grid min-h-[60vh] place-items-center text-[15px] text-muted" role="status">{s.lang === 'bn' ? 'নাসার আবহাওয়ার তথ্য আসছে…' : 'Loading NASA weather data…'}</div>}</Ctx.Provider>;
 }
 
 export const useStore = () => useContext(Ctx);

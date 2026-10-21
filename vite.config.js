@@ -122,10 +122,24 @@ const devDoctorApi = (env) => ({
   },
 });
 
+// The upazila climate files keep every NASA POWER series that was fetched (humidity and solar radiation too), but the
+// app reads only temperature and rain from them, so the built site leaves the other two out: about 40 KB less over the
+// wire for each of Godagari and Dhamrai. The committed files are unchanged.
+const CLIMATE_IN_APP = new Set(['provenance', 'start', 'tmax', 'tmin', 'prec', 'prec_imerg']);
+const slimClimate = () => ({
+  name: 'slim-climate',
+  enforce: 'pre',
+  transform(code, id) {
+    if (!/[\\/]src[\\/]data[\\/]climate_[a-z]+\.json$/.test(id)) return null;
+    const j = JSON.parse(code);
+    return { code: JSON.stringify(Object.fromEntries(Object.entries(j).filter(([k]) => CLIMATE_IN_APP.has(k)))), map: null };
+  },
+});
+
 // npm run build        -> static site in dist/ (hash routing, works on any static host)
 // npm run build:single -> one self-contained dist-single/index.html for sharing
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), brandHtml(), dropGitHistory(), devPlansApi(), devMessagesApi(), devAbroadApi(), devDoctorApi(loadEnv(mode, process.cwd(), '')), ...(mode === 'single' ? [viteSingleFile()] : [])],
+  plugins: [slimClimate(), react(), tailwindcss(), brandHtml(), dropGitHistory(), devPlansApi(), devMessagesApi(), devAbroadApi(), devDoctorApi(loadEnv(mode, process.cwd(), '')), ...(mode === 'single' ? [viteSingleFile()] : [])],
   base: './',
   build: mode === 'single' ? { outDir: 'dist-single', chunkSizeWarningLimit: 6000 } : { chunkSizeWarningLimit: 1500 },
 }));

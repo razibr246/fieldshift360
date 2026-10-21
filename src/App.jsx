@@ -1,9 +1,6 @@
 import { Component, lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
-import FarmerLayout from './layouts/FarmerLayout';
-import OfficerLayout from './layouts/OfficerLayout';
-import AbroadLayout from './layouts/AbroadLayout';
 import Home from './pages/public/Home';
 import { WhyDrawer, DataInfo, Toast } from './components/Overlays';
 import { MotionManager } from './components/Motion';
@@ -14,6 +11,10 @@ import DemoTour from './components/DemoTour';
 // offline cache hold every page.
 const loaders = [];
 const load = (f, pick) => { loaders.push(f); return lazy(() => f().then((m) => (pick ? { default: m[pick] } : m))); };
+// the farmer, officer and neighbouring-country shells too: the landing page needs none of them (or their charts)
+const FarmerLayout = load(() => import('./layouts/FarmerLayout'));
+const OfficerLayout = load(() => import('./layouts/OfficerLayout'));
+const AbroadLayout = load(() => import('./layouts/AbroadLayout'));
 const Login = load(() => import('./pages/public/Login'));
 const Play = load(() => import('./pages/public/Play'));
 const Games = load(() => import('./pages/public/Games'));
@@ -104,7 +105,7 @@ export default function App() {
       <Routes>
         <Route element={<PublicLayout />}><Route path="/" element={<Home />} /><Route path="/play" element={page(<Play />)} /><Route path="/games" element={page(<Games />)} /><Route path="/farm" element={page(<FarmGame />)} /><Route path="/stories" element={page(<Stories />)} /><Route path="/stories/:id" element={page(<StoryLevel />)} /></Route>
         <Route path="/login" element={page(<Login />)} />
-        <Route path="/farmer" element={<FarmerLayout />}>
+        <Route path="/farmer" element={page(<FarmerLayout />)}>
           <Route index element={page(<FarmerDashboard />)} />
           <Route path="plan" element={page(<Plan />)} />
           <Route path="today" element={page(<Today />)} />
@@ -116,7 +117,7 @@ export default function App() {
           <Route path="farm" element={page(<MyFarm />)} />
           <Route path="voice" element={page(<FarmerVoice />)} />
         </Route>
-        <Route path="/officer" element={<OfficerLayout />}>
+        <Route path="/officer" element={page(<OfficerLayout />)}>
           <Route index element={page(<OfficerDashboard />)} />
           <Route path="requests" element={page(<Requests />)} />
           <Route path="requests/:id" element={page(<RequestDetail />)} />
@@ -131,7 +132,7 @@ export default function App() {
           <Route path="radar" element={page(<Radar />)} />
           <Route path="radar-original" element={page(<RadarOriginal />)} />
         </Route>
-        <Route path="/abroad/:cc" element={<AbroadLayout />}>
+        <Route path="/abroad/:cc" element={page(<AbroadLayout />)}>
           <Route index element={page(<AbHome />)} />
           <Route path="field" element={page(<AbField />)} />
           <Route path="plan" element={page(<AbPlan />)} />

@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { useStore, climates, tms } from '../../store';
+import { useStore, climates, tms, loadClimate } from '../../store';
 import { Tags } from '../ui';
 import Photo from '../Photo';
 import { TM_METRICS, THEN, NOW } from '../../engine/climate';
@@ -57,7 +57,15 @@ function Spark({ m, k }) {
   );
 }
 
+// The seven upazilas' climate files load when this section is first shown (LazyMount on the Home page).
 export default function ClimateShift() {
+  const [bdReady, setBdReady] = useState(() => BD.every((id) => climates[id]));
+  useEffect(() => { if (!bdReady) Promise.all(BD.map(loadClimate)).then(() => setBdReady(true), () => {}); }, [bdReady]);
+  if (!bdReady) return <section className="py-16 sm:py-20"><div className="page-shell"><div className="skeleton min-h-[620px] rounded-[26px]" aria-hidden="true" /></div></section>;
+  return <ClimateShiftView />;
+}
+
+function ClimateShiftView() {
   const { s, T, L } = useStore();
   const lang = s.lang;
   const [country, setCountry] = useState('bangladesh');
