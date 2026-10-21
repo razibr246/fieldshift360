@@ -48,10 +48,10 @@ export default function Home() {
               <span className="block">{T('ঠিক ফসল।', 'The right crop.')}</span>
               <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('ঠিক সময়ে।', 'At the right time.')}</span>
             </h1>
-            {/* the problem, the users, the NASA data and the two-region contrast, in two sentences */}
+            {/* the problem, the users and the NASA data, in two sentences; no single place is named here */}
             <p className="mt-5 max-w-[34rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
-              {T(<>খরাপ্রবণ বরেন্দ্রের <span className="font-medium text-ink">গোদাগাড়ী</span> আর নিচু, বন্যাপ্রবণ <span className="font-medium text-ink">ধামরাইয়ের</span> ক্ষুদ্র কৃষকের জন্য: <span className="font-medium text-ink">নাসা পাওয়ারের ২৫ মৌসুমের আবহাওয়া, জিপিএম আইমার্জের বৃষ্টি</span>, মাটি আর ফসলের চাহিদা মিলিয়ে {PROJECT_NAME} বলে — একই ফসল রাখুন, সময় বদলান, না অন্য ফসলে যান। ইউনিয়ন ও উপজেলার কৃষি কর্মকর্তারা একই হিসাব দেখে উত্তর দেন।</>,
-                <>For smallholders in drought-prone <span className="font-medium text-ink">Godagari</span> on the Barind and low-lying, flood-prone <span className="font-medium text-ink">Dhamrai</span>: {PROJECT_NAME} weighs <span className="font-medium text-ink">25 seasons of NASA POWER weather and GPM IMERG rain</span> with soil and crop needs to say whether to keep, adjust or shift a crop. Union and upazila agriculture officers answer from the same numbers.</>)}
+              {T(<>খরা আর বন্যার ঝুঁকিতে থাকা বাংলাদেশের <span className="font-medium text-ink">ক্ষুদ্র কৃষকের</span> জন্য: <span className="font-medium text-ink">নাসা পাওয়ারের ২৫ মৌসুমের আবহাওয়া, জিপিএম আইমার্জের বৃষ্টি</span>, মাটি আর ফসলের চাহিদা মিলিয়ে {PROJECT_NAME} বলে — একই ফসল রাখুন, সময় বদলান, না অন্য ফসলে যান। ইউনিয়ন ও উপজেলার কৃষি কর্মকর্তারা একই হিসাব দেখে উত্তর দেন।</>,
+                <>For Bangladesh's <span className="font-medium text-ink">smallholder farmers</span> facing drought and floods: {PROJECT_NAME} weighs <span className="font-medium text-ink">25 seasons of NASA POWER weather and GPM IMERG rain</span> with soil and crop needs to say whether to keep, adjust or shift a crop. Union and upazila agriculture officers answer from the same numbers.</>)}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button to="/farmer/plan" className="btn-gloss !rounded-full px-6 py-3 text-[16px]"><Sprout size={19} />{T('আমার জমির হিসাব দেখুন', 'Work out my field')}</Button>
