@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy, Clapperboard } from 'lucide-react';
 import { Button, Tags, LABEL_STYLE, ScoreRing, climateTag } from '../../components/ui';
 import BrandMark from '../../components/brand/BrandMark';
 import { IMAGES } from '../../assets/images';
@@ -14,11 +14,13 @@ const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
 import ClimateShift from '../../components/charts/ClimateShift';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
 import { useStore } from '../../store';
+import { startTour } from '../../components/DemoTour';
 import { num, fmtDate, fmtBangla } from '../../engine/dates';
 import { PROJECT_NAME, PROJECT_TAGLINE, PROJECT_EVENT } from '../../config/brand';
 
 export default function Home() {
-  const { s, T, L, decision: d } = useStore();
+  const { s, T, L, decision: d, dispatch } = useStore();
+  const navigate = useNavigate();
   const lang = s.lang;
   const st = LABEL_STYLE[d.label];
   const gallery = useHeroGallery();
@@ -45,13 +47,15 @@ export default function Home() {
               <span className="block">{T('ঠিক ফসল।', 'The right crop.')}</span>
               <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('ঠিক সময়ে।', 'At the right time.')}</span>
             </h1>
-            <p className="mt-5 max-w-[33rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
-              {T(<>আপনার জমির মাটি, <span className="font-medium text-ink">২৫ বছরের নাসার আবহাওয়া</span> আর পাশের কৃষকেরা কী লাগাচ্ছেন — সব মিলিয়ে {PROJECT_NAME} বলে দেয় কোন ফসল, কবে লাগালে <span className="font-medium text-ink">লাভ বেশি, ঝুঁকি কম</span>।</>,
-                <>Your soil, <span className="font-medium text-ink">25 years of NASA weather</span> and what your neighbours are planting — {PROJECT_NAME} weighs it all and tells you which crop to sow, and when, for <span className="font-medium text-ink">more profit and less risk</span>.</>)}
+            {/* the problem, the users, the NASA data and the two-region contrast, in two sentences */}
+            <p className="mt-5 max-w-[34rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
+              {T(<>খরাপ্রবণ বরেন্দ্রের <span className="font-medium text-ink">গোদাগাড়ী</span> আর নিচু, বন্যাপ্রবণ <span className="font-medium text-ink">ধামরাইয়ের</span> ক্ষুদ্র কৃষকের জন্য: <span className="font-medium text-ink">নাসা পাওয়ারের ২৫ মৌসুমের আবহাওয়া, জিপিএম আইমার্জের বৃষ্টি</span>, মাটি আর ফসলের চাহিদা মিলিয়ে {PROJECT_NAME} বলে — একই ফসল রাখুন, সময় বদলান, না অন্য ফসলে যান। ইউনিয়ন ও উপজেলার কৃষি কর্মকর্তারা একই হিসাব দেখে উত্তর দেন।</>,
+                <>For smallholders in drought-prone <span className="font-medium text-ink">Godagari</span> on the Barind and low-lying, flood-prone <span className="font-medium text-ink">Dhamrai</span>: {PROJECT_NAME} weighs <span className="font-medium text-ink">25 seasons of NASA POWER weather and GPM IMERG rain</span> with soil and crop needs to say whether to keep, adjust or shift a crop. Union and upazila agriculture officers answer from the same numbers.</>)}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button to="/farmer/plan" className="btn-gloss !rounded-full px-6 py-3 text-[16px]"><Sprout size={19} />{T('আমার জমির হিসাব দেখুন', 'Work out my field')}</Button>
               <Button to="/officer" variant="ghost" className="glass-pill !rounded-full px-6 py-3 text-[16px]"><ShieldCheck size={19} />{T('কৃষি কর্মকর্তার পাতা', 'Officer view')}</Button>
+              <button type="button" onClick={() => startTour(dispatch, navigate)} className="glass-pill inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-primary-800"><Clapperboard size={19} />{T('৩ মিনিটের ডেমো গল্প', '3-minute demo story')}</button>
             </div>
             <HeroGalleryPill gallery={gallery} />
           </div>
@@ -77,7 +81,7 @@ export default function Home() {
       <Suspense fallback={<section className="py-16 sm:py-20"><div className="page-shell min-h-[760px]" /></section>}><CountryCrops /></Suspense>
 
       {/* Climate risk: the drought/flood split photo beside 25 seasons of NASA data for Godagari or Dhamrai. */}
-      <ClimateShift />
+      <div id="climate-shift" className="scroll-mt-20"><ClimateShift /></div>
       <NeighbourPhotos />
 
       {/* How it works: a real sequence, so it is numbered. */}
