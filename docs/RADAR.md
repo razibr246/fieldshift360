@@ -9,7 +9,7 @@ an assumption.
 | --- | --- | --- | --- |
 | Daily rain | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT) through the NASA POWER API, at each upazila's point | 2001 – Oct 2026 | Real. Rain after 2025 is IMERG's early satellite-only estimate and is marked provisional |
 | Rain onset date per year (Godagari, Dhamrai) | Computed from that rain by `pipeline/onset/onset.mjs`, rule below | 2001 – 2026 | Real data, **assumed rule** (to be validated) |
-| Aman transplanting date per season | Copernicus Sentinel-1 RTC radar (VH), every pass 15 Apr – 31 Oct, 36 sample cropland fields per upazila (`scripts/data/build_aman_radar.mjs`) | 2017 – 2026, Rajshahi and Dhaka districts | Real. A date is given only when at least 6 fields show the signal |
+| Aman transplanting date per season | Copernicus Sentinel-1 RTC radar (VH), every pass 15 Apr – 31 Oct, 36 sample cropland fields per upazila (`scripts/data/build_aman_radar.mjs`) | 2017 – 2026, all 67 rural upazilas of the seven districts (Rajshahi, Dhaka, Chattogram, Khulna, Barishal, Rangpur, Sylhet) | Real. A date is given only when at least 6 fields show the signal |
 | Drought and flood hazards | IMERG rain indices (SPI, dry spells, heavy-rain days) and Sentinel-1 water | 2001/2017 – 2026 | Real data, WMO and agronomic rules |
 
 Transplanting is measured, not planned: Sentinel-1 radar sees a field's backscatter drop when it is flooded for
@@ -49,8 +49,10 @@ What this says: the rains set in about two weeks later in Godagari than in Dhamr
 significant shift over 25 years. POWER's own rain (a reanalysis product) suggests an earlier onset in Godagari; the two
 products disagree, so the app shows IMERG as the main series and POWER alongside, and makes no trend claim.
 
-The same rule runs for all seven of the app's upazilas (one per division); the radar page's place buttons switch between
-them. Their usual onset (IMERG median, 2001–2025): Gowainghat 26 April, Gangachara 10 May, Dhamrai 12 May, Dacope
+The same rule runs for all seven of the app's upazilas (one per division), and the radar build
+(`scripts/data/build_aman_radar.mjs`) applies it to the IMERG rain at every other upazila it covers, so each of the 67
+upazilas has its own onset card. An officer sees every upazila of their own district, in alphabetical order, and no
+other district's. Their usual onset (IMERG median, 2001–2025): Gowainghat 26 April, Gangachara 10 May, Dhamrai 12 May, Dacope
 17 May, Sitakunda 18 May, Bakerganj 25 May, Godagari 29 May; none shows a significant trend.
 
 Outputs: `src/data/onset_<upazila>.json` (year, onset date, day of year, final or provisional, for each source; the
@@ -78,6 +80,14 @@ This has not been run yet (no Earthdata credentials in this environment).
 seed 42) to show the idea. None of its numbers are used in the app. It is reachable only from the "open the synthetic
 demo" link in the radar page's method notes, which labels it as synthetic. Run it standalone with
 `python public/radar/serve.py`.
+
+### Where the radar has no date
+
+An upazila gets no transplanting date in a season when fewer than 6 of its 36 sample fields show the flood-then-grow
+signal. Two have no usual date at all (2017–2025): Paikgachha (Khulna), where much of the low land is in shrimp
+ponds, and Agailjhara (Barishal). The page says so rather than guessing. Union names in the upazilas added for the
+radar are geoBoundaries' English names (no checked Bangla spelling yet), and Hizla's map has only the two unions
+geoBoundaries carries.
 
 ## Refreshing the real data
 
