@@ -52,9 +52,9 @@ function RadarPage() {
 
   return (
     <div>
-      <PageHeader eyebrow={T(`রোপণ রাডার · বৃষ্টি ও আমন রোপণ · ${district.bn} জেলা`, `Ropan Radar · Rain and Aman planting · ${district.en} district`)}
-        title={T(`${row.bn}: এবার আমন রোপণ সময়মতো হচ্ছে কি?`, `${row.en}: is Aman transplanting on time this year?`)}
-        subtitle={T('মেঘের নিচেও সেন্টিনেল-১ রাডার দেখে কোন জমিতে কবে পানি দিয়ে চারা রোপণ হলো; নাসার জিপিএম আইমার্জ উপগ্রহ মাপে বৃষ্টি। প্রতিটি উপজেলাকে তার নিজের গত বছরগুলোর সঙ্গে মেলানো হয়; নিচে জেলার অন্য উপজেলার সঙ্গে তুলনা।', 'Sentinel-1 radar sees through monsoon cloud when each field is flooded and transplanted; NASA’s GPM IMERG satellites measure the rain. Each upazila is compared with its own past seasons, and with the rest of the district below.')}
+      <PageHeader eyebrow={T(`রোপণ রাডার · বৃষ্টি ও ফসল রোপণ · ${district.bn} জেলা`, `Ropan Radar · Rain and crop planting · ${district.en} district`)}
+        title={T(`${row.bn}: এবার ফসল রোপণ সময়মতো হচ্ছে কি?`, `${row.en}: is planting on time this year?`)}
+        subtitle={T('মেঘের নিচেও সেন্টিনেল-১ রাডার দেখে কোন জমিতে কবে পানি দিয়ে চারা রোপণ হলো (এখন বর্ষার আমন ধান মাপা হয়, কারণ রোপণের সময় জমিতে পানি থাকে); নাসার জিপিএম আইমার্জ উপগ্রহ মাপে বৃষ্টি। প্রতিটি উপজেলাকে তার নিজের গত বছরগুলোর সঙ্গে মেলানো হয়; নিচে জেলার অন্য উপজেলার সঙ্গে তুলনা।', 'Sentinel-1 radar sees through monsoon cloud when each field is flooded and transplanted (it measures monsoon Aman rice for now, because its fields stand in water at planting); NASA’s GPM IMERG satellites measure the rain. Each upazila is compared with its own past seasons, and with the rest of the district below.')}
         tags={['REAL', 'RULE']} />
 
       <div className="mb-5 flex flex-wrap gap-2 text-[12.5px]">

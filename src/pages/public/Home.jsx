@@ -238,7 +238,7 @@ export default function Home() {
           </div>
           <div data-reveal style={{ '--d': '120ms' }} className="lift glass flat rounded-[26px] p-7">
             <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary-50 text-primary-700"><RadarIcon size={24} /></span>
-            <h2 className="mt-4 text-[28px] font-bold">{T('এবার আমন রোপণ সময়মতো হচ্ছে কি?', 'Is Aman transplanting on time this year?')}</h2>
+            <h2 className="mt-4 text-[28px] font-bold">{T('এবার ফসল রোপণ সময়মতো হচ্ছে কি?', 'Is planting on time this year?')}</h2>
             <p className="mt-2 text-[16px] leading-8 text-muted">{T('রবির হিসাব নাসা পাওয়ার থেকে। বর্ষার আমনে মেঘের নিচেও সেন্টিনেল-১ রাডার দেখে কোন জমিতে কবে চারা রোপণ হলো, আর নাসা আইমার্জের বৃষ্টির সঙ্গে মিলিয়ে দেখায় এবার কোন উপজেলা দেরিতে। রাজশাহী আর ঢাকা জেলার প্রতিটি গ্রামীণ উপজেলার আসল উপগ্রহ তথ্য, ২০১৭ থেকে চলতি মৌসুম পর্যন্ত।', 'Rabi planning uses NASA POWER. For monsoon Aman, Sentinel-1 radar sees through cloud when each field is transplanted, and NASA IMERG rain shows the season behind it, so you can see which upazila is late this year. Real satellite data for every rural upazila of Rajshahi and Dhaka districts, 2017 to the current season.')}</p>
             <div className="mt-5 flex flex-wrap gap-3"><Button to="/officer/radar"><RadarIcon size={17} />{T('রোপণ রাডার দেখুন', 'Open Ropan Radar')}</Button></div>
           </div>
