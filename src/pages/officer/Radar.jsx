@@ -30,7 +30,8 @@ function RadarPage() {
   const view = canOpen(params.get('u')) ? params.get('u') : home;
   const dId = districtOf(view);
   const district = AMAN.districts[dId];
-  const openable = district.upazilas.filter((u) => hasGeo(u.id)).sort((a, b) => (b.id === home) - (a.id === home));
+  // the district's upazilas one after another in alphabetical order (Bangla order in Bangla), the officer's own marked
+  const openable = district.upazilas.filter((u) => hasGeo(u.id)).sort((a, b) => L(a).localeCompare(L(b), lang === 'bn' ? 'bn' : 'en'));
   // a radar-only upazila's map arrives when it is opened
   const [, geoArrived] = useState(0);
   useEffect(() => { if (!GEO[view]) loadGeo(view).then(() => geoArrived((n) => n + 1), () => {}); }, [view]);
