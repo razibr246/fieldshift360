@@ -80,7 +80,7 @@ export default function OfficerDashboard() {
                     <div className="min-w-0"><div className="flex items-center gap-1.5"><span className="truncate text-[15px] font-bold">{L(f?.name)}</span>{r.mine && <Badge tone="blue">{T('নতুন', 'New')}</Badge>}</div><div className="mt-0.5 text-[13px] text-muted">{cropName(r.crop, lang)}, {lang === 'bn' ? r.villageBn : r.village}, {ageLabel(r.created, T)}</div></div>
                     <Badge tone={r.status === 'open' ? PRIORITY[r.priority].tone : 'green'}>{r.status === 'open' ? L(PRIORITY[r.priority]) : T('উত্তর দেওয়া', 'Answered')}</Badge>
                   </div>
-                  <p className="mt-2 text-[14px] text-ink/75">{L(SYMPTOMS[r.symptom])}{r.ai ? T(`। ছবি দেখে মনে হচ্ছে: ${aiLabel(r.ai[0]).bn} (${num(r.ai[0].p * 100, 'bn')}%)`, `. Photo suggests: ${aiLabel(r.ai[0]).en.toLowerCase()} (${num(r.ai[0].p * 100, 'en')}%)`) : ''}</p>
+                  <p className="mt-2 text-[14px] text-ink/75">{L(SYMPTOMS[r.symptom])}{r.ai ? T(`। ছবি দেখে মনে হচ্ছে: ${aiLabel(r.ai[0]).bn} (${num(r.ai[0].p * 100, 'bn')}%)${r.doctor ? '' : ' — নমুনা অনুমান'}`, `. Photo suggests: ${aiLabel(r.ai[0]).en.toLowerCase()} (${num(r.ai[0].p * 100, 'en')}%)${r.doctor ? '' : ' — sample guess'}`) : ''}</p>
                 </Link>
               );
             })}

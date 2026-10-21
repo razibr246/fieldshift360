@@ -459,7 +459,9 @@ function officerTurn(text, raw, snap, session, intent) {
       if (idMatch) r = a.open.find((x) => x.id.toLowerCase() === `r${idMatch[1]}`) ?? r;
       if (!r) return out(session, T('এখন কোনো খোলা অনুরোধ নেই।', 'No open request to read.'));
       session.focusRequest = r.id;
-      const ai = r.aiGuess ? T(` ছবি দেখে এআই বলছে: ${L(r.aiGuess, lang)}, নিশ্চয়তা ${num(r.aiGuess.pct, lang)} শতাংশ। এটা শুধু ইঙ্গিত, আপনার সিদ্ধান্তই চূড়ান্ত।`, ` The photo model suggests: ${L(r.aiGuess, lang)}, ${r.aiGuess.pct} percent sure. It is only a hint; your call is final.`) : '';
+      const ai = !r.aiGuess ? '' : r.aiGuess.sample
+        ? T(` এটা নমুনা অনুরোধ; এতে ছবির একটা নমুনা অনুমান আছে (${L(r.aiGuess, lang)}), আসল এআই-এর ফল নয়।`, ` This is a sample request; it carries a sample photo guess (${L(r.aiGuess, lang)}), not a real AI result.`)
+        : T(` ছবি দেখে এআই বলছে: ${L(r.aiGuess, lang)}, নিশ্চয়তা ${num(r.aiGuess.pct, lang)} শতাংশ। এটা শুধু ইঙ্গিত, আপনার সিদ্ধান্তই চূড়ান্ত।`, ` The photo model suggests: ${L(r.aiGuess, lang)}, ${r.aiGuess.pct} percent sure. It is only a hint; your call is final.`);
       const draft = L(r.draft, lang);
       session.state = { kind: 'confirm_reply', id: r.id, text: draft };
       return out(session, T(`${L(r.farmer, lang)}, ${L(r.village, lang)}, ${L(r.crop, lang)}। ${L(r.symptom, lang)}। কৃষক বলছেন: ${clip(L(r.text, lang), 180)}।${ai} আমার খসড়া উত্তর: ${clip(draft, 230)} এটা পাঠাব? নিজের কথায় উত্তর দিতে চাইলে সেটাই বলুন।`, `${L(r.farmer, lang)}, ${L(r.village, lang)}, ${L(r.crop, lang)}. ${L(r.symptom, lang)}. The farmer says: ${clip(L(r.text, lang), 180)}.${ai} My draft reply: ${clip(draft, 230)} Shall I send it? Or just say your own reply.`), { chips: T(['হ্যাঁ, পাঠান', 'আরও ছবি চান', 'উপজেলা অফিসারকে জানান'], ['Yes, send', 'Ask for more photos', 'Tell the upazila officer']) });

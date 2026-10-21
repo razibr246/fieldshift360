@@ -45,7 +45,7 @@ export default function Requests() {
                   <div className="flex flex-wrap items-center gap-1.5"><span className="text-[15.5px] font-bold">{L(f?.name)}</span><Badge tone={PRIORITY[r.priority].tone}>{L(PRIORITY[r.priority])}</Badge>{r.status !== 'open' && <Badge tone={REQ_STATUS[r.status].tone}>{L(REQ_STATUS[r.status])}</Badge>}{r.mine && <Badge tone="blue">{T('নতুন', 'New')}</Badge>}{r.visit && <Badge tone="violet">{T('জমিতে যাবেন', 'Visit')}</Badge>}</div>
                   <p className="mt-0.5 text-[13px] text-muted">{cropName(r.crop, lang)}, {lang === 'bn' ? r.villageBn : r.village}, {ageLabel(r.created, T)}</p>
                   <p className="mt-1 truncate text-[14.5px] text-ink/80">{L(SYMPTOMS[r.symptom])}: {L(r.text)}</p>
-                  {r.ai && <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-violet-700">{T(`ছবি দেখে: ${aiLabel(r.ai[0]).bn}, ${num(r.ai[0].p * 100, 'bn')}%`, `Photo suggests: ${aiLabel(r.ai[0]).en.toLowerCase()}, ${num(r.ai[0].p * 100, 'en')}%`)} <Tags list={['DEMO']} /></p>}
+                  {r.ai && <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-violet-700">{T(`ছবি দেখে: ${aiLabel(r.ai[0]).bn}, ${num(r.ai[0].p * 100, 'bn')}%`, `Photo suggests: ${aiLabel(r.ai[0]).en.toLowerCase()}, ${num(r.ai[0].p * 100, 'en')}%`)} <Tags list={[r.doctor ? 'AI' : 'DEMO']} /></p>}
                 </div>
                 <ChevronRight size={18} className="shrink-0 text-muted" />
               </Link>

@@ -220,3 +220,10 @@ test('the officer’s radar answer says when the rains set in, from the real ons
   const en = ask('Ropan Radar', snap, createSession({ role: 'saao', lang: 'en' }));
   assert.ok(/rains usually set in|বৃষ্টি টানা/.test(en.say));
 });
+
+test('a sample request’s photo guess is called a sample, never a real AI result', () => {
+  const snap = osnap('saao');
+  const r = Object.values(snap).flatMap((v) => (v && Array.isArray(v.open) ? v.open : [])).find((x) => x.aiGuess);
+  assert.ok(r, 'a sample request with a guess exists');
+  assert.equal(r.aiGuess.sample, true);
+});

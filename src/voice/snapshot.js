@@ -118,7 +118,7 @@ export function officerSnapshot(ctx, role, { clim, soilData, templateFn, advisor
     return {
       id: r.id, farmerId: r.farmerId, farmer: fm?.name ?? { bn: r.farmerId, en: r.farmerId }, village: { bn: r.villageBn, en: r.village }, crop: { bn: cropName(r.crop, 'bn'), en: cropName(r.crop, 'en') },
       symptom: sy, priority: r.priority, status: r.status, ageDays: daysBetween(r.created, today), text: r.text, mine: !!r.mine,
-      aiGuess: r.ai ? { ...aiLabel(r.ai[0]), pct: Math.round(r.ai[0].p * 100) } : null,
+      aiGuess: r.ai ? { ...aiLabel(r.ai[0]), pct: Math.round(r.ai[0].p * 100), sample: !r.doctor } : null, // sample requests carry made-up guesses
       draft: { bn: templateFn(r, (bn) => bn), en: templateFn(r, (bn, en) => en) },
       escalation: { id: `REQ-${r.id}`, union: r.union, kind: 'request', text: { bn: `${fm?.name.bn} (${r.villageBn}): ${sy.bn}`, en: `${fm?.name.en} (${r.village}): ${sy.en.toLowerCase()}` }, at: today },
     };
