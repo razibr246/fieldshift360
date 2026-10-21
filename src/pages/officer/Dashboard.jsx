@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, UsersRound, LifeBuoy, BellRing, Sprout, TrendingDown, MapPinned } from 'lucide-react';
+import { ChevronRight, UsersRound, LifeBuoy, BellRing, Sprout, TrendingDown, MapPinned, ClipboardCheck } from 'lucide-react';
 import { useStore } from '../../store';
 import { PageHeader, StatCard, Card, Badge, Button, Tags, RISK_STYLE } from '../../components/ui';
 import MapView from '../../components/map/MapView';
@@ -95,6 +95,16 @@ export default function OfficerDashboard() {
           <div className="flex items-center gap-2"><Tags list={['RULE', 'DEMO']} /><Button to="/officer/planting" variant="secondary">{T('লাগানোর পালা দেখুন', 'Planting slots')}</Button></div>
         </div>
         <div className="mt-2"><SupplyChart bins={g.bins} normal={g.normal} dip={PRICE_DIP[crop]} height={210} /></div>
+      </Card>
+
+      {/* the rules behind every recommendation, for an officer to check */}
+      <Card className="mt-6 flex flex-wrap items-start gap-3 border-amber-200 bg-amber-50/70 p-5">
+        <ClipboardCheck size={22} className="mt-0.5 shrink-0 text-amber-700" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[17px] font-bold text-amber-950">{T('কর্মকর্তার যাচাই দরকার', 'Officer review needed')}</h2>
+          <p className="mt-1 text-[14px] leading-6 text-amber-900/85">{T('ফসলের গরম-বৃষ্টির সীমা, লাগানোর তারিখ, দাম পড়ার নিয়ম আর বৃষ্টি শুরুর নিয়ম এখনো শুরুর মান: সাধারণ কৃষিবিজ্ঞান থেকে নেওয়া, কোনো কৃষি কর্মকর্তা যাচাই করেননি। প্রতিটির উৎস আর কারণ এক তালিকায় আছে; ঠিক করে "যাচাই করেছেন" ঘরে নাম দিন।', 'The crop heat and rain limits, planting dates, the price-drop rule and the rain-onset rule are starting values from general agronomy that no agriculture officer has checked yet. Each one is listed with its basis; correct it and sign the “Reviewed by” column.')}</p>
+          <a href="https://github.com/razibr246/nasa-field-shift-360/blob/main/docs/THRESHOLDS.md" target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[14px] font-semibold text-amber-900 underline underline-offset-2">{T('সীমা ও নিয়মের তালিকা খুলুন', 'Open the thresholds list')}<ChevronRight size={15} /></a>
+        </div>
       </Card>
     </div>
   );
