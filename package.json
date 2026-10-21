@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:single": "vite build --mode single",
     "preview": "vite preview",
-    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/voice/voice.test.js src/game/sim.test.js",
+    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/voice/voice.test.js src/game/sim.test.js src/radar/onset.test.js",
     "fetch:power": "node scripts/fetch-power.mjs",
     "data:aman": "node scripts/data/build_aman_radar.mjs && node scripts/data/build_aman_hazards.mjs",
     "data:fields": "python3 scripts/data/build_field_watch.py",

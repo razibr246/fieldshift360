@@ -12,6 +12,7 @@ import { SeasonChart, RadarTimelapse, YearsStrip, RainTrend, DistrictMap, Progre
 import { AMAN, CAT, LATEST, SHIFT_DAYS, MIN_FIELDS, RAIN_FINAL_TO, THROUGH, catOf, districtOf, doyToMs, useAmanDetail } from '../../radar/aman';
 import { fmtDate, num } from '../../engine/dates';
 import { UPAZILAS } from '../../data/upazilas';
+import { onsetSummary } from '../../radar/onset';
 import { GEO } from '../../data/geo';
 
 // Ropan Radar: rain and Aman planting, from real satellites (scripts/data/build_aman_radar.mjs). An upazila officer sees their own
@@ -68,6 +69,7 @@ function RadarPage() {
       )}
 
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
+        ...(onsetSummary(view) ? [{ id: 'rd-onset', label: T('বৃষ্টি শুরু', 'Rain onset') }] : []),
         { id: 'rd-season', label: T('এই মৌসুম', 'This season') },
         { id: 'rd-story', label: T('জেলার গল্প', 'District story') },
         { id: 'rd-progress', label: T('অগ্রগতি ও বৃষ্টি', 'Progress and rain') },
@@ -79,8 +81,10 @@ function RadarPage() {
         { id: 'rd-method', label: T('পদ্ধতি', 'Method') },
       ]} />
 
-      {/* The season at a glance */}
-      <Card id="rd-season" className="p-5 sm:p-6">
+      {/* When the rains set in (Godagari and Dhamrai), then the season at a glance */}
+      <OnsetCard upazila={view} name={row} />
+
+      <Card id="rd-season" className={`${onsetSummary(view) ? 'mt-6 ' : ''}p-5 sm:p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="flex flex-wrap items-center gap-1.5 text-[13.5px] font-semibold text-primary-700"><MapPin size={14} />{T(`${row.bn} উপজেলা, ${district.bn} জেলা, ${district.division.bn} বিভাগ`, `${row.en} upazila, ${district.en} district, ${district.division.en} division`)}{mine ? <Badge tone="amber" className="ml-1">{T('আপনার উপজেলা', 'Your upazila')}</Badge> : <button type="button" onClick={() => setView(home)} className="ml-1 text-[12.5px] font-semibold text-paddy-700 underline-offset-2 hover:underline">{T(`← আপনার উপজেলা (${officerUpazila.name.bn})`, `← Your upazila (${officerUpazila.name.en})`)}</button>}</p>
@@ -223,7 +227,8 @@ function RadarPage() {
           <li>{T(`বৃষ্টি: নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি (নাসা পাওয়ার থেকে), ২০০১ থেকে। ${num(RAIN_FINAL_TO, 'bn').replace(/,/g, '')}-এর পরের বৃষ্টি অস্থায়ী: নাসা পাওয়ারের অন্য হিসাবের প্রায় অর্ধেক দেখাচ্ছে, তাই স্বাভাবিক আর ধারার হিসাবে রাখা হয়নি।`, `Rain: NASA/JAXA GPM IMERG daily rain (via NASA POWER), from 2001. Rain after ${RAIN_FINAL_TO} is provisional: it reads about half of NASA POWER's other estimate, so it is kept out of the normal and the trend.`)}</li>
           <li>{T('নমুনা জমি: প্রতি উপজেলায় ৩৬টি বিন্দু, যা সেন্টিনেল-২ ভূমি-ব্যবহার মানচিত্রে ২০১৭ ও ২০২৫ দুই বছরেই ফসলি জমি। ইউনিয়নের সীমানা বাংলাদেশ পরিসংখ্যান ব্যুরোর।', 'Sample fields: 36 points per upazila that are cropland in both 2017 and 2025 on the Sentinel-2 land-cover map. Union boundaries from the Bangladesh Bureau of Statistics.')}</li>
           <li>{T(`রোপণ ধরা হয় যখন সংকেত আগের চেয়ে অন্তত ৩ ডিবি নামে আর ৪৫ দিনের মধ্যে অন্তত ৪ ডিবি ওঠে। সব জমিতে ধরা পড়ে না: কিছু জমিতে আমন হয় না বা অন্য ফসল থাকে। অন্তত ${num(MIN_FIELDS, 'bn')}টি জমিতে ধরা পড়লে তবেই উপজেলার তারিখ বলা হয়। সকাল আর সন্ধ্যার পাসের কোণের পার্থক্য প্রতিটি জমির জন্য ঠিক করে নেওয়া হয়।`, `Transplanting is dated where the signal drops at least 3 dB and rises at least 4 dB within 45 days. Not every field shows it: some grow no Aman or another crop. An upazila date is given only when at least ${MIN_FIELDS} fields show it. The angle difference between morning and evening passes is corrected for each field.`)}</li>
-          <li>{T('বৃষ্টি শুরুর কোনো একটি তারিখ দেখানো হয় না: আসল বৃষ্টিতে প্রচলিত নিয়ম প্রায় প্রতি বছর ১ জুন বা প্রাক-বর্ষার ঝড়েই পূরণ হয়ে যায়, তাই তা আমনের জন্য অর্থবহ নয়।', 'No single rain-onset date is shown: on real rain the usual rule is met on 1 June or by pre-monsoon storms almost every year, so it says nothing about Aman.')}</li>
+          <li>{T('বৃষ্টি শুরু (শুধু গোদাগাড়ী ও ধামরাই): ১৫ এপ্রিলের পর প্রথম যে দিন থেকে ৫ দিনে এলাকার বর্ষার স্বাভাবিক ৫-দিনের বৃষ্টি নামে, পরের ৩০ দিনে ১০ দিনের শুকনো ফাঁক থাকে না আর অন্তত অর্ধেক মাসের বর্ষার বৃষ্টি আসে। এটা আমাদের ধরে নেওয়া নিয়ম, আবহাওয়া অধিদপ্তরের বর্ষা-আগমনের তারিখের সঙ্গে মিলিয়ে দেখা বাকি (docs/RADAR.md)। ১ জুনের পুরনো সহজ নিয়ম প্রায় প্রতি বছরই প্রথম দিনেই পূরণ হতো, তাই তা বাদ।', 'Rain onset (Godagari and Dhamrai only): the first day after 15 April that starts five days with the place’s usual monsoon five-day rain, with no ten-day dry gap and at least half a monsoon month’s rain in the next 30 days. This is our assumed rule, still to be checked against the Meteorological Department’s onset dates (docs/RADAR.md). The older simple 1 June rule was met on its first day almost every year, so it is not used.')}</li>
+          <li>{T('প্রথম রোপণ রাডারের প্রোটোটাইপ (রংপুর) পুরোটাই কৃত্রিম নমুনা তথ্যে বানানো, শুধু দেখানোর জন্য: ', 'The first Ropon Radar prototype (Rangpur) runs entirely on synthetic demo data, for illustration only: ')}<a href="/radar/" className="font-semibold text-primary-700 underline-offset-2 hover:underline">{T('কৃত্রিম ডেমো খুলুন', 'open the synthetic demo')}</a></li>
           <li>{T('বৃষ্টির ধারা: ম্যান-কেন্ডাল পরীক্ষা ও সেনের ঢাল; একই জেলার উপজেলাগুলোর জন্য বেনজামিনি-হকবার্গ সংশোধন (q = ০.১০)। "জোরালো" মানে সেই সংশোধনের পরও টেকে।', 'Rain trend: Mann-Kendall test and Sen’s slope, Benjamini-Hochberg corrected across a district’s upazilas (q = 0.10). "Significant" survives that correction.')}</li>
         </ul>
       </Card>
@@ -320,6 +325,51 @@ function progressText(detail, year, T, day) {
   return T(
     `${day(checkpoint)} নাগাদ নমুনা জমির ${num(now, 'bn')}%-এ রোপণ ধরা পড়েছে; আগের বছরগুলোতে এই সময়ে সাধারণত ${num(mid, 'bn')}%। (সব নমুনা জমিতে আমন হয় না, তাই রেখা ১০০%-এ পৌঁছায় না।)`,
     `By ${day(checkpoint)} transplanting was seen in ${now}% of the sample fields; in past years it was usually ${mid}% by then. (Not every sample field grows Aman, so the line never reaches 100%.)`,
+  );
+}
+
+// Rain onset in the officer's region, every year from 2001: when the rains set in, the usual date and the trend.
+function OnsetCard({ upazila, name }) {
+  const { s, T } = useStore();
+  const o = onsetSummary(upazila);
+  if (!o) return null;
+  const lang = s.lang;
+  const day = (y, doy) => fmtDate(doyToMs(y, doy), lang);
+  const usualDay = (doy) => fmtDate(doyToMs(2001, doy), lang);
+  const tr = o.trend;
+  const dec = (x, d) => { const t = x.toFixed(d); return lang === 'bn' ? t.replace(/\d/g, (c) => '০১২৩৪৫৬৭৮৯'[c]) : t; }; // decimals kept in both scripts
+  const W = 680, H = 190, P = { l: 52, r: 12, t: 12, b: 26 };
+  const ys = o.rows.map((r) => r.year), y0 = ys[0], y1 = ys[ys.length - 1];
+  const d0 = 105, d1 = 215; // 15 April .. 3 August
+  const X = (y) => P.l + ((y - y0) / (y1 - y0)) * (W - P.l - P.r);
+  const Y = (d) => P.t + ((Math.min(d1, Math.max(d0, d)) - d0) / (d1 - d0)) * (H - P.t - P.b);
+  const ticks = [[4, 15], [5, 1], [5, 15], [6, 1], [6, 15], [7, 1], [7, 15], [8, 1]].map(([m, d]) => Math.round((Date.UTC(2001, m - 1, d) - Date.UTC(2001, 0, 1)) / 864e5) + 1);
+  return (
+    <Card id="rd-onset" className="p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="flex items-center gap-2 text-[17px] font-bold"><CloudRain size={17} className="text-sky-700" />{T(`${name.bn}: বর্ষার বৃষ্টি কবে থেকে টানা নামে`, `${name.en}: when the rains set in`)}</h3>
+          <p className="mt-1 max-w-[70ch] text-[13.5px] leading-6 text-muted">{T('প্রতি বছরের বৃষ্টি শুরুর তারিখ, নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি থেকে, ২০০১ থেকে। ধূসর ফাঁপা বিন্দু: নাসা পাওয়ারের নিজস্ব বৃষ্টি-হিসাবে একই নিয়ম।', 'The date the rains set in each year, from NASA/JAXA GPM IMERG daily rain, since 2001. Hollow grey dots: the same rule on NASA POWER’s own rain estimate.')}</p>
+        </div>
+        <Tags list={['REAL', 'RULE']} />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <Stat icon={CalendarClock} tone="#2f8a8f" label={T('সাধারণত (২০০১–২০২৫-এর মধ্যমা)', 'Usually (2001–2025 median)')} value={usualDay(o.usual)} note={T(`সবচেয়ে আগে ${usualDay(o.earliest)}, সবচেয়ে দেরিতে ${usualDay(o.latestDoy)}`, `Earliest ${usualDay(o.earliest)}, latest ${usualDay(o.latestDoy)}`)} />
+        <Stat icon={CloudRain} tone="#2f8a8f" label={T('সর্বশেষ চূড়ান্ত বছর', 'Latest final year')} value={o.latest ? day(o.latest.year, o.latest.doy) : '—'} note={o.current ? T(`${num(o.current.year, 'bn').replace(/,/g, '')}: অস্থায়ী${o.current.doy ? `, এখন পর্যন্ত ${day(o.current.year, o.current.doy)}` : ''} — আইমার্জের চূড়ান্ত তথ্য কয়েক মাস পরে আসে`, `${o.current.year}: provisional${o.current.doy ? `, so far ${day(o.current.year, o.current.doy)}` : ''} — IMERG's final data arrives months later`) : ''} />
+        <Stat icon={TrendingUp} tone={tr.significant ? '#a8552a' : '#5d6a63'} label={T('২৫ বছরের ধারা', '25-year trend')} value={T(`প্রতি দশকে ${dec(Math.abs(tr.perDecade), 1)} দিন ${tr.perDecade > 0 ? 'দেরিতে' : tr.perDecade < 0 ? 'আগে' : ''}`, `${dec(Math.abs(tr.perDecade), 1)} days ${tr.perDecade > 0 ? 'later' : tr.perDecade < 0 ? 'earlier' : ''} per decade`)}
+          note={tr.significant ? T(`পরিসংখ্যানে জোরালো (p = ${dec(tr.p, 2)})`, `Statistically significant (p = ${dec(tr.p, 2)})`) : T(`পরিসংখ্যানে জোরালো নয় (p = ${dec(tr.p, 2)}); বছরে বছরে ওঠানামাই বেশি`, `Not statistically significant (p = ${dec(tr.p, 2)}); year-to-year swings dominate`)} />
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-4 w-full" role="img" aria-label={T('প্রতি বছরের বৃষ্টি শুরুর তারিখ', 'Rain-onset date each year')}>
+        {ticks.map((d) => <g key={d}><line x1={P.l} x2={W - P.r} y1={Y(d)} y2={Y(d)} stroke="#000" strokeOpacity=".07" /><text x={P.l - 6} y={Y(d) + 4} textAnchor="end" fontSize="10.5" fill="#5d6a63">{usualDay(d)}</text></g>)}
+        <line x1={P.l} x2={W - P.r} y1={Y(o.usual)} y2={Y(o.usual)} stroke="#2f8a8f" strokeDasharray="4 4" strokeOpacity=".7" />
+        {o.rows.map((r) => <g key={r.year}>
+          {r.power.doy != null && <circle cx={X(r.year)} cy={Y(r.power.doy)} r="4" fill="none" stroke="#8a948e" strokeWidth="1.4" />}
+          {r.imerg.doy != null && <circle cx={X(r.year)} cy={Y(r.imerg.doy)} r="5" fill={r.imerg.complete ? '#2f8a8f' : '#ffffff'} stroke="#2f8a8f" strokeWidth="1.6"><title>{`${r.year}: ${day(r.year, r.imerg.doy)}${r.imerg.complete ? '' : ' (provisional)'}`}</title></circle>}
+          {(r.year - y0) % 5 === 0 && <text x={X(r.year)} y={H - 8} textAnchor="middle" fontSize="10.5" fill="#5d6a63">{num(r.year, lang).replace(/,/g, '')}</text>}
+        </g>)}
+      </svg>
+      <p className="mt-2 text-[12.5px] leading-5 text-muted">{T(`নিয়ম (আমাদের ধরে নেওয়া, যাচাই বাকি): ১৫ এপ্রিলের পর প্রথম দিন যেখান থেকে ৫ দিনে অন্তত ${dec(o.thresholdMm, 1)} মিমি (এখানকার বর্ষার স্বাভাবিক ৫-দিনের বৃষ্টি), পরের ৩০ দিনে ১০ দিনের শুকনো ফাঁক নেই আর বর্ষার অর্ধেক মাসের বৃষ্টি। ড্যাশ রেখা: সাধারণ তারিখ।`, `Rule (our assumption, still to be validated): the first day after 15 April that starts at least ${dec(o.thresholdMm, 1)} mm in 5 days (this place's usual monsoon 5-day rain), with no 10-day dry gap and at least half a monsoon month's rain in the next 30 days. Dashed line: the usual date.`)}</p>
+    </Card>
   );
 }
 

@@ -10,6 +10,7 @@ import { findHotspots } from '../engine/cluster.js';
 import { makeUnion } from '../engine/world.js';
 import { buildDemo, DEMO_TODAY, upazilaOfUnion } from '../data/demo.js';
 import { radarSummary } from '../radar/radarModel.js';
+import { onsetSummary } from '../radar/onset.js';
 import { farmerSnapshot, officerSnapshot } from './snapshot.js';
 import { createSession, respond, greeting } from './brain.js';
 import { KEY_MENU } from './keymenu.js';
@@ -208,4 +209,14 @@ test('every phone keypad key gets a real answer, in Bangla and English', () => {
       assert.ok(res.say && !/ঠিক বুঝতে পারিনি|did not quite get/.test(res.say), `key ${k} (${lang}) fell through: ${res.say}`);
     }
   }
+});
+
+test('the officer’s radar answer says when the rains set in, from the real onset data', () => {
+  const snap = osnap('saao');
+  snap.radar = radarSummary(readJson('aman_radar.json'), 'rajshahi', onsetSummary('godagari'));
+  const r = ask('আমন রাডার', snap, createSession({ role: 'saao' }));
+  assert.match(r.say, /বৃষ্টি টানা শুরু হয় সাধারণত/);
+  assert.match(r.say, /ধরে নেওয়া নিয়মে/);
+  const en = ask('Ropan Radar', snap, createSession({ role: 'saao', lang: 'en' }));
+  assert.ok(/rains usually set in|বৃষ্টি টানা/.test(en.say));
 });

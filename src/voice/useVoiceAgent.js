@@ -16,7 +16,7 @@ export function useVoiceAgent(role) {
   const store = useStore();
   const ref = useRef(store);
   ref.current = store;
-  const radar = useRadar(role !== 'farmer', districtOf(store.officerUpazila.id));
+  const radar = useRadar(role !== 'farmer', districtOf(store.officerUpazila.id), store.officerUpazila.id);
   const radarRef = useRef(radar);
   radarRef.current = radar;
 
