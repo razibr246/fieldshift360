@@ -19,7 +19,7 @@ const ORDER = ['coldNights', 'lateHeat', 'hotMarApr', 'rabiRain'];
 const SHORT = {
   coldNights: { bn: 'শীতের কনকনে রাত', en: 'cold winter nights' },
   lateHeat: { bn: 'ফাল্গুন-চৈত্রের গরম দিন', en: 'warm late-winter days' },
-  hotMarApr: { bn: 'চৈত্র-বৈশাখের খুব গরম দিন', en: 'very hot March–April days' },
+  hotMarApr: { bn: 'মার্চ-এপ্রিলের খুব গরম দিন', en: 'very hot March–April days' },
   rabiRain: { bn: 'রবি মৌসুমের বৃষ্টি', en: 'Rabi-season rain' },
 };
 // Bangladesh as a whole: the seven upazilas the app follows, one in each division, each measure averaged season by

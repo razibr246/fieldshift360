@@ -69,7 +69,7 @@ function StoryRail({ current, go, steps }) {
   const lang = s.lang;
   const out = [
     T(`${farmer.villageBn}, ${num(farmer.area_dec, 'bn')} শতক`, `${farmer.village}, ${farmer.area_dec} decimal`),
-    T(`খুব গরম দিন ${num(tm.hotMarApr.then, 'bn', { dp: 1 })} থেকে ${num(tm.hotMarApr.now, 'bn', { dp: 1 })}`, `Hot days ${num(tm.hotMarApr.then, 'en', { dp: 1 })} to ${num(tm.hotMarApr.now, 'en', { dp: 1 })}`),
+    T(`মার্চ-এপ্রিলে ৩৫°+ দিন: আগে ${num(tm.hotMarApr.then, 'bn', { dp: 1 })}, এখন ${num(tm.hotMarApr.now, 'bn', { dp: 1 })}`, `Days of 35 °C+ in Mar–Apr: ${num(tm.hotMarApr.then, 'en', { dp: 1 })} before, ${num(tm.hotMarApr.now, 'en', { dp: 1 })} now`),
     T(`pH ${num(soil.ph, 'bn', { dp: 1 })}, জৈব পদার্থ ${num(soil.om_pct, 'bn', { dp: 1 })}%`, `pH ${num(soil.ph, 'en', { dp: 1 })}, organic matter ${num(soil.om_pct, 'en', { dp: 1 })}%`),
     s.priorities.length ? s.priorities.map((p) => L(PRIORITIES[p])).join(T(' আর ', ' and ')) : T('সব দিক সমান', 'Everything equal'),
     `${L(LABEL_STYLE[d.label].short)}: ${L(d.rec.crop.name)}`,

@@ -8,7 +8,7 @@ import { useStore, demo } from '../../store';
 import { PageHeader, Card, Button, Badge, EmptyState, Note, Tags, Segmented, WATER_STYLE } from '../../components/ui';
 import { SYMPTOMS } from '../../data/demo';
 import { CROP_PROBLEMS } from '../../data/crop_problems';
-import { seriesNow } from '../../components/fields/useFieldWatch';
+import { useFieldWatch } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { WATER_COLORS } from '../../engine/water';
 import { fmtDate, daysBetween, num, bnDigits, parseISO } from '../../engine/dates';
@@ -51,11 +51,8 @@ export default function Help() {
   const choices = (CROP_PROBLEMS[crop.id] ?? []).filter((p) => t.kinds.includes(p.kind));
   const picked = choices.find((p) => p.key === problem) ?? null;
   // What the field itself says, sent with the request so the officer starts from evidence.
-  const sat = useMemo(() => {
-    if (!activeParcel) return null;
-    const series = seriesNow(activeParcel);
-    return series.length ? readField({ series }, { today }) : null;
-  }, [activeParcel, today]);
+  const fw = useFieldWatch(activeParcel);
+  const sat = useMemo(() => (fw.watch ? readField(fw.watch, { today }) : null), [fw.watch, today]);
   const context = {
     field: activeParcel ? { name: activeParcel.name, area_dec: farmer.area_dec } : { name: null, area_dec: farmer.area_dec },
     dAfter: daysAfter, stage: { bn: stage.bn, en: stage.en },

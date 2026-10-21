@@ -59,10 +59,10 @@ function WaterGauge({ fw }) {
 // not dated to this week), that photo enlarged ×4 by AI on the device (labelled), and today's state from the latest
 // clear Sentinel-2 pass (10 m). The readings under it always come from Sentinel-2.
 function FieldNow({ parcel, crop, dToday }) {
-  const { T, L, s } = useStore();
+  const { T, L, s, today } = useStore();
   const lang = s.lang;
   const fw = useFieldWatch(parcel);
-  const r = useMemo(() => (fw.watch ? readField(fw.watch) : null), [fw.watch]);
+  const r = useMemo(() => (fw.watch ? readField(fw.watch, { today }) : null), [fw.watch, today]);
   const cropStanding = r?.last && r.last.ndvi >= 0.5;
   const [view, setView] = useState('photo');
   return (

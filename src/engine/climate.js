@@ -93,7 +93,7 @@ const countRange = (clim, v, a, b, pred) => {
 
 export const TM_METRICS = {
   hotMarApr: {
-    bn: 'চৈত্র-বৈশাখের খুব গরম দিন', en: 'Very hot days in March–April', unit: { bn: 'দিন', en: 'days' },
+    bn: 'মার্চ-এপ্রিলের (ফাল্গুন-বৈশাখ) খুব গরম দিন', en: 'Very hot days in March–April', unit: { bn: 'দিন', en: 'days' },
     detail: { bn: '১ মার্চ থেকে ৩০ এপ্রিলের মধ্যে যেসব দিনে তাপমাত্রা ৩৫° সেলসিয়াস ছুঁয়েছে', en: 'Days from 1 March to 30 April that reached 35 °C' },
     why: { bn: 'এই সময়ে বোরো ধানে ফুল আসে; বেশি গরমে ধান চিটা হয়', en: 'Boro flowers in these weeks, and heat leaves the grains empty' },
     f: (c, y) => countRange(c, 'tmax', ymd(y, 3, 1), ymd(y, 4, 30), (x) => x >= 35),

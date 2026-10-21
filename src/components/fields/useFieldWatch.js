@@ -12,8 +12,12 @@ const keyOf = (p) => `${STORAGE_PREFIX}.fw.${p.id}|${p.lat.toFixed(5)}|${p.lon.t
 const readCache = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const writeCache = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage full or blocked */ } };
 
+const NONE = { id: 'none', lat: 0, lon: 0, area_dec: 0 };
+
+// `parcel` may be null (no field marked yet): then there is nothing to read and nothing is fetched.
 export function useFieldWatch(parcel) {
-  const { id, lat, lon, area_dec: area } = parcel;
+  const off = !parcel;
+  const { id, lat, lon, area_dec: area } = parcel ?? NONE;
   const field = useMemo(() => ({ id, lat, lon, area_dec: area }), [id, lat, lon, area]);
   const saved = useMemo(() => savedWatch(field), [field]);
   const key = keyOf(field);
@@ -31,6 +35,7 @@ export function useFieldWatch(parcel) {
   }, [saved, live]);
 
   const refresh = useCallback(async (force = false) => {
+    if (off) return;
     if (!navigator.onLine) { setStatus('offline'); return; }
     const cached = readCache(key);
     if (!force && cached?.checked && Date.now() - cached.checked < RECHECK_MS) return;
@@ -53,7 +58,7 @@ export function useFieldWatch(parcel) {
     } finally {
       setProgress(null);
     }
-  }, [key, field, saved]);
+  }, [key, field, saved, off]);
 
   // Look for newer passes when the field is opened (and read a new field in full).
   useEffect(() => { refresh(); return () => ctl.current?.abort(); }, [refresh]);
@@ -61,10 +66,10 @@ export function useFieldWatch(parcel) {
   // One object per change of the series, so readings built from it are not redone on every render.
   const watch = useMemo(() => {
     const latest = series[series.length - 1];
-    if (!latest) return null;
+    if (off || !latest) return null;
     const pictures = latest.item ? { ...pictureUrls(latest, field), date: latest.d, live: true, fallback: saved?.pictures } : saved?.pictures ?? null;
     return { series, latest: latest.d, pictures, fromSaved: !!saved };
-  }, [series, field, saved]);
+  }, [series, field, saved, off]);
   return {
     watch,
     status, progress, refresh: () => refresh(true), checked: live?.checked ?? null, saved: !!saved,

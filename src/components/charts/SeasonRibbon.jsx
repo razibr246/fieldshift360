@@ -1,12 +1,12 @@
-// The season on a Bangla-month calendar (Kartik → Bhadra): this Rabi crop, the next crop in the rotation,
-// then T. Aman. Farmers plan by the Bangla month, so this is the main way the plan is drawn.
+// The season on a Bangla-month calendar (Kartik → Bhadra), in Bangladesh's three cropping seasons: this Rabi crop,
+// the next crop in Kharif-1, then T. Aman in Kharif-2. The six ritus (seasons) run above the months. Farmers plan by the Bangla month, so this is the main way the plan is drawn.
 // Layout: a fixed label column on the left, the timeline on the right. "Today" sits in its own lane above the months
 // with the current month tinted down the whole chart; key dates are spelled out as chips underneath. A bar opens a
 // small card with its dates on hover, focus or tap (so it works by touch too), and the chips light up their own bar.
 import { useState } from 'react';
 import { Sprout, Wheat, ArrowRight, CloudRain } from 'lucide-react';
 import { useStore } from '../../store';
-import { BN_MONTHS, BN_MONTHS_EN, banglaMonthStart, fmtDate, fmtBangla, addDays, daysBetween, num } from '../../engine/dates';
+import { BN_MONTHS, BN_MONTHS_EN, banglaMonthStart, banglaDate, fmtDate, fmtBangla, addDays, daysBetween, num, bnDigits } from '../../engine/dates';
 import { PLAN_SEASON } from '../../engine/climate';
 
 const Y0 = PLAN_SEASON - 1; // Bangla year that starts on 14 April 2026
@@ -16,6 +16,13 @@ const MONTHS = [
 ];
 const START = MONTHS[0].start;
 const END = banglaMonthStart(Y0 + 1, 5); // through Bhadra, so a mid-August Aman (Dhamrai, by radar) still shows
+// The six ritus, two Bangla months each from Boishakh: index = Math.floor(month / 2).
+const RITU = [['গ্রীষ্ম', 'Summer'], ['বর্ষা', 'Monsoon'], ['শরৎ', 'Autumn'], ['হেমন্ত', 'Late autumn'], ['শীত', 'Winter'], ['বসন্ত', 'Spring']];
+const RITUS = MONTHS.reduce((out, mo) => {
+  const k = Math.floor(mo.m / 2);
+  if (out.length && out[out.length - 1].k === k) out[out.length - 1].n += 1; else out.push({ k, n: 1 });
+  return out;
+}, []);
 const pct = (t) => Math.max(0, Math.min(100, ((t - START) / (END - START)) * 100));
 
 export default function SeasonRibbon({ dark = false, compact = false, showToday = true }) {
@@ -26,15 +33,15 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
   const nextEnd = r.best ? addDays(r.sowT, r.best.crop.days) : null;
   const amanStart = r.amanT; // the upazila's usual transplanting day (Sentinel-1 radar), or mid-July without it
   const rows = [
-    { key: 'rabi', label: T('এই রবি', 'This Rabi'), sub: T(`${num(daysBetween(chosen.t0, chosen.hw.end), 'bn')} দিন`, `${daysBetween(chosen.t0, chosen.hw.end)} days`),
+    { key: 'rabi', label: T('রবি', 'Rabi'), sub: T(`এবার · ${num(daysBetween(chosen.t0, chosen.hw.end), 'bn')} দিন`, `this crop · ${daysBetween(chosen.t0, chosen.hw.end)} days`),
       name: L(chosen.crop.name), from: chosen.t0, to: chosen.hw.end, harvestFrom: chosen.hw.start, icon: Sprout, dot: '#3f7f39',
       note: T(`ফসল তোলা ${fmtBangla(chosen.hw.start, 'bn')} থেকে`, `Harvest from ${fmtDate(chosen.hw.start, 'en')}`),
       cls: dark ? 'bg-primary-300 text-primary-950' : 'bg-gradient-to-b from-primary-500 to-primary-700 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_6px_14px_-8px_rgba(36,90,40,.7)]' },
-    r.best && { key: 'next', label: T('পরের ফসল', 'Next crop'), sub: T(`${num(r.best.crop.days, 'bn')} দিন`, `${r.best.crop.days} days`),
+    r.best && { key: 'next', label: T('খরিফ-১', 'Kharif-1'), sub: T(`পরের ফসল · ${num(r.best.crop.days, 'bn')} দিন`, `next crop · ${r.best.crop.days} days`),
       name: L(r.best.crop.name), from: nextStart, to: nextEnd, gapFrom: chosen.hw.end, icon: ArrowRight, dot: '#3d7f8a',
       note: T(`রবি তোলার পর ${num(daysBetween(chosen.hw.end, nextStart), 'bn')} দিন জমি তৈরি`, `${daysBetween(chosen.hw.end, nextStart)} days to ready the land after the Rabi harvest`),
       cls: dark ? 'bg-sky-200 text-sky-900' : 'bg-gradient-to-b from-[#4a8a96] to-[#33707b] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.25),0_6px_14px_-8px_rgba(40,90,100,.7)]' },
-    { key: 'aman', label: T('বর্ষায়', 'Monsoon'), sub: T('প্রচলিত', 'as usual'), name: T('রোপা আমন', 'T. Aman rice'), from: amanStart, to: END, open: true, icon: CloudRain, dot: '#8dbe78',
+    { key: 'aman', label: T('খরিফ-২', 'Kharif-2'), sub: T('বর্ষা · প্রচলিত', 'monsoon · as usual'), name: T('রোপা আমন', 'T. Aman rice'), from: amanStart, to: END, open: true, icon: CloudRain, dot: '#8dbe78',
       note: T('উপজেলায় সাধারণত এই সময়ে রোপণ শুরু (সেন্টিনেল-১ রাডার)', 'When transplanting usually starts in the upazila (Sentinel-1 radar)'),
       cls: dark ? 'bg-gradient-to-r from-white/30 to-white/0 text-white' : 'bg-gradient-to-r from-primary-200 to-primary-100/0 text-primary-900' },
   ].filter(Boolean);
@@ -47,7 +54,8 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
   const head = compact ? 'h-7' : 'h-[46px]';
   const [hover, setHover] = useState(null); // the bar whose card is open (hover, focus, tap or its chip)
   const toggle = (k) => setHover((h) => (h === k ? null : k));
-  const gutter = compact ? 'w-[64px]' : 'w-[88px]';
+  const gutter = compact ? 'w-[64px]' : 'w-[104px]';
+  const ritu = !compact; // the ritu band only on the full ribbon
 
   return (
     <div className="hide-scrollbar -mx-1 overflow-x-auto px-1 pt-1" role="group" aria-label={T(`মৌসুমের পরিকল্পনা: ${chosen.crop.name.bn} ${fmtBangla(chosen.t0, 'bn')} থেকে ${fmtBangla(chosen.hw.end, 'bn')}`, `Season plan: ${chosen.crop.name.en} from ${fmtDate(chosen.t0, 'en')} to ${fmtDate(chosen.hw.end, 'en')}`)}>
@@ -55,6 +63,7 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
         {/* Label column, row heights matched to the timeline */}
         <div className={`${gutter} shrink-0`}>
           {inRange && <div className="h-6" />}
+          {ritu && <div className="h-6" />}
           <div className={`${head} border-b ${grid}`} />
           <div className="space-y-2.5 pt-3">
             {rows.map((row) => (
@@ -69,25 +78,32 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
         {/* Timeline */}
         <div className="relative min-w-0 flex-1">
           {cur >= 0 && inRange && (
-            <div className={`pointer-events-none absolute bottom-0 top-6 rounded-lg ${dark ? 'bg-white/[.06]' : 'bg-paddy-300/[.14]'}`}
-              style={{ left: `${pct(MONTHS[cur].start)}%`, width: `${pct(MONTHS[cur + 1]?.start ?? END) - pct(MONTHS[cur].start)}%` }} />
+            <div className={`pointer-events-none absolute bottom-0 rounded-lg ${dark ? 'bg-white/[.06]' : 'bg-paddy-300/[.14]'}`}
+              style={{ top: ritu ? 48 : 24, left: `${pct(MONTHS[cur].start)}%`, width: `${pct(MONTHS[cur + 1]?.start ?? END) - pct(MONTHS[cur].start)}%` }} />
           )}
           {inRange && (
             <div className="relative h-6">
               <span className={`absolute top-0 inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold shadow-sm ${tp < 5 ? '-translate-x-[3px]' : tp > 95 ? '-translate-x-full' : '-translate-x-1/2'} ${dark ? 'bg-paddy-300 text-primary-950' : 'bg-paddy-700 text-white'}`} style={{ left: `${tp}%` }}>
                 <span className="relative flex h-1.5 w-1.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/70" /><span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" /></span>
-                {T(`আজ · ${fmtBangla(today, 'bn')}`, `Today · ${fmtDate(today, 'en')}`)}
+                {T(`আজ · ${fmtBangla(today, 'bn')} ${bnDigits(banglaDate(today).year)}`, `Today · ${fmtDate(today, 'en')} (${fmtBangla(today, 'en')})`)}
               </span>
             </div>
           )}
           {/* Every other month faintly shaded down the chart, so a bar's months can be followed up to their names. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex" style={{ top: inRange ? 24 : 0 }} aria-hidden="true">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex" style={{ top: (inRange ? 24 : 0) + (ritu ? 24 : 0) }} aria-hidden="true">
             {MONTHS.map((mo, i) => <div key={mo.m} className={`h-full flex-1 ${i % 2 ? (dark ? 'bg-white/[.025]' : 'bg-black/[.018]') : ''}`} />)}
           </div>
+          {ritu && (
+            <div className="relative flex h-6 gap-1 pb-1" aria-label={T('ঋতু', 'Seasons')}>
+              {RITUS.map(({ k, n }) => (
+                <div key={k} style={{ flexGrow: n, flexBasis: 0 }} className={`flex items-center justify-center rounded-md text-[11.5px] font-semibold ${dark ? 'bg-white/10 text-white/80' : 'bg-primary-50 text-primary-800'}`}>{T(RITU[k][0], RITU[k][1])}</div>
+              ))}
+            </div>
+          )}
           <div className={`relative flex ${head} border-b ${grid}`}>
             {MONTHS.map((mo, i) => (
               <div key={mo.m} className={`flex-1 border-l ${grid} ${i === 0 ? 'border-l-0' : ''} pl-1.5 pt-0.5`}>
-                <div className={`font-display text-[13px] font-semibold ${i === cur && inRange ? (dark ? 'text-paddy-300' : 'text-paddy-700') : ink}`}>{lang === 'bn' ? BN_MONTHS[mo.m] : BN_MONTHS_EN[mo.m]}</div>
+                <div className={`font-display text-[13px] font-semibold ${i === cur && inRange ? (dark ? 'text-paddy-300' : 'text-paddy-700') : ink}`}>{lang === 'bn' ? BN_MONTHS[mo.m] : BN_MONTHS_EN[mo.m]}{mo.m === 0 && !compact && <span className={`ml-1 text-[10.5px] font-medium ${quiet}`}>{T(bnDigits(banglaDate(mo.start).year), banglaDate(mo.start).year)}</span>}</div>
                 {!compact && <div className={`text-[11px] ${quiet}`}>{fmtDate(mo.start, lang)}</div>}
               </div>
             ))}

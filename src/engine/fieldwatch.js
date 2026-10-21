@@ -11,7 +11,7 @@
 //          agronomist to check, like those in crops.js.
 // A satellite cannot name a disease or a pest; it can only show where the crop is weaker. Every warning says so
 // and points to a field visit or the crop doctor.
-import { DAY, parseISO, iso, daysBetween, bnDigits } from './dates.js';
+import { DAY, parseISO, iso, daysBetween, bnDigits, todayDhaka } from './dates.js';
 
 // ---- typical green-cover curves (NDVI) ----
 // pts: [month, day, NDVI] through the season; a point in an earlier month than the first is in the next year.
@@ -197,7 +197,7 @@ function seasonRisks(id, t) {
 }
 
 // [RULE] The whole reading of one field. `today` is used only to say how old the latest picture is.
-export function readField(watch, { today = Date.now() } = {}) {
+export function readField(watch, { today = todayDhaka() } = {}) {
   const series = despike(watch.series);
   const obs = series.map((o) => ({ ...o, t: parseISO(o.d) }));
   const last = obs[obs.length - 1];

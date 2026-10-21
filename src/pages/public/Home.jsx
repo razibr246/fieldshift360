@@ -16,11 +16,12 @@ import { LazyMount } from '../../components/SectionNav';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
 import { useStore } from '../../store';
 import { startTour } from '../../components/DemoTour';
-import { num, fmtDate, fmtBangla } from '../../engine/dates';
+import { num, fmtDate, fmtBangla, banglaDate, daysBetween, bnDigits } from '../../engine/dates';
+import { THEN, NOW } from '../../engine/climate';
 import { PROJECT_NAME, PROJECT_TAGLINE, PROJECT_EVENT } from '../../config/brand';
 
 export default function Home() {
-  const { s, T, L, decision: d, dispatch } = useStore();
+  const { s, T, L, decision: d, dispatch, today } = useStore();
   const navigate = useNavigate();
   const lang = s.lang;
   const st = LABEL_STYLE[d.label];
@@ -65,10 +66,20 @@ export default function Home() {
           <div className="glass lite mt-5 rounded-[26px] !bg-white/75 p-5 sm:p-6" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <ScoreRing value={d.rec.score} size={58} />
+                <div className="flex flex-col items-center"><ScoreRing value={d.rec.score} size={58} /><span className="mt-0.5 text-[11px] text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span></div>
                 <div>
-                  <p className="font-display text-[22px] font-bold leading-tight sm:text-[26px]"><span className={st.text}>{L(st)}</span>{T(`: ${d.rec.crop.name.bn}, ${fmtBangla(d.rec.t0, 'bn')}`, `: ${d.rec.crop.name.en}, ${fmtDate(d.rec.t0, 'en')}`)}</p>
-                  <p className="mt-1 text-[14px] text-muted">{T(`গত ${num(d.rec.bt.now.n, 'bn')} মৌসুমের ${num(d.rec.bt.now.safe, 'bn')}টিতে এই সময়ের আবহাওয়া ঠিক ছিল`, `The weather at this time was fine in ${d.rec.bt.now.safe} of the last ${d.rec.bt.now.n} seasons`)}</p>
+                  <p className="font-display text-[22px] font-bold leading-tight sm:text-[26px]"><span className={st.text}>{L(st)}</span>: {L(d.rec.crop.name)}</p>
+                  <p className="mt-1 text-[15px] font-semibold text-ink/85">{(() => {
+                    const left = daysBetween(today, d.rec.t0), y = banglaDate(d.rec.t0).year;
+                    const when = T(`লাগানোর দিন ${fmtBangla(d.rec.t0, 'bn')} ${bnDigits(y)} (${fmtDate(d.rec.t0, 'bn')})`, `Plant on ${fmtDate(d.rec.t0, 'en')} (${fmtBangla(d.rec.t0, 'en')} ${y})`);
+                    const cd = left > 0 ? T(`আর ${num(left, 'bn')} দিন`, `${left} days to go`) : left === 0 ? T('আজই', 'today') : T(`${num(-left, 'bn')} দিন আগে পেরিয়েছে`, `${-left} days ago`);
+                    return <>{when} · <span className={left < 0 ? 'text-clay-700' : 'text-paddy-700'}>{cd}</span></>;
+                  })()}</p>
+                  <p className="mt-1 text-[13.5px] text-muted">{(() => {
+                    const r = (a) => `${a[0]}–${a[a.length - 1]}`, { then, now } = d.rec.bt;
+                    return T(`এই দিনে লাগালে আবহাওয়া ঠিক ছিল: এখন (${bnDigits(r(NOW))}) ${num(now.n, 'bn')} মৌসুমের ${num(now.safe, 'bn')}টিতে, আগে (${bnDigits(r(THEN))}) ${num(then.n, 'bn')}টির ${num(then.safe, 'bn')}টিতে`,
+                      `Planted on this day, the weather was fine in ${now.safe} of ${now.n} seasons now (${r(NOW)}) and ${then.safe} of ${then.n} before (${r(THEN)})`);
+                  })()}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2"><Tags list={[climateTag(), 'RULE']} /><Link to="/farmer/plan" className="text-[14.5px] font-semibold text-primary-700 underline-offset-4 hover:underline">{T('পুরো হিসাব দেখুন', 'See the full working')}</Link></div>

@@ -9,7 +9,7 @@ import { useStore } from '../../store';
 import { PageHeader, Card, Button, Tags, Note, Badge } from '../../components/ui';
 import { CROP_PROBLEMS } from '../../data/crop_problems';
 import { RABI_CROPS } from '../../engine/crops';
-import { seriesNow } from '../../components/fields/useFieldWatch';
+import { useFieldWatch } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { num, bnDigits, fmtDate } from '../../engine/dates';
 import { bnOf } from '../../engine/text';
@@ -42,7 +42,8 @@ export default function CropDoctor() {
   const [sentId, setSentId] = useState(null);
   const sent = sentId ? s.requests.find((r) => r.id === sentId) : null;
   const cropObj = RABI_CROPS[crop] ?? chosen.crop;
-  const sat = useMemo(() => { if (!activeParcel) return null; const se = seriesNow(activeParcel); return se.length ? readField({ series: se }, { today }) : null; }, [activeParcel, today]);
+  const fw = useFieldWatch(activeParcel); // the same latest pass the Today page shows
+  const sat = useMemo(() => (fw.watch ? readField(fw.watch, { today }) : null), [fw.watch, today]);
   const w = liveWeather ? s.live : null;
   const context = {
     place: `${farmer.village}, ${union.meta.en} union, ${upazila.name.en} upazila, Bangladesh`,

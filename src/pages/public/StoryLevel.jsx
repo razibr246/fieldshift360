@@ -1,7 +1,7 @@
 // One division's story level: the farmer's story in eight pillars, the region's hazard measured on real NASA data with
 // a live forecast check, and the mission: pick what to do on each plot and play it through a real past year.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell, LineChart, Line } from 'recharts';
 import { History, CloudLightning, Bug, CalendarClock, Shovel, Wheat, Thermometer, Store, Swords, Sparkles, Play, RotateCcw, Dices, ArrowLeft, ArrowRight, Skull, Flame, Waves, Landmark, Radar, Moon, Lightbulb, HeartHandshake, Info, CheckCircle2, AlertTriangle, LogIn } from 'lucide-react';
 import { useStore } from '../../store';
@@ -29,7 +29,7 @@ export default function StoryLevel() {
   const { T, L, s } = useStore();
   const [D, setD] = useState(null);
   useEffect(() => { if (lv?.mission) loadData().then(setD); }, [lv?.mission]);
-  if (!lv) return <div className="page-shell pt-[120px]"><Link to="/stories" className="font-semibold text-primary-700">{T('সব গল্প', 'All stories')}</Link></div>;
+  if (!lv) return <Navigate to="/stories" replace />; // an unknown story id goes back to the list
   const i = LEVELS.indexOf(lv), prev = LEVELS[i - 1], next = LEVELS[i + 1];
   const m = lv.mission ? MISSIONS[lv.mission] : null;
   return (
