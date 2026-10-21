@@ -12,3 +12,4 @@ __pycache__
 scripts/python/soilgrids_check.csv
 .claude/
 **/.claude/
+.env*
