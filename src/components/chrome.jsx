@@ -1,5 +1,7 @@
 // Small pieces of app chrome shared by the layouts.
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import {
   Languages,
   AlertTriangle,
@@ -27,6 +29,19 @@ export function LangToggle({ dark = false, glass = false }) {
     >
       <Languages size={16} />
       {next}
+    </button>
+  );
+}
+
+// Back to the previous page, or to the home page when this one was opened directly (no history inside the app).
+export function BackButton({ className = '' }) {
+  const { T } = useStore();
+  const navigate = useNavigate();
+  const back = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/'));
+  return (
+    <button type="button" onClick={back} aria-label={T('আগের পাতায় ফিরে যান', 'Go back to the previous page')}
+      className={`inline-flex h-10 shrink-0 items-center gap-1 rounded-full border border-border bg-white px-3 text-[14px] font-semibold text-ink/75 transition hover:bg-primary-50 hover:text-ink ${className}`}>
+      <ArrowLeft size={17} /><span className="hidden sm:inline">{T('ফিরে যান', 'Back')}</span>
     </button>
   );
 }

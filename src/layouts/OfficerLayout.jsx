@@ -4,7 +4,7 @@ import { PageOutlet, ScrollProgress, useScrollOnNavigate } from '../components/M
 import { BackToTop } from '../components/SectionNav';
 import { Bell, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo } from '../components/chrome';
+import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton } from '../components/chrome';
 import { useStore } from '../store';
 import { num } from '../engine/dates';
 import { unionsOf } from '../data/demo';
@@ -152,6 +152,7 @@ export default function OfficerLayout() {
         <header className="glass-bar sticky top-0 z-30">
           <div className="flex h-[64px] items-center gap-2.5 px-4 sm:px-6">
             <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')}><Menu size={19} /></button>
+            <BackButton />
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 md:flex" role="search">
               <Search size={17} className="text-muted" />
               <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-label={T('খুঁজুন', 'Search')} aria-keyshortcuts="/" />

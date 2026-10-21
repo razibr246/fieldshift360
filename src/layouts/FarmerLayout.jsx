@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
 import { Bell, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle, PlaceholderBanner, ResetDemo } from '../components/chrome';
+import { LangToggle, PlaceholderBanner, ResetDemo, BackButton } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
 import { useStore, demo } from '../store';
 import { IRRIGATION, cropName } from '../engine/crops';
@@ -122,7 +122,10 @@ export default function FarmerLayout() {
       <MessagePopup />
       <header className="glass-bar sticky top-0 z-40">
         <div className="page-shell flex h-[64px] items-center justify-between gap-3">
-          <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BackButton />
+            <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
+          </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => navigate('/farmer/help')} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/70 hover:bg-primary-50" aria-label={unreadAdvisories ? T(`কর্মকর্তার ${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new messages from your officer`) : T('কর্মকর্তার বার্তা', 'Messages from your officer')}>
               <Bell size={18} />
