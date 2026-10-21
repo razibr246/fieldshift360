@@ -66,7 +66,7 @@ export default function Home() {
           <div className="glass lite mt-5 rounded-[26px] !bg-white/75 p-5 sm:p-6" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center"><ScoreRing value={d.rec.score} size={58} /><span className="mt-0.5 text-[11px] text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span></div>
+                <div className="flex flex-col items-center"><ScoreRing value={d.rec.score} size={58} /><span className="mt-0.5 whitespace-nowrap text-[11px] text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span></div>
                 <div>
                   <p className="font-display text-[22px] font-bold leading-tight sm:text-[26px]"><span className={st.text}>{L(st)}</span>: {L(d.rec.crop.name)}</p>
                   <p className="mt-1 text-[15px] font-semibold text-ink/85">{(() => {

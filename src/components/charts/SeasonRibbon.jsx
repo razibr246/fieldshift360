@@ -59,7 +59,8 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
 
   return (
     <div className="hide-scrollbar -mx-1 overflow-x-auto px-1 pt-1" role="group" aria-label={T(`মৌসুমের পরিকল্পনা: ${chosen.crop.name.bn} ${fmtBangla(chosen.t0, 'bn')} থেকে ${fmtBangla(chosen.hw.end, 'bn')}`, `Season plan: ${chosen.crop.name.en} from ${fmtDate(chosen.t0, 'en')} to ${fmtDate(chosen.hw.end, 'en')}`)}>
-      <div className={`flex gap-3 ${compact ? 'min-w-[560px]' : 'min-w-[700px]'}`}>
+      {!compact && <p className={`sticky left-0 mb-1 text-[11.5px] sm:hidden ${quiet}`}>{T('ডানে-বাঁয়ে সরিয়ে পুরো বছর দেখুন →', 'Swipe sideways for the whole year →')}</p>}
+      <div className={`flex gap-3 ${compact ? 'min-w-[560px]' : 'min-w-[860px]'}`}>
         {/* Label column, row heights matched to the timeline */}
         <div className={`${gutter} shrink-0`}>
           {inRange && <div className="h-6" />}

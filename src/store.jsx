@@ -56,7 +56,7 @@ export const tms = new Proxy(tmCache, { get: (o, k) => (k in o || typeof k !== '
 export const soilData = { provenance: soilGodagari.provenance, unions: Object.assign({}, ...[soilGodagari, soilDhamrai, soilSitakunda, soilDacope, soilBakerganj, soilGangachara, soilGowainghat].map((x) => x.unions)) };
 export const fieldSoil = soilFields.fields;
 export const srdi = srdiFrs;
-export const demo = buildDemo();
+export const demo = buildDemo({ today: todayDhaka() }); // the seeded requests follow the real season
 
 const Ctx = createContext(null);
 
@@ -103,6 +103,12 @@ function initial() {
   const saved = readJSON(STATE_KEY);
   if (!saved) return base;
   for (const k of SAVED_KEYS) if (saved[k] !== undefined) base[k] = saved[k];
+  // Keep the visitor's own requests and their work on this season's sample ones; sample requests from another
+  // season (or from before seasons existed) give way to this season's.
+  if (Array.isArray(saved.requests)) {
+    const kept = new Map(saved.requests.filter((r) => r.demo && r.season).map((r) => [r.id, r]));
+    base.requests = [...saved.requests.filter((r) => !r.demo), ...demo.requests.map((r) => (kept.get(r.id)?.season === r.season ? kept.get(r.id) : r))];
+  }
   // The officer's union must be one of their own upazila's.
   const upz = UPAZILAS[base.officerUpazila] ?? UPAZILAS.godagari;
   base.officerUpazila = upz.id;

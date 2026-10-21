@@ -34,7 +34,8 @@ export default function OfficerDashboard() {
   const hs = hotspots.filter((h) => h.members.some((m) => m.union === union.id));
   const crop = cropsByArea([union])[0]?.k ?? 'tomato'; // this union's biggest planned crop
   const g = unionGlut(union, crop);
-  const cropShare = union.plans.filter((p) => p.crop === crop).reduce((a, p) => a + p.area_dec, 0) / union.area_dec;
+  const areaOf = (ps) => ps.reduce((a, p) => a + p.area_dec, 0);
+  const cropShare = areaOf(union.plans.filter((p) => p.crop === crop)) / (areaOf(union.plans) || 1); // of planned land, as on the planting page
   const undecided = farmers.filter((f) => f.hero && f.union === union.id && !confirmedAll.some((c) => c.plot_id === f.id));
   const points = useMemo(() => {
     // A shared plan can come from a field this app has no farmer record for: count it, but it has no pin.

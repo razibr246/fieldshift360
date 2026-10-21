@@ -242,3 +242,15 @@ test('Godagari and Dhamrai each run on their own real NASA POWER file, 25 season
   assert.notDeepEqual(g.tmax, d.tmax, 'Dhamrai must not reuse Godagari temperatures');
   assert.notEqual(`${g.provenance.lat},${g.provenance.lon}`, `${d.provenance.lat},${d.provenance.lon}`);
 });
+
+test('in Kartik the sample inbox is about the standing Aman, dated up to today', async () => {
+  const { ymd } = await import('./dates.js');
+  const today = ymd(2026, 10, 21);
+  const { requests } = buildDemo({ today });
+  assert.ok(requests.every((r) => r.season === 'aman' && r.created <= today), 'all Aman-season and none in the future');
+  assert.ok(!requests.some((r) => r.symptom === 'aphid' || r.symptom === 'cold'), 'no January mustard aphids or cold waves');
+  const spots = findHotspots(requests);
+  assert.ok(spots.some((h) => h.crop === 'aman' && h.symptom === 'bph' && h.members.length >= 5), 'Deopara planthopper alert');
+  assert.ok(spots.some((h) => h.crop === 'aman' && h.symptom === 'blast' && h.members.length >= 7), 'Chauhat neck-blast alert, with Razib');
+  assert.equal(buildDemo().requests[0].season, 'rabi', 'the default (test) date keeps the January demo');
+});

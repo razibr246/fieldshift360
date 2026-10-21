@@ -1,6 +1,6 @@
 // DEMO data generator (seeded, deterministic). Every value here is synthetic and labelled "Demo" in the UI.
 // Union names and outlines are real (BBS via geoBoundaries); farmers, plots, plans and requests are made up.
-import { ymd, addDays } from '../engine/dates.js';
+import { ymd, addDays, monthOf } from '../engine/dates.js';
 import { UPAZILAS } from './upazilas.js';
 import { PROBLEM_NAMES } from './crop_problems.js';
 
@@ -14,7 +14,11 @@ function rng(seed) {
   };
 }
 
-export const DEMO_TODAY = ymd(2027, 1, 12); // the in-season "today" used by the demo
+export const DEMO_TODAY = ymd(2027, 1, 12); // the in-season "today" used by the demo (and by the tests)
+// Which farm season the seeded requests describe: September to November is the standing Aman (Kharif-2) with the
+// Rabi still to sow; otherwise the Rabi problems of mid-January. The app passes the real date, so the officer's
+// inbox matches what is in the fields that week.
+export const requestSeason = (today) => (monthOf(today) >= 9 && monthOf(today) <= 11 ? 'aman' : 'rabi');
 
 // Every union and municipality (pourashava) of each upazila. Centres are the most interior point of each area's
 // BBS boundary (src/data/geo/<upazila>_places.json); `spread` shrinks the farm scatter for narrow areas so the demo farms
@@ -219,7 +223,7 @@ const CLUSTER_TEXTS = [
   { bn: 'দুই দিনে দাগ অনেক বেড়ে গেছে, পাশের জমিতেও দেখছি', en: 'The spots have spread fast in two days, and I see them next door too' },
 ];
 
-export function buildDemo() {
+export function buildDemo({ today = DEMO_TODAY } = {}) {
   const r = rng(360);
   const farmers = [], plans = [];
   let id = 1;
@@ -280,6 +284,9 @@ export function buildDemo() {
   ];
   farmers.unshift(...heroes);
 
+  const season = requestSeason(today);
+  if (season === 'aman') return { unions: UNIONS, farmers, plans, requests: amanRequests(farmers, today) };
+
   // Help requests: 8 seeded leaf-spot reports in two neighbouring Deopara villages + scattered others
   const requests = [];
   const deo = farmers.filter((f) => f.union === 'Deopara' && !f.hero && (f.village === 'Purbapara' || f.village === 'Madhyapara'));
@@ -289,7 +296,7 @@ export function buildDemo() {
     crop: 'tomato', symptom: 'leaf_spot', type: 'crop_doctor',
     text: CLUSTER_TEXTS[i % CLUSTER_TEXTS.length],
     ai: [{ k: 'early_blight', p: 0.58 + (i % 3) * 0.05 }, { k: 'septoria', p: 0.18 }, { k: 'unclear', p: 0.12 }],
-    created: addDays(DEMO_TODAY, -(i % 6)), status: 'open', priority: 'Medium', demo: true,
+    created: addDays(today, -(i % 6)), status: 'open', priority: 'Medium', demo: true, season,
   }));
   const others = farmers.filter((f) => !f.hero && !tomatoDeo.includes(f) && UNIONS.find((u) => u.id === f.union).upazila === 'godagari');
   const misc = [
@@ -303,10 +310,10 @@ export function buildDemo() {
   misc.forEach((m, i) => {
     const f = others.filter((o) => o.union !== 'Deopara')[i * 13 % 90];
     requests.push({ id: `R${200 + i}`, farmerId: f.id, union: f.union, village: f.village, villageBn: f.villageBn, lat: f.lat, lon: f.lon,
-      crop: m.crop, symptom: m.symptom, type: 'question', text: m.text, ai: null, created: addDays(DEMO_TODAY, -i), status: 'open', priority: m.pr, demo: true });
+      crop: m.crop, symptom: m.symptom, type: 'question', text: m.text, ai: null, created: addDays(today, -i), status: 'open', priority: m.pr, demo: true, season });
   });
 
-  requests.push(...dhamraiRequests(farmers, plans));
+  requests.push(...dhamraiRequests(farmers, plans, today));
   return { unions: UNIONS, farmers, plans, requests };
 }
 
@@ -318,9 +325,9 @@ const APHID_TEXTS = [
   { bn: 'কুয়াশার পর থেকে জাব পোকা খুব বেড়েছে', en: 'Aphids have shot up since the fog came' },
   { bn: 'পাশের জমির সরিষাতেও একই পোকা দেখছি', en: 'I see the same insects in the next field’s mustard too' },
 ];
-function dhamraiRequests(farmers, plans) {
+function dhamraiRequests(farmers, plans, today) {
   const out = [];
-  const req = (f, id, x) => ({ id, farmerId: f.id, union: f.union, village: f.village, villageBn: f.villageBn, lat: f.lat, lon: f.lon, status: 'open', demo: true, ...x });
+  const req = (f, id, x) => ({ id, farmerId: f.id, union: f.union, village: f.village, villageBn: f.villageBn, lat: f.lat, lon: f.lon, status: 'open', demo: true, season: 'rabi', ...x });
   const crop = (f) => plans.find((p) => p.plot_id === f.id)?.crop;
   // Six mustard growers around Chauhat village report aphids within a week: with Razib's report they make one area alert.
   const ch = farmers.filter((f) => f.union === 'Chauhat' && !f.hero && f.village === 'Chauhat');
@@ -328,17 +335,17 @@ function dhamraiRequests(farmers, plans) {
   aphid.forEach((f, i) => out.push(req(f, `R${300 + i}`, {
     crop: 'mustard', symptom: 'aphid', type: 'crop_doctor', text: APHID_TEXTS[i % APHID_TEXTS.length],
     ai: [{ k: 'pest', p: 0.66 + (i % 3) * 0.05 }, { k: 'nutrient', p: 0.12 }, { k: 'unclear', p: 0.1 }],
-    created: addDays(DEMO_TODAY, -(i % 5)), priority: 'Medium',
+    created: addDays(today, -(i % 5)), priority: 'Medium',
   })));
   // Razib Miah's own three problems.
   const razib = farmers.find((f) => f.id === 'RAZIB');
   out.push(
-    req(razib, 'R350', { crop: 'mustard', symptom: 'aphid', type: 'crop_doctor', created: DEMO_TODAY, priority: 'Medium',
+    req(razib, 'R350', { crop: 'mustard', symptom: 'aphid', type: 'crop_doctor', created: today, priority: 'Medium',
       text: { bn: 'আমার দেড় বিঘা সরিষায় জাব পোকা লেগেছে, ফুল ঝরে যাচ্ছে। পাশের জমিতেও একই অবস্থা।', en: 'Aphids have got into my one and a half bigha of mustard and the flowers are dropping. The next fields are the same.' },
       ai: [{ k: 'pest', p: 0.74 }, { k: 'nutrient', p: 0.1 }, { k: 'unclear', p: 0.08 }] }),
-    req(razib, 'R351', { crop: 'boro', symptom: 'cold', type: 'question', created: addDays(DEMO_TODAY, -1), priority: 'High', ai: null,
+    req(razib, 'R351', { crop: 'boro', symptom: 'cold', type: 'question', created: addDays(today, -1), priority: 'High', ai: null,
       text: { bn: 'শৈত্যপ্রবাহে বোরোর বীজতলার চারা হলুদ হয়ে যাচ্ছে, কিছু চারা মরেও যাচ্ছে। কী করব?', en: 'In the cold wave my Boro seedbed is turning yellow and some seedlings are dying. What should I do?' } }),
-    req(razib, 'R352', { crop: 'boro', symptom: 'question', type: 'question', created: addDays(DEMO_TODAY, -2), priority: 'Low', ai: null,
+    req(razib, 'R352', { crop: 'boro', symptom: 'question', type: 'question', created: addDays(today, -2), priority: 'Low', ai: null,
       text: { bn: 'সরিষা কাটার পর কত দিনের মধ্যে বোরো রোপণ করলে ভালো হয়?', en: 'After the mustard is cut, how soon should I transplant the Boro?' } }),
   );
   // One or two reports elsewhere in Dhamrai, each from the first farmer of that union.
@@ -351,7 +358,74 @@ function dhamraiRequests(farmers, plans) {
     ['Jadabpur', 0, { crop: 'boro', symptom: 'water', priority: 'Medium', text: { bn: 'অগভীর নলকূপে পানি কম উঠছে, বোরোর জমি তৈরি করতে পারছি না', en: 'The shallow tube well is pumping little water and I cannot prepare my Boro field' } }],
     ['Amta', 0, { crop: 'mustard', symptom: 'question', priority: 'Low', text: { bn: 'সরিষা কবে কাটলে দানা ঝরে পড়বে না?', en: 'When should I cut the mustard so the seed does not shatter?' } }],
   ];
-  misc.forEach(([union, n, x], i) => out.push(req(first(union, n), `R${360 + i}`, { type: 'question', ai: null, created: addDays(DEMO_TODAY, -(i % 4)), ...x })));
+  misc.forEach(([union, n, x], i) => out.push(req(first(union, n), `R${360 + i}`, { type: 'question', ai: null, created: addDays(today, -(i % 4)), ...x })));
+  return out;
+}
+
+// ---- Requests [DEMO] for Kartik (October–November): the Aman stands in the fields, from flowering to ripening, and
+// the Rabi is still to sow. Godagari: brown planthopper ("current poka") spreading through neighbouring Deopara
+// fields, with stem borer, sheath blight and rats elsewhere; Dhamrai: neck blast in the dew around Chauhat, flood
+// water slow to leave the low land, and factory waste water in Sombhag. Questions are about the Rabi to come. ----
+const BPH_TEXTS = [
+  { bn: 'ধানের গোড়ায় বাদামি রঙের ছোট ছোট পোকা গিজগিজ করছে', en: 'Small brown insects are swarming at the base of the rice' },
+  { bn: 'জমির মাঝখানে গোল হয়ে ধান শুকিয়ে পুড়ে যাওয়ার মতো হয়ে গেছে', en: 'In the middle of the field the rice has dried in a round patch, as if burnt' },
+  { bn: 'কারেন্ট পোকা লেগেছে, দুই দিনে অনেকটা ছড়িয়ে গেছে', en: 'Planthoppers ("current poka") have got in and spread a lot in two days' },
+  { bn: 'পাশের জমিতেও একই পোকা, ধান হলুদ হয়ে নুয়ে পড়ছে', en: 'The same insects are in the next field; the rice is yellowing and falling over' },
+];
+const BLAST_TEXTS = [
+  { bn: 'ধানের শিষের গোড়া কালো হয়ে শিষ ভেঙে ঝুলে পড়ছে', en: 'The neck of the rice heads has turned black and the heads are breaking over' },
+  { bn: 'পাতায় চোখের মতো লম্বাটে দাগ, শিষ সাদা হয়ে যাচ্ছে', en: 'Eye-shaped spots on the leaves, and the heads are turning white' },
+  { bn: 'রাতে শিশির পড়া শুরুর পর থেকে রোগটা খুব বেড়েছে', en: 'The disease has shot up since the night dew started' },
+  { bn: 'পাশের জমির আমনেও একই রোগ দেখছি', en: 'I see the same disease in the next field’s Aman too' },
+];
+function amanRequests(farmers, today) {
+  const out = [];
+  const req = (f, id, x) => ({ id, farmerId: f.id, union: f.union, village: f.village, villageBn: f.villageBn, lat: f.lat, lon: f.lon, status: 'open', demo: true, season: 'aman', ...x });
+  // Godagari: eight neighbours in Purbapara and Madhyapara (Deopara) report planthoppers within a week.
+  const deo = farmers.filter((f) => f.union === 'Deopara' && !f.hero && (f.village === 'Purbapara' || f.village === 'Madhyapara')).slice(0, 8);
+  deo.forEach((f, i) => out.push(req(f, `R${400 + i}`, {
+    crop: 'aman', symptom: 'bph', type: 'crop_doctor', text: BPH_TEXTS[i % BPH_TEXTS.length],
+    ai: [{ k: 'bph', p: 0.58 + (i % 3) * 0.05 }, { k: 'stem_borer', p: 0.14 }, { k: 'unclear', p: 0.12 }],
+    created: addDays(today, -(i % 6)), priority: i < 2 ? 'High' : 'Medium',
+  })));
+  const others = farmers.filter((f) => !f.hero && !deo.includes(f) && f.union !== 'Deopara' && UNIONS.find((u) => u.id === f.union).upazila === 'godagari');
+  const misc = [
+    { symptom: 'stem_borer', crop: 'aman', pr: 'Medium', text: { bn: 'ধানের শিষ সাদা হয়ে গেছে, টান দিলে সহজেই উঠে আসে', en: 'The rice heads have turned white and pull out easily' } },
+    { symptom: 'sheath_blight', crop: 'aman', pr: 'Medium', text: { bn: 'ধানের খোলে পানির কাছ থেকে সাপের চামড়ার মতো ছোপ ছোপ দাগ উঠছে', en: 'Snake-skin blotches are climbing the rice sheaths from the water line' } },
+    { symptom: 'question', crop: 'mustard', pr: 'Low', text: { bn: 'আমন তোলার পর সরিষা বুনব, কোন জাত ভালো হবে?', en: 'I will sow mustard after the Aman comes off. Which variety is best?' } },
+    { symptom: 'rodent', crop: 'aman', pr: 'Medium', text: { bn: 'ইঁদুর রাতে ধানের শিষ কেটে নিচ্ছে, আলে অনেক গর্ত', en: 'Rats are cutting the rice heads at night, and the bunds are full of burrows' } },
+    { symptom: 'question', crop: 'tomato', pr: 'Low', text: { bn: 'টমেটোর বীজতলার চারা গোড়ায় পচে মরে যাচ্ছে, কী করব?', en: 'My tomato seedlings in the nursery are rotting at the base and dying. What should I do?' } },
+    { symptom: 'question', crop: 'wheat', pr: 'Low', text: { bn: 'আমন তোলার পর গম কবে বুনলে ভালো হয়?', en: 'When is the best time to sow wheat after the Aman comes off?' } },
+  ];
+  misc.forEach((m, i) => out.push(req(others[i * 13 % others.length], `R${420 + i}`, { crop: m.crop, symptom: m.symptom, type: 'question', text: m.text, ai: null, created: addDays(today, -i), priority: m.pr })));
+
+  // Dhamrai: six growers around Chauhat report neck blast within a week; with Razib's report they make one area alert.
+  const ch = farmers.filter((f) => f.union === 'Chauhat' && !f.hero && f.village === 'Chauhat').slice(0, 6);
+  ch.forEach((f, i) => out.push(req(f, `R${500 + i}`, {
+    crop: 'aman', symptom: 'blast', type: 'crop_doctor', text: BLAST_TEXTS[i % BLAST_TEXTS.length],
+    ai: [{ k: 'blast', p: 0.62 + (i % 3) * 0.05 }, { k: 'sheath_blight', p: 0.12 }, { k: 'unclear', p: 0.1 }],
+    created: addDays(today, -(i % 5)), priority: 'High',
+  })));
+  const razib = farmers.find((f) => f.id === 'RAZIB');
+  out.push(
+    req(razib, 'R550', { crop: 'aman', symptom: 'blast', type: 'crop_doctor', created: today, priority: 'High',
+      text: { bn: 'আমার দেড় বিঘা আমনে শিষের গোড়া কালো হয়ে শিষ ভেঙে পড়ছে। পাশের জমিতেও একই অবস্থা।', en: 'In my one and a half bigha of Aman the necks of the heads are turning black and breaking. The next fields are the same.' },
+      ai: [{ k: 'blast', p: 0.71 }, { k: 'sheath_blight', p: 0.1 }, { k: 'unclear', p: 0.08 }] }),
+    req(razib, 'R551', { crop: 'mustard', symptom: 'question', type: 'question', created: addDays(today, -1), priority: 'Medium', ai: null,
+      text: { bn: 'নিচু জমি থেকে বন্যার পানি এখনো নামেনি। সরিষা বুনতে দেরি হলে কী করব?', en: 'The flood water has still not left my low field. What should I do if the mustard goes in late?' } }),
+    req(razib, 'R552', { crop: 'boro', symptom: 'question', type: 'question', created: addDays(today, -2), priority: 'Low', ai: null,
+      text: { bn: 'আমন তোলার পর বোরোর বীজতলা কবে করব?', en: 'When should I make the Boro seedbed after the Aman comes off?' } }),
+  );
+  const first = (union, n = 0) => farmers.filter((f) => f.union === union && !f.hero)[n];
+  const dmisc = [
+    ['Sombhag', 0, { crop: 'aman', symptom: 'waste', priority: 'High', text: { bn: 'পাশের কারখানার কালো পানি আমনের জমিতে ঢুকছে, ধান হলুদ হয়ে মরে যাচ্ছে, পানিতে দুর্গন্ধ', en: 'Black water from the factory next door is running into my Aman field; the rice is yellowing and dying and the water stinks' } }],
+    ['Sombhag', 1, { crop: 'aman', symptom: 'waste', priority: 'High', text: { bn: 'নিচু জমিতে সারা বছর পানি জমে থাকে, কারখানার বর্জ্য মিশে আমনে চিটা বেড়েছে', en: 'Water stands on my low field all year; with the factory waste in it, more of the Aman grains are empty' } }],
+    ['Kulla', 0, { crop: 'tomato', symptom: 'question', priority: 'Low', text: { bn: 'টমেটোর চারা কবে লাগালে কুয়াশা আসার আগে গাছ শক্ত হবে?', en: 'When should I plant out the tomato seedlings so the plants are strong before the fog comes?' } }],
+    ['Balia', 0, { crop: 'aman', symptom: 'bph', priority: 'High', text: { bn: 'ধানের গোড়ায় বাদামি পোকা দেখছি, কয়েক জায়গায় ধান শুকিয়ে যাচ্ছে', en: 'I see brown insects at the base of the rice, and in a few places it is drying out' } }],
+    ['Jadabpur', 0, { crop: 'aman', symptom: 'question', priority: 'Medium', text: { bn: 'জমিতে এখনো হাঁটু পানি, পাকা আমন তুলব কীভাবে?', en: 'There is still knee-deep water in my field. How do I bring in the ripe Aman?' } }],
+    ['Amta', 0, { crop: 'aman', symptom: 'rodent', priority: 'Medium', text: { bn: 'ইঁদুর আমনের শিষ কেটে নিচ্ছে, প্রতিদিন ক্ষতি বাড়ছে', en: 'Rats are taking the Aman heads, and the damage grows every day' } }],
+  ];
+  dmisc.forEach(([union, n, x], i) => out.push(req(first(union, n), `R${560 + i}`, { type: 'question', ai: null, created: addDays(today, -(i % 4)), ...x })));
   return out;
 }
 
@@ -373,6 +447,10 @@ export const DISEASES = {
   alternaria: { bn: 'পাতা ঝলসানো (অল্টারনারিয়া) হতে পারে', en: 'Could be Alternaria blight' },
   nutrient: { bn: 'সারের ঘাটতি হতে পারে', en: 'Could be a nutrient shortage' },
   pest: { bn: 'পোকার আক্রমণ হতে পারে', en: 'Could be pest damage' },
+  bph: { bn: 'বাদামি গাছফড়িং (কারেন্ট পোকা) হতে পারে', en: 'Could be brown planthopper' },
+  stem_borer: { bn: 'মাজরা পোকা হতে পারে', en: 'Could be stem borer' },
+  blast: { bn: 'ব্লাস্ট (শিষ ভাঙা রোগ) হতে পারে', en: 'Could be blast (neck blast)' },
+  sheath_blight: { bn: 'খোল পোড়া হতে পারে', en: 'Could be sheath blight' },
 };
 // The name of one AI finding on a request: the crop doctor's own words, else a known disease or crop problem.
 export const aiLabel = (a) => (a?.bn ? { bn: a.bn, en: a.en } : DISEASES[a?.k] ?? PROBLEM_NAMES[a?.k] ?? DISEASES.unclear);

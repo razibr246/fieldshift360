@@ -2,7 +2,7 @@
 // plus this week's Dhaka retail price where DAM's weekly report lists the crop.
 import { useStore } from '../../store.jsx';
 import { PRICE_SEASONS, noHarvestPrices } from '../../engine/glut.js';
-import { num, fmtDate, parseISO } from '../../engine/dates.js';
+import { num, fmtDate, parseISO, bnDigits } from '../../engine/dates.js';
 import { Tags } from '../ui';
 import MARKET from '../../data/market_dhaka.json';
 
@@ -32,7 +32,7 @@ export default function PriceSeason({ crop, cropLabel }) {
         <Tags list={['REAL']} />
       </div>
       <p className="mt-1 text-[13px] leading-5 text-muted">
-        {T(`${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, সারা দেশের মাসিক গড়, ${num(yrs[0], 'bn')}–${num(yrs[yrs.length - 1], 'bn')}। প্রতি বছরের স্বাভাবিক দাম = ১০০।`, `${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, national monthly average, ${yrs[0]}–${yrs[yrs.length - 1]}. Each year's normal price = 100.`)}
+        {T(`${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, সারা দেশের মাসিক গড়, ${bnDigits(yrs[0])}–${bnDigits(yrs[yrs.length - 1])}। প্রতি বছরের স্বাভাবিক দাম = ১০০।`, `${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, national monthly average, ${yrs[0]}–${yrs[yrs.length - 1]}. Each year's normal price = 100.`)}
       </p>
       <div className="relative mt-3 flex h-24 items-end gap-[3px]" role="img" aria-label={T(`সবচেয়ে কম দাম ${FULL.bn[lo - 1]} মাসে`, `Lowest price in ${FULL.en[lo - 1]}`)}>
         {ORDER.map((m) => {

@@ -10,7 +10,7 @@ import { supplyCurve, normalWeekly, riskForWeeks } from '../../engine/glut';
 import { bnOf } from '../../engine/text';
 import { advisoryText } from '../../engine/advice';
 
-export const CROP_COLOR = { tomato: '#c8463d', boro: '#43863a', wheat: '#d08f26', lentil: '#7a5bb8', mustard: '#c9b320' };
+export const CROP_COLOR = { tomato: '#c8463d', boro: '#43863a', aman: '#8a9a2b', wheat: '#d08f26', lentil: '#7a5bb8', mustard: '#c9b320' };
 export const PR_ORDER = { High: 0, Medium: 1, Low: 2 };
 export const PRIORITY = {
   High: { tone: 'red', bn: 'জরুরি', en: 'Urgent' },
