@@ -1,7 +1,44 @@
 # FieldShift 360
 
-**Season planning for smallholders in Godagari, Rajshahi (Barind Tract), Bangladesh.**
-NASA Space Apps 2026, "Field Shift: Adapting Farms with NASA Data".
+**Season planning with NASA data for Bangladesh's smallholder farmers and their agriculture officers.**
+NASA Space Apps 2026, "Field Shift: Adapting Farms with NASA Data". Live: https://nasa-field-shift-360.vercel.app
+
+## Summary
+
+- **Problem.** Each Rabi season a smallholder must decide whether to keep the same crop, keep it at a different
+  date, or switch crops, while the weather they grew up with is shifting: drought on the Barind (Godagari,
+  Rajshahi), floods and waterlogging on the low land (Dhamrai, Dhaka), salt, flash floods and cold waves elsewhere.
+- **Users.** Farmers (Bangla first, voice and typing), union field officers (SAAO) who answer their problem reports,
+  and upazila officers (UAO) who see the whole upazila, harvest gluts and Aman planting.
+- **NASA data.** 25 seasons of NASA POWER daily weather (temperature, rain, humidity, solar radiation) per upazila;
+  NASA/JAXA GPM IMERG rain for the rain-onset dates and as a cross-check; NASA NEX-GDDP-CMIP6 for the 2040s; NASA
+  GIBS HLS satellite photos. Partner data: Copernicus Sentinel-1 radar (Aman transplanting) and Sentinel-2, ISRIC
+  SoilGrids, SRDI fertilizer recommendations, DAM prices, FAOSTAT yields, BBS boundaries.
+- **Real vs sample.** All climate, rain, radar, soil, price and yield data is real (sources in
+  [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)). The farmers, their requests and the land registry details are
+  sample people, labelled "sample" in the app. Crop thresholds and decision rules are stated starting values awaiting
+  an agriculture officer's review ([docs/THRESHOLDS.md](docs/THRESHOLDS.md)); the rain-onset rule is an assumption
+  ([docs/RADAR.md](docs/RADAR.md)).
+- **Run it.** `npm install`, then `npm run dev`; `npm test` runs the engine, voice, radar and game tests; `npm run
+  build` makes the static site. Data needs no network: every file is committed. The AI crop doctor needs
+  `ANTHROPIC_API_KEY` on the server (see `.env.example`); without it the app says so and photos go to the officer.
+- **Guided demo.** "3-minute demo story" on the home page walks through the app in seven steps.
+
+## What was built before and during the event
+
+Everything in this repository as of 21 October 2026 was built **before** the Space Apps event, as preparation:
+the planner, the data pipelines, the officer views, the voice assistant, Ropon Radar and the game. The full
+challenge statement is released on 28 October 2026; changes made after that, during the event, will be listed here
+with their dates, and the commit history shows each change.
+
+## Licence
+
+MIT (`LICENSE`), except `public/radar/` (the Ropon Radar prototype), which is Apache-2.0 (`public/radar/LICENSE`).
+Data keeps its own licence, listed per dataset in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+
+## Background
+
+Season planning for smallholders, first built for Godagari, Rajshahi (Barind Tract), now seven upazilas.
 
 Each Rabi season a farmer has one question: *keep the same crop, keep it but change the timing, or move to a
 different crop?* FieldShift 360 answers it from 25 seasons of NASA climate history, union-level soil, crop
