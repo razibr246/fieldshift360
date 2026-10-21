@@ -1,0 +1,84 @@
+/* FieldShift 360 theme for the radar. Loaded after tokens.css and main.css; changes look only, never behaviour.
+   Colours mirror src/index.css: paddy green, river teal, sunrise gold, Barind laterite, morning-haze canvas. */
+
+:root {
+  --paper: #f3f6f0;        /* canvas */
+  --paper-deep: #eaf1e5;   /* soft */
+  --ink: #13261b;
+  --muted: #566a5e;
+  --water: #1c5f64;        /* river teal, early */
+  --paddy: #43863a;
+  --paddy-ink: #2f6e2f;
+  --silt: #d08f26;         /* sunrise gold (fills) */
+  --silt-ink: #87580e;
+  --brick: #a8552a;        /* Barind laterite, late */
+  --radar-bg: #0d2614;     /* the sidebar's deep green */
+  --radar-fg: #dcebd3;
+  --radar-muted: #9fb8a6;
+  --radar-line: #a9d3d3;
+
+  --border: #dfe7dc;
+  --accent: #245a28;
+  --grid: transparent;
+  --hair-color: rgba(19, 38, 27, 0.16);
+  --rule-soft: rgba(19, 38, 27, 0.08);
+
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Kohinoor Bangla", "Inter Variable", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Kohinoor Bangla", "Inter Variable", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --font-bn: "Kohinoor Bangla", "Noto Sans Bengali", "Nirmala UI", sans-serif;
+}
+
+body { background: var(--paper); }
+body.mode-scene { background: #e3ebe0; }
+
+/* Labels: the app's quiet green eyebrow instead of spaced capitals. */
+.runhead, .fig-label, .stat-table th, .drawer h3 { text-transform: none; letter-spacing: 0.01em; }
+.fig-label, .explore-head .runhead { color: var(--accent); font-weight: 600; }
+.runhead .wordmark { font-weight: 700; }
+.scene-title, .explore .fig h2, .closing .t { font-weight: 700; letter-spacing: -0.02em; }
+.scene-title em, .closing .s { font-style: normal; color: var(--accent); }
+.closing .s { font-family: var(--font-ui); }
+
+/* Rounded controls, soft borders: matches the app's buttons and segmented tabs. */
+.btn-line, .scene-nav button, .inspector-controls select {
+  border: 1px solid var(--border); border-radius: 10px; background: #fff; color: var(--ink);
+  font-weight: 600; transition: background-color .25s, color .25s, border-color .25s;
+}
+.btn-line:hover, .scene-nav button:hover:not(:disabled) { background: var(--paper-deep); color: var(--ink); border-color: #b9d8aa; }
+.explore .picker button.on, .scene-nav button.on, .btn-line.on {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.scene-nav .tabs-n button { border-color: var(--border); }
+.theme-radar .scene-nav button { background: rgba(255, 255, 255, .06); border-color: rgba(220, 235, 211, .25); color: var(--radar-fg); }
+.theme-radar .scene-nav button.on { background: var(--radar-fg); color: var(--radar-bg); }
+.chrome.counter kbd { border-radius: 6px; }
+.chrome.progress i { background: var(--paddy); }
+
+/* Sample-data badge: the app's gold "নমুনা তথ্য" pill. */
+.badge { border: 1px solid #f8e6bd; border-radius: 999px; background: #fdf6e6; color: var(--silt-ink); font-weight: 600; }
+.badge::before { border-radius: 50%; }
+.theme-radar .badge { background: rgba(253, 246, 230, .1); border-color: rgba(248, 230, 189, .35); color: #f8e6bd; }
+
+/* Cards and panels */
+.explore-head { border-bottom: 1px solid var(--border); }
+.explore .picker { border-bottom: 1px solid var(--border); background: rgba(243, 246, 240, .92); backdrop-filter: blur(10px); }
+.explore section.fig { border-bottom: 1px solid var(--border); }
+.radar-panel { border-radius: 18px; overflow: hidden; }
+.sms { border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+.meter, .meter i { border-radius: 99px; }
+.note { border-left-color: var(--silt); border-radius: 0 10px 10px 0; background: #fdf6e6; padding: 10px 14px 10px 16px; }
+.drawer { border-left: 1px solid var(--border); box-shadow: -18px 0 48px -18px rgba(13, 38, 20, .35); }
+.drawer .close { border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+.phone { border-color: var(--radar-bg); }
+.phone .notch { background: var(--radar-bg); }
+.tabs button.on { color: var(--accent); border-bottom-color: var(--accent); }
+.stat-table tr.sel td { background: rgba(28, 95, 100, .08); }
+input.range::-webkit-slider-runnable-track { background: var(--border); height: 4px; border-radius: 99px; }
+input.range::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(36, 90, 40, .15); }
+input.range::-moz-range-track { background: var(--border); height: 4px; border-radius: 99px; }
+input.range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); }
+.map-label, .map-value { stroke: rgba(243, 246, 240, .85); }
+
+/* Inside the app (?embed=1) the app already names the page, so the radar's own wordmark steps back. */
+body.embed .runhead .wordmark, body.embed .runhead .bn, body.embed .runhead .sep { display: none; }
+body.embed .explore-head .runhead { font-size: 14px; }

@@ -1,0 +1,6 @@
+{
+  "_note": "Texts for the pre-recorded FieldShift prompts. Synthesise with `node scripts/generate_audio_prompts.mjs` (spends TTS credits, see AGENTS.md) after adding these ids, then keep the strings in lib/agent/field/field-prompt.ts identical.",
+  "field_greeting_farmer": "ফিল্ডশিফটে আপনাকে স্বাগতম। এই কথোপকথন আপনার সেবার মানের জন্য রেকর্ড করা হতে পারে। এই রবিতে কী লাগাবেন জানতে ১, আজ সেচ লাগবে কি না জানতে ২, ফসল কবে উঠবে জানতে ৩, মাঠের সমস্যা জানাতে ৪, কৃষি অফিসারের কথা জানতে ৫ চাপুন, অথবা সরাসরি বলুন।",
+  "field_greeting_saao": "ফিল্ডশিফটে আপনাকে স্বাগতম। আজকের অবস্থা শুনতে ১, জরুরি অনুরোধের জন্য ২, এলাকার সতর্কতার জন্য ৩, কবে কত ফসল উঠবে জানতে ৪ চাপুন, অথবা সরাসরি বলুন।",
+  "field_greeting_uao": "ফিল্ডশিফটে আপনাকে স্বাগতম। উপজেলার সার্বিক চিত্র শুনতে ১, মাঠকর্মীদের পাঠানো বিষয়ের জন্য ২, ইউনিয়নের ঝুঁকির ক্রমের জন্য ৩, পুরো উপজেলায় পরামর্শ পাঠাতে ৪ চাপুন, অথবা সরাসরি বলুন।"
+}

@@ -1,0 +1,156 @@
+import { Component, lazy, Suspense, useEffect } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import PublicLayout from './layouts/PublicLayout';
+import FarmerLayout from './layouts/FarmerLayout';
+import OfficerLayout from './layouts/OfficerLayout';
+import AbroadLayout from './layouts/AbroadLayout';
+import Home from './pages/public/Home';
+import { WhyDrawer, DataInfo, Toast } from './components/Overlays';
+import { MotionManager } from './components/Motion';
+
+// Every page except Home loads on first visit, so the landing page does not download the whole app. Once the home
+// page has settled, the rest are fetched quietly in the background (skipped on Data Saver or 2G), which also lets the
+// offline cache hold every page.
+const loaders = [];
+const load = (f, pick) => { loaders.push(f); return lazy(() => f().then((m) => (pick ? { default: m[pick] } : m))); };
+const Login = load(() => import('./pages/public/Login'));
+const Play = load(() => import('./pages/public/Play'));
+const Games = load(() => import('./pages/public/Games'));
+const Stories = load(() => import('./pages/public/Stories'));
+const StoryLevel = load(() => import('./pages/public/StoryLevel'));
+const FarmGame = load(() => import('./pages/public/FarmGame'));
+const FarmerDashboard = load(() => import('./pages/farmer/Dashboard'));
+const Plan = load(() => import('./pages/farmer/Plan'));
+const Today = load(() => import('./pages/farmer/Today'));
+const CropDoctor = load(() => import('./pages/farmer/CropDoctor'));
+const Help = load(() => import('./pages/farmer/Help'));
+const Profile = load(() => import('./pages/farmer/Profile'));
+const Harvest = load(() => import('./pages/farmer/Harvest'));
+const FieldFuture = load(() => import('./pages/farmer/FieldFuture'));
+const MyFarm = load(() => import('./pages/farmer/MyFarm'));
+const FarmerVoice = load(() => import('./pages/farmer/Voice'));
+const OfficerVoice = load(() => import('./pages/officer/Voice'));
+const Radar = load(() => import('./pages/officer/Radar'));
+const RadarOriginal = load(() => import('./pages/officer/RadarOriginal'));
+const OfficerDashboard = load(() => import('./pages/officer/Dashboard'));
+const Requests = load(() => import('./pages/officer/Requests'));
+const RequestDetail = load(() => import('./pages/officer/RequestDetail'));
+const Farmers = load(() => import('./pages/officer/Farmers'));
+const FarmDetail = load(() => import('./pages/officer/Farmers'), 'FarmDetail');
+const AreaMap = load(() => import('./pages/officer/AreaMap'));
+const Alerts = load(() => import('./pages/officer/Alerts'));
+const Planting = load(() => import('./pages/officer/Planting'));
+const Upazila = load(() => import('./pages/officer/UpazilaSupply'), 'Upazila');
+const Supply = load(() => import('./pages/officer/UpazilaSupply'), 'Supply');
+const AbHome = load(() => import('./pages/abroad/farmer'), 'Home');
+const AbField = load(() => import('./pages/abroad/farmer'), 'Field');
+const AbPlan = load(() => import('./pages/abroad/farmer'), 'Plan');
+const AbRisks = load(() => import('./pages/abroad/farmer'), 'Risks');
+const AbFuture = load(() => import('./pages/abroad/farmer'), 'Future');
+const AbHelp = load(() => import('./pages/abroad/farmer'), 'Help');
+const AbOverview = load(() => import('./pages/abroad/officer'), 'Overview');
+const AbAlerts = load(() => import('./pages/abroad/officer'), 'Alerts');
+const AbRequests = load(() => import('./pages/abroad/officer'), 'Requests');
+const AbFarmer = load(() => import('./pages/abroad/officer'), 'FarmerView');
+const AbCountry = load(() => import('./pages/abroad/officer'), 'Country');
+const AbAreaMap = load(() => import('./pages/abroad/officer'), 'AreaMap');
+const AbPlanting = load(() => import('./pages/abroad/officer'), 'Planting');
+
+// A quiet placeholder while a page's code arrives (usually a fraction of a second).
+function PageLoading() {
+  return (
+    <div className="page-shell animate-pulse py-10" aria-busy="true" aria-label="Loading">
+      <div className="h-7 w-56 rounded-lg bg-primary-100/70" />
+      <div className="mt-3 h-4 w-80 max-w-full rounded bg-primary-50" />
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-28 rounded-2xl bg-primary-50" />)}</div>
+    </div>
+  );
+}
+// If a page's code cannot be fetched (offline before it was ever opened, or a new version was deployed), say so
+// plainly and offer a retry instead of a blank screen.
+class PageError extends Component {
+  constructor(p) { super(p); this.state = { failed: false }; }
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    const bn = document.documentElement.lang !== 'en';
+    return (
+      <div className="page-shell py-16 text-center" role="alert">
+        <p className="text-[20px] font-bold">{bn ? 'এই পাতাটি খোলা গেল না' : 'This page could not be opened'}</p>
+        <p className="mt-2 text-[15px] text-muted">{bn ? 'প্রথমবার খুলতে ইন্টারনেট লাগে। সংযোগ দেখে আবার চেষ্টা করুন।' : 'It needs the internet the first time. Check the connection and try again.'}</p>
+        <button type="button" onClick={() => window.location.reload()} className="btn-gloss mt-5 inline-flex h-11 items-center rounded-full px-6 text-[15px] font-semibold text-white">{bn ? 'আবার চেষ্টা করুন' : 'Try again'}</button>
+      </div>
+    );
+  }
+}
+const page = (el) => <PageError><Suspense fallback={<PageLoading />}>{el}</Suspense></PageError>;
+
+function usePrefetchPages() {
+  useEffect(() => {
+    if (!import.meta.env.PROD) return undefined;
+    const c = navigator.connection;
+    if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return undefined;
+    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 2500));
+    const t = setTimeout(() => idle(() => loaders.forEach((f) => f().catch(() => {}))), 4000);
+    return () => clearTimeout(t);
+  }, []);
+}
+
+export default function App() {
+  usePrefetchPages();
+  return (
+    <>
+      <Routes>
+        <Route element={<PublicLayout />}><Route path="/" element={<Home />} /><Route path="/play" element={page(<Play />)} /><Route path="/games" element={page(<Games />)} /><Route path="/farm" element={page(<FarmGame />)} /><Route path="/stories" element={page(<Stories />)} /><Route path="/stories/:id" element={page(<StoryLevel />)} /></Route>
+        <Route path="/login" element={page(<Login />)} />
+        <Route path="/farmer" element={<FarmerLayout />}>
+          <Route index element={page(<FarmerDashboard />)} />
+          <Route path="plan" element={page(<Plan />)} />
+          <Route path="today" element={page(<Today />)} />
+          <Route path="doctor" element={page(<CropDoctor />)} />
+          <Route path="help" element={page(<Help />)} />
+          <Route path="profile" element={page(<Profile />)} />
+          <Route path="harvest" element={page(<Harvest />)} />
+          <Route path="future" element={page(<FieldFuture />)} />
+          <Route path="farm" element={page(<MyFarm />)} />
+          <Route path="voice" element={page(<FarmerVoice />)} />
+        </Route>
+        <Route path="/officer" element={<OfficerLayout />}>
+          <Route index element={page(<OfficerDashboard />)} />
+          <Route path="requests" element={page(<Requests />)} />
+          <Route path="requests/:id" element={page(<RequestDetail />)} />
+          <Route path="farmers" element={page(<Farmers />)} />
+          <Route path="farmers/:id" element={page(<FarmDetail />)} />
+          <Route path="map" element={page(<AreaMap />)} />
+          <Route path="alerts" element={page(<Alerts />)} />
+          <Route path="planting" element={page(<Planting />)} />
+          <Route path="supply" element={page(<Supply />)} />
+          <Route path="upazila" element={page(<Upazila />)} />
+          <Route path="voice" element={page(<OfficerVoice />)} />
+          <Route path="radar" element={page(<Radar />)} />
+          <Route path="radar-original" element={page(<RadarOriginal />)} />
+        </Route>
+        <Route path="/abroad/:cc" element={<AbroadLayout />}>
+          <Route index element={page(<AbHome />)} />
+          <Route path="field" element={page(<AbField />)} />
+          <Route path="plan" element={page(<AbPlan />)} />
+          <Route path="risks" element={page(<AbRisks />)} />
+          <Route path="future" element={page(<AbFuture />)} />
+          <Route path="help" element={page(<AbHelp />)} />
+          <Route path="officer" element={page(<AbOverview />)} />
+          <Route path="officer/alerts" element={page(<AbAlerts />)} />
+          <Route path="officer/requests" element={page(<AbRequests />)} />
+          <Route path="officer/farmer" element={page(<AbFarmer />)} />
+          <Route path="officer/country" element={page(<AbCountry />)} />
+          <Route path="officer/map" element={page(<AbAreaMap />)} />
+          <Route path="officer/planting" element={page(<AbPlanting />)} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <MotionManager />
+      <WhyDrawer />
+      <DataInfo />
+      <Toast />
+    </>
+  );
+}

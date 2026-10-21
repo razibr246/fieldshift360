@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ropon Radar — রোপণ</title>
+<meta name="description" content="Prototype: radar-detected Aman transplanting vs. usable-rain onset, Rangpur. Illustrative demo data.">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/fieldshift.css">
+<script src="vendor/d3.v7.min.js"></script>
+</head>
+<body>
+<!-- This prototype runs on synthetic Rangpur data; the app's page uses real satellite data. -->
+<a href="../#/officer/radar" target="_top" style="position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:99;display:flex;gap:8px;align-items:center;max-width:calc(100vw - 24px);padding:8px 14px;border-radius:999px;background:#fdf6e6;border:1px solid #f8e6bd;color:#87580e;font:600 13px/1.35 system-ui,-apple-system,'Kohinoor Bangla','Noto Sans Bengali',sans-serif;text-decoration:none;box-shadow:0 6px 18px -8px rgba(13,38,20,.35)">
+  <span>এটি নমুনা তথ্যের পুরোনো ডেমো (রংপুর)। আসল উপগ্রহ তথ্যে বৃষ্টি, আমন রোপণ আর খরা-বন্যা-গরম-ঠান্ডার ঝুঁকি দেখুন →</span>
+</a>
+<noscript>Ropon Radar needs JavaScript. A text-only view is at <a href="lowband.html">lowband.html</a>.</noscript>
+<script type="module">
+  import { boot } from "./js/scenes.js";
+  boot().catch((err) => {
+    console.error(err);
+    document.body.innerHTML = `<pre style="padding:40px;font:16px/1.5 monospace">Could not start: ${err.message}\n\nServe this folder over HTTP:  python -m http.server 8000</pre>`;
+  });
+</script>
+</body>
+</html>

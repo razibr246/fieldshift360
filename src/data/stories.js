@@ -1,0 +1,155 @@
+// Seven Divisions, seven farmers: the story levels. Levels 1–2 (Dhaka, Rajshahi) are the app's two live sample
+// farms; levels 3–7 are missions played on each upazila's real NASA data (engine/missions.js).
+// The farmers and their families are composite characters written from what farmers in these places commonly face;
+// they are not real people. Each lives on as a sample farm in the app, in a real village of their upazila. The stories
+// name the officer only by post: the real head of each upazila agriculture office is shown beside the story, from the
+// office's DAE portal, and the story's events are not about them.
+const L = (bn, en) => ({ bn, en });
+
+export const PILLARS = [
+  L('চাষের ইতিহাস', 'Farming history'), L('যে বিপদ', 'Challenges'), L('রোগ ও পোকা', 'Diseases and pests'), L('ফসল ও সময় বাছাই', 'Crop choice and timing'),
+  L('চাষের পদ্ধতি', 'Cultivation'), L('ফসল তোলা ও ফলন', 'Harvest and yield'), L('আবহাওয়ার আঘাত', 'Weather impact'), L('বাজার ও বিক্রি', 'Marketing and selling'),
+];
+
+export const LEVELS = [
+  {
+    id: 'dhaka', n: 1, live: 'RAZIB', upz: 'dhamrai', division: L('ঢাকা', 'Dhaka'), zila: L('ঢাকা', 'Dhaka'), upazila: L('ধামরাই', 'Dhamrai'), lat: 23.93, lon: 90.14,
+    farmer: L('রাজিব মিয়া', 'Razib Miah'), tone: '#6d5bd0',
+    hazard: L('শহরের কাছের জলাবদ্ধতা আর কারখানার দূষিত পানি', 'Peri-urban waterlogging and factory runoff'),
+    bio: L('সরিষার জাব পোকা, বেগুনের ডগা ও ফল ছিদ্রকারী পোকা', 'Mustard aphid, brinjal fruit and shoot borer'),
+    power: L('নিরাপদ সবজি, পোকার ঝাঁক ধরার এলাকাভিত্তিক সতর্কতা, শহরের বাজারে সরাসরি', 'Safe vegetables, area-wide pest-cluster alerts, straight to city markets'),
+    crops: [{ id: 'mustard', name: L('সরিষা', 'Mustard') }, { id: 'boro', name: L('বোরো ধান', 'Boro rice') }, { id: 'brinjal', name: L('বেগুন', 'Brinjal') }],
+    story: L('ঢাকার এত কাছে যে ধামরাইয়ের মাঠে রাতে কারখানার আলো দেখা যায়। রাজিব মিয়ার চারটি জমি উপজেলা অফিসে নিবন্ধিত, প্রতিটি উপগ্রহে দেখা যায়। বর্ষায় নালা বন্ধ হয়ে জমিতে পানি দাঁড়ায়, শীতে সরিষায় জাব পোকা ঝাঁক বেঁধে আসে। এই স্তরটি খেলার নয়, অ্যাপের আসল নমুনা খামারে: ঢুকলে তাঁর জমির আজকের কাজ, পোকার এলাকাভিত্তিক সতর্কতা আর জমির ভবিষ্যৎ দেখা যায়।',
+      'Dhamrai is close enough to Dhaka that the factory lights show over the fields at night. Razib Miah’s four fields are on the upazila register, each watched by satellite. In the monsoon blocked drains leave water standing; in winter aphids come to the mustard in swarms. This level is played in the app’s live sample farm itself: go in to see his fields’ tasks today, the area pest alert and his field’s future.'),
+  },
+  {
+    id: 'rajshahi', n: 2, live: 'RAHIM', upz: 'godagari', division: L('রাজশাহী', 'Rajshahi'), zila: L('রাজশাহী', 'Rajshahi'), upazila: L('গোদাগাড়ী', 'Godagari'), lat: 24.4667, lon: 88.3306,
+    farmer: L('রহিম উদ্দিন', 'Rahim Uddin'), tone: '#b8761b',
+    hazard: L('বরেন্দ্রের খরা আর নেমে যাওয়া পানির স্তর', 'Barind drought and a falling water table'),
+    bio: L('টমেটোর পাতার দাগ, গমের ব্লাস্ট, আমের হপার', 'Tomato leaf spot, wheat blast, mango hopper'),
+    power: L('AWD সেচ, ১০ বছরের ফসলচক্র, রাডারে আমনের সময়', 'AWD irrigation, ten-year rotations, radar-timed Aman'),
+    crops: [{ id: 'tomato', name: L('টমেটো', 'Tomato') }, { id: 'wheat', name: L('গম', 'Wheat') }, { id: 'mango', name: L('আম', 'Mango') }],
+    story: L('দেওপাড়ার লাল খিয়ার মাটিতে গ্রীষ্মে ফাটল ধরে, গভীর নলকূপের পানি প্রতি বছর আরও নিচে নামে। রহিম উদ্দিনের চারটি জমি, বোরোর ফুলের সময় ৩৫°-এর ওপরে গরম আর টমেটোতে পাতার দাগ। এই স্তরও আসল নমুনা খামারে খেলা হয়: নাসার ২৫ বছরের আবহাওয়ায় মৌসুমের পরিকল্পনা, সেচের রঙ আর নাসার ২০৪০-এর দশকের জলবায়ুতে ১০ বছরের ফসলচক্র।',
+      'Deopara’s red Barind soil cracks in the hot season, and the deep tube wells reach lower every year. Rahim Uddin has four fields, Boro flowering in heat over 35 °C and leaf spot in the tomatoes. This level is also played in the live sample farm: a season plan on 25 years of NASA weather, the irrigation colour, and ten-year rotations in NASA’s 2040s climate.'),
+  },
+  {
+    id: 'chattogram', n: 3, live: 'DIDARUL', upz: 'sitakunda', mission: 'chattogram', division: L('চট্টগ্রাম', 'Chattogram'), zila: L('চট্টগ্রাম', 'Chattogram'), upazila: L('সীতাকুণ্ড', 'Sitakunda'), union: L('সৈয়দপুর', 'Syedpur'), lat: 22.6167, lon: 91.6667,
+    farmer: L('মো. দিদারুল আলম', 'Md. Didarul Alam'), age: 48, tone: '#2f8a8f', acres: 2.4,
+    hazard: L('পাহাড়ি ঢল আর ঘূর্ণিঝড়ের বাতাস', 'Hill-foot flash runoff and cyclone winds'),
+    bio: L('শিমের ফল ছিদ্রকারী পোকা, শিকড় পচা', 'Bean pod borer and Fusarium root rot'),
+    power: L('নালা কাটা, উঁচু মালচ বেড, ফেরোমন ফাঁদ, স্বল্প মেয়াদি আমন', 'Perimeter drains, raised mulched beds, pheromone traps, short-duration Aman'),
+    tools: [L('মেঘভাঙা বৃষ্টির সতর্কতা (পাহাড়ের ঢলের আগে)', 'Cloudburst runoff alert'), L('ফসলের ডাক্তার: ছবি দেখে পোকার ধাপ', 'Crop doctor: the pest’s stage from a photo')],
+    crops: [{ id: 'countrybean', name: L('শিম', 'Country bean'), search: 'Lablab purpureus beans' }, { id: 'bittergourd', name: L('করলা', 'Bitter gourd'), search: 'Momordica charantia' }, { id: 'aman', name: L('আমন ধান', 'Aman rice') }, { id: 'chili', name: L('কাঁচা মরিচ', 'Green chili'), search: 'green chili pepper plant' }],
+    story: L('কুড়ি বছর ধরে সৈয়দপুরে দিদারুলের শীতের শিম ছিল গর্বের জিনিস। তিন বছর আগে পরপর বিপদ এল। অক্টোবরের অসময়ের মেঘভাঙা বৃষ্টিতে সীতাকুণ্ডের পাহাড় থেকে ঢল নেমে তাঁর নিচু আমন জমি ডুবিয়ে দিল, পাহাড়ের ঢালের বাঁশের মাচাও ভেসে গেল। ক্ষুদ্রঋণের দেনা মাথায় নিয়ে আবার শিম লাগালেন; তোলার ঠিক আগে কালো দাগ আর ভেতরে ঢোকা পোকা ৭০ ভাগ শিম ফাঁপা করে দিল। মেয়ের কলেজের বেতন বাকি, দিদারুল জমি বর্গা দিয়ে জাহাজভাঙা কারখানায় কাজের কথা ভাবছিলেন। সেই সপ্তাহেই উপজেলা কৃষি অফিসার ইউনিয়নে এলেন FieldShift নিয়ে।',
+      'For twenty years Didarul’s winter country beans were the pride of Syedpur. Three years ago trouble came twice. An unseasonal October cloudburst sent a wall of water down the Sitakunda hills, drowning his low Aman plot and washing away the bamboo trellises on his hill-foot plot. Deep in microfinance debt, he replanted; just before harvest, black spots and boring larvae hollowed out 70% of the pods. With his daughter’s college fees unpaid, he was ready to lease out the land and work in the ship-breaking yards. That week the upazila agriculture officer came to the union with FieldShift.'),
+    pillars: [
+      L('২৬ বছর ধরে চাষ। কাঠের লাঙল আর বাবার রাখা বীজ দিয়ে শুরু, পরে শীতের সবজি (শিম, করলা) আর বর্ষার আমন; সার বলতে দোকানির কথামতো রাসায়নিক।', 'Farming for 26 years: wooden ploughs and his father’s saved seed at first, then winter vegetables (beans, bitter gourd) and monsoon Aman, with chemical fertiliser as the shopkeeper said.'),
+      L('দুই দিক থেকে বিপদ: পূর্বের পাহাড় থেকে হঠাৎ ঢলে জলাবদ্ধতা, আর বঙ্গোপসাগরের ঘূর্ণিঝড়ের বাতাসে মাচা ছিঁড়ে যাওয়া।', 'Caught between sudden runoff from the eastern hills that waterlogs the land, and cyclone winds off the Bay of Bengal that shred the trellises.'),
+      L('শিমের ফল ছিদ্রকারী পোকা (Maruca vitrata), জাব পোকা আর ফিউজেরিয়ামে শিকড় পচা। প্রতি তিন দিনে কড়া কীটনাশক দিতেন; উপকারী পোকা মরত, ভেতরের পোকা মরত না।', 'Bean pod borer (Maruca vitrata), aphids and Fusarium root wilt. He sprayed strong pesticide every three days: the useful insects died, the larvae inside did not.'),
+      L('লম্বা মেয়াদের দেশি আমন নভেম্বরের শেষে পাকত, তাই আগাম শিম লাগানো যেত না, যখন দাম তিন গুণ।', 'Long local Aman ripened in late November, so he missed the early bean window when prices are three times higher.'),
+      L('সমান বেডে বৃষ্টির পানি শিকড়ের কাছে জমত, গোড়া পচা বাড়ত; বেশি ইউরিয়া দিতেন, বোরন আর দস্তার অভাব চোখে পড়েনি।', 'Flat beds held rainwater round the roots and fed collar rot; he over-applied urea and missed boron and zinc deficiency.'),
+      L('কাদায় আমন কাটতে দেরি, ফলন একরে মাত্র ১.৫ টন; পোকায় খাওয়া শিমের ৬০ ভাগ ওজন বাজারে চলেনি।', 'Muddy fields delayed the rice harvest to barely 1.5 t an acre; pest-scarred beans lost 60% of their saleable weight.'),
+      L('অক্টোবরের নিম্নচাপে পাহাড়ি ঢল আর পাঁচ দিন পানি দাঁড়িয়ে থাকা: শিকড় দম আটকে মরে, আগাম শীতের সবজির ফুল ঝরে যায়।', 'Late-monsoon depressions in October bring hill torrents and five days of standing water: roots suffocate and early winter vegetables drop their flowers.'),
+      L('বাতাস চলা ক্রেট নেই, রিয়াজউদ্দিন বাজারের দামও জানা নেই; তাই ভোরে মহাসড়কের ব্যাপারীর কাছে অর্ধেক দামে শিম বিক্রি।', 'With no ventilated crates and no sight of Reazuddin Bazar prices, he sold at dawn to highway beparis at half price.'),
+    ],
+    resolution: L('উপজেলা কৃষি অফিসার দিদারুলকে FieldShift-এ যুক্ত করলেন। মেঘভাঙা বৃষ্টির সতর্কতা পেয়ে নিম্নচাপের ৪৮ ঘণ্টা আগে তিনি পাহাড়ের জমির চারপাশে নালা কাটলেন, উঁচু মালচ বেডে শিম লাগালেন। পোকা দেখা দিলে ছবি তুলে পাঠালেন; কর্মকর্তা পোকার ধাপ মিলিয়ে ফেরোমন ফাঁদ আর স্পিনোস্যাড দিতে বললেন, কড়া বিষ নয়। স্বল্প মেয়াদের ব্রি ধান৭৫ লাগিয়ে জমি তিন সপ্তাহ আগে খালি হলো, আগাম শিম উঠল যখন দাম সবচেয়ে বেশি।',
+      'The upazila agriculture officer enrolled Didarul in FieldShift. On the cloudburst alert he dug perimeter drains round the hill plot 48 hours before the depression and moved to raised, mulched beds. When the borer appeared he sent a photo; the officer matched the larval stage and prescribed pheromone traps and spinosad instead of strong poison. Short-duration BRRI dhan75 freed the land three weeks early, and his early beans reached market at the best prices.'),
+  },
+  {
+    id: 'khulna', n: 4, live: 'PRAHLAD', upz: 'dacope', mission: 'khulna', division: L('খুলনা', 'Khulna'), zila: L('খুলনা', 'Khulna'), upazila: L('দাকোপ', 'Dacope'), union: L('তিলডাঙ্গা', 'Tildanga'), lat: 22.5726, lon: 89.5115,
+    farmer: L('প্রহ্লাদ চন্দ্র রায়', 'Prahlad Chandra Roy'), age: 52, tone: '#a8552a', acres: 3.0,
+    hazard: L('মাটি ও পানিতে লবণ (১২ dS/m ছাড়িয়ে)', 'Soil and water salinity (past 12 dS/m)'),
+    bio: L('লবণের চাপে নেতিয়ে পড়া, গামি স্টেম ব্লাইট', 'Salt-stress wilt and gummy stem blight'),
+    power: L('কুনি পুকুর, খড়ের মালচ, লবণসহিষ্ণু জাত, উঁচু বেডে ড্রিপ', 'A kuni pond, straw mulch, salt-tolerant seed, raised beds with drip'),
+    tools: [L('লবণ সূচক: নাসার আবহাওয়ায় মৌসুম ধরে মাটির লবণ', 'Salinity index: soil salt through the season on NASA weather'), L('মাস–হফম্যান ফলন হিসাব', 'Maas–Hoffman yield calculator')],
+    crops: [{ id: 'watermelon', name: L('তরমুজ', 'Watermelon'), search: 'watermelon field' }, { id: 'saltrice', name: L('লবণসহিষ্ণু ধান', 'Salt-tolerant rice'), search: 'Satkhira paddy field' }, { id: 'sesame', name: L('তিল', 'Sesame') }, { id: 'sunflower', name: L('সূর্যমুখী', 'Sunflower'), search: 'sunflower field' }],
+    story: L('ঘূর্ণিঝড় আইলা আর আম্পানে বাঁধ ভাঙার পর প্রহ্লাদ দেখলেন তিলডাঙ্গার মাটি চকের মতো সাদা হয়ে যাচ্ছে। প্রতি শুকনো মৌসুমে, জানুয়ারি থেকে মে, মাটির নিচ থেকে লবণ উঠে আসে, যা বোনেন তার শিকড় পোড়ে। পাশের লোকেরা ঢাকার ইটভাটায় চলে গেলেন; প্রহ্লাদ তাঁর দুটি জমি ছাড়লেন না, যদিও খাবার পানি কমে এল আর সংসার চলল বছরে এক আমনে। ফেব্রুয়ারির এক দুপুরে লবণে শুকিয়ে যাওয়া তিলের চারা গুঁড়ো হতে দেখে তিনি আলের ওপর বসে কেঁদে ফেললেন। উপজেলা কৃষি অফিসার এলেন হাতের EC মিটার নিয়ে: জমি মরেনি, লবণের বিরুদ্ধে একটা বিজ্ঞানের পরিকল্পনা লাগবে।',
+      'After cyclones Aila and Amphan breached the embankments, Prahlad watched Tildanga’s soil turn white as chalk. Every dry season, January to May, salt rises from below and burns the roots of whatever he sows. Neighbours left for brick kilns near Dhaka; Prahlad kept his two plots, though drinking water grew scarce and the family lived on one monsoon crop a year. One February afternoon, watching his salt-withered sesame crumble, he broke down on the field dike. The upazila agriculture officer came with a hand-held EC meter: the land was not dead, it needed a scientific plan against salt.'),
+    pillars: [
+      L('৩২ বছর ধরে চাষ। ছোটবেলায় বছরে তিন ফসল হতো; বারবার বাঁধ ভাঙার পর নেমে এল এক আমনে।', 'Farming for 32 years. In his youth the family grew three crops a year; after repeated breaches it came down to one monsoon crop.'),
+      L('শুকনো মৌসুমে মাটির লবণ ১২ dS/m ছাড়ায়, নদীর পানি সেচের অযোগ্য নোনা, আর ঘূর্ণিঝড়ের জলোচ্ছ্বাস।', 'Dry-season soil salt above 12 dS/m, river water too brackish to irrigate with, and cyclone surges.'),
+      L('লবণের চাপে গাছ দুর্বল: কুমড়াজাতীয় ফসলে গামি স্টেম ব্লাইট আর মাছি পোকা, ধানে পাতা পোড়া। লবণে পাতা পোড়াকে ছত্রাক ভেবে ছত্রাকনাশকে টাকা নষ্ট।', 'Salt-weakened plants got gummy stem blight and fruit fly in cucurbits and leaf blight in rice. He took salt burn for fungus and wasted money on fungicide.'),
+      L('লবণ যখন সবচেয়ে বেশি, সেই ফেব্রুয়ারিতে সাধারণ বোরো আর সবজি লাগিয়ে চারা গজায়নি।', 'He sowed ordinary Boro and vegetables in February, just as salt peaks, and nothing came up.'),
+      L('নভেম্বরে আমন কাটার পর মাটি খালি রোদে ফেলে রাখতেন; পানি উড়ে যেতে যেতে নিচের লবণ টেনে ওপরে আনে।', 'After the November harvest he left the soil bare in the sun; as the water evaporates it draws the salt up to the surface.'),
+      L('আমনের ফলন একরে মাত্র ৩৫ মণ, আর বছরের ছয় মাস জমি পুরো পতিত।', 'Monsoon rice gave a poor 35 maunds an acre, and the land stood idle six months of the year.'),
+      L('লম্বা শীতের খরা আর মার্চ–এপ্রিলে নদীর লবণ বাড়া মিলে মাটিতে নোনা চটা; তারপর মে মাসের কালবৈশাখীতে নিচু জমি ডোবে।', 'Long winter drought and rising river salt in March–April crust the soil with salt; then May’s nor’westers flood the low trenches.'),
+      L('নদী পার আর ভাঙা রাস্তার জন্য চালনা বাজারে যেতে নৌকাভাড়া বেশি, সেখানে সিন্ডিকেটের ঠিক করা দামেই বেচতে হয়।', 'River crossings and poor roads meant costly boat fares to Chalna Bazar, where the syndicate set the price.'),
+    ],
+    resolution: L('লবণ সূচক আর কর্মকর্তার পরামর্শে প্রহ্লাদ বর্ষা শেষের আগেই দ্বিতীয় জমির কোণে বৃষ্টির পানি ধরার একটি ছোট কুনি পুকুর কাটলেন। মাটি খালি না রেখে খড়ের মালচ দিলেন, যাতে লবণ ওপরে না ওঠে; লবণসহিষ্ণু ব্রি ধান৯৭ আর উঁচু আলে ড্রিপ সেচে তরমুজ লাগালেন। খুলনা শহরের এক পাইকারের সঙ্গে সরাসরি যোগাযোগে যে জমিকে লোকে "লবণে অভিশপ্ত" বলত, সেখান থেকেই মিষ্টি তরমুজ বিক্রি হলো।',
+      'With the salinity index and the officer’s guidance, Prahlad dug a small kuni pond to catch rain in a corner of his second plot before the monsoon ended. Instead of bare soil he laid straw mulch to stop the salt rising, and planted salt-tolerant BRRI dhan97 and watermelon on raised ridges with drip. Linked straight to a Khulna wholesaler, he sold sweet watermelon from land people had called cursed with salt.'),
+  },
+  {
+    id: 'barishal', n: 5, live: 'KADER', upz: 'bakerganj', mission: 'barishal', division: L('বরিশাল', 'Barishal'), zila: L('বরিশাল', 'Barishal'), upazila: L('বাকেরগঞ্জ', 'Bakerganj'), union: L('গারুড়িয়া', 'Garuria'), lat: 22.55, lon: 90.3333,
+    farmer: L('আবদুল কাদের হাওলাদার', 'Abdul Kader Howlader'), age: 45, tone: '#245a28', acres: 2.5,
+    hazard: L('দিনে দুবার জোয়ার-ভাটা, কোটালে জমি ডোবা', 'Twice-daily tides, fields under at spring tide'),
+    bio: L('হলুদ মাজরা পোকা, পামরি, ইঁদুর', 'Yellow stem borer, hispa and rats'),
+    power: L('ভাসমান ধাপ, জোয়ারসহিষ্ণু লম্বা ধান, আলোর ফাঁদ', 'Floating dhap beds, tall tide-tolerant rice, light traps'),
+    tools: [L('জোয়ার-চাঁদ ক্যালেন্ডার: কোটাল আর অন্ধকার রাত', 'Tide and moon calendar: spring tides and dark nights'), L('মুগ বোনার সময়: মে মাসের বৃষ্টির ঝুঁকি', 'Mungbean sowing date against May rain')],
+    crops: [{ id: 'aman', name: L('আমন ধান', 'Aman rice') }, { id: 'guava', name: L('পেয়ারা', 'Guava'), search: 'guava fruit tree' }, { id: 'hogplum', name: L('আমড়া', 'Hog plum'), search: 'Spondias dulcis fruit' }, { id: 'mungbean', name: L('মুগ ডাল', 'Mungbean') }],
+    story: L('নদীঘেরা বাকেরগঞ্জে পানিই সব ঠিক করে। কাদেরের পরিবার একসময় দক্ষিণের সুগন্ধি ধানে ভালো চলত, কিন্তু নদীতে পলি জমে জোয়ারের ধরন বদলে গেল। বর্ষায় দিনে দুবার ফুলে ওঠা জোয়ার জমির ওপর দিয়ে বয়ে যায়, খাটো উফশী চারা ডুবে মরে। এক শরতে ফসল পানি সামলে টিকল, তখন রাতারাতি হলুদ মাজরা পোকা সোনালি মাঠ সাদা শীষে ভরে দিল। গোলা খালি, পাওনাদার দরজায়; পানি আর পোকার কাছে হেরে যাওয়া কাদেরকে উপজেলা কৃষি অফিসার দেখালেন FieldShift-এর জোয়ার আর পোকার আগাম সতর্কতা।',
+      'In river-woven Bakerganj, water rules everything. Kader’s family once did well on fragrant southern rice, but silting rivers changed the tides. Twice a day in the monsoon the swollen tide runs over his fields and drowns short HYV seedlings. One autumn the crop survived the water, and then yellow stem borers turned his golden field into white heads overnight. Granary empty, creditors at the door, Kader felt beaten by water and insects alike, until the upazila agriculture officer showed him FieldShift’s tide and pest early warnings.'),
+    pillars: [
+      L('২২ বছর ধরে চাষ। লম্বা কম ফলনের দেশি আমন (লালমোটা, সাদামোটা) থেকে উফশীতে গেলেন, কিন্তু বরিশালের জোয়ারের সঙ্গে মিলিয়ে নয়।', 'Farming for 22 years. He moved from tall, low-yield local Aman (Lalmota, Sadamota) to HYVs without fitting them to Barishal’s tides.'),
+      L('পূর্ণিমা-অমাবস্যার কোটালে জোয়ারের পানি দুই-তিন ফুট, খালপাড় ভাঙা আর বর্ষাশেষের নিম্নচাপের বৃষ্টি।', 'Tides two to three feet deep at full and new moon (kotal), eroding canal banks and late-monsoon depression rain.'),
+      L('হলুদ মাজরা পোকা (Scirpophaga incertulas), পামরি পোকা, পেয়ারায় অ্যানথ্রাকনোজ। পোকা কাণ্ডের ভেতরে, ওপরের স্প্রে ধুয়ে জোয়ারের পানিতে মাছ মারে।', 'Yellow stem borer (Scirpophaga incertulas), rice hispa and guava anthracnose. The larvae hide in the stem; sprays wash into the tide and kill fish.'),
+      L('খাটো উফশী চারা জোয়ারে ডুবল; শীতের শেষে মুগ দেরিতে বুনে পাকার সময় মে মাসের বৃষ্টি পড়ল।', 'Short HYV seedlings drowned at high tide; late-sown mungbean met May rain while its pods ripened.'),
+      L('সারা বছর পানিতে ডোবা ০.৬ একরের জলা জমি অকেজো ভেবে ফেলে রেখেছিলেন, ভাসমান চাষের কথা জানতেন না।', 'He wrote off his permanently waterlogged 0.6-acre marsh, not knowing about floating cultivation.'),
+      L('দেশি মুগ একসঙ্গে পাকে না, তিন-চারবার তুলতে হয়; মে মাসের ঝড়ে শুঁটি গাছেই পচল।', 'Local mungbean ripens unevenly and needs three or four pickings; in May storms the pods rotted on the plants.'),
+      L('কোটাল আর বঙ্গোপসাগরের নিম্নচাপ মিলে জমি ১০–১৪ দিন ডুবে থাকে; ভেজা মেঘলা শরতের রাতে মাজরার মথ একসঙ্গে বেরোয়।', 'Spring tides with Bay of Bengal lows submerge fields for 10–14 days; humid, cloudy autumn nights bring the moths out together.'),
+      L('লঞ্চ আর আড়তদারের ওপর নির্ভর; আর্দ্রতারোধী বস্তা না থাকায় ভরা মৌসুমে দাম ৩০ ভাগ কম।', 'Dependent on river launches and commission agents, he took 30% less at the glut for want of moisture-proof bags.'),
+    ],
+    resolution: L('কর্মকর্তা আর FieldShift-এর পরামর্শে কাদের ডুবসহিষ্ণু ব্রি ধান৫২ আর জোয়ারসহিষ্ণু লম্বা ব্রি ধান৭৬ লাগালেন। জলা জমিতে কচুরিপানার ভাসমান ধাপে ঢেঁড়স আর লাউয়ের চারা করলেন। চাঁদ-আবহাওয়া ক্যালেন্ডার দেখে মথ বেরোনোর আগেই অন্ধকার রাতে আলোর ফাঁদ আর পাখি বসার ডাল দিলেন; কীটনাশকের খরচ প্রায় শূন্য।',
+      'With the officer and FieldShift, Kader planted submergence-tolerant BRRI dhan52 and the tall tidal variety BRRI dhan76. On the marsh he built floating water-hyacinth beds for okra and gourd seedlings. Following the moon-and-weather calendar he set light traps and bird perches on dark nights before the moth flights, and his pesticide bill fell almost to nothing.'),
+  },
+  {
+    id: 'rangpur', n: 6, live: 'MOFIZUL', upz: 'gangachara', mission: 'rangpur', division: L('রংপুর', 'Rangpur'), zila: L('রংপুর', 'Rangpur'), upazila: L('গঙ্গাচড়া', 'Gangachara'), union: L('কোলকোন্দ', 'Kolkonda'), lat: 25.85, lon: 89.2167,
+    farmer: L('মো. মফিজুল ইসলাম', 'Md. Mofizul Islam'), age: 41, tone: '#43863a', acres: 2.8,
+    hazard: L('শৈত্যপ্রবাহের ঘন কুয়াশা আর চরের বালু', 'Cold-wave fog and leaching char sand'),
+    bio: L('আলুর লেট ব্লাইট (মড়ক), ভুট্টার ফল আর্মিওয়ার্ম', 'Potato late blight, fall armyworm in maize'),
+    power: L('৪৮ ঘণ্টা আগে ব্লাইট সতর্কতা, চরে গর্তে চাষ, শীতল ঘর', 'Blight alerts 48 hours ahead, pit cropping on the char, a cool chamber'),
+    tools: [L('লেট ব্লাইট পূর্বাভাস: আগামী ৭ দিনের ঘণ্টাভিত্তিক তাপ-আর্দ্রতা', 'Late-blight forecast: hourly heat and humidity for the next 7 days'), L('শৈত্যপ্রবাহ গণনা, ২৫ শীত', 'Cold-wave count, 25 winters')],
+    crops: [{ id: 'potato', name: L('আলু', 'Potato'), search: 'potato plants field' }, { id: 'maize', name: L('ভুট্টা', 'Maize'), search: 'maize field' }, { id: 'mango', name: L('হাঁড়িভাঙা আম', 'Haribhanga mango'), search: 'mango tree fruit' }, { id: 'mustard', name: L('সরিষা', 'Mustard') }],
+    story: L('উত্তরের রংপুরে শীত আনে আশা আর ভয় দুটোই। মফিজুল জমানো টাকা আর গয়না বন্ধক রেখে ১.৬ একরে কার্ডিনাল আলু লাগালেন। জানুয়ারির শুরুতে হিমালয়ের শৈত্যপ্রবাহে পাঁচ দিন গঙ্গাচড়া ঘন কুয়াশা আর গুঁড়ি বৃষ্টিতে ঢেকে রইল। ৭২ ঘণ্টার মধ্যে মাঠ থেকে পচা গন্ধ উঠল: লেট ব্লাইট সব সবুজ পাতা কালো পচা করে দিল। তিস্তার চরের ১.২ একর বালুতে প্রায় কিছুই হলো না, সেচ আর সার বালুর ভেতর দিয়ে নিচে চলে যায়। সর্বস্বান্ত হওয়ার মুখে মফিজুল FieldShift-এর ডিজিটাল কৃষক কেন্দ্রে উপজেলা কৃষি অফিসারের দেখা পেলেন।',
+      'In northern Rangpur, winter brings hope and fear together. Mofizul put his savings and a loan on his wife’s jewellery into 1.6 acres of Cardinal potatoes. In early January a Himalayan cold wave held Gangachara under five days of thick fog and drizzle. Within 72 hours a rotting smell rose from the field: late blight had turned every green leaf to black slime. His 1.2 acres of Teesta char sand gave almost nothing, the water and fertiliser draining straight through. Facing ruin, he met the upazila agriculture officer at a FieldShift farmer hub.'),
+    pillars: [
+      L('১৯ বছর ধরে চাষ। মঙ্গার দিনে বড় হয়েছেন; গত দশকে কম দামের কাউন আর তামাক ছেড়ে আলু, ভুট্টা আর চরের চাষে।', 'Farming for 19 years. He grew up through the monga hunger years and in the last decade moved from millet and tobacco to potato, maize and char farming.'),
+      L('উজানের ব্যারাজ খুললে বর্ষায় চর ডোবে, মোটা বালু পড়ে; তারপর জানুয়ারির তীব্র শৈত্যপ্রবাহ আর শীতের খরা।', 'Monsoon floods from upstream barrages drown the char and leave coarse sand; then January’s severe cold waves and winter drought.'),
+      L('আলুর লেট ব্লাইট আর ভুট্টায় ফল আর্মিওয়ার্ম। কালো দাগ দেখে তবে স্প্রে করতেন, ততদিনে জীবাণু পুরো ফসল শেষ করে দিয়েছে।', 'Potato late blight and fall armyworm in maize. He sprayed only after black lesions showed, when the spores had already done their work.'),
+      L('গরম ঘরে রাখা ভাইরাসে ভরা পুরোনো বীজ আলু, আর বালুতে পানি-খাওয়া ফসল।', 'Uncertified, virus-ridden seed kept in warm rooms, and thirsty crops on porous sand.'),
+      L('কুয়াশার ঠিক আগে নালা ভরে সেচ দিতেন; পাতার কাছে বাতাস ভিজে থাকে, যেন ব্লাইটের জন্য ইনকিউবেটর।', 'He flood-irrigated the furrows just before fog, leaving the canopy air saturated, an incubator for blight.'),
+      L('ব্লাইটের ভয়ে কাঁচা আলু তুললেন; পাতলা খোসা উঠে গিয়ে দুই সপ্তাহে ৪০ ভাগ পচল।', 'He lifted immature potatoes in panic; thin skins peeled off and 40% rotted in two weeks.'),
+      L('কুয়াশা আর ভেজা ঠান্ডায় পাতা সারাক্ষণ ভেজা থাকলে ৪৮ ঘণ্টার মধ্যে ব্লাইটের জীবাণু ছড়িয়ে পড়ে।', 'When fog and damp cold keep the leaves wet, blight spores spread within 48 hours.'),
+      L('হিমাগারের ভাড়া বেশি আর মজুতদারদের জন্য তোলার দিন জমির পাশেই কেজি ৮ টাকায় বেচলেন; চার মাস পরে খুচরায় ৫০ টাকা।', 'Cold-store fees and hoarders made him sell at the field gate for Tk 8 a kilo; four months later it was Tk 50 retail.'),
+    ],
+    resolution: L('FieldShift-এর ব্লাইট পূর্বাভাস ঘণ্টায় ঘণ্টায় তাপ আর আর্দ্রতা দেখে; কুয়াশা নামার ৪৮ ঘণ্টা আগে মফিজুলের ফোনে লাল সতর্কতা এল। কর্মকর্তার কথায় তিনি সেচ বন্ধ করলেন আর আগেভাগে ম্যানকোজেব দিলেন, দরকারে মেটালাক্সিল-ম্যানকোজেব। পাশের জমি কালো হলো, তাঁর আলু রইল সবুজ। চরের বালুতে কম্পোস্ট আর এঁটেল মাটি দেওয়া গর্তে মিষ্টিকুমড়া হলো, রাখা হলো সমবায়ের শীতল ঘরে।',
+      'FieldShift’s blight forecast watches the hour-by-hour temperature and humidity; 48 hours before the fog came down, a red alert reached Mofizul’s phone. On the officer’s advice he stopped irrigating and put on mancozeb ahead, with metalaxyl-mancozeb if needed. The next field went black; his stayed green. On the char, pumpkins grew in pits lined with compost and clay, and were kept in the cooperative’s cool chamber.'),
+  },
+  {
+    id: 'sylhet', n: 7, live: 'RAHIMA', upz: 'gowainghat', mission: 'sylhet', woman: true, division: L('সিলেট', 'Sylhet'), zila: L('সিলেট', 'Sylhet'), upazila: L('গোয়াইনঘাট', 'Gowainghat'), union: L('রুস্তমপুর', 'Rustampur'), lat: 25.105, lon: 91.967,
+    farmer: L('রহিমা বেগম', 'Rahima Begum'), age: 37, tone: '#7a3e8f', acres: 2.1,
+    hazard: L('উজানের মেঘালয় থেকে হাওরে পাহাড়ি ঢল', 'Cross-border flash floods into the haor'),
+    bio: L('ধানের নেক ব্লাস্ট, টক মাটি (pH ৪.৫-এর নিচে), লেবুর ডাইব্যাক', 'Rice neck blast, acid soil (pH under 4.5), citrus dieback'),
+    power: L('স্বল্প মেয়াদের বোরো, ডলোচুন, সময়মতো কম্বাইন হারভেস্টার', 'Short-duration Boro, dolomite lime, a combine harvester in time'),
+    tools: [L('উজানের বৃষ্টির রাডার: সোহরায় (চেরাপুঞ্জি) নাসার আইমার্জ বৃষ্টি', 'Upstream rain radar: NASA IMERG rain at Sohra (Cherrapunji)'), L('মাটির pH-চুনের হিসাব', 'Soil pH and lime calculator')],
+    crops: [{ id: 'boro', name: L('বোরো ধান', 'Boro rice') }, { id: 'shatkora', name: L('সাতকরা', 'Shatkora'), search: 'Citrus macroptera' }, { id: 'pineapple', name: L('আনারস', 'Pineapple'), search: 'pineapple plantation' }, { id: 'frenchbean', name: L('ফরাস শিম', 'French bean'), search: 'green bean plants' }],
+    story: L('চার বছর আগে স্বামী স্ট্রোকে শয্যাশায়ী হলে রহিমা বেগম নিজেই গোয়াইনঘাটের কাদামাঠে নামলেন, লাঙল আর বাজারে মেয়েদের নিয়ে কানাকানি উপেক্ষা করে। সংসার চলে হাওরের কিনারার ১.৪ একর বোরো আর ০.৭ একর টিলার লেবুবাগানে। দুই বছর আগে এপ্রিলের মাঝামাঝি, ধান কাটার মাত্র দশ দিন আগে, চেরাপুঞ্জির প্রবল বৃষ্টিতে মাঝরাতে পাহাড়ি ঢল বাঁধ ভেঙে নামল। বুকসমান ঠান্ডা পানিতে দাঁড়িয়ে রক্তাক্ত হাতে ডুবে যাওয়া সবুজ গাছ টেনে তুলতে তুলতে রহিমা ছয় ঘণ্টায় হারালেন সারা বছরের খাবার। পাহাড়ের পানি যেন আর সন্তানদের ভবিষ্যৎ কেড়ে নিতে না পারে, তাই তিনি উপজেলা কৃষি অফিসারের কাছে গেলেন, যোগ দিলেন FieldShift-এর পাইলটে।',
+      'When her husband was disabled by a stroke four years ago, Rahima Begum went into Gowainghat’s muddy fields herself, ignoring the talk about women at the plough and in the market. The family lives on a 1.4-acre Boro plot at the haor’s edge and a 0.7-acre citrus garden on the tila. In mid-April two years ago, ten days before harvest, a storm over Cherrapunji sent a midnight flash flood over the embankment. Chest-deep in cold water, pulling up drowned green stalks with bleeding hands, she lost a year’s food in six hours. Determined that the mountain water would not take her children’s future again, she went to the upazila agriculture officer and joined the FieldShift pilot.'),
+    pillars: [
+      L('পরিবারের সঙ্গে ১৫ বছর বাড়ির বাগান, চার বছর ধরে মাঠের পুরো দায়িত্ব। শুরুতে প্রতিবেশীর পরামর্শ, দেরিতে পাকা ব্রি ধান২৯ আর আন্দাজে চুন।', 'Fifteen years of homestead gardening with the family, and in full charge of the fields for four. At first she went on neighbours’ advice, late BRRI dhan29 and lime by guesswork.'),
+      L('মার্চের শেষ বা এপ্রিলে হঠাৎ পাহাড়ি ঢলে রাতারাতি হাওর ডোবে, বর্ষায় টিলার মাটি ক্ষয়, শীতে টিলায় সেচের পানি নেই।', 'Sudden flash floods in late March or April drown the haor overnight; monsoon rain erodes the tila; in winter the tila has no irrigation water.'),
+      L('বোরোতে নেক ব্লাস্ট, সাতকরা আর জারা লেবুতে ক্যাংকার ও গামোসিস। ব্যাকটেরিয়া না ছত্রাক জানা না থাকায় ছাই-কেরোসিনে গাছ বাঁচেনি।', 'Neck blast in the Boro, canker and gummosis in the shatkora and jara lemon. Not knowing bacterial from fungal, her ash and kerosene did not save the trees.'),
+      L('১৬০ দিনের ব্রি ধান২৯ পাকে এপ্রিলের শেষে, ঠিক যখন সিলেটে পাহাড়ি ঢলের সবচেয়ে বেশি ভয়।', 'The 160-day BRRI dhan29 ripens in late April, right in Sylhet’s flash-flood peak.'),
+      L('টিলার খুব টক মাটিতে (pH ৪.৩) চুন ছাড়া চাষ; ফসফরাস আটকে যায়, ধানে লোহার বিষে পাতা তামাটে।', 'She farmed very acid tila soil (pH 4.3) without dolomite; phosphorus locked up and iron toxicity bronzed the rice.'),
+      L('ঢলের সতর্কতা বাজলে পুরুষ শ্রমিকেরা দ্বিগুণ মজুরি চাইল বা বড় জমির মালিকদের কাজ আগে করল; রহিমার পাকা ধান সময়ে কাটা হলো না।', 'When the flood warning sounded, hired men asked double wages or went to the big farms first, and her ripening grain was not cut in time.'),
+      L('মেঘালয়ের পাহাড়ে দুই দিনের প্রবল বৃষ্টিতে সারি-গোয়াইন নদী দিয়ে ঢল নামে, সিলেটের আকাশে রোদ থাকলেও; মার্চের ঠান্ডা রাত আর গরম ভেজা দিনে নেক ব্লাস্ট।', 'Two days of heavy rain on the Meghalaya hills send a flood down the Sari-Gowain even under a sunny Sylhet sky; cool March nights and warm, humid days bring neck blast.'),
+      L('রাতের হাটে পুরুষদের ভিড়ে যাওয়া কঠিন, তাই সাতকরা আর ফরাস শিম বাড়ির দরজায় ফড়িয়ার কাছে সিলেট শহরের চেয়ে ৪০ ভাগ কমে।', 'Late-night haats full of men were hard to reach, so she sold shatkora and French beans at the door, 40% below Sylhet city prices.'),
+    ],
+    resolution: L('কর্মকর্তার সঙ্গে মিলে রহিমা দেরিতে পাকা জাত ছেড়ে স্বল্প মেয়াদের ব্রি ধান৮৮ আর বঙ্গবন্ধু ধান১০০ নিলেন, ২–৩ সপ্তাহ আগে পাকে। টিলার জন্য মাটির pH দেখে ডলোচুনের মাপ আর লেবুগাছে বোর্দো পেস্ট। সবচেয়ে বড় কথা, যখন উজানের বৃষ্টির রাডারে মেঘালয়ে প্রবল বৃষ্টি ধরা পড়ল, কর্মকর্তা ভর্তুকির কম্বাইন হারভেস্টার সোজা রহিমার জমিতে পাঠালেন; পানি আসার আগেই পুরো ধান কাটা শেষ। আজ রহিমা গোয়াইনঘাটে ২৫ জন নারীর একটি FieldShift কৃষি সমবায় চালান।',
+      'With the officer, Rahima replaced the late variety with short-duration BRRI dhan88 and Bangabandhu dhan100, which ripen two to three weeks earlier. For the tila, a dolomite dose from her soil pH, and Bordeaux paste for the lemon trees. Above all, when the upstream rain radar caught heavy storms over Meghalaya, the officer sent a subsidised combine harvester straight to her plot, and the whole crop was cut before the water came. Today Rahima leads a 25-woman FieldShift farming cooperative in Gowainghat.'),
+  },
+];
+
+export const levelOf = (id) => LEVELS.find((l) => l.id === id);
+// Rough position on the country map (geo/bangladesh_crops.json is drawn in a 600 × 850 box over 88.01–92.68 °E and
+// 20.74–26.63 °N).
+export const mapXY = (lat, lon) => [((lon - 88.01) / 4.67) * 597, ((26.63 - lat) / 5.89) * 843];

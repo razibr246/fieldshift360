@@ -1,0 +1,14 @@
+{
+  "name": "FieldShift 360",
+  "short_name": "FieldShift",
+  "description": "Season planning for smallholders in Godagari, Bangladesh, from 25 years of NASA data.",
+  "lang": "bn",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f0",
+  "theme_color": "#0d3b2b",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,6 @@
+requests>=2.31
+# optional, for fetch_imerg.py
+earthaccess
+xarray
+h5netcdf
+numpy

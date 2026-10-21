@@ -1,0 +1,26 @@
+{
+  "about": "Price a farmer gets and the full cost of growing each crop, Tk per kg, from published Bangladeshi sources (each with its year). The cost covers everything: seed, ploughing, labour, fertiliser, irrigation, pesticide. Profit per bigha = FAOSTAT yield x (price - cost). Years differ between sources; the screen shows them.",
+  "retrieved": "2026-10-18",
+  "crops": {
+    "boro": {
+      "price": { "tk": 36, "year": 2025, "what": { "bn": "সরকারি বোরো ধান সংগ্রহ মূল্য", "en": "Government Boro paddy procurement price" }, "url": "https://www.jagonews24.com/en/business/news/81791" },
+      "cost": { "tk": 31.6, "year": 2024, "what": { "bn": "কৃষি মন্ত্রণালয়ের হিসাবে বোরো ধানের উৎপাদন খরচ (২০২৩-২৪)", "en": "Agriculture ministry Boro paddy production cost, FY2023-24" }, "url": "https://en.bonikbarta.com/bangladesh/WNz91I2iUJlVuqB7/" }
+    },
+    "wheat": {
+      "price": { "tk": 36, "year": 2025, "what": { "bn": "সরকারি গম সংগ্রহ মূল্য", "en": "Government wheat procurement price" }, "url": "https://www.jagonews24.com/en/business/news/81791" },
+      "cost": { "tk": 27, "year": null, "old": true, "what": { "bn": "খাদ্য মন্ত্রণালয়ের হিসাবে গমের উৎপাদন খরচ (পুরোনো হিসাব)", "en": "Food ministry wheat production cost (an older estimate)" }, "url": "https://www.thedailystar.net/node/1204546" }
+    },
+    "tomato": {
+      "price": { "tk": 21.25, "year": 2024, "what": { "bn": "কৃষি বিপণন অধিদপ্তর, উৎপাদক পর্যায়ের দাম (মার্চ ২০২৪)", "en": "Department of Agricultural Marketing, producer price (March 2024)" }, "url": "https://bdpublicnews.com/news/official-price-list-for-29-essential-agricultural-products-in-bangladesh/" },
+      "cost": { "tk": 9.6, "year": 2024, "what": { "bn": "কৃষি বিপণন অধিদপ্তর, উৎপাদন খরচ (মার্চ ২০২৪)", "en": "Department of Agricultural Marketing, production cost (March 2024)" }, "url": "https://www.bssnews.net/news-flash/178944" }
+    },
+    "mustard": {
+      "price": { "tk": 72.73, "year": 2023, "what": { "bn": "কৃষি বিপণন অধিদপ্তর, কৃষকের দাম (ফেব্রুয়ারি ২০২৩)", "en": "Department of Agricultural Marketing, growers’ price (February 2023)" }, "url": "https://market.dam.gov.bd/price_graphical_report" },
+      "cost": { "tk": 40.66, "year": 2021, "what": { "bn": "পাবনায় মাঠ গবেষণা: হেক্টরে খরচ ৬৯,৫৯৬ টাকা, ফলন ১,৭১২ কেজি (২০২১)", "en": "Field study in Pabna: Tk 69,596 per ha for 1,712 kg (2021)" }, "url": "https://archive.saulibrary.edu.bd/handle/123456789/4730" }
+    },
+    "lentil": {
+      "price": { "tk": 82.5, "year": 2025, "what": { "bn": "বরেন্দ্রের কৃষকের বিক্রির দাম, মণ ৩,৩০০ টাকা", "en": "Barind farmers’ selling price, Tk 3,300 a maund" }, "url": "https://www.dhakatribune.com/bangladesh/nation/406393/barind-farmers-reap-bumper-lentil-harvest" },
+      "cost": { "tk": 40.67, "year": 2020, "what": { "bn": "মাঠ গবেষণা: হেক্টরে খরচ ৬৬,৩৭৪ টাকা, ফলন ১,৬৩২ কেজি (২০২০)", "en": "Field study: Tk 66,374 per ha for 1,632 kg (2020)" }, "url": "https://archive.conscientiabeam.com/index.php/70/article/view/308" }
+    }
+  }
+}

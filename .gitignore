@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-single
+__pycache__
+.env
+.env.local
+.env.*.local
+.cache
+.DS_Store
+*.log
+.vercel
+scripts/python/soilgrids_check.csv
+.claude/
+**/.claude/

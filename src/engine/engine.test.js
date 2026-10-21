@@ -1,0 +1,229 @@
+// Run with: npm test   (Node built-in test runner)
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { makeClimate, backtest, timeMachine, SEASONS } from './climate.js';
+import { RABI_CROPS } from './crops.js';
+import { decide, weightsFor } from './decision.js';
+import { recommendRotation } from './rotation.js';
+import { waterAdvice, cropStage } from './water.js';
+import { dbscan, findHotspots } from './cluster.js';
+import { buildDemo } from '../data/demo.js';
+import { makeUnion } from './world.js';
+
+const climJson = JSON.parse(readFileSync(new URL('../data/climate_godagari.json', import.meta.url)));
+const soilJson = JSON.parse(readFileSync(new URL('../data/soil_godagari.json', import.meta.url)));
+const clim = makeClimate(climJson);
+
+test('25 seasons, backtest covers them all', () => {
+  assert.equal(SEASONS.length, 25);
+  const bt = backtest(clim, RABI_CROPS.tomato, 0);
+  assert.equal(bt.then.n + bt.now.n, 25);
+});
+
+test('weights always sum to 1', () => {
+  for (const p of [[], ['water'], ['soil', 'early'], ['income', 'risk']]) {
+    const s = Object.values(weightsFor(p)).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(s - 1) < 1e-9);
+  }
+});
+
+test('decision returns a label and ranked options', () => {
+  const demo = buildDemo();
+  const plot = demo.farmers.find((f) => f.id === 'RAHIM');
+  const union = makeUnion(clim, demo, plot.union);
+  const d = decide({ clim, soil: soilJson.unions[plot.union], plot, union, priorities: ['water'] });
+  assert.ok(['KEEP', 'ADJUST', 'SHIFT'].includes(d.label));
+  assert.equal(d.options.length, 5);
+  const rot = recommendRotation({ clim, soil: soilJson.unions[plot.union], plot, chosen: d.rec, priorities: ['water'] });
+  assert.ok(rot.best || rot.directAman);
+  console.log('label', d.label, 'rec', d.rec.crop.id, d.rec.shift, 'scores', d.options.map((o) => `${o.crop.id}:${o.score.toFixed(0)}`).join(' '));
+  console.log('rotation', rot.best?.crop.id, rot.directAman);
+});
+
+test('priorities change the ranking weights', () => {
+  const demo = buildDemo();
+  const plot = demo.farmers.find((f) => f.id === 'RAHIM');
+  const union = makeUnion(clim, demo, plot.union);
+  const a = decide({ clim, soil: soilJson.unions[plot.union], plot, union, priorities: ['income'] });
+  const b = decide({ clim, soil: soilJson.unions[plot.union], plot, union, priorities: ['water'] });
+  console.log('income→', a.options[0].crop.id, ' water→', b.options[0].crop.id);
+  assert.notDeepEqual(a.weights, b.weights);
+});
+
+test('water advice colours', () => {
+  const c = RABI_CROPS.tomato;
+  const st = cropStage(c, 50);
+  assert.equal(waterAdvice({ crop: c, stage: st, rain7: 0, rainNext3: 0, tmax: 27, fieldCheck: 'wet' }).color, 'GREEN');
+  assert.equal(waterAdvice({ crop: c, stage: st, rain7: 0, rainNext3: 0, tmax: 36, fieldCheck: 'dry' }).color, 'RED');
+  assert.equal(waterAdvice({ crop: c, stage: st, rain7: 0, rainNext3: 0, tmax: 26, fieldCheck: null }).color, 'YELLOW');
+});
+
+test('DBSCAN finds the seeded Deopara leaf-spot cluster', () => {
+  const demo = buildDemo();
+  const hs = findHotspots(demo.requests);
+  assert.ok(hs.length >= 1, 'expected at least one hotspot');
+  assert.ok(hs[0].members.length >= 5);
+  assert.equal(dbscan([{ id: 1, lat: 0, lon: 0 }], 1, 2).length, 0);
+});
+
+test('time machine produces then/now means', () => {
+  const tm = timeMachine(clim);
+  for (const m of Object.values(tm)) assert.ok(m.then !== null && m.now !== null);
+});
+
+test('Dhamrai: real NASA climate, every demo farm inside its real union outline, and a plan for Razib', () => {
+  const dClim = makeClimate(JSON.parse(readFileSync(new URL('../data/climate_dhamrai.json', import.meta.url))));
+  assert.equal(dClim.prov.status, 'REAL');
+  const demo = buildDemo();
+  const places = JSON.parse(readFileSync(new URL('../data/geo/dhamrai_places.json', import.meta.url)));
+  const inside = (lat, lon, r) => {
+    let c = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [y1, x1] = r[i], [y2, x2] = r[j];
+      if ((y1 > lat) !== (y2 > lat) && lon < ((x2 - x1) * (lat - y1)) / (y2 - y1) + x1) c = !c;
+    }
+    return c;
+  };
+  const dh = demo.farmers.filter((f) => demo.unions.find((u) => u.id === f.union).upazila === 'dhamrai');
+  assert.ok(dh.length > 300);
+  for (const f of dh) assert.ok(inside(f.lat, f.lon, places.unions.find((u) => u.en === f.union).ring), `${f.id} in ${f.union}`);
+  const razib = demo.farmers.find((f) => f.id === 'RAZIB');
+  assert.equal(razib.union, 'Chauhat');
+  const soil = JSON.parse(readFileSync(new URL('../data/soil_dhamrai.json', import.meta.url))).unions.Chauhat;
+  const d = decide({ clim: dClim, soil, plot: razib, union: makeUnion(dClim, demo, 'Chauhat'), priorities: [] });
+  assert.ok(d.rec && d.rec.bt.now.n > 0);
+  assert.ok(!d.rec.soilNotes.some((n) => n.en.includes('Barind')), 'no Barind wording on Dhamrai land');
+});
+
+// ---- District harvest outlook and crop switch (engine/outlook.js) ----
+import { districtOutlook, cropSwitch, harvestState, weeklyHarvest, rabiMoney, ringKm2, AMAN_YIELD } from './outlook.js';
+
+test('outlook: the BBS district Aman area is shared out exactly, and tonnes follow the yield', () => {
+  const o = districtOutlook('dhaka');
+  assert.equal(o.rows.length, 5);
+  const ha = o.rows.reduce((a, r) => a + r.ha, 0);
+  assert.ok(Math.abs(ha - o.bbsHa) < 1e-6, 'upazila shares add up to the district total');
+  assert.ok(Math.abs(o.tonnes - o.bbsHa * AMAN_YIELD.tHa) < 1e-6);
+  for (const r of o.rows) assert.equal(r.end - r.start, 25, 'harvest window is 95–120 days after transplanting');
+  const wk = weeklyHarvest(o);
+  const t = wk.reduce((a, w) => a + o.rows.reduce((b, r) => b + (w[r.id] ?? 0), 0), 0);
+  assert.ok(Math.abs(t - o.tonnes) < 1e-6, 'weekly bins hold every tonne');
+});
+
+test('outlook: an upazila without a reliable radar date this year falls back to its usual day', () => {
+  const o = districtOutlook('dhaka');
+  const k = o.rows.find((r) => r.id === 'keraniganj');
+  assert.equal(k.fromRadar, false);
+  assert.equal(k.T, k.u.transplantNormal);
+});
+
+test('outlook: harvest state before, during and after the window', () => {
+  const r = { start: 300, end: 325 };
+  assert.deepEqual(harvestState(r, 290), { k: 'soon', days: 10 });
+  assert.equal(harvestState(r, 310).k, 'now');
+  assert.equal(harvestState(r, 330).k, 'done');
+});
+
+test('crop switch: timing decides what fits; money is yield x (price - cost)', () => {
+  const m = rabiMoney('mustard');
+  assert.equal(m.net, Math.round(m.kg * (m.priceKg - m.costKg)));
+  const early = cropSwitch({ start: 270, end: 290 }, 2026); // Aman off by mid-October
+  const late = cropSwitch({ start: 330, end: 350 }, 2026); // Aman off in December
+  assert.equal(early.crops.find((c) => c.id === 'mustard').fit, 'all');
+  assert.equal(late.crops.find((c) => c.id === 'mustard').fit, 'late');
+  assert.equal(early.relay.fit, 'all');
+  assert.equal(late.relay.fit, 'late');
+  assert.equal(late.crops.find((c) => c.id === 'boro').fit, 'all', 'Boro still fits after a late Aman');
+});
+
+test('ringKm2: a 0.1-degree square near Dhaka is about 113 km²', () => {
+  const a = ringKm2([[90, 23.7], [90.1, 23.7], [90.1, 23.8], [90, 23.8]]);
+  assert.ok(a > 110 && a < 116, `got ${a}`);
+});
+
+// Weather warnings from a synthetic forecast: the published thresholds, and the Hutton late-blight criteria.
+import { weatherWarnings } from './weatherRisk.js';
+const fakeForecast = (days) => ({
+  days: days.map((d, i) => ({ date: `2026-12-${String(10 + i).padStart(2, '0')}`, max: d.max ?? 25, min: d.min ?? 14, rain: d.rain ?? 0 })),
+  hours: days.flatMap((d, i) => Array.from({ length: 24 }, (_, h) => ({ date: `2026-12-${String(10 + i).padStart(2, '0')}`, hour: h, temp: d.temp ?? 18, rh: h < (d.wetHours ?? 0) ? 95 : 70 }))),
+});
+test('weather warnings follow BMD classes and the Hutton criteria', () => {
+  const ids = (fc, crops) => weatherWarnings(fc, { crops: new Set(crops), month: 12 }).map((w) => `${w.id}:${w.level}`);
+  assert.deepEqual(ids(fakeForecast([{ rain: 50 }, {}]), []), ['rain:medium']);
+  assert.deepEqual(ids(fakeForecast([{ rain: 95 }]), []), ['rain:high']);
+  assert.deepEqual(ids(fakeForecast([{ min: 9 }]), ['boro']), ['cold:medium']);
+  assert.deepEqual(ids(fakeForecast([{ min: 9 }]), ['mustard']), []); // a cold wave alone only matters for Boro seedbeds and tomato
+  // Hutton: two consecutive days, min >= 10 and >= 6 humid hours; one such day is not enough
+  assert.deepEqual(ids(fakeForecast([{ wetHours: 8 }, { wetHours: 7 }]), ['tomato']), ['late_blight:high']);
+  assert.deepEqual(ids(fakeForecast([{ wetHours: 8 }, { wetHours: 2 }, { wetHours: 8 }]), ['tomato']), []);
+  assert.deepEqual(ids(fakeForecast([{ wetHours: 8, min: 8 }, { wetHours: 8, min: 8 }]), ['tomato']), ['cold:medium']);
+});
+
+// ---- Field Future (soilfuture.js) ----
+import { fieldContext, fieldFuture, cropCarbon, socStock, futureClimate, climateChange, feasible } from './soilfuture.js';
+
+const ffEcon = { prices: JSON.parse(readFileSync(new URL('../data/price_seasons.json', import.meta.url))), costs: JSON.parse(readFileSync(new URL('../data/crop_economics.json', import.meta.url))) };
+const ffSoil = { ph: 6.2, soc_g_kg: 12, bulk_density: 1.32, drainage: 'imperfect' };
+
+test('field future: the usual rotation holds today’s carbon, and Boro leaves no room for a Kharif-1 crop', () => {
+  const ctx = fieldContext({ clim, change: null, soil: ffSoil, plot: { irrigation: 'dtw' }, amanT: null, econ: ffEcon });
+  assert.equal(feasible(ctx, { rabi: 'boro', k1: 'mungbean' }), false);
+  assert.equal(feasible(ctx, { rabi: 'wheat', k1: 'mungbean' }), true);
+  const ff = fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'wheat', k1: 'mungbean' }, priorities: [] });
+  const socs = ff.habit.now.map((r) => r.soc);
+  for (const x of socs) assert.ok(Math.abs(x - ctx.soc0) < 0.05, `habit drifts: ${x} vs ${ctx.soc0}`);
+  assert.ok(ff.best.sNow.dSoc >= 0, 'the best rotation never runs the soil down when one exists');
+  assert.ok(ff.count > 100);
+});
+
+test('field future: straw kept and roots put more carbon in; no irrigation means no Boro', () => {
+  assert.ok(cropCarbon('aman', 3.8, 'retain').total > cropCarbon('aman', 3.8, 'habit').total);
+  assert.ok(cropCarbon('mungbean', 0.8, 'retain').root > 0);
+  assert.ok(Math.abs(socStock({ soc_g_kg: 10, bulk_density: 1.5 }) - 45) < 1e-9);
+  const ctx = fieldContext({ clim, change: null, soil: ffSoil, plot: { irrigation: 'none' }, amanT: null, econ: ffEcon });
+  assert.equal(ctx.rabi.boro.blocked, 'water');
+});
+
+test('field future: a uniform +2 °C change warms every day by 2 °C and speeds decay', () => {
+  const change = { scenario: 'test', dTmax: new Array(12).fill(2), dTmin: new Array(12).fill(2), rain: new Array(12).fill(1) };
+  const f = futureClimate(clim, change);
+  const t = Date.UTC(2020, 3, 10);
+  assert.ok(Math.abs(f.val('tmax', t) - clim.val('tmax', t) - 2) < 1e-9);
+  const ctx = fieldContext({ clim, change, soil: ffSoil, plot: { irrigation: 'dtw' }, amanT: null, econ: ffEcon });
+  assert.ok(ctx.temp.fut > 1.05 && ctx.temp.fut < 1.25);
+  const ff = fieldFuture({ ctx, lastCrop: 'boro', plan: null, priorities: [] });
+  assert.ok(ff.habit.sFut.dSoc < 0, 'the same farming loses carbon in a warmer world');
+  assert.equal(climateChange(null, 'godagari'), null);
+});
+
+// ---- Seven Divisions missions (missions.js) ----
+import { MISSIONS, history, relYield, limeDose, isKotal, moonAge } from './missions.js';
+const storiesData = JSON.parse(readFileSync(new URL('../data/stories_climate.json', import.meta.url)));
+
+test('missions: the Sohra IMERG rule finds the four big haor flash floods on their days', () => {
+  const s = MISSIONS.sylhet;
+  const day = (y) => { const f = s.hazard(storiesData, y).flood; return f && new Date(Date.UTC(2001, 0, 1) + f.i * 864e5).toISOString().slice(0, 10); };
+  assert.equal(day(2004), '2004-04-14');
+  assert.equal(day(2010), '2010-03-30');
+  assert.equal(day(2017), '2017-03-31');
+  assert.equal(day(2022), '2022-04-15');
+});
+
+test('missions: the officer’s advice beats the old habits in every division, over every year', () => {
+  for (const m of Object.values(MISSIONS)) {
+    const inp = Object.fromEntries(Object.entries(m.inputs ?? {}).map(([k, v]) => [k, v.value]));
+    const best = history(m, storiesData, m.best, inp), old = history(m, storiesData, m.start, inp);
+    assert.ok(best.avg > old.avg + 40, `${m.id}: ${best.avg} vs ${old.avg}`);
+    assert.ok(best.dangers <= old.dangers, m.id);
+  }
+});
+
+test('missions: Maas–Hoffman, lime and moon helpers', () => {
+  assert.equal(relYield('boro', 3), 100);
+  assert.equal(relYield('boro', 8), 40); // 100 − 12 × (8 − 3)
+  assert.equal(limeDose(6.0), 0);
+  assert.equal(limeDose(4.3, 35), 3);
+  assert.ok(moonAge(Date.UTC(2000, 0, 6, 18, 14)) < 0.01);
+  assert.ok(isKotal(Date.UTC(2000, 0, 8)));
+});
