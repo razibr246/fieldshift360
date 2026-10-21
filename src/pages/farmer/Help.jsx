@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { Camera, MapPin, Send, UserRoundCheck, MessageSquareText, Clock, X, Bug, Leaf, Droplets, HelpCircle, Phone, ScanLine, Satellite, CloudRain, Sprout, CheckCircle2 } from 'lucide-react';
 import { useStore, demo } from '../../store';
 import { PageHeader, Card, Button, Badge, EmptyState, Note, Tags, Segmented, WATER_STYLE } from '../../components/ui';
-import { SYMPTOMS } from '../../data/demo';
+import { SYMPTOMS, requestSeason } from '../../data/demo';
 import { CROP_PROBLEMS } from '../../data/crop_problems';
 import { useFieldWatch } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
@@ -30,11 +30,17 @@ const STATUS = {
 };
 const RANK = { Low: 0, Medium: 1, High: 2 };
 const bump = (p) => (p === 'Low' ? 'Medium' : 'High');
+const AMAN = { id: 'aman', name: { bn: 'আমন ধান', en: 'Aman rice' } };
 
 export default function Help() {
   const { s, dispatch, T, L, toast, farmer, chosen, today, myAdvisories, markSeen, upazila, activeParcel, water, weather, liveWeather, stage, daysAfter } = useStore();
   const lang = s.lang;
-  const crop = chosen.crop;
+  // Before the Rabi crop is sown in Bhadra–Kartik the field still holds the Aman, so that is what a problem is
+  // usually about; the farmer can switch to the coming Rabi crop (its seedbed or the land being readied).
+  const amanNow = daysAfter < 0 && requestSeason(today) === 'aman';
+  const [which, setWhich] = useState(amanNow ? 'now' : 'plan');
+  const onAman = amanNow && which === 'now';
+  const crop = onAman ? AMAN : chosen.crop;
   const [type, setType] = useState('disease');
   const [problem, setProblem] = useState(null); // a CROP_PROBLEMS key, or null = not sure
   const [spread, setSpread] = useState('few');
@@ -97,6 +103,15 @@ export default function Help() {
       <div className="grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
         <Card className="p-5 sm:p-6">
           <form onSubmit={submit} noValidate>
+            {amanNow && (
+              <fieldset className="mb-5">
+                <legend className="text-[15px] font-semibold">{T('কোন ফসলের সমস্যা?', 'Which crop is it about?')}</legend>
+                <Segmented className="mt-2" value={which} onChange={setWhich} options={[
+                  { value: 'now', label: T('আমন ধান · এখন জমিতে', 'Aman rice · in the field now') },
+                  { value: 'plan', label: T(`${chosen.crop.name.bn} · লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `${chosen.crop.name.en} · to plant ${fmtDate(chosen.t0, 'en')}`) },
+                ]} />
+              </fieldset>
+            )}
             <fieldset>
               <legend className="text-[15px] font-semibold">{T('কী হয়েছে?', 'What is wrong?')}</legend>
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -154,7 +169,7 @@ export default function Help() {
               <div className="flex items-center justify-between gap-2"><div className="text-[14px] font-semibold">{T('অনুরোধের সঙ্গে নিজে থেকে যাবে', 'Goes with your request')}</div><Tags list={['REAL']} /></div>
               <ul className="mt-2 space-y-1.5 text-[13.5px] leading-5 text-ink/80">
                 <li className="flex gap-2"><MapPin size={15} className="mt-0.5 shrink-0 text-primary-600" />{context.field.name ? `${L(context.field.name)}, ` : ''}{T(`${bnDigits(farmer.area_dec)} শতক`, `${farmer.area_dec} decimal`)}, {lang === 'bn' ? farmer.villageBn : farmer.village}, {L(demo.unions.find((u) => u.id === farmer.union))}</li>
-                <li className="flex gap-2"><Sprout size={15} className="mt-0.5 shrink-0 text-primary-600" />{daysAfter >= 0 ? T(`${crop.name.bn}, লাগানোর ${bnDigits(daysAfter)} দিন পর: ${stage.bn}`, `${crop.name.en}, ${daysAfter} days after planting: ${stage.en.toLowerCase()}`) : T(`${crop.name.bn}, লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `${crop.name.en}, to be planted ${fmtDate(chosen.t0, 'en')}`)}</li>
+                <li className="flex gap-2"><Sprout size={15} className="mt-0.5 shrink-0 text-primary-600" />{onAman ? T(`আমন ধান, এখন জমিতে; এরপর ${chosen.crop.name.bn}, লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `Aman rice, in the field now; then ${chosen.crop.name.en.toLowerCase()}, to plant ${fmtDate(chosen.t0, 'en')}`) : daysAfter >= 0 ? T(`${crop.name.bn}, লাগানোর ${bnDigits(daysAfter)} দিন পর: ${stage.bn}`, `${crop.name.en}, ${daysAfter} days after planting: ${stage.en.toLowerCase()}`) : T(`${crop.name.bn}, লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `${crop.name.en}, to be planted ${fmtDate(chosen.t0, 'en')}`)}</li>
                 {context.water && <li className="flex gap-2"><Droplets size={15} className="mt-0.5 shrink-0 text-primary-600" />{T('আজকের মাটির পানি: ', 'Soil water today: ')}{L(WATER_STYLE[context.water])} ({L(WATER_COLORS[context.water])})</li>}
                 {sat && <li className="flex gap-2"><Satellite size={15} className="mt-0.5 shrink-0 text-primary-600" />{T(`উপগ্রহ ${fmtDate(parseISO(sat.last.d), 'bn')}: সবুজ ${num(sat.last.ndvi, 'bn', { dp: 2 })}, আর্দ্রতা ${num(sat.last.ndmi, 'bn', { dp: 2 })}`, `Satellite ${fmtDate(parseISO(sat.last.d), 'en')}: green ${num(sat.last.ndvi, 'en', { dp: 2 })}, moisture ${num(sat.last.ndmi, 'en', { dp: 2 })}`)}{context.sat.finding ? ` · ${L(context.sat.finding)}` : ''}</li>}
                 {context.weather && <li className="flex gap-2"><CloudRain size={15} className="mt-0.5 shrink-0 text-primary-600" />{T(`বৃষ্টি গত ৭ দিনে ${num(weather.rain7, 'bn')} মিমি, আগামী ৩ দিনে ${num(weather.rainNext3, 'bn')} মিমি; আজ সর্বোচ্চ ${num(weather.tmax, 'bn')}°`, `Rain ${num(weather.rain7, 'en')} mm in the last 7 days, ${num(weather.rainNext3, 'en')} mm forecast for 3; high ${num(weather.tmax, 'en')}° today`)}</li>}

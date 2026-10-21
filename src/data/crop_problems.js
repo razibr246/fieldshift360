@@ -35,6 +35,17 @@ export const CROP_PROBLEMS = {
     { key: 'lentil_rust', kind: 'disease', bn: 'মরিচা রোগ', en: 'Rust', look: { bn: 'পাতা-কাণ্ডে বাদামি গুঁড়ার দাগ', en: 'Brown powdery spots on leaves and stems' } },
     { key: 'aphid', kind: 'pest', bn: 'জাব পোকা', en: 'Aphids', look: { bn: 'ডগায় ছোট কালো পোকা দলবেঁধে', en: 'Clusters of small dark insects on the tips' } },
   ],
+  // The Aman (Kharif-2) still in the field before the Rabi is sown: what farmers report in Bhadra–Kartik.
+  aman: [
+    { key: 'bph', kind: 'pest', urgent: true, bn: 'বাদামি গাছফড়িং (কারেন্ট পোকা)', en: 'Brown planthopper', look: { bn: 'গোড়ায় বাদামি ফড়িং, জমির মাঝে গোল হয়ে ধান পুড়ে যায় (হপার বার্ন)', en: 'Brown hoppers at the base; round patches of the crop dry out ("hopper burn")' } },
+    { key: 'blast', kind: 'disease', urgent: true, bn: 'শিষ ভাঙা রোগ (ব্লাস্ট)', en: 'Neck blast', look: { bn: 'শিষের গোড়া কালো হয়ে শিষ ভেঙে ঝুলে পড়ে, দানা চিটা', en: 'The neck of the head blackens and breaks; the grains stay empty' } },
+    { key: 'stem_borer', kind: 'pest', bn: 'মাজরা পোকা', en: 'Stem borer', look: { bn: 'শিষ সাদা হয়ে যায়, টান দিলে সহজে উঠে আসে', en: 'White heads that pull out easily' } },
+    { key: 'rice_bug', kind: 'pest', bn: 'গান্ধি পোকা', en: 'Rice bug', look: { bn: 'দুধ আসার সময় দানার রস চুষে খায়, দানা চিটা হয়; জমিতে বাজে গন্ধ', en: 'Sucks the milky grains, leaving them empty; the field smells' } },
+    { key: 'sheath_blight', kind: 'disease', bn: 'খোল পোড়া', en: 'Sheath blight', look: { bn: 'পানির কাছে খোলে সাপের চামড়ার মতো ছোপ', en: 'Snake-skin blotches on the sheath near the water line' } },
+    { key: 'bacterial_blight', kind: 'disease', bn: 'পাতা পোড়া (ব্যাকটেরিয়াজনিত)', en: 'Bacterial leaf blight', look: { bn: 'পাতার কিনারা থেকে হলদে-সাদা হয়ে শুকায়, ঝড়-বৃষ্টির পর বাড়ে', en: 'Leaves dry yellow-white from the edges, worse after storms' } },
+    { key: 'false_smut', kind: 'disease', bn: 'লক্ষ্মীর গু (ভুয়া ঝুল)', en: 'False smut', look: { bn: 'দানার জায়গায় হলদে-সবুজ গুটি, পরে কালচে হয়', en: 'Yellow-green balls in place of grains, later turning dark' } },
+    { key: 'rodent', kind: 'pest', bn: 'ইঁদুরের ক্ষতি', en: 'Rats', look: { bn: 'রাতে শিষ আর গাছ কেটে ফেলে, আলে গর্ত', en: 'Heads and stems cut at night; burrows in the bunds' } },
+  ],
 };
 
 // Every problem as a symptom name, for the officer's lists (merged into SYMPTOMS).

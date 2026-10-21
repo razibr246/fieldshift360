@@ -9,6 +9,7 @@ import { useStore } from '../../store';
 import { PageHeader, Card, Button, Tags, Note, Badge } from '../../components/ui';
 import { CROP_PROBLEMS } from '../../data/crop_problems';
 import { RABI_CROPS } from '../../engine/crops';
+import { requestSeason } from '../../data/demo';
 import { useFieldWatch } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { num, bnDigits, fmtDate } from '../../engine/dates';
@@ -29,10 +30,14 @@ async function shrink(dataUrl) {
   return c.toDataURL('image/jpeg', 0.86);
 }
 
+const AMAN = { id: 'aman', name: { bn: 'আমন ধান', en: 'Aman rice' } };
+
 export default function CropDoctor() {
   const { s, dispatch, T, L, toast, farmer, chosen, today, daysAfter, stage, liveWeather, soil, activeParcel, union, upazila } = useStore();
   const lang = s.lang;
-  const [crop, setCrop] = useState(chosen.crop.id);
+  // In Bhadra–Kartik, before the Rabi is sown, the crop in the field is the Aman, so the doctor starts there.
+  const amanNow = daysAfter < 0 && requestSeason(today) === 'aman';
+  const [crop, setCrop] = useState(amanNow ? 'aman' : chosen.crop.id);
   const [img, setImg] = useState(null);
   const [note, setNote] = useState('');
   const [st, setSt] = useState({ phase: 'idle' }); // idle | checking | done | off | error
@@ -41,7 +46,7 @@ export default function CropDoctor() {
   const camRef = useRef();
   const [sentId, setSentId] = useState(null);
   const sent = sentId ? s.requests.find((r) => r.id === sentId) : null;
-  const cropObj = RABI_CROPS[crop] ?? chosen.crop;
+  const cropObj = crop === 'aman' ? AMAN : RABI_CROPS[crop] ?? chosen.crop;
   const fw = useFieldWatch(activeParcel); // the same latest pass the Today page shows
   const sat = useMemo(() => (fw.watch ? readField(fw.watch, { today }) : null), [fw.watch, today]);
   const w = liveWeather ? s.live : null;
@@ -109,7 +114,7 @@ export default function CropDoctor() {
         <Card className="p-5 sm:p-6">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-[14px]">
             <span className="font-semibold">{T('কোন ফসলের ছবি?', 'Which crop is this?')}</span>
-            {Object.values(RABI_CROPS).map((c) => (
+            {[...(amanNow ? [AMAN] : []), ...Object.values(RABI_CROPS)].map((c) => (
               <button key={c.id} type="button" onClick={() => setCrop(c.id)} aria-pressed={crop === c.id}
                 className={`rounded-full border px-3 py-1 text-[13.5px] font-semibold ${crop === c.id ? 'border-primary-600 bg-primary-50 text-primary-800' : 'border-border hover:bg-canvas'}`}>{L(c.name)}</button>
             ))}
