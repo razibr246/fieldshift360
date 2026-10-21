@@ -227,3 +227,18 @@ test('missions: Maas–Hoffman, lime and moon helpers', () => {
   assert.ok(moonAge(Date.UTC(2000, 0, 6, 18, 14)) < 0.01);
   assert.ok(isKotal(Date.UTC(2000, 0, 8)));
 });
+
+test('Godagari and Dhamrai each run on their own real NASA POWER file, 25 seasons, backtest for both', () => {
+  const read = (u) => JSON.parse(readFileSync(new URL(`../data/climate_${u}.json`, import.meta.url)));
+  const g = read('godagari'), d = read('dhamrai');
+  for (const [name, j] of [['godagari', g], ['dhamrai', d]]) {
+    assert.equal(j.provenance.status, 'REAL', `${name} is real`);
+    assert.match(j.provenance.url, /power\.larc\.nasa\.gov/);
+    for (const k of ['tmax', 'tmin', 'prec', 'rh', 'srad']) assert.equal(j[k].length, j.tmax.length, `${name} has ${k} for every day`);
+    const c = makeClimate(j), bt = backtest(c, RABI_CROPS.tomato, 0);
+    assert.equal(bt.then.n + bt.now.n, 25, `${name}: backtest covers 25 seasons`);
+  }
+  assert.notDeepEqual(g.prec, d.prec, 'Dhamrai must not reuse Godagari rainfall');
+  assert.notDeepEqual(g.tmax, d.tmax, 'Dhamrai must not reuse Godagari temperatures');
+  assert.notEqual(`${g.provenance.lat},${g.provenance.lon}`, `${d.provenance.lat},${d.provenance.lon}`);
+});

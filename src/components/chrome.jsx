@@ -32,8 +32,8 @@ export function LangToggle({ dark = false, glass = false }) {
 }
 
 export function DataStatusChips({ dark = false }) {
-  const { dispatch, T } = useStore();
-  const real = clim.prov.status === 'REAL';
+  const { dispatch, T, clim: active } = useStore();
+  const real = (active ?? clim).prov.status === 'REAL'; // the climate of the farmer's or officer's own upazila
   const soilReal = soilData.provenance.status === 'REAL';
   const open = () => dispatch({ type: 'set', patch: { dataInfo: true } });
   const base = 'chip !px-2.5 !py-1 cursor-pointer';
@@ -62,8 +62,8 @@ export function DataStatusChips({ dark = false }) {
 }
 
 export function PlaceholderBanner() {
-  const { dispatch, T } = useStore();
-  if (clim.prov.status === 'REAL') return null;
+  const { dispatch, T, clim: active } = useStore();
+  if ((active ?? clim).prov.status === 'REAL') return null; // only when the active upazila's climate is real
   return (
     // <div className="border-b border-red-200 bg-red-50 text-red-800">
     //   <div className="page-shell flex items-start gap-2 py-2 text-[13px] leading-5">

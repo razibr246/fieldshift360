@@ -5,15 +5,16 @@
 //   npm run fetch:power                                              # Godagari upazila centre
 //   npm run fetch:power -- --upazila dhamrai --lat 23.93 --lon 90.14   # Dhamrai upazila centre
 //
-// Parameters (community AG): T2M_MAX, T2M_MIN (°C), PRECTOTCORR (mm/day) and IMERG_PRECTOT (mm/day, NASA/JAXA GPM
-// IMERG satellite rainfall served through POWER, used as an independent cross-check of PRECTOTCORR).
+// Parameters (community AG): T2M_MAX, T2M_MIN (°C), PRECTOTCORR (mm/day), RH2M (%), ALLSKY_SFC_SW_DWN (MJ/m²/day) and
+// IMERG_PRECTOT (mm/day, NASA/JAXA GPM IMERG satellite rainfall served through POWER, used as an independent
+// cross-check of PRECTOTCORR).
 // Needs Node 18+ (built-in fetch). Docs: https://power.larc.nasa.gov/docs/
 import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const API = 'https://power.larc.nasa.gov/api/temporal/daily/point';
-const PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR'];
+const PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'RH2M', 'ALLSKY_SFC_SW_DWN'];
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -24,7 +25,7 @@ const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'sr
 const lat = Number(arg('lat', 24.4667));
 const lon = Number(arg('lon', 88.3306));
 const start = arg('start', '20001001'); // Oct 2000 so the 2001 Rabi season is complete
-const end = arg('end', '20251231');
+const end = arg('end', '20261015');
 const iso = (k) => `${k.slice(0, 4)}-${k.slice(4, 6)}-${k.slice(6, 8)}`;
 
 const q = new URLSearchParams({ parameters: PARAMS.join(','), community: 'AG', latitude: lat, longitude: lon, start, end, format: 'JSON' });
@@ -65,17 +66,21 @@ const out = {
     status: 'REAL',
     dataset: 'NASA POWER daily point (community AG)',
     version: header.api?.version ?? 'unknown',
-    parameters: { tmax: 'T2M_MAX °C', tmin: 'T2M_MIN °C', prec: 'PRECTOTCORR mm/day', prec_imerg: 'IMERG_PRECTOT mm/day (NASA/JAXA GPM IMERG, cross-check)' },
+    parameters: { tmax: 'T2M_MAX °C', tmin: 'T2M_MIN °C', prec: 'PRECTOTCORR mm/day', rh: 'RH2M %', srad: 'ALLSKY_SFC_SW_DWN MJ/m²/day', prec_imerg: 'IMERG_PRECTOT mm/day (NASA/JAXA GPM IMERG, cross-check)' },
+    request: { endpoint: API, community: 'AG', parameters: PARAMS, timeStandard: 'LST', imerg: { parameters: ['IMERG_PRECTOT'], timeStandard: 'UTC' } },
     lat, lon, start: iso(start), end: iso(end),
     retrieved: new Date().toISOString().slice(0, 19) + 'Z',
     url,
     sources: header.sources ?? null,
+    coordinates: arg('coord-note', null),
     notes: 'Grid cell about 0.5° x 0.625°: an area-level signal, not a field measurement.',
   },
   start: iso(start),
   tmax: series('T2M_MAX'),
   tmin: series('T2M_MIN'),
   prec: series('PRECTOTCORR'),
+  rh: series('RH2M'),
+  srad: series('ALLSKY_SFC_SW_DWN'),
   prec_imerg: series('IMERG_PRECTOT'),
 };
 await writeFile(OUT, JSON.stringify(out));
