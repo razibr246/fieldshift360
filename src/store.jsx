@@ -56,7 +56,6 @@ export const tm = timeMachine(clim);
 // Each upazila's 25-season summary is worked out the first time a page asks for it, not for every upazila on start.
 const tmCache = { godagari: tm };
 export const tms = new Proxy(tmCache, { get: (o, k) => (k in o || typeof k !== 'string' || !climates[k] ? o[k] : (o[k] = timeMachine(climates[k]))) });
-// Soil for every union of every upazila (union ids are unique across upazilas); both tables are DEMO so far.
 // Soil: ISRIC SoilGrids at every union centre and registered field, and SRDI's fertilizer advice per union (all REAL).
 export const soilData = { provenance: soilGodagari.provenance, unions: Object.assign({}, ...[soilGodagari, soilDhamrai, soilSitakunda, soilDacope, soilBakerganj, soilGangachara, soilGowainghat].map((x) => x.unions)) };
 export const fieldSoil = soilFields.fields;

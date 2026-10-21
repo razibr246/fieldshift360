@@ -13,3 +13,4 @@ scripts/python/soilgrids_check.csv
 .claude/
 **/.claude/
 .env*
+!.env.example

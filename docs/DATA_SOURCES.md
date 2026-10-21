@@ -1,0 +1,74 @@
+# Data sources
+
+Every dataset FieldShift 360 uses, whether it is real or sample, where it comes from and where the app uses it.
+All files are committed, so the Vercel build needs no network access or credentials. In the app every number carries
+a tag: **NASA/real data**, **rule** (our calculation or threshold), **AI**, or **sample/demo**.
+
+"Real" means downloaded from the named source, unchanged except for the processing described in the build script.
+"Sample" means made up for the demonstration and labelled so in the interface.
+
+## Climate and rain (NASA)
+
+| Dataset | Real/Sample | Source | URL | Date fetched | Used where |
+| --- | --- | --- | --- | --- | --- |
+| `src/data/climate_godagari.json`: daily T2M_MAX, T2M_MIN, PRECTOTCORR, RH2M, ALLSKY_SFC_SW_DWN, 1 Oct 2000 – 15 Oct 2026, at 24.4667 N, 88.3306 E | Real | NASA POWER daily point API v2.10, community AG | https://power.larc.nasa.gov/api/temporal/daily/point (exact request in the file's `provenance.url`) | 2026-10-21 | Season planner, KEEP/ADJUST/SHIFT decision and 25-season backtest, harvest timing, voice answers, officer pages (Godagari) |
+| `src/data/climate_dhamrai.json`: same parameters at 23.93 N, 90.14 E | Real | NASA POWER daily point API v2.10, community AG | as above | 2026-10-21 | Same, for Dhamrai |
+| IMERG rain in both climate files (`prec_imerg`) | Real | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT, UTC days) served by NASA POWER | https://power.larc.nasa.gov/docs/ | 2026-10-21 | Cross-check of POWER rain; rain-onset dates |
+| `src/data/climate_{sitakunda,dacope,bakerganj,gangachara,gowainghat}.json` | Real | NASA POWER (T2M_MAX, T2M_MIN, PRECTOTCORR, IMERG_PRECTOT) | as above | 2026-10-17/18 | The five other division farmers in the app and the game |
+| `src/data/onset_godagari.json`, `onset_dhamrai.json`: rain-onset date per year, 2001–2026, with trend | Real data, our rule | Computed by `pipeline/onset/onset.mjs` from the IMERG and POWER rain above | — | 2026-10-21 | `/officer/radar` "Rain onset" card, officer voice "radar" answer. The rule is an assumption (docs/RADAR.md) |
+| `src/data/cmip6_deltas.json`: future temperature and rain change per upazila | Real | NASA NEX-GDDP-CMIP6 v2.0 (Thrasher et al. 2022), NCCS THREDDS | https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6 | 2026-10-19 | Field future / climate-change panel |
+| `src/data/stories_climate.json` | Real | NASA POWER + IMERG + ISRIC SoilGrids for the story upazilas | as above | 2026-10-19 | Climate stories pages |
+| `src/data/station_normals.json` | Real | NOAA NCEI / WMO Climate Normals 1991–2020 for the nearest BMD stations | https://www.ncei.noaa.gov/products/wmo-climate-normals | 2026-10 | Corrects POWER temperatures to the nearest station before use (`stationCorrect` in `src/engine/climate.js`) |
+| Last ~80 days of weather (not stored) | Real | NASA POWER, called live from the browser; falls back to the files above | as above | live | "This season so far" |
+| HLS 30 m satellite photos (not stored) | Real | NASA GIBS WMTS, `HLS_S30_Nadir_BRDF_Adjusted_Reflectance` | https://nasa-gibs.github.io/gibs-api-docs/ | live | Field map photos |
+
+## Radar, satellites and land
+
+| Dataset | Real/Sample | Source | URL | Date fetched | Used where |
+| --- | --- | --- | --- | --- | --- |
+| `src/data/aman_radar.json`, `public/aman/<upazila>.json`: Aman transplanting date per season (2017–2026) on 36 sample fields per upazila; June–July rain 2001–2026 and its trend | Real | Copernicus Sentinel-1 RTC (Microsoft Planetary Computer); NASA/JAXA GPM IMERG via NASA POWER; Esri/Impact Observatory land cover | https://planetarycomputer.microsoft.com/dataset/sentinel-1-rtc | 2026-10-19 (through 2026-10-17) | `/officer/radar`, officer voice "radar" answer, Home |
+| `src/data/aman_hazards.json`: drought, heat, flood and cold indices per upazila (SPI, dry spells, heavy-rain days, Rx5day, sample fields under water on radar) | Real data, WMO/agronomic rules | IMERG via POWER; Sentinel-1 | as above | 2026-10-19 | `/officer/radar` hazards section |
+| `src/data/field_watch.json`: NDVI and water readings for each registered field | Real | Copernicus Sentinel-2 L2A, 10 m (Microsoft Planetary Computer) | https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a | 2026-10-19 | Field watch on farmer and officer pages |
+| `src/data/geo/*_boundary.json`, `*_places.json` | Real | geoBoundaries gbOpen BGD ADM3/ADM4 (BBS / OCHA ROAP 2020, CC BY 3.0 IGO); GeoNames (CC BY 4.0) | https://www.geoboundaries.org, https://download.geonames.org/export/dump/ | 2026-10-18/19 | All maps, union lists, demo farm placement |
+| `src/data/geo/*_landcover.json` and maps | Real | Esri / Impact Observatory / Microsoft Sentinel-2 10 m land cover (CC BY 4.0) | https://livingatlas.arcgis.com/landcover/ | 2026-10-19 | Upazila land-use panels, sample-field selection |
+| `src/data/geo/bangladesh_crops.json` | Real | BBS Yearbook of Agricultural Statistics 2023 (district rice), FAOSTAT 2024, geoBoundaries ADM2 | https://bbs.gov.bd, https://www.fao.org/faostat | 2026-10-19 | National crop map |
+| `public/radar/` (Ropon Radar prototype, Rangpur) | **Sample (synthetic)** | Seeded random data (mulberry32, seed 42) | — | — | Only behind the "synthetic demo" link in the radar page's method notes; not used for any number in the app |
+
+## Soil
+
+| Dataset | Real/Sample | Source | URL | Date fetched | Used where |
+| --- | --- | --- | --- | --- | --- |
+| `src/data/soil_godagari.json`, `soil_dhamrai.json` (and the five other upazilas): pH, organic carbon/matter, total N, texture, CEC, bulk density, WRB soil group per union | Real (model estimate, not a soil test) | ISRIC SoilGrids 2.0, 250 m, thickness-weighted 0–30 cm (CC BY 4.0) | https://soilgrids.org | 2026-10-19 | Crop suitability (pH, drainage), soil panels, voice answers |
+| `drainage` in the soil files | Rule | Derived from the dominant WRB group (`scripts/data/build_soil.py`: Gleysols/Planosols/Stagnosols/Histosols = poor; Arenosols/Regosols/Leptosols = good; else imperfect) | — | — | Well-drained crop check |
+| `src/data/soil_fields.json` | Real (model estimate) | ISRIC SoilGrids at each registered field | as above | 2026-10-19 | Field pages |
+| `src/data/srdi_frs.json`: fertilizer recommendation per union and crop | Real | Soil Resource Development Institute (SRDI) Fertilizer Recommendation System | http://frs-bd.com/ | 2026-10-19 | Fertilizer advice and cost |
+| Upazila Nirdeshika (SRDI land and soil resource guide) values | **Not used yet** | SRDI | — | — | Would replace the SoilGrids estimates per union if supplied |
+
+## Crops, prices and costs
+
+| Dataset | Real/Sample | Source | URL | Date fetched | Used where |
+| --- | --- | --- | --- | --- | --- |
+| Crop thresholds, planting dates, durations (`src/engine/crops.js`) | **Rule (assumptions)** | General agronomy starting values; each listed with its status in `docs/THRESHOLDS.md` | — | — | Backtest and decision |
+| Yields (`price_seasons.json`, `yield_history.json`) | Real | FAOSTAT Production_Crops_Livestock, Bangladesh, 2020–2024 national average | https://www.fao.org/faostat | 2026-10-19 | Yield and income estimates |
+| `src/data/price_seasons.json`: monthly farm-gate prices and the usual price-dip months | Real | Department of Agricultural Marketing (DAM) price graphical report | https://market.dam.gov.bd/price_graphical_report | 2026-10-18 | Harvest-glut warning, income |
+| `src/data/market_dhaka.json`: this week's Dhaka retail prices | Real | DAM weekly report (PDF) | https://dam.gov.bd | 2026-10 | Market page |
+| `src/data/crop_economics.json`: price a farmer gets and full cost per kg | Real (published figures; years differ, each shown) | Government procurement prices, Ministry of Agriculture cost estimates and news reports, each with its own URL in the file | see file | 2026-10-18 | Profit per bigha |
+| `src/data/abroad/*.json` (India, Pakistan, Nepal, Bhutan, Myanmar) | Real weather and fire data; sample farmers | ERA5 (Open-Meteo), IMERG via POWER, NASA FIRMS; farmers are sample people | see each file's provenance | 2026-10-19 | Neighbouring-country pages and the game |
+
+## People and requests (sample)
+
+| Dataset | Real/Sample | Source | Used where |
+| --- | --- | --- | --- |
+| `src/data/demo.js`: farmers, plans, problem reports, officer actions | **Sample** (seeded, deterministic), placed inside real union outlines | — | Every farmer and officer screen; labelled "sample/demo" |
+| `src/data/parcels.json`: the land registry | Positions real cropland; owners, sizes, names, registry numbers **sample** | Esri land cover and Sentinel-2 for positions | Field pages |
+| `src/data/advice.js`, `story.js`, `stories.js` | Sample text (default advice, game story) | — | Advice templates, stories |
+| `src/data/crop_problems.js` | Real reference text: common problems per crop, from BARI Krishi Projukti Hatboi, BRRI Adhunik Dhaner Chash and DAE crop protection guides | — | Problem reports (picking one names the request; it is not a diagnosis) |
+| `src/data/crop_photos.js` | Real photos from Wikimedia Commons; author and licence fetched live from Commons and shown with each photo | https://commons.wikimedia.org | Crop pages |
+
+## Not yet real
+
+- **Field soil tests**: SoilGrids is a 250 m model estimate. SRDI Upazila Nirdeshika or field test values per union would
+  replace it; send the values (pH, OM %, texture, drainage class per union) and they go into `scripts/data/build_soil.py`.
+- **Crop thresholds** are starting values that an agriculture officer still has to review (`docs/THRESHOLDS.md`).
+- **Rain-onset rule** is our own stated rule, not yet checked against Bangladesh Meteorological Department onset dates.
+- **Farmers and requests** are sample people.

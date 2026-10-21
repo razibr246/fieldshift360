@@ -1,5 +1,9 @@
 # Data in FieldShift 360
 
+The full inventory (real or sample, source, URL, date fetched, where used) is in [DATA_SOURCES.md](DATA_SOURCES.md).
+Soil is real: ISRIC SoilGrids 2.0 per union and field (`npm run data:soil`) and SRDI fertilizer recommendations
+(`npm run data:srdi`).
+
 Every number in the app is marked in the interface as real data, rule-based, AI or sample. This page lists where each
 real dataset comes from and how to rebuild it.
 
@@ -35,7 +39,6 @@ forecast for this season.
 
 | File | Contents |
 | --- | --- |
-| `src/data/soil_godagari.json` | Union soil profiles. Sample values until real SRDI figures are entered with `scripts/python/build_soil.py` |
 | `src/data/demo.js` | Farmers, fields, plans and requests for all 9 unions and 2 municipalities, placed inside their real boundaries |
 | `src/data/advice.js`, `src/data/story.js` | Default advice text and the game story |
 
