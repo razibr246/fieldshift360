@@ -11,7 +11,16 @@ const ERR = {
   'no-speech': { bn: 'কিছু শুনতে পাইনি। মাইক চেপে আবার বলুন।', en: 'I heard nothing. Tap the mic and try again.' },
   'lang-unsupported': { bn: 'এই ডিভাইসে বাংলা শোনা চলছে না। লিখে জিজ্ঞেস করুন।', en: 'Bangla listening is not available on this device. Type instead.' },
   'stt-error': { bn: 'শুনতে সমস্যা হয়েছে, আবার চেষ্টা করুন বা লিখে জিজ্ঞেস করুন।', en: 'Listening failed. Try again or type.' },
+  'net-needed': { bn: 'কথা শুনতে ইন্টারনেট লাগে। সংযোগ দেখে আবার চেষ্টা করুন, অথবা নিচে লিখে জিজ্ঞেস করুন।', en: 'Listening needs the internet. Check the connection and try again, or type below.' },
 };
+// Shown before the mic is tapped, so nobody waits for a mic that cannot work here. Typing always works.
+export function supportNote(sp) {
+  if (!sp.secure) return { bn: 'এই পাতায় মাইক চালু হয় না (নিরাপদ https ঠিকানা লাগে)। লিখে জিজ্ঞেস করুন।', en: 'The mic cannot work on this page (it needs a secure https address). Type instead.' };
+  if (!sp.stt) return sp.ios ? { bn: 'আইফোনে বাংলায় কথা শোনা চলে না। নিচে লিখে জিজ্ঞেস করুন।', en: 'Bangla listening does not work on iPhone. Type your question below.' } : ERR['no-stt'];
+  if (sp.ios) return { bn: 'আইফোনে বাংলায় কথা শোনা নির্ভরযোগ্য নয়; লিখে জিজ্ঞেস করাই ভালো।', en: 'Bangla listening on iPhone is unreliable; typing works better.' };
+  if (!sp.online) return { bn: 'এখন ইন্টারনেট নেই: কথা শোনা চলবে না, কিন্তু লিখে জিজ্ঞেস করলে উত্তর পাবেন।', en: 'No internet right now: listening will not work, but typed questions still get answers.' };
+  return null;
+}
 
 export default function VoiceAssistant({ role }) {
   const v = useVoiceAgent(role);
@@ -64,7 +73,7 @@ export function VoiceChat({ v }) {
       )}
 
       <div className="border-t border-border bg-white p-3">
-        {v.error && <Note tone="warn" className="mb-2">{L(ERR[v.error] ?? ERR['stt-error'])}</Note>}
+        {v.error ? <Note tone="warn" className="mb-2">{L(ERR[v.error] ?? ERR['stt-error'])}</Note> : supportNote(v.support) && <Note className="mb-2">{L(supportNote(v.support))}</Note>}
         {v.support.bnVoice === false && v.autoSpeak && <Note className="mb-2">{T('এই ডিভাইসে বাংলা কণ্ঠ নেই, তাই উত্তর শুধু লেখা থাকবে। Android Chrome বা Edge-এ বাংলা কণ্ঠ পাবেন।', 'This device has no Bangla voice, so replies stay as text. Android Chrome or Edge has one.')}</Note>}
         <div className="flex items-center gap-3">
           <button type="button" onClick={v.listening ? v.toggleListen : v.speaking ? v.silence : v.toggleListen} aria-pressed={v.listening}

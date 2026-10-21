@@ -581,4 +581,4 @@ function officerTurn(text, raw, snap, session, intent) {
   }
 }
 
-export { farmerChips, officerChips };
+export { farmerChips, officerChips, classify };

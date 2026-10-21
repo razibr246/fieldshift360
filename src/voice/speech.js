@@ -5,6 +5,14 @@
 const w = typeof window !== 'undefined' ? window : {};
 export const sttSupported = () => !!(w.SpeechRecognition || w.webkitSpeechRecognition);
 export const ttsSupported = () => !!w.speechSynthesis;
+// What this device can do before the farmer taps anything. Chrome's listening sends the sound to Google's speech
+// service, so it needs the internet; the microphone needs an https page; Bangla listening on iPhone and iPad is not
+// reliable, so they are told to type.
+export function voiceSupport(nav = w.navigator ?? {}) {
+  const ua = nav.userAgent ?? '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && (nav.maxTouchPoints ?? 0) > 1);
+  return { stt: sttSupported(), tts: ttsSupported(), online: nav.onLine !== false, secure: w.isSecureContext !== false, ios };
+}
 
 const LANG = { bn: 'bn-BD', en: 'en-US' };
 

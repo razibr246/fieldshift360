@@ -12,7 +12,7 @@ import { buildDemo, DEMO_TODAY, upazilaOfUnion } from '../data/demo.js';
 import { radarSummary } from '../radar/radarModel.js';
 import { onsetSummary } from '../radar/onset.js';
 import { farmerSnapshot, officerSnapshot } from './snapshot.js';
-import { createSession, respond, greeting } from './brain.js';
+import { createSession, respond, greeting, classify } from './brain.js';
 import { KEY_MENU } from './keymenu.js';
 import { fold, speakable } from './bn.js';
 import { replyTemplate as template, advisoryText } from '../engine/advice.js';
@@ -226,4 +226,30 @@ test('a sample request’s photo guess is called a sample, never a real AI resul
   const r = Object.values(snap).flatMap((v) => (v && Array.isArray(v.open) ? v.open : [])).find((x) => x.aiGuess);
   assert.ok(r, 'a sample request with a guess exists');
   assert.equal(r.aiGuess.sample, true);
+});
+
+// How farmers in Rajshahi and Dhaka actually ask, regional forms included: each must reach the right answer.
+const EVERYDAY = [
+  ['এবার জমিতে কি দিমু', 'plan'], ['এই শীতে কোন ফসল ভালো হইব', 'plan'], ['টমেটো লাগামু না আলু', 'plan'],
+  ['বীজতলা কবে করুম', 'when'], ['চারা রোয়া কবে দিমু', 'when'],
+  ['আইজ জমিতে পানি দেওন লাগবো', 'water'], ['শ্যালো মেশিন কয় ঘণ্টা চালামু', 'water'], ['আইজ কি সেচ দেওয়া লাগবো', 'water'],
+  ['কাইল বৃষ্টি হইব নি', 'weather'],
+  ['ধান পাকতে আর কয়দিন', 'harvest'], ['কয় মণ ধান হইব', 'harvest'],
+  ['হাটে এখন টমেটোর দাম কত', 'price'], ['আলু হিমাগারে রাখমু না বেচমু', 'price'],
+  ['পাতা হলুদ হইয়া যাইতেছে', 'problem'], ['গাছে পোকা ধরছে কী করমু', 'problem'], ['পাতায় কালো কালো দাগ', 'problem'], ['গাছ মইরা যাইতেছে', 'problem'],
+  ['জমিতে কোন সার কতটুকু দিমু', 'soil'], ['ইউরিয়া কয় কেজি দিমু', 'soil'],
+  ['উপসহকারী স্যারের নম্বর দেন', 'officer'], ['আমার প্রশ্নের জবাব আইছে', 'myreq'], ['এই ধান কাটার পর কী লাগামু', 'next'],
+];
+for (const [phrase, intent] of EVERYDAY) {
+  test(`everyday Bangla: "${phrase}" is understood as ${intent}`, () => {
+    assert.equal(classify(fold(phrase), 'farmer'), intent);
+    assert.ok(ask(phrase, fsnap('RAHIM'), createSession({ role: 'farmer' })).say.length > 10);
+  });
+}
+
+test('the same question gets each farmer’s own region: Godagari for Rahim, Dhamrai for Razib', () => {
+  const rahim = ask('এবার কী লাগাব', fsnap('RAHIM'), createSession({ role: 'farmer' })).say;
+  const razib = ask('এবার কী লাগাব', fsnap('RAZIB'), createSession({ role: 'farmer' })).say;
+  assert.notEqual(rahim, razib);
+  assert.notEqual(fsnap('RAHIM').prov, undefined);
 });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore, soilData, demo } from '../store';
 import { createSession, greeting, respond } from './brain.js';
 import { farmerSnapshot, officerSnapshot } from './snapshot.js';
-import { createRecognizer, sttSupported, ttsSupported, speak, stopSpeaking, loadVoices, pickVoice } from './speech.js';
+import { createRecognizer, sttSupported, ttsSupported, speak, stopSpeaking, loadVoices, pickVoice, voiceSupport } from './speech.js';
 import { replyTemplate as template, advisoryText } from '../engine/advice.js';
 import { useRadar } from '../radar/useRadar';
 import { districtOf } from '../radar/aman';
@@ -65,7 +65,7 @@ export function useVoiceAgent(role) {
       onInterim: (t) => setInterim(t),
       onFinal: (t) => { setInterim(''); sendRef.current(t); },
       onEnd: () => { setListening(false); setInterim(''); },
-      onError: (code) => { setListening(false); setError(code === 'not-allowed' || code === 'service-not-allowed' ? 'mic-denied' : code === 'no-speech' ? 'no-speech' : code === 'language-not-supported' ? 'lang-unsupported' : 'stt-error'); },
+      onError: (code) => { setListening(false); setError(code === 'not-allowed' || code === 'service-not-allowed' ? 'mic-denied' : code === 'no-speech' ? 'no-speech' : code === 'language-not-supported' ? 'lang-unsupported' : code === 'network' ? 'net-needed' : 'stt-error'); },
     });
     recRef.current = rec;
     try { rec.start(); } catch { setListening(false); }
@@ -112,7 +112,7 @@ export function useVoiceAgent(role) {
 
   return {
     messages, listening, speaking, interim, error, autoSpeak, setAutoSpeak, handsFree, setHandsFree, send, toggleListen, replay, silence, reset,
-    support: { stt: sttSupported(), tts: ttsSupported(), bnVoice }, radarStatus: radar.status,
+    support: { ...voiceSupport(), bnVoice }, radarStatus: radar.status,
     // What the brain is waiting for (a yes/no, or dictation), so the phone keypad can answer 1 = yes, 2 = no.
     pending: sessionRef.current.state?.kind ?? null, startListening, stopListening,
   };
