@@ -1,14 +1,19 @@
-// Rain onset per year for the two FieldShift regions (src/data/onset_<upazila>.json, built by pipeline/onset/onset.mjs
+// Rain onset per year for the app's seven upazilas, one per division (src/data/onset_<upazila>.json, built by pipeline/onset/onset.mjs
 // from NASA/JAXA GPM IMERG daily rain, with NASA POWER PRECTOTCORR alongside). The rule is in docs/RADAR.md.
 // Pure, so the voice assistant and Node tests can use it.
 import godagari from '../data/onset_godagari.json' with { type: 'json' };
 import dhamrai from '../data/onset_dhamrai.json' with { type: 'json' };
+import sitakunda from '../data/onset_sitakunda.json' with { type: 'json' };
+import dacope from '../data/onset_dacope.json' with { type: 'json' };
+import bakerganj from '../data/onset_bakerganj.json' with { type: 'json' };
+import gangachara from '../data/onset_gangachara.json' with { type: 'json' };
+import gowainghat from '../data/onset_gowainghat.json' with { type: 'json' };
 
-export const ONSET = { godagari, dhamrai };
+export const ONSET = { godagari, dhamrai, sitakunda, dacope, bakerganj, gangachara, gowainghat };
 
 const median = (v) => { const a = v.filter((x) => x != null).sort((x, y) => x - y); if (!a.length) return null; const n = a.length; return n % 2 ? a[(n - 1) / 2] : Math.round((a[n / 2 - 1] + a[n / 2]) / 2); };
 
-// { usual (median day of year over the reference years), latest final year, trend, rows } or null outside the two regions.
+// { usual (median day of year over the reference years), latest final year, trend, rows } or null where there is none.
 export function onsetSummary(upazila, file = ONSET[upazila]) {
   if (!file) return null;
   const { rule, sources } = file.provenance;

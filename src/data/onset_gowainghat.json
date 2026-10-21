@@ -1,0 +1,399 @@
+{
+ "provenance": {
+  "status": "REAL",
+  "method": "pipeline/onset/onset.mjs; definition in docs/RADAR.md (an assumption to be validated against BMD onset records)",
+  "rule": {
+   "searchFrom": [
+    4,
+    15
+   ],
+   "wetDays": 5,
+   "minRainyDays": 3,
+   "rainyMm": 1,
+   "dryWindow": 10,
+   "dryTotalMm": 5,
+   "lookahead": 30,
+   "setInShare": 0.5,
+   "refYears": [
+    2001,
+    2025
+   ],
+   "finalTo": 2025,
+   "thresholdFrom": "mean 5-day June–September rain over the reference years"
+  },
+  "primary": "imerg",
+  "sources": {
+   "imerg": {
+    "dataset": "NASA/JAXA GPM IMERG daily precipitation (IMERG_PRECTOT, UTC days) served by the NASA POWER API",
+    "key": "prec_imerg",
+    "thresholdMm": 101.7,
+    "trend": {
+     "n": 25,
+     "perDecade": 0,
+     "S": -4,
+     "z": -0.07,
+     "p": 0.9439,
+     "significant": false
+    }
+   },
+   "power": {
+    "dataset": "NASA POWER PRECTOTCORR daily (MERRA-2 bias-corrected), for comparison",
+    "key": "prec",
+    "thresholdMm": 104.1,
+    "trend": {
+     "n": 25,
+     "perDecade": -8.3,
+     "S": -91,
+     "z": -2.113,
+     "p": 0.0346,
+     "significant": true
+    }
+   }
+  },
+  "climateFile": "src/data/climate_gowainghat.json",
+  "lat": 25.105,
+  "lon": 91.967,
+  "rainThrough": "2026-10-15",
+  "generated": "2026-10-21"
+ },
+ "years": [
+  {
+   "year": 2001,
+   "imerg": {
+    "date": "2001-04-25",
+    "doy": 115,
+    "complete": true
+   },
+   "power": {
+    "date": "2001-04-25",
+    "doy": 115,
+    "complete": true
+   }
+  },
+  {
+   "year": 2002,
+   "imerg": {
+    "date": "2002-04-15",
+    "doy": 105,
+    "complete": true
+   },
+   "power": {
+    "date": "2002-04-23",
+    "doy": 113,
+    "complete": true
+   }
+  },
+  {
+   "year": 2003,
+   "imerg": {
+    "date": "2003-05-21",
+    "doy": 141,
+    "complete": true
+   },
+   "power": {
+    "date": "2003-06-04",
+    "doy": 155,
+    "complete": true
+   }
+  },
+  {
+   "year": 2004,
+   "imerg": {
+    "date": "2004-04-15",
+    "doy": 106,
+    "complete": true
+   },
+   "power": {
+    "date": "2004-06-17",
+    "doy": 169,
+    "complete": true
+   }
+  },
+  {
+   "year": 2005,
+   "imerg": {
+    "date": "2005-05-11",
+    "doy": 131,
+    "complete": true
+   },
+   "power": {
+    "date": "2005-05-15",
+    "doy": 135,
+    "complete": true
+   }
+  },
+  {
+   "year": 2006,
+   "imerg": {
+    "date": "2006-05-02",
+    "doy": 122,
+    "complete": true
+   },
+   "power": {
+    "date": "2006-05-23",
+    "doy": 143,
+    "complete": true
+   }
+  },
+  {
+   "year": 2007,
+   "imerg": {
+    "date": "2007-04-21",
+    "doy": 111,
+    "complete": true
+   },
+   "power": {
+    "date": "2007-04-19",
+    "doy": 109,
+    "complete": true
+   }
+  },
+  {
+   "year": 2008,
+   "imerg": {
+    "date": "2008-05-18",
+    "doy": 139,
+    "complete": true
+   },
+   "power": {
+    "date": "2008-05-28",
+    "doy": 149,
+    "complete": true
+   }
+  },
+  {
+   "year": 2009,
+   "imerg": {
+    "date": "2009-05-22",
+    "doy": 142,
+    "complete": true
+   },
+   "power": {
+    "date": "2009-05-22",
+    "doy": 142,
+    "complete": true
+   }
+  },
+  {
+   "year": 2010,
+   "imerg": {
+    "date": "2010-04-15",
+    "doy": 105,
+    "complete": true
+   },
+   "power": {
+    "date": "2010-04-15",
+    "doy": 105,
+    "complete": true
+   }
+  },
+  {
+   "year": 2011,
+   "imerg": {
+    "date": "2011-05-20",
+    "doy": 140,
+    "complete": true
+   },
+   "power": {
+    "date": "2011-06-20",
+    "doy": 171,
+    "complete": true
+   }
+  },
+  {
+   "year": 2012,
+   "imerg": {
+    "date": "2012-04-15",
+    "doy": 106,
+    "complete": true
+   },
+   "power": {
+    "date": "2012-04-28",
+    "doy": 119,
+    "complete": true
+   }
+  },
+  {
+   "year": 2013,
+   "imerg": {
+    "date": "2013-04-27",
+    "doy": 117,
+    "complete": true
+   },
+   "power": {
+    "date": "2013-04-27",
+    "doy": 117,
+    "complete": true
+   }
+  },
+  {
+   "year": 2014,
+   "imerg": {
+    "date": "2014-05-02",
+    "doy": 122,
+    "complete": true
+   },
+   "power": {
+    "date": "2014-05-04",
+    "doy": 124,
+    "complete": true
+   }
+  },
+  {
+   "year": 2015,
+   "imerg": {
+    "date": "2015-04-17",
+    "doy": 107,
+    "complete": true
+   },
+   "power": {
+    "date": "2015-04-16",
+    "doy": 106,
+    "complete": true
+   }
+  },
+  {
+   "year": 2016,
+   "imerg": {
+    "date": "2016-04-15",
+    "doy": 106,
+    "complete": true
+   },
+   "power": {
+    "date": "2016-04-15",
+    "doy": 106,
+    "complete": true
+   }
+  },
+  {
+   "year": 2017,
+   "imerg": {
+    "date": "2017-04-17",
+    "doy": 107,
+    "complete": true
+   },
+   "power": {
+    "date": "2017-04-16",
+    "doy": 106,
+    "complete": true
+   }
+  },
+  {
+   "year": 2018,
+   "imerg": {
+    "date": "2018-04-26",
+    "doy": 116,
+    "complete": true
+   },
+   "power": {
+    "date": "2018-04-17",
+    "doy": 107,
+    "complete": true
+   }
+  },
+  {
+   "year": 2019,
+   "imerg": {
+    "date": "2019-04-27",
+    "doy": 117,
+    "complete": true
+   },
+   "power": {
+    "date": "2019-04-27",
+    "doy": 117,
+    "complete": true
+   }
+  },
+  {
+   "year": 2020,
+   "imerg": {
+    "date": "2020-04-15",
+    "doy": 106,
+    "complete": true
+   },
+   "power": {
+    "date": "2020-04-15",
+    "doy": 106,
+    "complete": true
+   }
+  },
+  {
+   "year": 2021,
+   "imerg": {
+    "date": "2021-05-16",
+    "doy": 136,
+    "complete": true
+   },
+   "power": {
+    "date": "2021-04-16",
+    "doy": 106,
+    "complete": true
+   }
+  },
+  {
+   "year": 2022,
+   "imerg": {
+    "date": "2022-04-15",
+    "doy": 105,
+    "complete": true
+   },
+   "power": {
+    "date": "2022-04-15",
+    "doy": 105,
+    "complete": true
+   }
+  },
+  {
+   "year": 2023,
+   "imerg": {
+    "date": "2023-05-23",
+    "doy": 143,
+    "complete": true
+   },
+   "power": {
+    "date": "2023-05-16",
+    "doy": 136,
+    "complete": true
+   }
+  },
+  {
+   "year": 2024,
+   "imerg": {
+    "date": "2024-05-01",
+    "doy": 122,
+    "complete": true
+   },
+   "power": {
+    "date": "2024-05-01",
+    "doy": 122,
+    "complete": true
+   }
+  },
+  {
+   "year": 2025,
+   "imerg": {
+    "date": "2025-04-20",
+    "doy": 110,
+    "complete": true
+   },
+   "power": {
+    "date": "2025-04-19",
+    "doy": 109,
+    "complete": true
+   }
+  },
+  {
+   "year": 2026,
+   "imerg": {
+    "date": "2026-05-30",
+    "doy": 150,
+    "complete": false
+   },
+   "power": {
+    "date": "2026-04-16",
+    "doy": 106,
+    "complete": false
+   }
+  }
+ ]
+}

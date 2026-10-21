@@ -23,17 +23,19 @@ function RadarPage() {
   const { s, T, L, officerUpazila } = useStore();
   const lang = s.lang;
   const home = officerUpazila.id;
-  const dId = districtOf(home);
-  const district = AMAN.districts[dId];
   const [params, setParams] = useSearchParams();
+  // Any upazila with radar data and maps can be opened (?u=…), in any district; the officer's own is the default.
+  const canOpen = (id) => !!id && !!GEO[id] && !!districtOf(id) && AMAN.districts[districtOf(id)]?.upazilas.some((u) => u.id === id);
+  const view = canOpen(params.get('u')) ? params.get('u') : home;
+  const dId = districtOf(view);
+  const district = AMAN.districts[dId];
   const openable = district.upazilas.filter((u) => GEO[u.id]).sort((a, b) => (b.id === home) - (a.id === home));
-  const view = openable.some((u) => u.id === params.get('u')) ? params.get('u') : home;
   const mine = view === home;
   const row = district.upazilas.find((u) => u.id === view);
   const year = row.seasons[params.get('y')] ? +params.get('y') : LATEST;
   const go = (u, y) => setParams({ ...(u === home ? {} : { u }), ...(y === LATEST ? {} : { y: String(y) }) });
   const setYear = (y) => go(view, y);
-  const setView = (u) => { if (GEO[u]) go(u, year); };
+  const setView = (u) => { if (canOpen(u)) go(u, year); };
   const detail = useAmanDetail(view);
   const se = row.seasons[year];
   const cat = CAT[catOf(se.shift)];
@@ -54,6 +56,20 @@ function RadarPage() {
         <span className="chip bg-sky-100 text-sky-900"><Satellite size={13} />{T(`সেন্টিনেল-১ রাডার · ${fmtDate(Date.parse(THROUGH), 'bn')} পর্যন্ত`, `Sentinel-1 radar · to ${fmtDate(Date.parse(THROUGH), 'en')}`)}</span>
         <span className="chip bg-sky-100 text-sky-900"><CloudRain size={13} />{T(`নাসা আইমার্জ বৃষ্টি · ${rainThrough ? fmtDate(Date.parse(rainThrough), 'bn') : ''} পর্যন্ত`, `NASA IMERG rain · to ${rainThrough ? fmtDate(Date.parse(rainThrough), 'en') : ''}`)}</span>
         <span className="chip bg-sky-100 text-sky-900"><Layers size={13} />{T('ফসলি জমি: সেন্টিনেল-২ ভূমি-ব্যবহার', 'Cropland: Sentinel-2 land cover')}</span>
+      </div>
+
+      {/* the place: one upazila in each division, so the radar can follow any of the app's places */}
+      <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label={T('জায়গা বেছে নিন', 'Choose a place')}>
+        <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-muted"><MapPin size={14} />{T('জায়গা:', 'Place:')}</span>
+        {Object.values(UPAZILAS).filter((u) => canOpen(u.id)).map((u) => {
+          const on = districtOf(u.id) === dId && (u.id === view || !Object.values(UPAZILAS).some((x) => x.id === view));
+          return (
+            <button key={u.id} type="button" onClick={() => setView(u.id)} aria-pressed={u.id === view}
+              className={`h-9 rounded-full px-3.5 text-[13.5px] font-semibold transition ${u.id === view ? 'bg-paddy-700 text-white' : on ? 'bg-paddy-100 text-paddy-900' : 'bg-black/[.04] text-ink/75 hover:bg-black/[.08]'}`}>
+              {L(u.name)}{u.id === home && <span className={`ml-1.5 text-[11.5px] ${u.id === view ? 'text-white/80' : 'text-paddy-700'}`}>{T('আপনার', 'yours')}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {openable.length > 1 && (
@@ -227,7 +243,7 @@ function RadarPage() {
           <li>{T(`বৃষ্টি: নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি (নাসা পাওয়ার থেকে), ২০০১ থেকে। ${num(RAIN_FINAL_TO, 'bn').replace(/,/g, '')}-এর পরের বৃষ্টি অস্থায়ী: নাসা পাওয়ারের অন্য হিসাবের প্রায় অর্ধেক দেখাচ্ছে, তাই স্বাভাবিক আর ধারার হিসাবে রাখা হয়নি।`, `Rain: NASA/JAXA GPM IMERG daily rain (via NASA POWER), from 2001. Rain after ${RAIN_FINAL_TO} is provisional: it reads about half of NASA POWER's other estimate, so it is kept out of the normal and the trend.`)}</li>
           <li>{T('নমুনা জমি: প্রতি উপজেলায় ৩৬টি বিন্দু, যা সেন্টিনেল-২ ভূমি-ব্যবহার মানচিত্রে ২০১৭ ও ২০২৫ দুই বছরেই ফসলি জমি। ইউনিয়নের সীমানা বাংলাদেশ পরিসংখ্যান ব্যুরোর।', 'Sample fields: 36 points per upazila that are cropland in both 2017 and 2025 on the Sentinel-2 land-cover map. Union boundaries from the Bangladesh Bureau of Statistics.')}</li>
           <li>{T(`রোপণ ধরা হয় যখন সংকেত আগের চেয়ে অন্তত ৩ ডিবি নামে আর ৪৫ দিনের মধ্যে অন্তত ৪ ডিবি ওঠে। সব জমিতে ধরা পড়ে না: কিছু জমিতে আমন হয় না বা অন্য ফসল থাকে। অন্তত ${num(MIN_FIELDS, 'bn')}টি জমিতে ধরা পড়লে তবেই উপজেলার তারিখ বলা হয়। সকাল আর সন্ধ্যার পাসের কোণের পার্থক্য প্রতিটি জমির জন্য ঠিক করে নেওয়া হয়।`, `Transplanting is dated where the signal drops at least 3 dB and rises at least 4 dB within 45 days. Not every field shows it: some grow no Aman or another crop. An upazila date is given only when at least ${MIN_FIELDS} fields show it. The angle difference between morning and evening passes is corrected for each field.`)}</li>
-          <li>{T('বৃষ্টি শুরু (শুধু গোদাগাড়ী ও ধামরাই): ১৫ এপ্রিলের পর প্রথম যে দিন থেকে ৫ দিনে এলাকার বর্ষার স্বাভাবিক ৫-দিনের বৃষ্টি নামে, পরের ৩০ দিনে ১০ দিনের শুকনো ফাঁক থাকে না আর অন্তত অর্ধেক মাসের বর্ষার বৃষ্টি আসে। এটা আমাদের ধরে নেওয়া নিয়ম, আবহাওয়া অধিদপ্তরের বর্ষা-আগমনের তারিখের সঙ্গে মিলিয়ে দেখা বাকি (docs/RADAR.md)। ১ জুনের পুরনো সহজ নিয়ম প্রায় প্রতি বছরই প্রথম দিনেই পূরণ হতো, তাই তা বাদ।', 'Rain onset (Godagari and Dhamrai only): the first day after 15 April that starts five days with the place’s usual monsoon five-day rain, with no ten-day dry gap and at least half a monsoon month’s rain in the next 30 days. This is our assumed rule, still to be checked against the Meteorological Department’s onset dates (docs/RADAR.md). The older simple 1 June rule was met on its first day almost every year, so it is not used.')}</li>
+          <li>{T('বৃষ্টি শুরু (অ্যাপের সাত উপজেলা, প্রতি বিভাগে একটি): ১৫ এপ্রিলের পর প্রথম যে দিন থেকে ৫ দিনে এলাকার বর্ষার স্বাভাবিক ৫-দিনের বৃষ্টি নামে, পরের ৩০ দিনে ১০ দিনের শুকনো ফাঁক থাকে না আর অন্তত অর্ধেক মাসের বর্ষার বৃষ্টি আসে। এটা আমাদের ধরে নেওয়া নিয়ম, আবহাওয়া অধিদপ্তরের বর্ষা-আগমনের তারিখের সঙ্গে মিলিয়ে দেখা বাকি (docs/RADAR.md)। ১ জুনের পুরনো সহজ নিয়ম প্রায় প্রতি বছরই প্রথম দিনেই পূরণ হতো, তাই তা বাদ।', 'Rain onset (the app’s seven upazilas, one per division): the first day after 15 April that starts five days with the place’s usual monsoon five-day rain, with no ten-day dry gap and at least half a monsoon month’s rain in the next 30 days. This is our assumed rule, still to be checked against the Meteorological Department’s onset dates (docs/RADAR.md). The older simple 1 June rule was met on its first day almost every year, so it is not used.')}</li>
           <li>{T('প্রথম রোপণ রাডারের প্রোটোটাইপ (রংপুর) পুরোটাই কৃত্রিম নমুনা তথ্যে বানানো, শুধু দেখানোর জন্য: ', 'The first Ropon Radar prototype (Rangpur) runs entirely on synthetic demo data, for illustration only: ')}<a href="/radar/" className="font-semibold text-primary-700 underline-offset-2 hover:underline">{T('কৃত্রিম ডেমো খুলুন', 'open the synthetic demo')}</a></li>
           <li>{T('বৃষ্টির ধারা: ম্যান-কেন্ডাল পরীক্ষা ও সেনের ঢাল; একই জেলার উপজেলাগুলোর জন্য বেনজামিনি-হকবার্গ সংশোধন (q = ০.১০)। "জোরালো" মানে সেই সংশোধনের পরও টেকে।', 'Rain trend: Mann-Kendall test and Sen’s slope, Benjamini-Hochberg corrected across a district’s upazilas (q = 0.10). "Significant" survives that correction.')}</li>
         </ul>

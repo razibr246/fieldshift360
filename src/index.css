@@ -127,6 +127,20 @@ body { font-optical-sizing: auto; }
 :lang(bn) h1 { letter-spacing: -0.014em !important; line-height: 1.16; }
 
 .page-shell { width: min(1200px, calc(100% - 32px)); margin-inline: auto; }
+
+/* Big screens (wide monitors, TVs, projectors): the whole interface scales up so text and controls stay readable from
+   across a room instead of sitting small in the middle. Phones, tablets and laptops (up to 1679 px) are unchanged.
+   Maps and pointer positions stay correct under zoom (Leaflet and MapLibre correct for it); the full-screen game
+   cancels it so its 3D canvas renders at the screen's own resolution. */
+:root { --ui-zoom: 1; }
+@media (min-width: 1680px) { :root { --ui-zoom: 1.1; } }
+@media (min-width: 1920px) { :root { --ui-zoom: 1.2; } }
+@media (min-width: 2240px) { :root { --ui-zoom: 1.35; } }
+@media (min-width: 2560px) { :root { --ui-zoom: 1.5; } }
+@media (min-width: 3200px) { :root { --ui-zoom: 1.8; } }
+@media (min-width: 3800px) { :root { --ui-zoom: 2.1; } }
+html { zoom: var(--ui-zoom); }
+.g3 { zoom: calc(1 / var(--ui-zoom)); }
 .surface-card {
   position: relative;
   border: 1px solid rgba(255, 255, 255, .72);

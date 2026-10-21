@@ -49,9 +49,14 @@ What this says: the rains set in about two weeks later in Godagari than in Dhamr
 significant shift over 25 years. POWER's own rain (a reanalysis product) suggests an earlier onset in Godagari; the two
 products disagree, so the app shows IMERG as the main series and POWER alongside, and makes no trend claim.
 
-Outputs: `src/data/onset_godagari.json`, `src/data/onset_dhamrai.json` (year, onset date, day of year, final or
-provisional, for each source; the rule and thresholds in `provenance`). Rebuild with
-`node pipeline/onset/onset.mjs godagari dhamrai`; tests in `src/radar/onset.test.js`.
+The same rule runs for all seven of the app's upazilas (one per division); the radar page's place buttons switch between
+them. Their usual onset (IMERG median, 2001–2025): Gowainghat 26 April, Gangachara 10 May, Dhamrai 12 May, Dacope
+17 May, Sitakunda 18 May, Bakerganj 25 May, Godagari 29 May; none shows a significant trend.
+
+Outputs: `src/data/onset_<upazila>.json` (year, onset date, day of year, final or provisional, for each source; the
+rule and thresholds in `provenance`). Rebuild with
+`node pipeline/onset/onset.mjs godagari dhamrai sitakunda dacope bakerganj gangachara gowainghat`; tests in
+`src/radar/onset.test.js`.
 
 ## IMERG straight from NASA GES DISC (optional cross-check)
 

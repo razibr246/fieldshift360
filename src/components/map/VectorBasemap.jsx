@@ -35,7 +35,8 @@ export default function VectorBasemap({ styleUrl, attribution, onError }) {
         layer = maplibreGL({
           style: latinOnly(style), attribution, interactive: false,
           // Render at least at 2× even on ordinary screens: crisper lines and text, like a supersampled image.
-          pixelRatio: Math.min(3, Math.max(2, window.devicePixelRatio || 1)),
+          // sharp also when a big screen zooms the whole page up (index.css --ui-zoom)
+          pixelRatio: Math.min(4, Math.max(2, (window.devicePixelRatio || 1) * (parseFloat(getComputedStyle(document.documentElement).zoom) || 1))),
           fadeDuration: 150,
         }).addTo(map); // throws here when WebGL is unavailable
       } catch {

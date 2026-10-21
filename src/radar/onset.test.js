@@ -35,8 +35,8 @@ test('Mann–Kendall and Sen’s slope: a steady rise is significant, noise is n
   assert.ok(!flat.significant);
 });
 
-test('both regions have their own real onset series from IMERG, 2001 to 2025 final', () => {
-  for (const u of ['godagari', 'dhamrai']) {
+test('every app upazila has its own real onset series from IMERG, 2001 to 2025 final', () => {
+  for (const u of ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat']) {
     const f = JSON.parse(readFileSync(new URL(`../data/onset_${u}.json`, import.meta.url)));
     assert.equal(f.provenance.status, 'REAL');
     assert.equal(f.provenance.primary, 'imerg');
@@ -44,7 +44,7 @@ test('both regions have their own real onset series from IMERG, 2001 to 2025 fin
     assert.equal(ref.length, 25);
     assert.ok(ref.every((r) => r.imerg.complete && r.imerg.doy >= 105 && r.imerg.doy <= 274), `${u}: every final year has an onset between 15 April and 30 September`);
     const o = onsetSummary(u);
-    assert.ok(o.usual > 120 && o.usual < 180, `${u}: usual onset in May or June`);
+    assert.ok(o.usual >= 105 && o.usual < 180, `${u}: usual onset between mid-April and June`);
   }
   assert.notDeepEqual(ONSET.godagari.years.map((r) => r.imerg.date), ONSET.dhamrai.years.map((r) => r.imerg.date));
   assert.equal(onsetSummary('rangpur'), null);
