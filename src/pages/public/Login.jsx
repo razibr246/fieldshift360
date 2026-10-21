@@ -4,7 +4,7 @@ import { ChevronRight, Building2, ShieldCheck, UserRound, Info, MapPinned, Globe
 import BrandMark from '../../components/brand/BrandMark';
 import Photo from '../../components/Photo';
 import { Segmented } from '../../components/ui';
-import { LangToggle } from '../../components/chrome';
+import { LangToggle, BackButton } from '../../components/chrome';
 import { useStore, demo } from '../../store';
 import { UPAZILAS, placeLine } from '../../data/upazilas';
 import { cropName, IRRIGATION } from '../../engine/crops';
@@ -51,7 +51,7 @@ export default function Login() {
         </div>
       </div>
       <div className="flex flex-col px-4 py-6 sm:px-10">
-        <div className="flex items-center justify-between"><Link to="/" aria-label={T('প্রথম পাতা', 'Home')}><BrandMark /></Link><LangToggle /></div>
+        <div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-2.5"><BackButton /><Link to="/" aria-label={T('প্রথম পাতা', 'Home')}><BrandMark /></Link></div><LangToggle /></div>
         <div className="mx-auto my-auto w-full max-w-[520px] py-10">
           <h1 className="text-[32px] font-bold">{T(`${PROJECT_NAME} খুলুন`, `Open ${PROJECT_NAME}`)}</h1>
           <p className="mt-2 text-[16px] leading-7 text-muted">{T('এই নমুনায় পাসওয়ার্ড বা ওটিপি নেই। কৃষক বা কর্মকর্তা বেছে নিলেই চলবে, পরে যেকোনো সময় বদলানো যায়।', 'There is no password or OTP in this demo. Pick the farmer or the officer — you can switch any time.')}</p>

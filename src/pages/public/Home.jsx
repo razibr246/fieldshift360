@@ -48,10 +48,9 @@ export default function Home() {
               <span className="block">{T('ঠিক ফসল।', 'The right crop.')}</span>
               <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('ঠিক সময়ে।', 'At the right time.')}</span>
             </h1>
-            {/* the problem, the users and the NASA data, in two sentences; no single place is named here */}
-            <p className="mt-5 max-w-[34rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
-              {T(<>খরা আর বন্যার ঝুঁকিতে থাকা বাংলাদেশের <span className="font-medium text-ink">ক্ষুদ্র কৃষকের</span> জন্য: <span className="font-medium text-ink">নাসা পাওয়ারের ২৫ মৌসুমের আবহাওয়া, জিপিএম আইমার্জের বৃষ্টি</span>, মাটি আর ফসলের চাহিদা মিলিয়ে {PROJECT_NAME} বলে — একই ফসল রাখুন, সময় বদলান, না অন্য ফসলে যান। ইউনিয়ন ও উপজেলার কৃষি কর্মকর্তারা একই হিসাব দেখে উত্তর দেন।</>,
-                <>For Bangladesh's <span className="font-medium text-ink">smallholder farmers</span> facing drought and floods: {PROJECT_NAME} weighs <span className="font-medium text-ink">25 seasons of NASA POWER weather and GPM IMERG rain</span> with soil and crop needs to say whether to keep, adjust or shift a crop. Union and upazila agriculture officers answer from the same numbers.</>)}
+            <p className="mt-5 max-w-[33rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
+              {T(<>আপনার জমির মাটি, <span className="font-medium text-ink">২৫ বছরের নাসার আবহাওয়া</span> আর পাশের কৃষকেরা কী লাগাচ্ছেন — সব মিলিয়ে {PROJECT_NAME} বলে দেয় কোন ফসল, কবে লাগালে <span className="font-medium text-ink">লাভ বেশি, ঝুঁকি কম</span>।</>,
+                <>Your soil, <span className="font-medium text-ink">25 years of NASA weather</span> and what your neighbours are planting — {PROJECT_NAME} weighs it all and tells you which crop to sow, and when, for <span className="font-medium text-ink">more profit and less risk</span>.</>)}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button to="/farmer/plan" className="btn-gloss !rounded-full px-6 py-3 text-[16px]"><Sprout size={19} />{T('আমার জমির হিসাব দেখুন', 'Work out my field')}</Button>

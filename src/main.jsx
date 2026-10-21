@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
+import AppError from './components/AppError';
 import { StoreProvider, bootClimate } from './store';
 // Self-hosted variable fonts: Inter for Latin, Noto Sans Bengali for Bangla (only the alphabets a page uses download).
 import '@fontsource-variable/inter/opsz.css';
@@ -12,11 +13,13 @@ import './index.css';
 // The default farmer's NASA climate (Godagari) arrives first; other upazilas load when they are needed.
 const render = () => createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HashRouter>
-      <StoreProvider>
-        <App />
-      </StoreProvider>
-    </HashRouter>
+    <AppError>
+      <HashRouter>
+        <StoreProvider>
+          <App />
+        </StoreProvider>
+      </HashRouter>
+    </AppError>
   </StrictMode>,
 );
 bootClimate().then(render, render);
