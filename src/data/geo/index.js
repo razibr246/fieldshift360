@@ -24,6 +24,17 @@ import gangacharaPlaces from './gangachara_places.json';
 import gowainghatBoundary from './gowainghat_boundary.json';
 import gowainghatPlaces from './gowainghat_places.json';
 
+// Ropon Radar's other upazilas (every rural upazila of the seven districts) have light maps in ./radar/, built by
+// scripts/data/build_radar_geo.py and fetched only when the radar page opens one (loadGeo adds it to GEO).
+const RADAR_GEO = import.meta.glob('./radar/*.json', { import: 'default' });
+const RADAR_GEO_IDS = new Set(Object.keys(RADAR_GEO).map((k) => k.slice('./radar/'.length, -'.json'.length)));
+export const hasGeo = (id) => !!GEO[id] || RADAR_GEO_IDS.has(id);
+export function loadGeo(id) {
+  if (GEO[id]) return Promise.resolve(GEO[id]);
+  const f = RADAR_GEO[`./radar/${id}.json`];
+  return f ? f().then((j) => (GEO[id] = { boundary: j.boundary, places: j.places, lite: true })) : Promise.reject(new Error(`no map for ${id}`));
+}
+
 export const GEO = {
   godagari: { boundary: godagariBoundary, places: godagariPlaces },
   dhamrai: { boundary: dhamraiBoundary, places: dhamraiPlaces },

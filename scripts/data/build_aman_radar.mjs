@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Real Aman rain and transplanting data for every rural upazila of Rajshahi and Dhaka districts.
+// Real Aman rain and transplanting data for every rural upazila of the app's seven districts, one in each division
+// (the list, with Bangla names, is scripts/data/aman_upazilas.json; city thanas are left out).
 //
 //   node scripts/data/build_aman_radar.mjs              # everything (resumes from .cache/data/aman)
 //   node scripts/data/build_aman_radar.mjs --end 2026-10-17
@@ -32,6 +33,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { detectTransplant, doyOf, TRANSPLANT_RULE } from '../../public/radar/js/detect.js';
 import { mannKendall, senSlope, benjaminiHochberg, median, quantile } from '../../public/radar/js/stats.js';
+import { onsetIndex, threshold, trend as onsetTrend } from '../../pipeline/onset/onset.mjs';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const CACHE = path.join(REPO, '.cache', 'data', 'aman');
@@ -50,26 +52,15 @@ const MIN_FIELDS = 6; // a season's date (and its shift) is reported only when a
 // while 2017–2025 agree within ~15%. So rain after RAIN_FINAL_TO is shown as provisional and left out of normals and
 // trends.
 const RAIN_FINAL_TO = 2025;
-const FRAMES_FOR = ['godagari', 'dhamrai', 'savar', 'keraniganj', 'dohar', 'nawabganj', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat'];
 const PC = 'https://planetarycomputer.microsoft.com/api';
 const LC = 'https://ic.imagery1.arcgis.com/arcgis/rest/services/Sentinel2_10m_LandCover/ImageServer';
 
-const DISTRICTS = {
-  rajshahi: {
-    shape: 'Rajshahi', bn: 'রাজশাহী', en: 'Rajshahi', division: { bn: 'রাজশাহী', en: 'Rajshahi' },
-    upazilas: { Bagha: 'বাঘা', Baghmara: 'বাগমারা', Charghat: 'চারঘাট', Durgapur: 'দুর্গাপুর', Godagari: 'গোদাগাড়ী', Mohanpur: 'মোহনপুর', Paba: 'পবা', Puthia: 'পুঠিয়া', Tanore: 'তানোর' },
-  },
-  dhaka: {
-    shape: 'Dhaka', bn: 'ঢাকা', en: 'Dhaka', division: { bn: 'ঢাকা', en: 'Dhaka' },
-    upazilas: { Dhamrai: 'ধামরাই', Dohar: 'দোহার', Keraniganj: 'কেরানীগঞ্জ', Nawabganj: 'নবাবগঞ্জ', Savar: 'সাভার' },
-  },
-  // The five division story upazilas, one per district so far.
-  chattogram: { shape: 'Chittagong', bn: 'চট্টগ্রাম', en: 'Chattogram', division: { bn: 'চট্টগ্রাম', en: 'Chattogram' }, upazilas: { Sitakunda: 'সীতাকুণ্ড' } },
-  khulna: { shape: 'Khulna', bn: 'খুলনা', en: 'Khulna', division: { bn: 'খুলনা', en: 'Khulna' }, upazilas: { Dacope: 'দাকোপ' } },
-  barishal: { shape: 'Barisal', bn: 'বরিশাল', en: 'Barishal', division: { bn: 'বরিশাল', en: 'Barishal' }, upazilas: { Bakerganj: 'বাকেরগঞ্জ' } },
-  rangpur: { shape: 'Rangpur', bn: 'রংপুর', en: 'Rangpur', division: { bn: 'রংপুর', en: 'Rangpur' }, upazilas: { Gangachara: 'গঙ্গাচড়া' } },
-  sylhet: { shape: 'Sylhet', bn: 'সিলেট', en: 'Sylhet', division: { bn: 'সিলেট', en: 'Sylhet' }, upazilas: { Gowainghat: 'গোয়াইনঘাট' } },
-};
+// Districts and their rural upazilas: { shape (geoBoundaries ADM2 name), bn, en, division, upazilas: [{ id, shape, bn, en }] }.
+const LIST = JSON.parse(await readFile(path.join(path.dirname(fileURLToPath(import.meta.url)), 'aman_upazilas.json'), 'utf8'));
+const UNIQUE = new Set(LIST._unique ?? []);
+const DISTRICTS = Object.fromEntries(Object.entries(LIST).filter(([k]) => !k.startsWith('_')));
+// Every upazila gets the latest season's radar frames, drawn under its union outlines (src/data/geo).
+const FRAMES_FOR = Object.values(DISTRICTS).flatMap((d) => d.upazilas.map((u) => u.id));
 
 // ───────────── small helpers ─────────────
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -185,15 +176,17 @@ async function loadUpazilas() {
     const dring = outer(adm2.features.find((f) => f.properties.shapeName === d.shape).geometry);
     for (const f of adm3.features) {
       const name = f.properties.shapeName;
-      if (!d.upazilas[name]) continue;
+      const up = d.upazilas.find((x) => x.shape === name);
+      if (!up) continue;
       const ring = outer(f.geometry);
-      if (!inside(...centroid(ring), dring)) continue; // names repeat across districts (e.g. Mohanpur, Nawabganj)
-      out.push({ id: name.toLowerCase(), en: name, bn: d.upazilas[name], district: did, ring, map: simplifyRing(ring, 0.0015), point: interiorPoint(simplifyRing(ring, 0.0005)) });
+      // names repeat across districts (e.g. Mohanpur, Nawabganj), so the outline must lie in this district
+      if (!UNIQUE.has(name) && !inside(...centroid(ring), dring)) continue;
+      out.push({ id: up.id, en: up.en, bn: up.bn, district: did, ring, map: simplifyRing(ring, 0.0015), point: interiorPoint(simplifyRing(ring, 0.0005)) });
     }
   }
   for (const [did, d] of Object.entries(DISTRICTS)) {
     const got = out.filter((u) => u.district === did).length;
-    if (got !== Object.keys(d.upazilas).length) throw new Error(`${did}: found ${got} of ${Object.keys(d.upazilas).length} upazilas`);
+    if (got !== d.upazilas.length) throw new Error(`${did}: found ${got} of ${d.upazilas.length} upazilas`);
   }
   return out;
 }
@@ -357,7 +350,18 @@ for (const u of ups) {
   const good = Object.entries(seasons).filter(([y, s]) => +y <= NORMAL_TO && s.reliable).map(([, s]) => s.transplantDoy);
   const transplantNormal = good.length >= 4 ? median(good) : null; // needs at least 4 reliable seasons
   const rainNormal = median(Object.entries(rainJJ).filter(([y, v]) => +y <= NORMAL_TO && v !== null).map(([, v]) => v));
-  details[u.id] = { u, box, fields, rain: { sources: rain.sources, version: rain.version, lat: rain.lat, lon: rain.lon, through: rainThrough }, rainJJ, rainSeason, rainJS, seasons, mk, sen, transplantNormal, rainNormal };
+  // When the rains set in each year (pipeline/onset/onset.mjs, the same rule as the app's seven upazilas), on this
+  // upazila's own IMERG rain; years after RAIN_FINAL_TO are provisional.
+  const t0r = Date.UTC(RAIN_FROM, 0, 1), dayIso = (i) => new Date(t0r + i * 864e5).toISOString().slice(0, 10).replaceAll('-', '');
+  const nDays = Math.round((Date.parse(END) - t0r) / 864e5) + 1;
+  const sr = { t0: t0r, v: Array.from({ length: nDays }, (_, i) => rain.series[dayIso(i)] ?? null) };
+  const W = threshold(sr, [RAIN_FROM, RAIN_FINAL_TO]);
+  const onsetYears = {};
+  for (let y = RAIN_FROM; y <= END_YEAR; y++) { const i = onsetIndex(sr, y, W); onsetYears[y] = i === null ? null : Math.round((t0r + i * 864e5 - Date.UTC(y, 0, 1)) / 864e5) + 1; }
+  const ref = Object.entries(onsetYears).filter(([y]) => +y <= RAIN_FINAL_TO);
+  const onset = { thresholdMm: round(W, 1), usual: median(ref.map(([, d]) => d).filter((d) => d !== null)), years: onsetYears, finalTo: RAIN_FINAL_TO,
+    trend: onsetTrend(ref.map(([y]) => +y), ref.map(([, d]) => d)) };
+  details[u.id] = { u, box, fields, onset, rain: { sources: rain.sources, version: rain.version, lat: rain.lat, lon: rain.lon, through: rainThrough }, rainJJ, rainSeason, rainJS, seasons, mk, sen, transplantNormal, rainNormal };
   console.log(`  ${u.en}: ${fields.cropland}/${fields.candidates} cropland points → ${pts.length} fields; ` +
     `${Object.values(seasons).reduce((a, s) => a + s.passes, 0)} passes; transplant normal ${transplantNormal && isoDoy(2025, Math.round(transplantNormal))}; ` +
     `Jun–Jul rain normal ${rainNormal} mm; ${((Date.now() - t0) / 1000).toFixed(0)} s`);
@@ -402,6 +406,7 @@ for (const [did, d] of Object.entries(DISTRICTS)) {
         fields: x.fields.points.length, croplandShare: round(x.fields.cropland / x.fields.candidates, 3),
         transplantNormal: tn, rainNormal: x.rainNormal === null ? null : Math.round(x.rainNormal), rainThrough: x.rain.through,
         rainJJ: x.rainJJ,
+        onset: { thresholdMm: x.onset.thresholdMm, usual: x.onset.usual === null ? null : Math.round(x.onset.usual), finalTo: x.onset.finalTo, years: x.onset.years, trend: { perDecade: x.onset.trend.perDecade, p: x.onset.trend.p, significant: x.onset.trend.significant } },
         rainTrend: { slope: round(x.sen.slope, 3), intercept: round(x.sen.intercept, 1), perDecade: round(x.sen.slope * 10, 0), ci: [round(x.sen.lo * 10, 0), round(x.sen.hi * 10, 0)], p: round(x.mk.p, 4), S: x.mk.S, q: round(bh.adjusted[i], 4), significant: !!bh.significant[i] },
         seasons: Object.fromEntries(Object.entries(x.seasons).map(([y, s]) => [y, { transplantDoy: s.transplantDoy, iqr: s.iqr, nDetected: s.nDetected, nFields: s.nFields, reliable: s.reliable, passes: s.passes, rainJJ: s.rainJJ, rainProvisional: s.rainProvisional, shift: shift(s), complete: s.complete }])),
         shift: d,
@@ -411,11 +416,15 @@ for (const [did, d] of Object.entries(DISTRICTS)) {
   };
 }
 await writeFile(path.join(REPO, 'src', 'data', 'aman_radar.json'), JSON.stringify(summary));
+// Just each upazila's usual transplanting day, for the farmer's planner (the full file loads only on the radar pages).
+await writeFile(path.join(REPO, 'src', 'data', 'aman_normals.json'), JSON.stringify({ through: END, transplantNormal: Object.fromEntries(Object.values(summary.districts).flatMap((d) => d.upazilas.map((u) => [u.id, u.transplantNormal]))) }));
 
+// Union outlines: the full place files of the app's upazilas, or the radar-only ones (scripts/data/build_radar_geo.py).
 const unionRings = {};
 for (const id of FRAMES_FOR) {
-  const places = JSON.parse(await readFile(path.join(REPO, 'src', 'data', 'geo', `${id}_places.json`), 'utf8'));
-  unionRings[id] = places.unions.map((u) => ({ en: u.en, bn: u.bn, ring: u.ring.map(([lat, lon]) => [lon, lat]) }));
+  const full = path.join(REPO, 'src', 'data', 'geo', `${id}_places.json`), lite = path.join(REPO, 'src', 'data', 'geo', 'radar', `${id}.json`);
+  const places = existsSync(full) ? JSON.parse(await readFile(full, 'utf8')) : existsSync(lite) ? JSON.parse(await readFile(lite, 'utf8')).places : null;
+  if (places) unionRings[id] = places.unions.map((u) => ({ en: u.en, bn: u.bn, ring: u.ring.map(([lat, lon]) => [lon, lat]) }));
 }
 for (const x of Object.values(details)) {
   const frames = [];

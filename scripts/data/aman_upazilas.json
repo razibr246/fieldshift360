@@ -1,0 +1,485 @@
+{
+ "rajshahi": {
+  "shape": "Rajshahi",
+  "bn": "রাজশাহী",
+  "en": "Rajshahi",
+  "division": {
+   "bn": "রাজশাহী",
+   "en": "Rajshahi"
+  },
+  "upazilas": [
+   {
+    "id": "bagha",
+    "shape": "Bagha",
+    "bn": "বাঘা",
+    "en": "Bagha"
+   },
+   {
+    "id": "baghmara",
+    "shape": "Baghmara",
+    "bn": "বাগমারা",
+    "en": "Baghmara"
+   },
+   {
+    "id": "charghat",
+    "shape": "Charghat",
+    "bn": "চারঘাট",
+    "en": "Charghat"
+   },
+   {
+    "id": "durgapur",
+    "shape": "Durgapur",
+    "bn": "দুর্গাপুর",
+    "en": "Durgapur"
+   },
+   {
+    "id": "godagari",
+    "shape": "Godagari",
+    "bn": "গোদাগাড়ী",
+    "en": "Godagari"
+   },
+   {
+    "id": "mohanpur",
+    "shape": "Mohanpur",
+    "bn": "মোহনপুর",
+    "en": "Mohanpur"
+   },
+   {
+    "id": "paba",
+    "shape": "Paba",
+    "bn": "পবা",
+    "en": "Paba"
+   },
+   {
+    "id": "puthia",
+    "shape": "Puthia",
+    "bn": "পুঠিয়া",
+    "en": "Puthia"
+   },
+   {
+    "id": "tanore",
+    "shape": "Tanore",
+    "bn": "তানোর",
+    "en": "Tanore"
+   }
+  ]
+ },
+ "dhaka": {
+  "shape": "Dhaka",
+  "bn": "ঢাকা",
+  "en": "Dhaka",
+  "division": {
+   "bn": "ঢাকা",
+   "en": "Dhaka"
+  },
+  "upazilas": [
+   {
+    "id": "dhamrai",
+    "shape": "Dhamrai",
+    "bn": "ধামরাই",
+    "en": "Dhamrai"
+   },
+   {
+    "id": "dohar",
+    "shape": "Dohar",
+    "bn": "দোহার",
+    "en": "Dohar"
+   },
+   {
+    "id": "keraniganj",
+    "shape": "Keraniganj",
+    "bn": "কেরানীগঞ্জ",
+    "en": "Keraniganj"
+   },
+   {
+    "id": "nawabganj",
+    "shape": "Nawabganj",
+    "bn": "নবাবগঞ্জ",
+    "en": "Nawabganj"
+   },
+   {
+    "id": "savar",
+    "shape": "Savar",
+    "bn": "সাভার",
+    "en": "Savar"
+   }
+  ]
+ },
+ "chattogram": {
+  "shape": "Chittagong",
+  "bn": "চট্টগ্রাম",
+  "en": "Chattogram",
+  "division": {
+   "bn": "চট্টগ্রাম",
+   "en": "Chattogram"
+  },
+  "upazilas": [
+   {
+    "id": "anowara",
+    "shape": "Anowara",
+    "bn": "আনোয়ারা",
+    "en": "Anowara"
+   },
+   {
+    "id": "banshkhali",
+    "shape": "Banshkhali",
+    "bn": "বাঁশখালী",
+    "en": "Banshkhali"
+   },
+   {
+    "id": "boalkhali",
+    "shape": "Boalkhali",
+    "bn": "বোয়ালখালী",
+    "en": "Boalkhali"
+   },
+   {
+    "id": "chandanaish",
+    "shape": "Chandanaish",
+    "bn": "চন্দনাইশ",
+    "en": "Chandanaish"
+   },
+   {
+    "id": "fatikchhari",
+    "shape": "Fatikchhari",
+    "bn": "ফটিকছড়ি",
+    "en": "Fatikchhari"
+   },
+   {
+    "id": "hathazari",
+    "shape": "Hathazari",
+    "bn": "হাটহাজারী",
+    "en": "Hathazari"
+   },
+   {
+    "id": "lohagara",
+    "shape": "Lohagara",
+    "bn": "লোহাগাড়া",
+    "en": "Lohagara"
+   },
+   {
+    "id": "mirsharai",
+    "shape": "Mirsharai",
+    "bn": "মীরসরাই",
+    "en": "Mirsharai"
+   },
+   {
+    "id": "patiya",
+    "shape": "Patiya",
+    "bn": "পটিয়া",
+    "en": "Patiya"
+   },
+   {
+    "id": "rangunia",
+    "shape": "Rangunia",
+    "bn": "রাঙ্গুনিয়া",
+    "en": "Rangunia"
+   },
+   {
+    "id": "raozan",
+    "shape": "Raozan",
+    "bn": "রাউজান",
+    "en": "Raozan"
+   },
+   {
+    "id": "sandwip",
+    "shape": "Sandwip",
+    "bn": "সন্দ্বীপ",
+    "en": "Sandwip"
+   },
+   {
+    "id": "satkania",
+    "shape": "Satkania",
+    "bn": "সাতকানিয়া",
+    "en": "Satkania"
+   },
+   {
+    "id": "sitakunda",
+    "shape": "Sitakunda",
+    "bn": "সীতাকুণ্ড",
+    "en": "Sitakunda"
+   }
+  ]
+ },
+ "khulna": {
+  "shape": "Khulna",
+  "bn": "খুলনা",
+  "en": "Khulna",
+  "division": {
+   "bn": "খুলনা",
+   "en": "Khulna"
+  },
+  "upazilas": [
+   {
+    "id": "batiaghata",
+    "shape": "Batiaghata",
+    "bn": "বটিয়াঘাটা",
+    "en": "Batiaghata"
+   },
+   {
+    "id": "dacope",
+    "shape": "Dacope",
+    "bn": "দাকোপ",
+    "en": "Dacope"
+   },
+   {
+    "id": "dighalia",
+    "shape": "Dighalia",
+    "bn": "দিঘলিয়া",
+    "en": "Dighalia"
+   },
+   {
+    "id": "dumuria",
+    "shape": "Dumuria",
+    "bn": "ডুমুরিয়া",
+    "en": "Dumuria"
+   },
+   {
+    "id": "koyra",
+    "shape": "Koyra",
+    "bn": "কয়রা",
+    "en": "Koyra"
+   },
+   {
+    "id": "paikgachha",
+    "shape": "Paikgachha",
+    "bn": "পাইকগাছা",
+    "en": "Paikgachha"
+   },
+   {
+    "id": "phultala",
+    "shape": "Phultala",
+    "bn": "ফুলতলা",
+    "en": "Phultala"
+   },
+   {
+    "id": "rupsa",
+    "shape": "Rupsa",
+    "bn": "রূপসা",
+    "en": "Rupsa"
+   },
+   {
+    "id": "terokhada",
+    "shape": "Terokhada",
+    "bn": "তেরখাদা",
+    "en": "Terokhada"
+   }
+  ]
+ },
+ "barishal": {
+  "shape": "Barisal",
+  "bn": "বরিশাল",
+  "en": "Barishal",
+  "division": {
+   "bn": "বরিশাল",
+   "en": "Barishal"
+  },
+  "upazilas": [
+   {
+    "id": "agailjhara",
+    "shape": "Agailjhara",
+    "bn": "আগৈলঝাড়া",
+    "en": "Agailjhara"
+   },
+   {
+    "id": "babuganj",
+    "shape": "Babuganj",
+    "bn": "বাবুগঞ্জ",
+    "en": "Babuganj"
+   },
+   {
+    "id": "bakerganj",
+    "shape": "Bakerganj",
+    "bn": "বাকেরগঞ্জ",
+    "en": "Bakerganj"
+   },
+   {
+    "id": "banaripara",
+    "shape": "Banari Para",
+    "bn": "বানারীপাড়া",
+    "en": "Banari Para"
+   },
+   {
+    "id": "barishalsadar",
+    "shape": "Barisal Sadar (Kotwali)",
+    "bn": "বরিশাল সদর",
+    "en": "Barishal Sadar"
+   },
+   {
+    "id": "gaurnadi",
+    "shape": "Gaurnadi",
+    "bn": "গৌরনদী",
+    "en": "Gaurnadi"
+   },
+   {
+    "id": "hizla",
+    "shape": "Hizla",
+    "bn": "হিজলা",
+    "en": "Hizla"
+   },
+   {
+    "id": "mehendiganj",
+    "shape": "Mehendiganj",
+    "bn": "মেহেন্দিগঞ্জ",
+    "en": "Mehendiganj"
+   },
+   {
+    "id": "muladi",
+    "shape": "Muladi",
+    "bn": "মুলাদী",
+    "en": "Muladi"
+   },
+   {
+    "id": "wazirpur",
+    "shape": "Wazirpur",
+    "bn": "উজিরপুর",
+    "en": "Wazirpur"
+   }
+  ]
+ },
+ "rangpur": {
+  "shape": "Rangpur",
+  "bn": "রংপুর",
+  "en": "Rangpur",
+  "division": {
+   "bn": "রংপুর",
+   "en": "Rangpur"
+  },
+  "upazilas": [
+   {
+    "id": "badarganj",
+    "shape": "Badarganj",
+    "bn": "বদরগঞ্জ",
+    "en": "Badarganj"
+   },
+   {
+    "id": "gangachara",
+    "shape": "Gangachara",
+    "bn": "গঙ্গাচড়া",
+    "en": "Gangachara"
+   },
+   {
+    "id": "kaunia",
+    "shape": "Kaunia",
+    "bn": "কাউনিয়া",
+    "en": "Kaunia"
+   },
+   {
+    "id": "mithapukur",
+    "shape": "Mitha Pukur",
+    "bn": "মিঠাপুকুর",
+    "en": "Mithapukur"
+   },
+   {
+    "id": "pirgachha",
+    "shape": "Pirgachha",
+    "bn": "পীরগাছা",
+    "en": "Pirgachha"
+   },
+   {
+    "id": "pirganj",
+    "shape": "Pirganj",
+    "bn": "পীরগঞ্জ",
+    "en": "Pirganj"
+   },
+   {
+    "id": "rangpursadar",
+    "shape": "Rangpur Sadar",
+    "bn": "রংপুর সদর",
+    "en": "Rangpur Sadar"
+   },
+   {
+    "id": "taraganj",
+    "shape": "Taraganj",
+    "bn": "তারাগঞ্জ",
+    "en": "Taraganj"
+   }
+  ]
+ },
+ "sylhet": {
+  "shape": "Sylhet",
+  "bn": "সিলেট",
+  "en": "Sylhet",
+  "division": {
+   "bn": "সিলেট",
+   "en": "Sylhet"
+  },
+  "upazilas": [
+   {
+    "id": "balaganj",
+    "shape": "Balaganj",
+    "bn": "বালাগঞ্জ",
+    "en": "Balaganj"
+   },
+   {
+    "id": "beanibazar",
+    "shape": "Beani Bazar",
+    "bn": "বিয়ানীবাজার",
+    "en": "Beani Bazar"
+   },
+   {
+    "id": "bishwanath",
+    "shape": "Bishwanath",
+    "bn": "বিশ্বনাথ",
+    "en": "Bishwanath"
+   },
+   {
+    "id": "companiganj",
+    "shape": "Companiganj",
+    "bn": "কোম্পানীগঞ্জ",
+    "en": "Companiganj"
+   },
+   {
+    "id": "dakshinsurma",
+    "shape": "Dakshin Surma",
+    "bn": "দক্ষিণ সুরমা",
+    "en": "Dakshin Surma"
+   },
+   {
+    "id": "fenchuganj",
+    "shape": "Fenchuganj",
+    "bn": "ফেঞ্চুগঞ্জ",
+    "en": "Fenchuganj"
+   },
+   {
+    "id": "golabganj",
+    "shape": "Golabganj",
+    "bn": "গোলাপগঞ্জ",
+    "en": "Golapganj"
+   },
+   {
+    "id": "gowainghat",
+    "shape": "Gowainghat",
+    "bn": "গোয়াইনঘাট",
+    "en": "Gowainghat"
+   },
+   {
+    "id": "jaintiapur",
+    "shape": "Jaintiapur",
+    "bn": "জৈন্তাপুর",
+    "en": "Jaintiapur"
+   },
+   {
+    "id": "kanaighat",
+    "shape": "Kanaighat",
+    "bn": "কানাইঘাট",
+    "en": "Kanaighat"
+   },
+   {
+    "id": "sylhetsadar",
+    "shape": "Sylhet Sadar",
+    "bn": "সিলেট সদর",
+    "en": "Sylhet Sadar"
+   },
+   {
+    "id": "zakiganj",
+    "shape": "Zakiganj",
+    "bn": "জকিগঞ্জ",
+    "en": "Zakiganj"
+   }
+  ]
+ },
+ "_unique": [
+  "Sandwip",
+  "Gaurnadi"
+ ]
+}

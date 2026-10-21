@@ -27,7 +27,8 @@ import { findHotspots } from './engine/cluster.js';
 import { daysBetween, todayDhaka, bnDigits as bnDigitsOf } from './engine/dates.js';
 import { STORAGE_PREFIX } from './config/brand.js';
 import { srdiUnionOf, has } from './engine/soil.js';
-import { upazilaRow, doyToMs } from './radar/aman.js';
+// each upazila's usual Aman transplanting day (Sentinel-1); the full radar data loads only on the radar pages
+import amanNormals from './data/aman_normals.json';
 import { loadSharedPlans, sendSharedPlan } from './engine/sharedPlans.js';
 import { loadMessages, postMessage } from './engine/sharedMessages.js';
 import { PLAN_SEASON } from './engine/climate.js';
@@ -232,8 +233,8 @@ export function StoreProvider({ children }) {
     return decision.all.find((r) => r.crop.id === s.pick.crop && r.shift === s.pick.shift) ?? decision.rec;
   }, [decision, s.pick]);
   // The upazila's usual T. Aman transplanting day, from Sentinel-1 radar (2017–2025 median): the next crop must be off by then.
-  const amanRow = upazilaRow(upazila.id);
-  const amanT = amanRow?.transplantNormal ? doyToMs(PLAN_SEASON, amanRow.transplantNormal) : null;
+  const amanDoy = amanNormals.transplantNormal[upazila.id];
+  const amanT = amanDoy ? Date.UTC(PLAN_SEASON, 0, amanDoy) : null;
   const rotation = useMemo(() => recommendRotation({ clim: climW, soil, plot: farmer, chosen, priorities: s.priorities, amanT }), [climW, farmer, soil, chosen, s.priorities, amanT]);
   const hotspots = useMemo(() => findHotspots(s.requests), [s.requests]);
 

@@ -11,11 +11,25 @@ import gowainghat from '../data/onset_gowainghat.json' with { type: 'json' };
 
 export const ONSET = { godagari, dhamrai, sitakunda, dacope, bakerganj, gangachara, gowainghat };
 
+function fromRow(upazila, o) {
+  const years = Object.entries(o.years).map(([y, doy]) => ({ year: +y, imerg: { doy, complete: +y <= o.finalTo }, power: { doy: null } }));
+  const ref = years.filter((r) => r.imerg.complete && r.imerg.doy != null);
+  const last = years[years.length - 1];
+  return {
+    upazila, rule: null, thresholdMm: o.thresholdMm, usual: o.usual, usualPower: null,
+    earliest: Math.min(...ref.map((r) => r.imerg.doy)), latestDoy: Math.max(...ref.map((r) => r.imerg.doy)),
+    trend: o.trend, trendPower: null, latest: ref.length ? { year: ref[ref.length - 1].year, doy: ref[ref.length - 1].imerg.doy } : null,
+    current: last && !last.imerg.complete ? { year: last.year, doy: last.imerg.doy } : null, rows: years, imergOnly: true,
+  };
+}
+
 const median = (v) => { const a = v.filter((x) => x != null).sort((x, y) => x - y); if (!a.length) return null; const n = a.length; return n % 2 ? a[(n - 1) / 2] : Math.round((a[n / 2 - 1] + a[n / 2]) / 2); };
 
 // { usual (median day of year over the reference years), latest final year, trend, rows } or null where there is none.
-export function onsetSummary(upazila, file = ONSET[upazila]) {
-  if (!file) return null;
+// For the radar-only upazilas the same rule runs inside the radar build on their IMERG rain (`row.onset` in
+// aman_radar.json); pass the district row to use it.
+export function onsetSummary(upazila, row = null, file = ONSET[upazila]) {
+  if (!file) return row?.onset ? fromRow(upazila, row.onset) : null;
   const { rule, sources } = file.provenance;
   const ref = file.years.filter((r) => r.year >= rule.refYears[0] && r.year <= rule.refYears[1]);
   const finals = file.years.filter((r) => r.imerg.complete && r.imerg.doy != null);

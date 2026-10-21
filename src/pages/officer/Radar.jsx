@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CloudRain, Satellite, Sprout, CalendarClock, MapPin, Info, Layers, TrendingUp, Map as MapIcon, Rows3, Building2 } from 'lucide-react';
 import { useStore } from '../../store';
@@ -13,7 +13,7 @@ import { AMAN, CAT, LATEST, SHIFT_DAYS, MIN_FIELDS, RAIN_FINAL_TO, THROUGH, catO
 import { fmtDate, num } from '../../engine/dates';
 import { UPAZILAS } from '../../data/upazilas';
 import { onsetSummary } from '../../radar/onset';
-import { GEO } from '../../data/geo';
+import { GEO, hasGeo, loadGeo } from '../../data/geo';
 
 // Ropan Radar: rain and Aman planting, from real satellites (scripts/data/build_aman_radar.mjs). An upazila officer sees their own
 // upazila in depth (season, progress, every sample field, unions, rain) and can open any other upazila of the district that
@@ -24,12 +24,16 @@ function RadarPage() {
   const lang = s.lang;
   const home = officerUpazila.id;
   const [params, setParams] = useSearchParams();
-  // Any upazila with radar data and maps can be opened (?u=…), in any district; the officer's own is the default.
-  const canOpen = (id) => !!id && !!GEO[id] && !!districtOf(id) && AMAN.districts[districtOf(id)]?.upazilas.some((u) => u.id === id);
+  // Every upazila of the officer's own district can be opened (?u=…); another district's never shows here.
+  const homeDistrict = districtOf(home);
+  const canOpen = (id) => !!id && hasGeo(id) && districtOf(id) === homeDistrict && AMAN.districts[homeDistrict]?.upazilas.some((u) => u.id === id);
   const view = canOpen(params.get('u')) ? params.get('u') : home;
   const dId = districtOf(view);
   const district = AMAN.districts[dId];
-  const openable = district.upazilas.filter((u) => GEO[u.id]).sort((a, b) => (b.id === home) - (a.id === home));
+  const openable = district.upazilas.filter((u) => hasGeo(u.id)).sort((a, b) => (b.id === home) - (a.id === home));
+  // a radar-only upazila's map arrives when it is opened
+  const [, geoArrived] = useState(0);
+  useEffect(() => { if (!GEO[view]) loadGeo(view).then(() => geoArrived((n) => n + 1), () => {}); }, [view]);
   const mine = view === home;
   const row = district.upazilas.find((u) => u.id === view);
   const year = row.seasons[params.get('y')] ? +params.get('y') : LATEST;
@@ -43,7 +47,7 @@ function RadarPage() {
   const yr = (y) => num(y, lang).replace(/,/g, '');
   const rainDiff = se.rainJJ === null || row.rainNormal === null || se.rainProvisional ? null : Math.round(((se.rainJJ - row.rainNormal) / row.rainNormal) * 100);
   const rainThrough = row.rainThrough && `${row.rainThrough.slice(0, 4)}-${row.rainThrough.slice(4, 6)}-${row.rainThrough.slice(6)}`;
-  const ready = detail.status === 'ready';
+  const ready = detail.status === 'ready' && !!GEO[view]; // the season data and, for a radar-only upazila, its map
 
   return (
     <div>
@@ -56,20 +60,6 @@ function RadarPage() {
         <span className="chip bg-sky-100 text-sky-900"><Satellite size={13} />{T(`সেন্টিনেল-১ রাডার · ${fmtDate(Date.parse(THROUGH), 'bn')} পর্যন্ত`, `Sentinel-1 radar · to ${fmtDate(Date.parse(THROUGH), 'en')}`)}</span>
         <span className="chip bg-sky-100 text-sky-900"><CloudRain size={13} />{T(`নাসা আইমার্জ বৃষ্টি · ${rainThrough ? fmtDate(Date.parse(rainThrough), 'bn') : ''} পর্যন্ত`, `NASA IMERG rain · to ${rainThrough ? fmtDate(Date.parse(rainThrough), 'en') : ''}`)}</span>
         <span className="chip bg-sky-100 text-sky-900"><Layers size={13} />{T('ফসলি জমি: সেন্টিনেল-২ ভূমি-ব্যবহার', 'Cropland: Sentinel-2 land cover')}</span>
-      </div>
-
-      {/* the place: one upazila in each division, so the radar can follow any of the app's places */}
-      <div className="mb-3 flex flex-wrap items-center gap-2" role="group" aria-label={T('জায়গা বেছে নিন', 'Choose a place')}>
-        <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-muted"><MapPin size={14} />{T('জায়গা:', 'Place:')}</span>
-        {Object.values(UPAZILAS).filter((u) => canOpen(u.id)).map((u) => {
-          const on = districtOf(u.id) === dId && (u.id === view || !Object.values(UPAZILAS).some((x) => x.id === view));
-          return (
-            <button key={u.id} type="button" onClick={() => setView(u.id)} aria-pressed={u.id === view}
-              className={`h-9 rounded-full px-3.5 text-[13.5px] font-semibold transition ${u.id === view ? 'bg-paddy-700 text-white' : on ? 'bg-paddy-100 text-paddy-900' : 'bg-black/[.04] text-ink/75 hover:bg-black/[.08]'}`}>
-              {L(u.name)}{u.id === home && <span className={`ml-1.5 text-[11.5px] ${u.id === view ? 'text-white/80' : 'text-paddy-700'}`}>{T('আপনার', 'yours')}</span>}
-            </button>
-          );
-        })}
       </div>
 
       {openable.length > 1 && (
@@ -85,7 +75,7 @@ function RadarPage() {
       )}
 
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
-        ...(onsetSummary(view) ? [{ id: 'rd-onset', label: T('বৃষ্টি শুরু', 'Rain onset') }] : []),
+        ...(onsetSummary(view, row) ? [{ id: 'rd-onset', label: T('বৃষ্টি শুরু', 'Rain onset') }] : []),
         { id: 'rd-season', label: T('এই মৌসুম', 'This season') },
         { id: 'rd-story', label: T('জেলার গল্প', 'District story') },
         { id: 'rd-progress', label: T('অগ্রগতি ও বৃষ্টি', 'Progress and rain') },
@@ -100,7 +90,7 @@ function RadarPage() {
       {/* When the rains set in (Godagari and Dhamrai), then the season at a glance */}
       <OnsetCard upazila={view} name={row} />
 
-      <Card id="rd-season" className={`${onsetSummary(view) ? 'mt-6 ' : ''}p-5 sm:p-6`}>
+      <Card id="rd-season" className={`${onsetSummary(view, row) ? 'mt-6 ' : ''}p-5 sm:p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="flex flex-wrap items-center gap-1.5 text-[13.5px] font-semibold text-primary-700"><MapPin size={14} />{T(`${row.bn} উপজেলা, ${district.bn} জেলা, ${district.division.bn} বিভাগ`, `${row.en} upazila, ${district.en} district, ${district.division.en} division`)}{mine ? <Badge tone="amber" className="ml-1">{T('আপনার উপজেলা', 'Your upazila')}</Badge> : <button type="button" onClick={() => setView(home)} className="ml-1 text-[12.5px] font-semibold text-paddy-700 underline-offset-2 hover:underline">{T(`← আপনার উপজেলা (${officerUpazila.name.bn})`, `← Your upazila (${officerUpazila.name.en})`)}</button>}</p>
@@ -221,7 +211,7 @@ function RadarPage() {
                 const c = CAT[catOf(x.shift)];
                 return (
                   <tr key={u.id} className={u.id === view ? 'bg-primary-50' : ''}>
-                    <td className="px-4 py-3 font-semibold">{GEO[u.id] && u.id !== view
+                    <td className="px-4 py-3 font-semibold">{hasGeo(u.id) && u.id !== view
                       ? <button type="button" onClick={() => { setView(u.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="font-semibold text-primary-700 underline-offset-2 hover:underline">{L(u)}</button>
                       : L(u)}{u.id === home && <span className="ml-1.5 text-[11.5px] font-semibold text-paddy-700">{T('আপনার', 'yours')}</span>}</td>
                     <td className={`px-4 py-3 tabular ${x.reliable ? '' : 'text-muted'}`}>{x.transplantDoy === null ? '—' : x.reliable ? day(x.transplantDoy) : T('কম জমি', 'Too few')} <span className="text-[12px] text-muted">({num(x.nDetected, lang)}/{num(x.nFields, lang)})</span></td>
@@ -347,7 +337,7 @@ function progressText(detail, year, T, day) {
 // Rain onset in the officer's region, every year from 2001: when the rains set in, the usual date and the trend.
 function OnsetCard({ upazila, name }) {
   const { s, T } = useStore();
-  const o = onsetSummary(upazila);
+  const o = onsetSummary(upazila, name);
   if (!o) return null;
   const lang = s.lang;
   const day = (y, doy) => fmtDate(doyToMs(y, doy), lang);
@@ -365,7 +355,7 @@ function OnsetCard({ upazila, name }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-[17px] font-bold"><CloudRain size={17} className="text-sky-700" />{T(`${name.bn}: বর্ষার বৃষ্টি কবে থেকে টানা নামে`, `${name.en}: when the rains set in`)}</h3>
-          <p className="mt-1 max-w-[70ch] text-[13.5px] leading-6 text-muted">{T('প্রতি বছরের বৃষ্টি শুরুর তারিখ, নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি থেকে, ২০০১ থেকে। ধূসর ফাঁপা বিন্দু: নাসা পাওয়ারের নিজস্ব বৃষ্টি-হিসাবে একই নিয়ম।', 'The date the rains set in each year, from NASA/JAXA GPM IMERG daily rain, since 2001. Hollow grey dots: the same rule on NASA POWER’s own rain estimate.')}</p>
+          <p className="mt-1 max-w-[70ch] text-[13.5px] leading-6 text-muted">{T('প্রতি বছরের বৃষ্টি শুরুর তারিখ, নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি থেকে, ২০০১ থেকে।', 'The date the rains set in each year, from NASA/JAXA GPM IMERG daily rain, since 2001.')}{!o.imergOnly && T(' ধূসর ফাঁপা বিন্দু: নাসা পাওয়ারের নিজস্ব বৃষ্টি-হিসাবে একই নিয়ম।', ' Hollow grey dots: the same rule on NASA POWER’s own rain estimate.')}</p>
         </div>
         <Tags list={['REAL', 'RULE']} />
       </div>
