@@ -2,7 +2,7 @@
 // farmer's own, in today's weather and in NASA's projections for the 2040s. Engine: engine/soilfuture.js.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ScatterChart, Scatter, ZAxis } from 'recharts';
-import { Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
+import { Clapperboard, Printer, Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } from '../../components/ui';
 import { SectionNav } from '../../components/SectionNav';
@@ -13,6 +13,8 @@ import soilWetness from '../../data/soil_wetness.json';
 import { rabiWetness } from '../../engine/soilwater';
 import { bnOf } from '../../engine/text';
 import SatWater from '../../components/charts/SatWater';
+import FieldStory from '../../components/story/FieldStory';
+import RotationPoster from '../../components/story/RotationPoster';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
 import { num, bnDigits } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
@@ -46,6 +48,7 @@ export default function FieldFuture() {
   // What the satellite saw on this field: last Rabi's pattern and this monsoon's, from its Sentinel-2 green-cover curve.
   const seen = useSeenRotation(activeParcel);
   const [habitFrom, setHabitFrom] = useState('sat');
+  const [show, setShow] = useState(null); // 'story' | 'poster'
   const useSat = habitFrom === 'sat' && seen?.usable;
   const lastCrop = useSat ? seen.rabiCrop : farmer.last_crop;
   const [world, setWorld] = useState('now');
@@ -103,6 +106,12 @@ export default function FieldFuture() {
       {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => setShow('story')} className="btn-gloss inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-white"><Clapperboard size={16} />{T('আমার জমির ১০ বছরের গল্প', 'My field’s ten-year story')}</button>
+        <button type="button" onClick={() => setShow('poster')} className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-primary-800"><Printer size={16} />{T('ফসলচক্রের পোস্টার', 'Rotation poster')}</button>
+      </div>
+      {show === 'story' && <FieldStory ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
+      {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       <SoilWater ff={ff} sumOf={sumOf} />

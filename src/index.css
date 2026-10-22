@@ -633,3 +633,12 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 .g3-act { background: radial-gradient(circle at 35% 30%, #ffe9a0, #f2a81e); color: #3a2400; box-shadow: 0 10px 26px -8px rgba(0,0,0,.6), inset 0 0 0 3px rgba(255,255,255,.55); transition: transform .12s; }
 .g3-act:active { transform: scale(.9); }
 @media (prefers-reduced-motion: reduce) { .g3-win, .g3-drop, .g3-banner { animation: none; } .g3-place { animation: none; } }
+
+/* Rotation poster: only the sheet prints, on A4, in its colours. */
+@media print {
+  @page { size: A4; margin: 10mm; }
+  body * { visibility: hidden !important; }
+  .poster-sheet, .poster-sheet * { visibility: visible !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .poster-overlay { position: static !important; background: none !important; padding: 0 !important; backdrop-filter: none !important; }
+  .poster-sheet { position: absolute; inset: 0 auto auto 0; width: 100%; max-width: none; box-shadow: none !important; border-radius: 0; padding: 0; }
+}

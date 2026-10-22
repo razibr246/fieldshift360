@@ -21,14 +21,15 @@ import { useStore } from '../../store';
 import { num, bnDigits } from '../../engine/dates';
 import { cropOf, omPctOf, CARBON } from '../../engine/soilfuture';
 
-const W = 220, H = 320, SKY = 96, DEPTH = 30;
+export const SKY = 96; // the soil surface in the drawing's own units (Plant draws up from it)
+const W = 220, H = 320, DEPTH = 30;
 const PX = (H - SKY) / DEPTH; // pixels per centimetre of soil
 const ycm = (cm) => SKY + cm * PX;
 const rnd = (i, s = 1) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
 
 // How each crop stands and roots. n: plants across the cut (by its usual spacing); h: height in px;
 // root: 'fibrous' or 'tap' and how deep in cm (past 30 runs out of the picture).
-const LOOK = {
+export const LOOK = {
   boro: { kind: 'rice', n: 7, h: 60, leaf: '#4f9a3c', top: '#d6b44a', root: 'fibrous', depth: 20 },
   aman: { kind: 'rice', n: 7, h: 66, leaf: '#3f8a35', top: '#d9b54c', root: 'fibrous', depth: 20 },
   aus: { kind: 'rice', n: 7, h: 54, leaf: '#58a043', top: '#d2b253', root: 'fibrous', depth: 24 },
@@ -49,7 +50,7 @@ const mix = (a, b, t) => {
 // Topsoil colour from organic matter: about 1% reads as pale brown, about 5% as dark humus brown.
 const topColour = (om) => mix('#b9946a', '#3b2a1b', (om - 1) / 4);
 
-function Plant({ x, look, k }) {
+export function Plant({ x, look, k }) {
   const b = SKY, h = look.h;
   const L = look.leaf, C = look.top;
   const stroke = { fill: 'none', strokeLinecap: 'round' };
