@@ -13,6 +13,7 @@ import soilWetness from '../../data/soil_wetness.json';
 import { rabiWetness } from '../../engine/soilwater';
 import { bnOf } from '../../engine/text';
 import SatWater from '../../components/charts/SatWater';
+import { useSeenRotation } from '../../components/fields/useSeenRotation';
 import { num, bnDigits } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
@@ -39,9 +40,14 @@ function useRotName() {
 }
 
 export default function FieldFuture() {
-  const { s, T, L, farmer, soil, clim, econ, chosen, rotation, upazila } = useStore();
+  const { s, T, L, farmer, soil, clim, econ, chosen, rotation, upazila, activeParcel } = useStore();
   const lang = s.lang;
   const rotName = useRotName();
+  // What the satellite saw on this field: last Rabi's pattern and this monsoon's, from its Sentinel-2 green-cover curve.
+  const seen = useSeenRotation(activeParcel);
+  const [habitFrom, setHabitFrom] = useState('sat');
+  const useSat = habitFrom === 'sat' && seen?.usable;
+  const lastCrop = useSat ? seen.rabiCrop : farmer.last_crop;
   const [world, setWorld] = useState('now');
   const [scen, setScen] = useState('ssp245');
   const [own, setOwn] = useState(null);
@@ -49,8 +55,8 @@ export default function FieldFuture() {
   const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
     [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
-  const ff = useMemo(() => fieldFuture({ ctx, lastCrop: farmer.last_crop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities }),
-    [ctx, farmer.last_crop, planRabi, planK1, s.priorities]);
+  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities }),
+    [ctx, lastCrop, planRabi, planK1, s.priorities]);
   const ownRot = own ?? ff.plan?.rot ?? ff.best.rot;
   const ownE = useMemo(() => ff.evaluateOwn(ownRot), [ff, ownRot]);
   const w = world === 'fut' && ctx.climF ? 'fut' : 'now';
@@ -94,6 +100,7 @@ export default function FieldFuture() {
         {!ctx.climF && <span className="text-[13px] text-muted">{T('এই এলাকার জলবায়ু মডেলের তথ্য নেই', 'No climate projections for this area')}</span>}
       </div>
 
+      {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
@@ -105,6 +112,35 @@ export default function FieldFuture() {
       {change && <Robust ff={ff} ownE={ownE} base={base} scen={scen} rotName={rotName} onEdit={editFrom} />}
       <Method ctx={ctx} ff={ff} />
     </div>
+  );
+}
+
+// ───────── the rotation the satellite saw on this field ─────────
+function SatHabit({ seen, farmer, habitFrom, setHabitFrom, canUse }) {
+  const { s, T, L } = useStore();
+  const lang = s.lang;
+  const pc = (p) => `${num(p * 100, lang)}%`;
+  const reg = cropOf(farmer.last_crop);
+  const differs = seen.rabiCrop && seen.rabiCrop !== farmer.last_crop;
+  return (
+    <Card className="mb-5 p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="max-w-3xl">
+          <h2 className="flex items-center gap-2 text-[18px] font-bold"><Telescope size={18} className="text-primary-700" />{T('উপগ্রহে দেখা আপনার জমির আসল ফসলচক্র', 'Your field’s real rotation, as the satellite saw it')}</h2>
+          <p className="mt-1 text-[14px] leading-6 text-ink/85">
+            {T('গত রবি: ', 'Last Rabi: ')}<b>{L(seen.rabi.pattern.name)}</b> <span className="text-muted">({T('মিল', 'match')} {pc(seen.rabi.p)})</span>
+            {seen.now && <>{T(' · এই বর্ষা: ', ' · This monsoon: ')}<b>{L(seen.now.pattern.name)}</b> <span className="text-muted">({pc(seen.now.p)})</span></>}
+          </p>
+          <p className="mt-1 text-[13px] leading-5 text-muted">{T(`সেন্টিনেল-২-এর প্রতিটি পাসে জমির সবুজের বাঁক মিলিয়ে দেখা। উপজেলা অফিসের নিবন্ধনে গতবারের ফসল: ${reg?.name.bn ?? '–'}।`, `Each Sentinel-2 pass’s green-cover curve on the field, matched to crop patterns. The upazila office register says last time: ${reg?.name.en ?? '–'}.`)}
+            {differs && T(' উপগ্রহ আর নিবন্ধন এক কথা বলছে না: উপগ্রহে যা দেখা গেছে তা থেকেই দশ বছরের হিসাব শুরু।', ' The satellite and the register disagree: the ten years start from what the satellite saw.')}
+            {seen.rabi.id === 'mustard_boro' && T(' সরিষার পরে বোরো: মডেলের রবির ঘরে বোরো ধরা, কারণ পানি আর কাদা করা বোরোই ঠিক করে।', ' Mustard then Boro: the model’s Rabi slot takes Boro, since Boro decides the water and the puddling.')}</p>
+        </div>
+        {canUse && <Segmented value={habitFrom} onChange={setHabitFrom} options={[
+          { value: 'sat', label: T('উপগ্রহে দেখা', 'Seen from space') },
+          { value: 'registry', label: T('নিবন্ধনের তথ্য', 'Register') },
+        ]} />}
+      </div>
+    </Card>
   );
 }
 

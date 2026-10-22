@@ -11,20 +11,23 @@ import deltas from '../../data/cmip6_deltas.json';
 import { num } from '../../engine/dates';
 import { climateChange, fieldContext, fieldFuture, cropOf, omPctOf, climateLedger, WATER_M3_PER_MM_BIGHA } from '../../engine/soilfuture';
 import { BIGHA_HA } from '../../engine/crops';
+import { useSeenRotation } from '../fields/useSeenRotation';
 
 const signed = (x, lang, dp = 1) => { const r = Math.round(x * 10 ** dp) / 10 ** dp; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${num(Math.abs(r), lang, { dp })}`; };
 
 export default function RotationTeaser() {
-  const { s, T, L, farmer, soil, clim, econ, chosen, rotation, upazila } = useStore();
+  const { s, T, L, farmer, soil, clim, econ, chosen, rotation, upazila, activeParcel } = useStore();
+  const seen = useSeenRotation(activeParcel);
+  const lastCrop = seen?.usable ? seen.rabiCrop : farmer.last_crop; // as Field Future: what the satellite saw
   const lang = s.lang;
   const change = useMemo(() => climateChange(deltas, upazila.id, 'ssp245'), [upazila.id]);
   const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
     [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
-  const ff = useMemo(() => fieldFuture({ ctx, lastCrop: farmer.last_crop, plan: { rabi: chosen.crop.id, k1: rotation.best?.crop.id ?? 'fallow' }, priorities: s.priorities }),
-    [ctx, farmer.last_crop, chosen.crop.id, rotation.best, s.priorities]);
+  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: chosen.crop.id, k1: rotation.best?.crop.id ?? 'fallow' }, priorities: s.priorities }),
+    [ctx, lastCrop, chosen.crop.id, rotation.best, s.priorities]);
   const name = (rot) => rot.cycle.map((y) => [y.rabi, y.k1].filter((id) => id !== 'fallow').map((id) => L(cropOf(id).name)).concat(L(cropOf('aman').name)).join(' → ')).join(' | ');
   const cols = [
-    { e: ff.habit, title: T('এখনকার মতো', 'As now'), tone: '#6b7a72' },
+    { e: ff.habit, title: seen?.usable ? T('এখনকার মতো (উপগ্রহে দেখা)', 'As now (seen from space)') : T('এখনকার মতো', 'As now'), tone: '#6b7a72' },
     { e: ff.best, title: T('সেরা ফসলচক্র', 'Best rotation'), tone: '#2f6e2f' },
   ];
   const facts = (e) => {
