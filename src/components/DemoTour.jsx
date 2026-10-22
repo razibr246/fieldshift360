@@ -7,20 +7,22 @@ import { ArrowLeft, ArrowRight, Clapperboard, X } from 'lucide-react';
 import { useStore } from '../store';
 
 export const TOUR = [
-  { path: '/', hash: 'climate-shift', title: { bn: 'দুই এলাকা, দুই বিপদ', en: 'Two places, two dangers' },
-    say: { bn: 'ফাটা মাটি আর ডোবা জমি: বরেন্দ্রের গোদাগাড়ীতে খরা, নিচু ধামরাইয়ে বন্যা। পাশে নাসা পাওয়ারের ২৫ মৌসুমে আবহাওয়া কতটা বদলেছে (সাত বিভাগের সাত উপজেলার গড়)। পরের দুই ধাপে দুই এলাকার কৃষক নিজের এলাকার তথ্যে আলাদা উত্তর পান।', en: 'Cracked earth and drowned fields: drought on Godagari’s Barind, floods in low-lying Dhamrai. Beside it, how 25 seasons of NASA POWER weather have changed (seven upazilas, one per division, averaged). In the next two steps a farmer in each place gets a different answer from their own area’s data.' } },
-  { path: '/farmer/plan', farmer: 'RAHIM', title: { bn: 'রহিমের সিদ্ধান্ত: রাখুন, বদলান, না সরে যান', en: 'Rahim’s decision: keep, adjust or shift' },
-    say: { bn: 'গোদাগাড়ীর রহিম উদ্দিন। প্রতিটি ফসল আর তারিখ গত ২৫ মৌসুমের নাসার আবহাওয়ায় যাচাই করা: কত মৌসুমে ঠিক ছিল, সঙ্গে মাটি, সেচ আর লাভ।', en: 'Rahim Uddin in Godagari. Every crop and date is tested against 25 seasons of NASA weather: how many seasons it worked, with soil, water and profit.' } },
-  { path: '/farmer/plan', farmer: 'RAZIB', title: { bn: 'একই প্রশ্ন, ধামরাইয়ে', en: 'The same question in Dhamrai' },
-    say: { bn: 'ধামরাইয়ের রাজিব মিয়া: নিজের এলাকার আলাদা নাসা তথ্য, তাই উত্তরও আলাদা।', en: 'Razib Miah in Dhamrai: his own area’s NASA data, so a different answer.' } },
+  { path: '/', hash: 'climate-shift', title: { bn: 'আবহাওয়া বদলেছে, পুরোনো ফসলচক্র টেকে না', en: 'The weather has moved; the old rotation no longer holds' },
+    say: { bn: 'ফাটা মাটি আর ডোবা জমি: বরেন্দ্রের গোদাগাড়ীতে খরা, নিচু ধামরাইয়ে বন্যা। পাশে নাসা পাওয়ারের ২৫ মৌসুমে তাপ, বৃষ্টি আর খুব গরম দিন কতটা বদলেছে।', en: 'Cracked earth and drowned fields: drought on Godagari’s Barind, floods in low-lying Dhamrai. Beside it, how 25 seasons of NASA POWER heat, rain and hot days have changed.' } },
+  { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-time', title: { bn: 'একই জমি, তিন রকম ফসলচক্র, দশ বছর', en: 'One field, three rotations, ten years' },
+    say: { bn: 'রহিমের জমির নিজের মাটি (SoilGrids) থেকে শুরু। প্রতিটি মৌসুমে মাটির কাটা অংশ: জৈব পদার্থ, শক্ত তলা, শিকড়, কেঁচো। এখনকার বোরো-আমন মাটি ধরে রাখে না; ডাল আর পাট ঢোকালে মাটি ভালো হয়।', en: 'It starts from Rahim’s own soil (SoilGrids). Each season, a cut through the field: organic matter, the plough pan, roots, earthworms. Boro–Aman as now does not build the soil; pulses and jute in the rotation do.' } },
+  { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-best', title: { bn: 'কৃষকের চাওয়া মিলিয়ে সেরা ফসলচক্র', en: 'The best rotation for what the farmer wants' },
+    say: { bn: 'কয়েকশো ফসলচক্র দশ বছর করে চালানো: মাটির স্বাস্থ্য, সেচের পানি, লাভ, আবহাওয়ার ঝুঁকি আর রোগ-পোকা। কৃষক "কম পানি" বা "বেশি আয়" বেছে নিলে ক্রম বদলায়।', en: 'Several hundred rotations run for ten years each: soil health, irrigation water, profit, weather risk and pests. When the farmer picks “less water” or “more income”, the ranking changes.' } },
+  { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-ledger', title: { bn: 'পানি আর জলবায়ুর খাতা', en: 'Water and the climate account' },
+    say: { bn: 'ধানক্ষেতের মিথেন বনাম মাটিতে জমা কার্বন (আইপিসিসি পদ্ধতি)। বোরোতে AWD দিলে পানি আর মিথেন দুটোই কমে।', en: 'Paddy methane against carbon stored in the soil (IPCC method). AWD on the Boro saves both water and methane.' } },
+  { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-robust', title: { bn: 'যেকোনো ভবিষ্যতে টেকে এমন বাছাই', en: 'A choice that holds up in any future' },
+    say: { bn: 'নাসার NEX-GDDP-CMIP6-এর ৮টি জলবায়ু মডেলে আলাদা করে ২০৪০-এর দশক চালানো: কোন ফসলচক্র কতগুলো ভবিষ্যতে মাটি ধরে রাখে আর ঝুঁকি বাড়ায় না।', en: 'The 2040s run in each of NASA NEX-GDDP-CMIP6’s eight climate models: in how many futures each rotation keeps the soil and adds no risk.' } },
+  { path: '/farmer/plan', farmer: 'RAZIB', title: { bn: 'এই মৌসুমের ধাপ, ধামরাইয়ে', en: 'This season’s step, in Dhamrai' },
+    say: { bn: 'ফসলচক্রের এ বছরের ধাপ: কোন ফসল, কবে। প্রতিটি তারিখ ২৫ মৌসুমের নাসা আবহাওয়ায় যাচাই। ধামরাইয়ের রাজিব নিজের এলাকার তথ্যে আলাদা উত্তর পান।', en: 'This year’s step of the rotation: which crop, and when. Every date is tested on 25 seasons of NASA weather. Razib in Dhamrai gets a different answer from his own area’s data.' } },
   { path: '/farmer/voice', farmer: 'RAHIM', title: { bn: 'বাংলায় মুখে জিজ্ঞেস করুন', en: 'Ask it aloud in Bangla' },
-    say: { bn: '"এই রবিতে কী লাগাব?" বলুন বা চিপে চাপুন। একই হিসাব থেকে উত্তর আসে, বাংলায়।', en: 'Say "এই রবিতে কী লাগাব?" (what should I plant this Rabi?) or tap a chip. The answer comes from the same working, in Bangla.' } },
-  { path: '/officer/requests', officer: ['godagari', 'Deopara'], title: { bn: 'ইউনিয়নের কৃষি কর্মকর্তা সমস্যা পান', en: 'The union officer receives a problem report' },
-    say: { bn: 'কৃষকের পাঠানো ছবি আর জমির তথ্যসহ অনুরোধ। একটি খুলে উত্তর পাঠান; উত্তর কৃষকের সাহায্য পাতায় যায়। এগুলো নমুনা অনুরোধ।', en: 'Requests arrive with the farmer’s photo and field details. Open one and send a reply; it reaches the farmer’s Help page. These are sample requests.' } },
-  { path: '/officer/supply', officer: ['godagari', 'Deopara'], title: { bn: 'সবাই একসঙ্গে তুললে দাম পড়ে', en: 'When everyone harvests at once, prices fall' },
-    say: { bn: 'কোন সপ্তাহে কত ফসল উঠবে, আর ডিএএম-এর দামের ইতিহাসে কোন মাসে দাম সাধারণত পড়ে। কর্মকর্তা আগেই রোপণ ছড়িয়ে দিতে বলতে পারেন।', en: 'How much comes in each week, and which months DAM’s price history usually dips. The officer can spread planting dates ahead of time.' } },
+    say: { bn: '"এই ধান কাটার পর কী লাগামু?" বলুন বা চিপে চাপুন। একই হিসাব থেকে উত্তর আসে, বাংলায়।', en: 'Say "এই ধান কাটার পর কী লাগামু?" (what do I plant after this rice?) or tap a chip. The answer comes from the same working, in Bangla.' } },
   { path: '/officer/radar', officer: ['godagari', 'Deopara'], title: { bn: 'বৃষ্টি কবে নামে, রোপণ কবে হয়', en: 'When the rains set in, when planting happens' },
-    say: { bn: 'জিপিএম আইমার্জের ২৫ বছরের বৃষ্টি থেকে প্রতি বছরের বৃষ্টি শুরু, আর সেন্টিনেল-১ রাডারে আমন রোপণের তারিখ।', en: 'The date the rains set in each year from 25 years of GPM IMERG rain, and Aman transplanting dates from Sentinel-1 radar.' } },
+    say: { bn: 'জিপিএম আইমার্জের ২৫ বছরের বৃষ্টি থেকে প্রতি বছরের বৃষ্টি শুরু, আর সেন্টিনেল-১ রাডারে আমন রোপণ; জেলার প্রতিটি উপজেলায়। কৃষি কর্মকর্তা এখান থেকেই এলাকার ফসলচক্র সাজাতে পারেন।', en: 'The date the rains set in each year from 25 years of GPM IMERG rain, and Aman transplanting from Sentinel-1 radar, for every upazila of the district. From here the officer can plan the area’s rotations.' } },
 ];
 
 export function startTour(dispatch, navigate) { dispatch({ type: 'set', patch: { tour: 0 } }); go(TOUR[0], dispatch, navigate); }

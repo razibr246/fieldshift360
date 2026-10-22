@@ -284,3 +284,16 @@ test('eight-model test: each rotation counted once, every count within the numbe
   for (const x of mt.list) assert.ok(x.keepsSoil <= 8 && x.safer <= 8 && x.wins <= 8);
   assert.ok(mt.robust.keepsSoil >= mt.list.find((x) => JSON.stringify(x.rot) === JSON.stringify(ff.habit.rot)).keepsSoil);
 });
+
+test('Rabi soil wetness: NASA POWER GWETROOT for all seven upazilas, Nov–Mar seasons from 2002, with a trend', async () => {
+  const { rabiWetness } = await import('./soilwater.js');
+  const sw = JSON.parse(readFileSync(new URL('../data/soil_wetness.json', import.meta.url)));
+  for (const id of ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat']) {
+    const r = rabiWetness(sw, id);
+    assert.equal(r.first, 2002, `${id}: the first full Rabi season`);
+    assert.equal(r.series.length, 24, `${id}: 2002–2025`);
+    assert.ok(r.series.every((x) => x.root > 0 && x.root <= 1), `${id}: wetness is a fraction`);
+    assert.ok(r.trend && r.trend.p >= 0 && r.trend.p <= 1);
+  }
+  assert.equal(rabiWetness(sw, 'nowhere'), null);
+});

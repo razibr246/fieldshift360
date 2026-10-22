@@ -11,6 +11,8 @@ import LiveWeather from '../../components/charts/LiveWeather';
 import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
+// The ten-year rotation teaser runs the Field Future engine; it loads on its own too.
+const RotationTeaser = lazy(() => import('../../components/charts/RotationTeaser'));
 import ClimateShift from '../../components/charts/ClimateShift';
 import { LazyMount } from '../../components/SectionNav';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
@@ -88,6 +90,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <LazyMount height={640}><Suspense fallback={<section className="py-14"><div className="page-shell min-h-[600px]" /></section>}><RotationTeaser /></Suspense></LazyMount>
 
       <Suspense fallback={<section className="py-16 sm:py-20"><div className="page-shell min-h-[760px]" /></section>}><CountryCrops /></Suspense>
 

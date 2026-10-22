@@ -9,6 +9,9 @@ import { SectionNav } from '../../components/SectionNav';
 import SoilColumn, { SoilLegend } from '../../components/charts/SoilColumn';
 import CropPhoto from '../../components/CropPhoto';
 import deltas from '../../data/cmip6_deltas.json';
+import soilWetness from '../../data/soil_wetness.json';
+import { rabiWetness } from '../../engine/soilwater';
+import { bnOf } from '../../engine/text';
 import { num, bnDigits } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
@@ -73,6 +76,7 @@ export default function FieldFuture() {
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
+        { id: 'ff-water', label: T('মাটির পানি', 'Soil water') },
         { id: 'ff-build', label: T('নিজে বানান', 'Build your own') },
         { id: 'ff-all', label: T('সব ফসলচক্র', 'Every rotation') },
         { id: 'ff-climate', label: T('২০৪০-এর দশক', 'The 2040s') },
@@ -93,6 +97,7 @@ export default function FieldFuture() {
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
+      <SoilWater ff={ff} sumOf={sumOf} />
       <div ref={builder}><Builder ctx={ctx} rot={ownRot} setRot={setOwn} e={ownE} sumOf={sumOf} best={ff.best} /></div>
       <Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} />
       <Climate change={change} ctx={ctx} ff={ff} ownE={ownE} scen={scen} />
@@ -338,6 +343,55 @@ function Ledger({ ff, ownE, ctx, w, rotName }) {
       </div>
       {cut != null && Math.abs(cut) >= 1 && <Note tone={cut > 0 ? 'ok' : 'gold'} className="mt-3">{cut > 0 ? T(`সেরা ফসলচক্রে জমির নিট গ্রিনহাউস গ্যাস এখনকার চাষের চেয়ে প্রায় ${num(cut, 'bn')}% কম।`, `The best rotation puts out about ${num(cut, 'en')}% less net greenhouse gas than farming as now.`) : T(`সেরা ফসলচক্রে জমির নিট গ্রিনহাউস গ্যাস এখনকার চাষের চেয়ে প্রায় ${num(-cut, 'bn')}% বেশি।`, `The best rotation puts out about ${num(-cut, 'en')}% more net greenhouse gas than farming as now.`)}{anyBoro && !awd && T(' বোরোতে AWD দিয়ে দেখুন: পানি আর মিথেন দুটোই কমে।', ' Try AWD on the Boro: it saves water and methane.')}</Note>}
       <p className="mt-2 text-[12.5px] leading-5 text-muted">{T(`মিথেন: আইপিসিসি ২০১৯-এর টিয়ার-১ পদ্ধতি, দক্ষিণ এশিয়ার দৈনিক হার ${num(CH4.ef, 'bn', { dp: 2 })} কেজি/হেক্টর; একটানা পানি ×১, AWD ×${num(CH4.sfw.awd, 'bn', { dp: 2 })}, বৃষ্টিনির্ভর আমন ×${num(CH4.sfw.rainfed, 'bn', { dp: 2 })}; আগের ফসলের রেখে দেওয়া খড় মিথেন বাড়ায়। মিথেনের উষ্ণায়ন ক্ষমতা ২৭ (আইপিসিসি এআর৬)। নাইট্রাস অক্সাইড ধরা হয়নি; আইপিসিসির নিজের হারেই অনিশ্চয়তা অনেক, তাই এটি তুলনার জন্য।`, `Methane: IPCC 2019 Tier 1, South Asia daily rate ${CH4.ef} kg/ha; kept flooded ×1, AWD ×${CH4.sfw.awd}, rainfed Aman ×${CH4.sfw.rainfed}; straw kept from the crop before adds methane. Methane’s warming power 27 (IPCC AR6). Nitrous oxide is not counted; the IPCC rates themselves are uncertain, so use this to compare.`)}</p>
+    </Card>
+  );
+}
+
+// ───────── the soil's own water through the Rabi, 2002–2025 (NASA POWER, MERRA-2) ─────────
+function SoilWater({ ff, sumOf }) {
+  const { s, T, L, upazila } = useStore();
+  const lang = s.lang;
+  const r = useMemo(() => rabiWetness(soilWetness, upazila.id), [upazila.id]);
+  if (!r) return null;
+  const pc = (x) => num(x * 100, lang);
+  const data = r.series.map((x) => ({ season: x.season, root: Math.round(x.root * 1000) / 10, trend: r.trend ? Math.round(r.trend.line(x.season) * 1000) / 10 : null }));
+  const word = { sure: T('নিশ্চিত (p < ০.০৫)', 'clear (p < 0.05)'), likely: T('সম্ভবত', 'likely'), unclear: T('পরিষ্কার নয়', 'not clear') }[r.trend?.sure ?? 'unclear'];
+  const up = r.change > 0.005, down = r.change < -0.005;
+  const habitW = sumOf(ff.habit).waterMm, bestW = sumOf(ff.best).waterMm;
+  return (
+    <Card id="ff-water" className="mt-5 scroll-mt-40 p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="max-w-3xl">
+          <h2 className="flex items-center gap-2 text-[20px] font-bold"><Droplets size={20} className="text-sky-700" />{T(`শীতে ${bnOf(upazila.name.bn)} মাটিতে কতটা পানি থাকে`, `How much water ${upazila.name.en}’s soil holds through the winter`)}</h2>
+          <p className="text-[14px] leading-6 text-muted">{T('রবি ফসল বাঁচে বর্ষার পর মাটিতে থেকে যাওয়া পানি আর সেচে। নাসার হিসাবে প্রতি রবি মৌসুমে (নভেম্বর–মার্চ) ওপরের এক মিটার মাটি কতটা ভেজা ছিল: ০% একদম শুকনো, ১০০% পানিতে ভরা।', 'Rabi crops live on the water the monsoon leaves in the soil, and on irrigation. NASA’s record of how wet the top metre of soil was in each Rabi season (November–March): 0% bone dry, 100% saturated.')}</p>
+        </div>
+        <Tags list={['REAL']} />
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        <Big icon={Droplets} tone="text-sky-700" label={T(`আগে, ${bnDigits(r.first)}–২০১২`, `Before, ${r.first}–2012`)} value={`${pc(r.then)}%`} sub={T('রবি মৌসুমের গড় ভেজা ভাব', 'mean Rabi wetness')} />
+        <Big icon={Droplets} tone="text-sky-700" label={T(`এখন, ২০১৩–${bnDigits(r.last)}`, `Now, 2013–${r.last}`)} value={`${pc(r.now)}%`} sub={T(`আগের চেয়ে ${signed(r.pct, 'bn')}%`, `${signed(r.pct, 'en')}% on before`)} />
+        <Big icon={Thermometer} tone="text-clay-700" label={T('সবচেয়ে শুকনো রবি', 'Driest Rabi')} value={lang === 'bn' ? bnDigits(r.driest.season) : r.driest.season} sub={T(`${pc(r.driest.root)}% ভেজা`, `${pc(r.driest.root)}% wet`)} />
+      </div>
+      <div className="mt-4 h-[200px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+            <CartesianGrid stroke={GRID} vertical={false} />
+            <XAxis dataKey="season" tick={tick} tickFormatter={(y) => (lang === 'bn' ? bnDigits(y) : y)} interval={3} />
+            <YAxis tick={tick} allowDecimals={false} domain={[Math.floor((Math.min(...data.map((d) => d.root)) - 2) / 5) * 5, Math.ceil((Math.max(...data.map((d) => d.root)) + 2) / 5) * 5]} tickCount={5} tickFormatter={(v) => `${num(v, lang)}%`} />
+            <Tooltip formatter={(v, n) => [`${num(v, lang, { dp: 1 })}%`, n === 'trend' ? T('ধারা', 'Trend') : T('রবির ভেজা ভাব', 'Rabi wetness')]} labelFormatter={(y) => T(`রবি ${bnDigits(y - 1)}–${bnDigits(String(y).slice(2))}`, `Rabi ${y - 1}–${String(y).slice(2)}`)} />
+            <Line dataKey="root" stroke="#2f7fa8" strokeWidth={2} dot={{ r: 3, fill: '#2f7fa8', strokeWidth: 0 }} activeDot={{ r: 5 }} isAnimationActive={false} />
+            {r.trend && <Line dataKey="trend" stroke="#5d6a63" strokeWidth={1.5} strokeDasharray="5 4" dot={false} isAnimationActive={false} />}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <Note tone={down ? 'gold' : 'info'} className="mt-3">
+        {r.trend && T(`২৫ বছরের ধারা: দশকে ${signed(r.trend.perDecade * 100, 'bn')} শতাংশ-বিন্দু, ${word} (ম্যান-কেন্ডাল)। `, `25-year trend: ${signed(r.trend.perDecade * 100, 'en')} percentage points a decade, ${word} (Mann–Kendall). `)}
+        {down ? T('শীতের মাটি আগের চেয়ে শুকনো হচ্ছে, তাই কম পানির ফসলচক্রের দাম আরও বেশি।', 'The winter soil is getting drier, so a low-water rotation is worth even more.')
+          : up ? T('শীতের ওপরের মাটি আগের চেয়ে শুকনো হয়নি। পানির টান এখানে মাটির ওপরের স্তরে নয়, সেচের পানিতে: ', 'The winter topsoil has not got drier. The water squeeze here is not in the topsoil but in irrigation: ')
+          : T('শীতের মাটির ভেজা ভাব প্রায় একই আছে। পানির টান মূলত সেচের পানিতে: ', 'Winter soil wetness has held about steady. The water squeeze is mainly in irrigation: ')}
+        {!down && T(`এখনকার চাষে বিঘায় বছরে ${num(habitW * WATER_M3_PER_MM_BIGHA, 'bn')} ঘনমিটার, সেরা ফসলচক্রে ${num(bestW * WATER_M3_PER_MM_BIGHA, 'bn')} ঘনমিটার।`, `${num(habitW * WATER_M3_PER_MM_BIGHA, 'en')} m³ a bigha a year as now, ${num(bestW * WATER_M3_PER_MM_BIGHA, 'en')} m³ with the best rotation.`)}
+      </Note>
+      <p className="mt-2 text-[12.5px] leading-5 text-muted">{T('উৎস: নাসা পাওয়ার মাসিক GWETROOT (নাসা জিএমএও MERRA-2, উপগ্রহ ও মাটির পর্যবেক্ষণ মেলানো মডেল), উপজেলার কেন্দ্রে। এটা ওপরের এক মিটার মাটির হিসাব; গভীর নলকূপের পানির স্তর আলাদা জিনিস, এতে দেখা যায় না।', 'Source: NASA POWER monthly GWETROOT (NASA GMAO MERRA-2, a model that assimilates satellite and ground observations), at the upazila centre. It covers the top metre of soil; the deep tube-well water table is a separate thing it does not show.')}</p>
     </Card>
   );
 }

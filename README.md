@@ -1,19 +1,26 @@
 # FieldShift 360
 
-**Season planning with NASA data for Bangladesh's smallholder farmers and their agriculture officers.**
-NASA Space Apps 2026, "Field Shift: Adapting Farms with NASA Data". Live: https://nasa-field-shift-360.vercel.app
+**A crop-rotation decision tool for Bangladesh's smallholders, on NASA Earth observations, the field's own soil, crop
+characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https://nasa-field-shift-360.vercel.app
 
 ## Summary
 
-- **Problem.** Each Rabi season a smallholder must decide whether to keep the same crop, keep it at a different
-  date, or switch crops, while the weather they grew up with is shifting: drought on the Barind (Godagari,
-  Rajshahi), floods and waterlogging on the low land (Dhamrai, Dhaka), salt, flash floods and cold waves elsewhere.
+- **Problem.** Farmers are choosing rotations under shifting temperatures, changing rainfall, water shortages,
+  extreme weather and declining soil health: drought and a falling water table on the Barind (Godagari, Rajshahi),
+  floods and waterlogging on the low land (Dhamrai, Dhaka), salt, flash floods and cold waves elsewhere. The crop
+  calendar their parents trusted no longer holds.
+- **What it does.** For one real field, FieldShift 360 runs every feasible one- and two-year rotation (several
+  hundred) for ten years and ranks them by the farmer's own priorities: soil carbon and the four NRCS soil-health
+  principles, irrigation water, profit, weather risk and pest pressure, in today's weather and in NASA's 2040s. It
+  then tests the best ones in each of eight climate models on their own, and weighs paddy methane against the carbon
+  stored in the soil. This season's step of the rotation (which crop, which date) is tested on 25 seasons of NASA
+  weather and comes with today's field tasks.
 - **Users.** Farmers (Bangla first, voice and typing), union field officers (SAAO) who answer their problem reports,
   and upazila officers (UAO) who see the whole upazila, harvest gluts and Aman planting.
-- **NASA data.** 25 seasons of NASA POWER daily weather (temperature, rain, humidity, solar radiation) per upazila;
-  NASA/JAXA GPM IMERG rain for the rain-onset dates and as a cross-check; NASA NEX-GDDP-CMIP6 for the 2040s; NASA
-  GIBS HLS satellite photos. Partner data: Copernicus Sentinel-1 radar (Aman transplanting) and Sentinel-2, ISRIC
-  SoilGrids, SRDI fertilizer recommendations, DAM prices, FAOSTAT yields, BBS boundaries.
+- **NASA data.** NASA POWER daily weather (25 seasons per upazila) and monthly root-zone soil wetness (MERRA-2);
+  NASA/JAXA GPM IMERG rain for rain onset and as a cross-check; NASA NEX-GDDP-CMIP6 (8 models) for the 2040s; NASA
+  GIBS HLS satellite photos; NASA FIRMS fires. Partner data: Copernicus Sentinel-1 radar (Aman transplanting) and
+  Sentinel-2, ISRIC SoilGrids, SRDI fertilizer recommendations, DAM prices, FAOSTAT yields, BBS boundaries.
 - **Real vs sample.** All climate, rain, radar, soil, price and yield data is real (sources in
   [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)). The farmers, their requests and the land registry details are
   sample people, labelled "sample" in the app. Crop thresholds and decision rules are stated starting values awaiting
@@ -22,14 +29,38 @@ NASA Space Apps 2026, "Field Shift: Adapting Farms with NASA Data". Live: https:
 - **Run it.** `npm install`, then `npm run dev`; `npm test` runs the engine, voice, radar and game tests; `npm run
   build` makes the static site. Data needs no network: every file is committed. The AI crop doctor needs
   `ANTHROPIC_API_KEY` on the server (see `.env.example`); without it the app says so and photos go to the officer.
-- **Guided demo.** "3-minute demo story" on the home page walks through the app in seven steps.
+- **Guided demo.** "3-minute demo story" on the home page walks through it in eight steps, rotation first.
+
+## The challenge, line by line
+
+| The challenge statement | How FieldShift 360 answers it | Where |
+| --- | --- | --- |
+| A **decision-support tool** | Field Future ranks every feasible rotation for the field and names the best and the most robust; the season plan turns this year's step into KEEP, ADJUST or SHIFT with the evidence behind it | `/farmer/future`, `/farmer/plan` |
+| Uses **NASA Earth observations** | NASA POWER (weather and root-zone soil wetness), GPM IMERG rain, NEX-GDDP-CMIP6 projections, GIBS HLS imagery, FIRMS fires | Every score; table below |
+| **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's own carbon; SRDI fertilizer doses per union | `src/data/soil_*.json`, Field Future soil column |
+| **Crop characteristics** | Per crop: duration, sowing windows, water need (FAO-56 coefficients), weather failure rules, family, legume nitrogen, harvest index and root-to-shoot ratio for carbon | `src/engine/crops.js`, `src/engine/soilfuture.js` |
+| **Farmer priorities** | More income, less water, less risk, better soil, an early harvest: they re-weight both the rotation ranking and the season plan at once | Planner step 4, Field Future |
+| **Explore rotation strategies** | All one- and two-year cycles of a Rabi crop, a Kharif-1 crop and T. Aman, with or without the straw kept; side-by-side comparison; build your own; every rotation on a profit-against-soil chart | `/farmer/future` |
+| **Strengthen soil health** | Soil carbon by ICBM (Andrén & Kätterer 1997) from yield, harvest index and roots; the four NRCS principles (living roots, diversity, less disturbance, organic matter); a season-by-season soil profile (plough pan, roots, nodules, earthworms) | Soil time machine |
+| **Shifting temperatures** | 25 seasons, 2001–2012 against 2013–2025, station-corrected; hot days at flowering; warmer decay of soil carbon in the 2040s | Home, planner step 2, Field Future |
+| **Changing rainfall** | Rain onset each year from IMERG (Ropon Radar, every upazila of seven districts); rain change by season in the 2040s | `/officer/radar`, Field Future |
+| **Water shortages** | Irrigation per bigha for every rotation (FAO-56); AWD for Boro; Rabi-season root-zone soil wetness 2002–2025 with its trend | Field Future "Soil water", climate account |
+| **Extreme weather** | Each crop's failure rules replayed over every season; drought and flood indices; live seven-day weather warnings | Planner, officer alerts |
+| **Adapt to changing conditions** | The 2040s from NEX-GDDP-CMIP6 (two pathways); every top rotation re-run in each of the eight models on its own, counting the futures it keeps the soil and adds no risk in (robust decision making) | Field Future "Eight-model test" |
+| **Long-term resilience** | Ten-year runs, the worst model's result, and a climate account (IPCC 2019 Tier 1 paddy methane against soil carbon) | Field Future |
+| Farmers **around the world** | Full engine for seven upazilas, one in each division of Bangladesh; sample farms in India, Pakistan, Nepal, Bhutan and Myanmar with the season plan, risks and the 2040s. Every input it needs (POWER, SoilGrids, CMIP6) is global; a local crop table, yields and the sowing calendar are what a new country needs | `/abroad/*` |
 
 ## What was built before and during the event
 
 Everything in this repository as of 21 October 2026 was built **before** the Space Apps event, as preparation:
-the planner, the data pipelines, the officer views, the voice assistant, Ropon Radar and the game. The full
-challenge statement is released on 28 October 2026; changes made after that, during the event, will be listed here
-with their dates, and the commit history shows each change.
+the planner, the data pipelines, the officer views, the voice assistant, Ropon Radar and the game.
+
+After the challenge statement was read (22 October 2026):
+- Field Future: the climate account (paddy methane against soil carbon, with AWD), the eight-model robustness test,
+  the Rabi soil-water record (NASA POWER GWETROOT, `scripts/fetch-soil-wetness.mjs`) and the redrawn soil profile.
+- The home page leads with ten-year rotations; the demo story starts from rotations and soil health.
+
+The commit history shows each change with its date.
 
 ## Licence
 
@@ -50,29 +81,12 @@ The app is bilingual (Bangla first, English toggle). It runs entirely in the bro
 the app and refreshed live where NASA allows it; farmers and requests are sample data. The only server part is the
 shared plan board (`api/plans.js`, see below), so every farmer's confirmed plan counts in everyone's price-drop check.
 
-## For judges: the challenge, line by line
-
-| What the challenge asks for | How FieldShift 360 answers it | Where |
-| --- | --- | --- |
-| Use NASA Earth observations | 25 years (Oct 2000 to Oct 2026) of daily NASA POWER temperature and rain behind every score; NASA/JAXA GPM IMERG satellite rain as an independent check; NASA GIBS HLS satellite photos of the fields through the season | `src/data/climate_godagari.json`, Home "The data behind every answer", map type "NASA satellite" |
-| Station-checked climate | NASA POWER runs 2–3 °C hot in March–May against the BMD Rajshahi and Dhaka 1991–2020 normals; temperatures are corrected month by month before any hot day is counted (rain left as is). Ten crop indicators with published thresholds (BMD heat- and cold-wave bands, 35 °C at rice flowering, 30 °C for wheat grain fill, Hargreaves Boro water need, monsoon onset), each with a Mann–Kendall trend test and Sen's slope, and what to do | Planner step 2, `src/engine/agroclimate.js`, `src/data/station_normals.json` |
-| Show how conditions are changing | Each crop and planting date replayed through all 25 seasons, earlier 12 against later 13; "This season so far" compares the last 60 days (live NASA POWER) with the same weeks in past years | Planner step 2, Home climate section, farmer dashboard |
-| Local soil | Real soil only: ISRIC SoilGrids 2.0 at each field and union (pH, organic matter, total N, texture, CEC, WRB soil group and drainage, each with its 90% range) and SRDI's union fertilizer doses for every Rabi crop and land type, costed at the official farmer prices. P, K, S, Zn and B levels are on no open map, so none are shown | `src/data/soil_*.json`, `src/data/srdi_frs.json`, planner step 3 |
-| Crop characteristics | Duration, weather-risk windows, water need and heat units per Rabi crop | `src/engine/crops.js` |
-| Farmer priorities | Earn more, use less water, play it safe, better soil, early harvest re-weight the answer instantly. Every crop is compared on real numbers: water need (FAO-56 crop coefficients on the area's station-corrected NASA weather), profit per bigha (FAOSTAT 2024 yield × published price − published full cost per kg, `src/data/crop_economics.json`, each with its source and year), SRDI fertiliser and 25-season weather safety | Planner step 4, `src/engine/cropwater.js`, `src/engine/economics.js` |
-| Rotation strategies and soil health | Next crop after the Rabi crop, scored on family break, nitrogen, water and timing; season drawn on the Bangla-month calendar. **Field Future**: every feasible one- and two-year rotation for the field (~700) run for ten years: soil carbon (ICBM model started from the field's SoilGrids carbon), FAO-56 irrigation, weather risk, profit, crop-family repeats and the four NRCS soil-health principles; the best is the top scorer by the farmer's priorities among rotations that do not run the soil's carbon down, shown on a profit-against-soil chart of all of them, with an animated soil column and a build-your-own rotation | Planner step 6, `/farmer/future`, `src/engine/soilfuture.js` |
-| Resilience | What-if seasons (drier, +1°, +2°) replay the same 25 seasons and say whether the advice still holds. Field Future replays every rotation in the 2040s: NASA NEX-GDDP-CMIP6 (8 models, SSP2-4.5 and SSP5-8.5, 2041–2050 against 2005–2014) shifts the upazila's real days month by month, then crop risk, water need and soil-carbon decay are worked out again | Planner step 5, `/farmer/future` |
-| Market risk | Neighbours' planting dates predict harvest weeks; a price-drop warning when everyone harvests at once | Planner step 7, officer pages |
-| Reach farmers | Bangla first with Bengali digits, voice assistant, live location weather, SMS-length messages counted the Bangla way (70 characters per SMS) | Whole app |
-| Seven upazilas, seven offices | Besides Godagari and Dhamrai, Sitakunda (Chattogram), Dacope (Khulna), Bakerganj (Barishal), Gangachara (Rangpur) and Gowainghat (Sylhet) are full upazilas: every union (geoBoundaries) with its real villages (GeoNames), 25 years of NASA POWER + IMERG corrected to the nearest BMD station's 1991–2020 normals, SoilGrids at every union and field, Sentinel-1 Aman radar, Sentinel-2 field watch, NASA HLS clear dates. Each has a story farmer whose fields are real cropland, and its real upazila agriculture officer as listed on the office's DAE portal (19 October 2026). SRDI fertiliser doses are not loaded for these five yet | `src/data/upazilas.js`, `src/data/demo.js`, `src/data/parcels.json` |
-| Every region's own hazard | **Seven divisions, seven farmers** (`/stories`): Dhaka and Rajshahi are the two live sample farms; Chattogram, Khulna, Barishal, Rangpur and Sylhet are missions on each upazila's real NASA POWER and GPM IMERG days (`npm run fetch:stories`). The player picks varieties, dates and practices for two or three plots and the season is replayed through a real past year, or all 24: Sylhet flash floods from IMERG at Sohra (≥120 mm in 48 h finds the 2004, 2010, 2017 and 2022 haor floods on their days), Khulna salt from the dry-season water deficit with Maas–Hoffman yields (FAO-29), Barishal spring tides from the moon's age, Rangpur late-blight spells, Chattogram October cloudbursts. FieldShift Score (0.25 yield + 0.20 soil + 0.20 resilience + 0.20 IPM + 0.15 market) and four Danger Ends; a live Open-Meteo alert per region | `/stories`, `src/engine/missions.js`, `src/data/stories.js` |
-| Bangladesh and beyond | Whole-country view: which crop takes the most land each season, and where each season's rice is grown, for all 64 districts | Home "What Bangladesh grows, season by season" |
-
 ## NASA data used
 
 | NASA data | What it does here | How it is fetched |
 | --- | --- | --- |
 | **NASA POWER** daily (T2M_MAX, T2M_MIN, PRECTOTCORR), Oct 2000 to Oct 2026 | Every backtest, score, harvest window and the "then vs now" comparison | `npm run fetch:power` (no login), saved in the app |
+| **NASA POWER** monthly GWETROOT and GWETTOP (root-zone and surface soil wetness, MERRA-2), 2001–2025 | Field Future's Rabi soil-water record: each season's wetness, before against now, and its trend | `node scripts/fetch-soil-wetness.mjs` (no login), saved as `src/data/soil_wetness.json` |
 | **NASA POWER**, last ~80 days, live | "This season so far" card; falls back to the saved series, with its date, when NASA cannot be reached | Browser call to the POWER API |
 | **NASA/JAXA GPM IMERG** daily (`IMERG_PRECTOT` through POWER, UTC days) | Independent satellite check of POWER rain: Rabi seasons r = 0.81, monsoon r = 0.76 over 25 seasons | Same script, second request |
 | **NASA NEX-GDDP-CMIP6 v2.0** (NCCS, 0.25°, bias-corrected, 8 models, SSP2-4.5 and SSP5-8.5) | Field Future's 2040s: each model's monthly change in Tmax, Tmin and rain at the upazila's cell, added to its own NASA POWER days | `npm run fetch:cmip6` (no login; NASA THREDDS point subsets, cached and resumable), saved as `src/data/cmip6_deltas.json` |
