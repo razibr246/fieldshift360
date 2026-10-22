@@ -2,7 +2,7 @@
 // farmer's own, in today's weather and in NASA's projections for the 2040s. Engine: engine/soilfuture.js.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ScatterChart, Scatter, ZAxis } from 'recharts';
-import { Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame } from 'lucide-react';
+import { Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } from '../../components/ui';
 import { SectionNav } from '../../components/SectionNav';
@@ -13,14 +13,16 @@ import { num, bnDigits } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
   climateChange, fieldContext, fieldFuture, cropOf, omPctOf, co2PerBigha, ureaSavedKgPerBigha, WATER_M3_PER_MM_BIGHA,
-  RABI_OPTS, K1_OPTS, RESIDUE, YEARS, FIRST_YEAR, YIELDS, ICBM,
+  RABI_OPTS, K1_OPTS, RESIDUE, YEARS, FIRST_YEAR, YIELDS, ICBM, CH4, climateLedger, modelTest,
 } from '../../engine/soilfuture';
+import { BIGHA_HA } from '../../engine/crops';
 
 const GREEN = '#2f6e2f', GOLD = '#b8761b', SLATE = '#6b7a72', TEAL = '#2f8a8f', MUTED = '#5d6a63', GRID = '#eef0ec';
 const tick = { fontSize: 11, fill: MUTED };
 const SEASON_NAMES = [{ bn: 'রবি', en: 'Rabi' }, { bn: 'খরিফ-১', en: 'Kharif-1' }, { bn: 'আমন', en: 'Aman' }];
 const SCEN = { ssp245: { bn: 'মাঝারি পথ (SSP2-4.5)', en: 'Middle road (SSP2-4.5)' }, ssp585: { bn: 'বেশি নিঃসরণ (SSP5-8.5)', en: 'High emissions (SSP5-8.5)' } };
-const signed = (x, lang, dp = 1) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${num(Math.abs(x), lang, { dp })}`;
+// Rounded first, so a tiny change reads 0, not −0.
+const signed = (x, lang, dp = 1) => { const r = Math.round(x * 10 ** dp) / 10 ** dp; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${num(Math.abs(r), lang, { dp })}`; };
 const keyOf = (rot) => `${rot.residue}|${rot.cycle.map((y) => `${y.rabi}-${y.k1}`).join('|')}`;
 
 function useRotName() {
@@ -55,6 +57,7 @@ export default function FieldFuture() {
     { id: 'best', e: ff.best, tone: GREEN, title: T('সেরা ফসলচক্র', 'Best rotation') },
     { id: 'own', e: ownE, tone: GOLD, title: T('আপনার বানানো', 'Your own') },
   ];
+  const base = useMemo(() => ({ clim, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }), [clim, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
   const builder = useRef(null);
   const editFrom = (rot) => { setOwn({ cycle: rot.cycle.map((y) => ({ ...y })), residue: rot.residue }); scrollToEl(builder.current); };
 
@@ -69,9 +72,11 @@ export default function FieldFuture() {
         { id: 'ff-time', label: T('মাটির টাইম মেশিন', 'Soil time machine') },
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
+        { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
         { id: 'ff-build', label: T('নিজে বানান', 'Build your own') },
         { id: 'ff-all', label: T('সব ফসলচক্র', 'Every rotation') },
         { id: 'ff-climate', label: T('২০৪০-এর দশক', 'The 2040s') },
+        { id: 'ff-robust', label: T('৮ মডেলের পরীক্ষা', 'Eight-model test') },
         { id: 'ff-method', label: T('কীভাবে হিসাব', 'How it works') },
       ]} />
 
@@ -87,9 +92,11 @@ export default function FieldFuture() {
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
+      <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       <div ref={builder}><Builder ctx={ctx} rot={ownRot} setRot={setOwn} e={ownE} sumOf={sumOf} best={ff.best} /></div>
       <Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} />
       <Climate change={change} ctx={ctx} ff={ff} ownE={ownE} scen={scen} />
+      {change && <Robust ff={ff} ownE={ownE} base={base} scen={scen} rotName={rotName} onEdit={editFrom} />}
       <Method ctx={ctx} ff={ff} />
     </div>
   );
@@ -262,6 +269,160 @@ function Compare({ ff, ownE, sumOf, ctx, rotName }) {
         {T('* লাভ: FAOSTAT ফলন × (দাম − পুরো খরচ), প্রকাশিত সূত্র থেকে। আমন সব পথে একই, তাই বাদ।', '* Profit: FAOSTAT yield × (price − full cost), from published sources. The Aman is the same on every path, so it is left out.')}
         {unpriced.length > 0 && T(` ${unpriced.map((id) => cropOf(id).name.bn).join(', ')}-এর নির্ভরযোগ্য দাম-খরচের সূত্র নেই, তাই এদের আয় ধরা হয়নি (শূন্য ধরা)।`, ` ${unpriced.map((id) => cropOf(id).name.en).join(', ')} have no reliable published price and cost, so their income is not counted (taken as zero).`)}
       </p>
+    </Card>
+  );
+}
+
+// ───────── the field's climate account: carbon into the soil against methane out of the paddy ─────────
+function Ledger({ ff, ownE, ctx, w, rotName }) {
+  const { s, T } = useStore();
+  const lang = s.lang;
+  const [awd, setAwd] = useState(false);
+  const list = [
+    { id: 'habit', e: ff.habit, name: T('এখনকার মতো', 'As now'), tone: SLATE },
+    ff.plan && keyOf(ff.plan.rot) !== keyOf(ff.habit.rot) && { id: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা প্রতি বছর', 'This season’s plan, every year'), tone: TEAL },
+    { id: 'best', e: ff.best, name: T('সেরা ফসলচক্র', 'Best rotation'), tone: GREEN },
+    { id: 'own', e: ownE, name: T('আপনার বানানো', 'Your own'), tone: GOLD },
+  ].filter(Boolean).map((c) => ({ ...c, l: climateLedger(ctx, c.e.rot, w === 'fut' ? c.e.fut : c.e.now, { awd }) })).filter((c) => c.l);
+  const bg = (x) => x * BIGHA_HA; // per hectare to per bigha
+  const out = (l) => l.ch4Co2e + Math.max(0, -l.soilCo2), inn = (l) => Math.max(0, l.soilCo2);
+  const max = Math.max(0.01, ...list.flatMap((c) => [out(c.l), inn(c.l)]));
+  const anyBoro = list.some((c) => c.l.hasBoro);
+  const habit = list.find((c) => c.id === 'habit'), best = list.find((c) => c.id === 'best');
+  const cut = habit && best && habit.l.net > 0 ? (1 - best.l.net / habit.l.net) * 100 : null;
+  const t2 = (x) => num(bg(x), lang, { dp: 2 });
+  return (
+    <Card id="ff-ledger" className="mt-5 scroll-mt-40 p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="max-w-3xl">
+          <h2 className="flex items-center gap-2 text-[20px] font-bold"><Scale size={20} className="text-primary-700" />{T('জমির জলবায়ু খাতা', 'The field’s climate account')}</h2>
+          <p className="text-[14px] leading-6 text-muted">{T('মাটিতে কার্বন জমলে বাতাস থেকে CO₂ কমে; কিন্তু পানিতে ডোবা ধানক্ষেত মিথেন ছাড়ে, যা CO₂-এর চেয়ে ২৭ গুণ বেশি গরম করে। দুটো এক খাতায় মিলিয়ে দেখা হলো কোন চাষে জমি আসলে জলবায়ুর পক্ষে।', 'Carbon going into the soil takes CO₂ out of the air; but a flooded paddy gives off methane, which warms 27 times as much as CO₂. Both go in one account here, to see which farming is really on the climate’s side.')}</p>
+        </div>
+        <Tags list={['RULE']} />
+      </div>
+      {anyBoro && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-[13.5px] font-semibold">{T('বোরোর সেচ:', 'Boro irrigation:')}</span>
+          <Segmented value={awd ? 'awd' : 'flood'} onChange={(v) => setAwd(v === 'awd')} options={[
+            { value: 'flood', label: T('একটানা পানি', 'Kept flooded') },
+            { value: 'awd', label: T('AWD: ভেজানো-শুকানো', 'AWD: wet and dry') },
+          ]} />
+        </div>
+      )}
+      <div className="mt-4 space-y-3">
+        {list.map((c) => (
+          <div key={c.id} className="rounded-2xl border border-border bg-white p-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+              <div className="min-w-0"><span className="font-bold" style={{ color: c.tone }}>{c.name}</span><span className="ml-2 text-[12px] text-muted">{rotName(c.e.rot, { short: true })}</span></div>
+              <div className="text-[14px] font-bold tabular">{T('নিট', 'Net')} <span className={c.l.net > 0 ? 'text-red-700' : 'text-primary-800'}>{signed(bg(c.l.net), lang, 2)}</span> <span className="text-[12px] font-normal text-muted">{T('টন CO₂e, বিঘায় বছরে', 't CO₂e per bigha a year')}</span></div>
+            </div>
+            {/* Diverging bar: what the soil takes in to the left, what goes out (methane, and soil carbon lost) to the right. */}
+            <div className="mt-2 grid grid-cols-2 gap-0.5" aria-hidden="true">
+              <div className="flex justify-end"><div className="h-3.5 rounded-l-md bg-primary-600" style={{ width: `${(inn(c.l) / max) * 100}%` }} /></div>
+              <div className="flex">
+                <div className="h-3.5 bg-[#c4512f]" style={{ width: `${(c.l.ch4Co2e / max) * 100}%`, borderRadius: c.l.soilCo2 < 0 ? 0 : '0 6px 6px 0' }} />
+                {c.l.soilCo2 < 0 && <div className="h-3.5 rounded-r-md bg-[#8a6a45]" style={{ width: `${(-c.l.soilCo2 / max) * 100}%` }} />}
+              </div>
+            </div>
+            <div className="mt-1.5 flex flex-wrap justify-between gap-x-4 gap-y-0.5 text-[12.5px] text-ink/80">
+              <span>{c.l.soilCo2 >= 0 ? T(`মাটিতে জমা: ${t2(c.l.soilCo2)} টন CO₂`, `Into the soil: ${t2(c.l.soilCo2)} t CO₂`) : T(`মাটি থেকে হারায়: ${t2(-c.l.soilCo2)} টন CO₂`, `Lost from the soil: ${t2(-c.l.soilCo2)} t CO₂`)}</span>
+              <span>{T(`ধানক্ষেতের মিথেন: ${num(bg(c.l.ch4), lang, { dp: 1 })} কেজি = ${t2(c.l.ch4Co2e)} টন CO₂e`, `Paddy methane: ${num(bg(c.l.ch4), lang, { dp: 1 })} kg = ${t2(c.l.ch4Co2e)} t CO₂e`)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted">
+        <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-primary-600" />{T('মাটিতে জমা কার্বন', 'Carbon into the soil')}</span>
+        <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-[#c4512f]" />{T('ধানক্ষেতের মিথেন', 'Paddy methane')}</span>
+        <span className="inline-flex items-center gap-1.5"><i className="h-2.5 w-2.5 rounded-sm bg-[#8a6a45]" />{T('মাটি থেকে হারানো কার্বন', 'Carbon lost from the soil')}</span>
+      </div>
+      {cut != null && Math.abs(cut) >= 1 && <Note tone={cut > 0 ? 'ok' : 'gold'} className="mt-3">{cut > 0 ? T(`সেরা ফসলচক্রে জমির নিট গ্রিনহাউস গ্যাস এখনকার চাষের চেয়ে প্রায় ${num(cut, 'bn')}% কম।`, `The best rotation puts out about ${num(cut, 'en')}% less net greenhouse gas than farming as now.`) : T(`সেরা ফসলচক্রে জমির নিট গ্রিনহাউস গ্যাস এখনকার চাষের চেয়ে প্রায় ${num(-cut, 'bn')}% বেশি।`, `The best rotation puts out about ${num(-cut, 'en')}% more net greenhouse gas than farming as now.`)}{anyBoro && !awd && T(' বোরোতে AWD দিয়ে দেখুন: পানি আর মিথেন দুটোই কমে।', ' Try AWD on the Boro: it saves water and methane.')}</Note>}
+      <p className="mt-2 text-[12.5px] leading-5 text-muted">{T(`মিথেন: আইপিসিসি ২০১৯-এর টিয়ার-১ পদ্ধতি, দক্ষিণ এশিয়ার দৈনিক হার ${num(CH4.ef, 'bn', { dp: 2 })} কেজি/হেক্টর; একটানা পানি ×১, AWD ×${num(CH4.sfw.awd, 'bn', { dp: 2 })}, বৃষ্টিনির্ভর আমন ×${num(CH4.sfw.rainfed, 'bn', { dp: 2 })}; আগের ফসলের রেখে দেওয়া খড় মিথেন বাড়ায়। মিথেনের উষ্ণায়ন ক্ষমতা ২৭ (আইপিসিসি এআর৬)। নাইট্রাস অক্সাইড ধরা হয়নি; আইপিসিসির নিজের হারেই অনিশ্চয়তা অনেক, তাই এটি তুলনার জন্য।`, `Methane: IPCC 2019 Tier 1, South Asia daily rate ${CH4.ef} kg/ha; kept flooded ×1, AWD ×${CH4.sfw.awd}, rainfed Aman ×${CH4.sfw.rainfed}; straw kept from the crop before adds methane. Methane’s warming power 27 (IPCC AR6). Nitrous oxide is not counted; the IPCC rates themselves are uncertain, so use this to compare.`)}</p>
+    </Card>
+  );
+}
+
+// ───────── robustness: every candidate under each climate model on its own ─────────
+function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
+  const { s, T, upazila } = useStore();
+  const lang = s.lang;
+  const [res, setRes] = useState(null);
+  const rots = useMemo(() => {
+    const seen = new Map();
+    for (const e of [ff.best, ...ff.top, ff.habit, ownE, ff.plan].filter(Boolean)) seen.set(keyOf(e.rot), e.rot);
+    return [...seen.values()];
+  }, [ff, ownE]);
+  useEffect(() => {
+    setRes(null);
+    // About a quarter of a second of work: run it after the page has drawn.
+    const id = setTimeout(() => setRes(modelTest({ base, deltas, upazilaId: upazila.id, scenario: scen, rots, habit: ff.habit.rot, cal: ff.cal, priorities: s.priorities, range: ff.range })), 60);
+    return () => clearTimeout(id);
+  }, [base, upazila.id, scen, rots, ff, s.priorities]);
+  const tag = (rot) => {
+    const k = keyOf(rot);
+    return [k === keyOf(ff.best.rot) && [T('সেরা', 'Best'), GREEN], k === keyOf(ff.habit.rot) && [T('এখনকার মতো', 'As now'), SLATE], k === keyOf(ownE.rot) && [T('আপনার', 'Yours'), GOLD]].filter(Boolean);
+  };
+  const bestRow = res?.list.find((x) => keyOf(x.rot) === keyOf(ff.best.rot));
+  const robustIsBest = !!res && keyOf(res.robust.rot) === keyOf(ff.best.rot);
+  // Level with the most robust on keeping the soil and on risk: then both are safe, and the worst case decides.
+  const level = !!res && !!bestRow && !robustIsBest && bestRow.keepsSoil >= res.robust.keepsSoil && bestRow.safer >= res.robust.safer;
+  const rows = res ? res.list : [];
+  const top = res?.robust;
+  const of = (x, n) => T(`${num(x, 'bn')}/${num(n, 'bn')}`, `${x}/${n}`);
+  return (
+    <Card id="ff-robust" className="mt-5 scroll-mt-40 p-4 sm:p-5">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="max-w-3xl">
+          <h2 className="flex items-center gap-2 text-[20px] font-bold"><ShieldCheck size={20} className="text-primary-700" />{T('৮টি জলবায়ু মডেলে আলাদা পরীক্ষা', 'Tested under each of the eight climate models')}</h2>
+          <p className="text-[14px] leading-6 text-muted">{T('ওপরের ২০৪০-এর হিসাব মডেলগুলোর মাঝামাঝি পরিবর্তনে। কিন্তু কোন মডেল ঠিক হবে কেউ জানে না। তাই প্রতিটি ভালো ফসলচক্র প্রতিটি মডেলের ভবিষ্যতে আলাদা করে চালানো হলো: যেটা যেকোনো ভবিষ্যতে টেকে, সেটাই নিরাপদ বাছাই।', 'The 2040s above use the middle of the models’ change. No one knows which model will be right, so each good rotation is run again in each model’s future on its own: the one that holds up whatever happens is the safe choice.')}</p>
+        </div>
+        <Tags list={['REAL', 'RULE']} />
+      </div>
+      {!res ? (
+        <div className="mt-4 flex items-center gap-2 text-[14px] text-muted"><Loader2 size={16} className="animate-spin" />{T('৮টি মডেলে চালানো হচ্ছে…', 'Running the eight models…')}</div>
+      ) : <>
+        <Note tone={robustIsBest || level ? 'ok' : 'gold'} className="mt-4">
+          {level
+            ? T(`সেরা ফসলচক্রও ${of(bestRow.keepsSoil, res.n)} মডেলে মাটির কার্বন ধরে রাখে, তাই এটি নিরাপদ বাছাই। নিচের প্রথমটিও তাই, আর সবচেয়ে খারাপ মডেলেও তাতে কার্বন একটু বেশি বাড়ে (${signed(res.robust.worstDSoc, 'bn')}% বনাম ${signed(bestRow.worstDSoc, 'bn')}%)।`, `The best rotation also keeps the soil carbon in ${of(bestRow.keepsSoil, res.n)} models, so it is a safe choice. So does the first one below, and it builds a little more carbon even under the worst model (${signed(res.robust.worstDSoc, 'en')}% against ${signed(bestRow.worstDSoc, 'en')}%).`)
+            : robustIsBest
+            ? T(`সেরা ফসলচক্রটিই সবচেয়ে টেকসই: ${of(bestRow.keepsSoil, res.n)} মডেলে মাটির কার্বন ধরে রাখে, ${of(bestRow.wins, res.n)} মডেলে সবার সেরা।`, `The best rotation is also the most robust: it keeps the soil carbon in ${of(bestRow.keepsSoil, res.n)} models and comes first in ${of(bestRow.wins, res.n)}.`)
+            : T(`সেরা ফসলচক্র ${of(bestRow?.keepsSoil ?? 0, res.n)} মডেলে মাটির কার্বন ধরে রাখে আর ${of(bestRow?.safer ?? 0, res.n)} মডেলে ঝুঁকি বাড়ায় না। নিচের প্রথমটিতে ${of(res.robust.keepsSoil, res.n)} আর ${of(res.robust.safer, res.n)}: জলবায়ু যেদিকেই যাক, সেটি বেশি নিরাপদ বাছাই।`, `The best rotation keeps the soil carbon in ${of(bestRow?.keepsSoil ?? 0, res.n)} models and adds no risk in ${of(bestRow?.safer ?? 0, res.n)}. The first one below: ${of(res.robust.keepsSoil, res.n)} and ${of(res.robust.safer, res.n)}. Whichever way the climate goes, it is the safer choice.`)}
+        </Note>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[640px] text-[13.5px]">
+            <thead>
+              <tr className="text-left text-muted">
+                <th className="py-2 pr-2 font-semibold">{T('ফসলচক্র', 'Rotation')}</th>
+                <th className="px-2 py-2 font-semibold">{T('মাটির কার্বন টেকে', 'Soil carbon holds')}</th>
+                <th className="px-2 py-2 font-semibold">{T('ঝুঁকি বাড়ে না', 'Risk no higher')}</th>
+                <th className="px-2 py-2 font-semibold">{T('সবার সেরা', 'Comes first')}</th>
+                <th className="px-2 py-2 font-semibold">{T('সবচেয়ে খারাপ মডেলে কার্বন', 'Carbon, worst model')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((x) => (
+                <tr key={keyOf(x.rot)} className={`border-t border-border ${x === top ? 'bg-primary-50/60' : ''}`}>
+                  <td className="py-2 pr-2">
+                    <div className="flex flex-wrap items-center gap-1">{tag(x.rot).map(([l, c]) => <span key={l} className="rounded-full px-1.5 py-0.5 text-[11px] font-bold text-white" style={{ background: c }}>{l}</span>)}</div>
+                    <div className="mt-0.5 max-w-[320px] text-[12.5px] leading-5">{rotName(x.rot, { short: true })}</div>
+                  </td>
+                  <td className="px-2 py-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="flex gap-0.5" aria-hidden="true">{Array.from({ length: x.n }, (_, j) => <i key={j} className={`h-2.5 w-2.5 rounded-full ${j < x.keepsSoil ? 'bg-primary-600' : 'bg-black/[.12]'}`} />)}</span>
+                      <b className="tabular">{of(x.keepsSoil, x.n)}</b>
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 tabular">{of(x.safer, x.n)}</td>
+                  <td className="px-2 py-2 tabular">{of(x.wins, x.n)}</td>
+                  <td className={`px-2 py-2 tabular font-semibold ${x.worstDSoc >= 0 ? 'text-primary-800' : 'text-red-700'}`}>{signed(x.worstDSoc, lang)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {!robustIsBest && <Button variant="ghost" className="mt-3" onClick={() => onEdit(res.robust.rot)}><Wand2 size={16} />{T('সবচেয়ে টেকসইটা নিজে বানানোয় খুলুন', 'Open the most robust one in Build your own')}</Button>}
+        <p className="mt-2 text-[12.5px] leading-5 text-muted">{T(`প্রতিটি মডেলের নিজের মাসিক পরিবর্তন (নাসা NEX-GDDP-CMIP6, ২০৪১–২০৫০) আপনার এলাকার আসল দিনে বসিয়ে দশ বছর চালানো। "ঝুঁকি বাড়ে না": এখনকার চাষের চেয়ে খারাপ মৌসুম বেশি নয়। পদ্ধতি: রোবাস্ট ডিসিশন মেকিং (Lempert ও অন্যরা ২০০৬)।`, `Each model’s own monthly change (NASA NEX-GDDP-CMIP6, 2041–2050) laid on your area’s real days and run for ten years. “Risk no higher”: no more bad seasons than farming as now. Method: robust decision making (Lempert et al. 2006).`)}</p>
+      </>}
     </Card>
   );
 }
@@ -498,6 +659,8 @@ function Method({ ctx, ff }) {
     [T('পানি', 'Water'), T('FAO-56: ফসল-সহগ × হারগ্রিভস ET₀, এলাকার স্টেশন-মেলানো নাসা POWER আবহাওয়ায়, ব্যবহারযোগ্য বৃষ্টি বাদে; ধানে কাদা করতে ২০০ মিমি।', 'FAO-56: crop coefficient × Hargreaves ET₀ on the area’s station-matched NASA POWER weather, less usable rain; 200 mm to puddle rice.')],
     [T('আবহাওয়ার ঝুঁকি', 'Weather risk'), T('প্রতিটি ফসলের নিজের নিয়ম (ফুলের সময় গরম, ভারী বৃষ্টি), ২০১৩–২০২৫-এর প্রতিটি মৌসুমে আবার চালানো।', 'Each crop’s own rules (heat at flowering, heavy rain) replayed over every season 2013–2025.')],
     [T('২০৪০-এর দশক', 'The 2040s'), T('নাসা NEX-GDDP-CMIP6 v2.0 (Thrasher ও অন্যরা ২০২২), ০.২৫° ঘর, ৮টি মডেল; ২০৪১–২০৫০ বনাম ২০০৫–২০১৪-এর মাসিক পরিবর্তন এলাকার আসল দিনে যোগ (ডেল্টা পদ্ধতি)।', 'NASA NEX-GDDP-CMIP6 v2.0 (Thrasher et al. 2022), 0.25° cell, 8 models; the monthly change 2041–2050 against 2005–2014 added to the area’s real days (delta change).')],
+    [T('জলবায়ু খাতা', 'Climate account'), T(`ধানক্ষেতের মিথেন আইপিসিসি ২০১৯-এর টিয়ার-১ পদ্ধতিতে: দক্ষিণ এশিয়ার দৈনিক হার ${num(CH4.ef, 'bn', { dp: 2 })} কেজি/হেক্টর, পানির ধরন (একটানা ১, AWD ${num(CH4.sfw.awd, 'bn', { dp: 2 })}, বৃষ্টিনির্ভর ${num(CH4.sfw.rainfed, 'bn', { dp: 2 })}) আর রেখে দেওয়া খড়ের গুণক (১ + খড় × ${num(CH4.cfoa, 'bn', { dp: 2 })})^${num(CH4.exp, 'bn', { dp: 2 })}। উষ্ণায়ন ক্ষমতা ২৭ (আইপিসিসি এআর৬)। মাটির কার্বনের বদল CO₂ হিসেবে বাদ দিয়ে নিট।`, `Paddy methane by IPCC 2019 Tier 1: South Asia daily rate ${CH4.ef} kg/ha, the water regime (kept flooded 1, AWD ${CH4.sfw.awd}, rainfed ${CH4.sfw.rainfed}) and a factor for straw kept, (1 + straw × ${CH4.cfoa})^${CH4.exp}. Warming power 27 (IPCC AR6). The soil carbon change, as CO₂, is set against it for the net.`)],
+    [T('৮ মডেলের পরীক্ষা', 'Eight-model test'), T('প্রতিটি ভালো ফসলচক্র প্রতিটি জলবায়ু মডেলের নিজের ভবিষ্যতে আলাদা করে দশ বছর চালানো, সব ফসলচক্রের একই মাপকাঠিতে নম্বর দিয়ে। যেটা বেশির ভাগ ভবিষ্যতে মাটি ধরে রাখে আর ঝুঁকি বাড়ায় না, সেটাই টেকসই (রোবাস্ট ডিসিশন মেকিং, Lempert ও অন্যরা ২০০৬)।', 'Each good rotation run for ten years in each climate model’s own future, scored on the same scale as every rotation. The one that keeps the soil and adds no risk in most futures is the robust one (robust decision making, Lempert et al. 2006).')],
     [T('মাটির স্বাস্থ্য', 'Soil health'), T('ইউএসডিএ এনআরসিএস-এর চার নীতি: সারা বছর জীবন্ত শিকড়, নানা রকম ফসল, মাটি কম ঘাঁটা (কাদা করা সবচেয়ে বেশি), জৈব পদার্থ বাড়ানো।', 'USDA NRCS’s four principles: living roots all year, many kinds of crop, less disturbance (puddling is the most), building organic matter.')],
     [T('ফলন', 'Yields'), T(`FAOSTAT ২০২৪; আউশ ও আমন: ইউএসডিএ এফএএস (ডিএই তথ্য) ${num(YIELDS.aus.tHa, 'bn', { dp: 2 })} ও ${num(YIELDS.aman.tHa, 'bn', { dp: 2 })} টন ধান/হেক্টর; মুগ: বিবিএস ${num(YIELDS.mungbean.tHa, 'bn', { dp: 2 })} টন/হেক্টর।`, `FAOSTAT 2024; Aus and Aman: USDA FAS (DAE data) ${YIELDS.aus.tHa} and ${YIELDS.aman.tHa} t paddy/ha; mungbean: BBS ${YIELDS.mungbean.tHa} t/ha.`)],
   ];
@@ -507,6 +670,7 @@ function Method({ ctx, ff }) {
     ['ISRIC SoilGrids', 'https://soilgrids.org'],
     ['ICBM (Andrén & Kätterer 1997)', 'https://doi.org/10.1890/1051-0761(1997)007[1226:ITICBM]2.0.CO;2'],
     ['FAO-56', 'https://www.fao.org/4/x0490e/x0490e00.htm'],
+    ['IPCC 2019 Refinement, Vol. 4 Ch. 5 (rice methane)', 'https://www.ipcc-nggip.iges.or.jp/public/2019rf/vol4.html'],
     ['NRCS soil health principles', 'https://www.nrcs.usda.gov/conservation-basics/natural-resource-concerns/soil/soil-health'],
   ];
   return (

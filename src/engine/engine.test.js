@@ -254,3 +254,33 @@ test('in Kartik the sample inbox is about the standing Aman, dated up to today',
   assert.ok(spots.some((h) => h.crop === 'aman' && h.symptom === 'blast' && h.members.length >= 7), 'Chauhat neck-blast alert, with Razib');
   assert.equal(buildDemo().requests[0].season, 'rabi', 'the default (test) date keeps the January demo');
 });
+
+test('climate account: Boro-Aman paddy gives off methane, AWD cuts it, and a rotation without Boro less again', async () => {
+  const sf = await import('./soilfuture.js');
+  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const clim = makeClimate(climJson);
+  const soil = Object.values(soilJson.unions)[0];
+  const ctx = sf.fieldContext({ clim, change: sf.climateChange(deltas, 'godagari'), soil, plot: { irrigation: 'dtw' }, amanT: null, econ: null });
+  const ff = sf.fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'mustard', k1: 'fallow' }, priorities: [] });
+  const flood = sf.climateLedger(ctx, ff.habit.rot, ff.habit.now), awd = sf.climateLedger(ctx, ff.habit.rot, ff.habit.now, { awd: true });
+  // Boro 115 d at 0.85 kg/ha/d flooded, Aman 120 d rainfed (×0.54), with stubble straw: 100–250 kg CH₄/ha a year.
+  assert.ok(flood.ch4 > 100 && flood.ch4 < 250, `methane ${flood.ch4}`);
+  assert.ok(awd.ch4 < flood.ch4 * 0.8, 'AWD on the Boro cuts the yearly methane');
+  assert.ok(Math.abs(flood.soilCo2) < 1e-6, 'the usual rotation holds today’s soil carbon (calibrated steady state)');
+  const noBoro = sf.climateLedger(ctx, { cycle: [{ rabi: 'mustard', k1: 'fallow' }], residue: 'habit' }, ff.habit.now);
+  assert.ok(noBoro.ch4 < flood.ch4 / 2, 'only the Aman is flooded without Boro');
+});
+
+test('eight-model test: each rotation counted once, every count within the number of models', async () => {
+  const sf = await import('./soilfuture.js');
+  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const base = { clim: makeClimate(climJson), soil: Object.values(soilJson.unions)[0], plot: { irrigation: 'dtw' }, amanT: null, econ: null };
+  const ctx = sf.fieldContext({ ...base, change: sf.climateChange(deltas, 'godagari') });
+  const ff = sf.fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'mustard', k1: 'fallow' }, priorities: [] });
+  const mt = sf.modelTest({ base, deltas, upazilaId: 'godagari', scenario: 'ssp245', rots: [ff.best.rot, ...ff.top.map((e) => e.rot), ff.habit.rot], habit: ff.habit.rot, cal: ff.cal, priorities: [], range: ff.range });
+  assert.equal(mt.n, 8);
+  assert.equal(new Set(mt.list.map((x) => JSON.stringify(x.rot))).size, mt.list.length);
+  assert.equal(mt.list.reduce((a, x) => a + x.wins, 0), 8, 'one winner per model');
+  for (const x of mt.list) assert.ok(x.keepsSoil <= 8 && x.safer <= 8 && x.wins <= 8);
+  assert.ok(mt.robust.keepsSoil >= mt.list.find((x) => JSON.stringify(x.rot) === JSON.stringify(ff.habit.rot)).keepsSoil);
+});

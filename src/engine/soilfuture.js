@@ -358,19 +358,20 @@ export function futureWeights(priorities = []) {
 }
 
 // Scores each rotation 0–100 against the others, on the mean of today's and the 2040s' numbers.
-export function rank(evals, priorities) {
+// `fixed`: the ranges of an earlier ranking, so a few rotations can be scored on the same scale as all of them.
+export function rank(evals, priorities, fixed = null) {
   const w = futureWeights(priorities);
   const m = (e, k) => { const a = e.sNow[k], b = e.sFut?.[k]; return b == null ? a : (a + b) / 2; };
   const metric = {
     soil: (e) => (e.sNow.health.score + (e.sFut?.health.score ?? e.sNow.health.score)) / 2,
     water: (e) => -m(e, 'waterMm'), money: (e) => m(e, 'money'), risk: (e) => -m(e, 'risk'), pest: (e) => -m(e, 'pest'),
   };
-  const range = Object.fromEntries(Object.entries(metric).map(([k, f]) => { const v = evals.map(f); return [k, [Math.min(...v), Math.max(...v)]]; }));
+  const range = fixed ?? Object.fromEntries(Object.entries(metric).map(([k, f]) => { const v = evals.map(f); return [k, [Math.min(...v), Math.max(...v)]]; }));
   for (const e of evals) {
     e.parts = Object.fromEntries(Object.entries(metric).map(([k, f]) => { const [lo, hi] = range[k]; return [k, hi > lo ? ((f(e) - lo) / (hi - lo)) * 100 : 50]; }));
     e.score = Object.entries(w).reduce((a, [k, x]) => a + x * e.parts[k], 0);
   }
-  return { weights: w, evals: evals.sort((a, b) => b.score - a.score) };
+  return { weights: w, range, evals: evals.sort((a, b) => b.score - a.score) };
 }
 
 // Every rotation this field can take: one-year and two-year cycles of feasible years, with and without the straw.
@@ -395,7 +396,7 @@ export function fieldFuture({ ctx, lastCrop, plan, priorities }) {
   const habit = { cycle: [habitYear], residue: 'habit' };
   const cal = calibrate(ctx, habit);
   const all = allRotations(ctx).map((rot) => evaluate(ctx, rot, cal));
-  const { weights, evals } = rank(all, priorities);
+  const { weights, range, evals } = rank(all, priorities);
   const key = (rot) => `${rot.residue}|${rot.cycle.map((y) => `${y.rabi}-${y.k1}`).join('|')}`;
   const find = (rot) => evals.find((e) => key(e.rot) === key(rot)) ?? (() => { const e = evaluate(ctx, rot, cal); rank([...evals, e], priorities); return e; })();
   const planRot = plan && feasible(ctx, plan) ? { cycle: [plan], residue: 'habit' } : null;
@@ -404,7 +405,7 @@ export function fieldFuture({ ctx, lastCrop, plan, priorities }) {
   const keeps = evals.filter((e) => e.sNow.dSoc >= 0);
   const pool = keeps.length ? keeps : evals;
   return {
-    cal, weights, count: evals.length, all: evals, guard: keeps.length > 0,
+    cal, weights, range, count: evals.length, all: evals, guard: keeps.length > 0,
     habit: find(habit), plan: planRot ? find(planRot) : null, best: pool[0], top: pool.slice(0, 5),
     richest: evals.reduce((a, e) => (m2(e) > m2(a) ? e : a), evals[0]),
     evaluateOwn: (rot) => { const e = evaluate(ctx, rot, cal); const all2 = rank([...evals.filter((x) => key(x.rot) !== key(rot)), e], priorities); return all2.evals.find((x) => x === e); },
@@ -415,3 +416,82 @@ export const WATER_M3_PER_MM_BIGHA = BIGHA_HA * 10; // 1 mm on a bigha = 1.336 m
 export const ureaSavedKgPerBigha = (nKgHa) => (nKgHa / 0.46) * BIGHA_HA;
 export const co2PerBigha = (dStockTHa) => dStockTHa * (44 / 12) * BIGHA_HA;
 export { WATER_CLASS };
+
+// ---- the field's climate account: soil carbon stored against paddy methane ----
+// Methane from flooded rice, IPCC 2019 Refinement Tier 1 (Vol. 4, Ch. 5.5): a daily emission factor for South Asia,
+// 0.85 kg CH₄/ha/day (Table 5.11A), times the water regime (continuously flooded 1.00; multiple drainage, as with
+// AWD, 0.55; regular rainfed 0.54: Table 5.12), the pre-season water (not flooded for under 180 days, 1.00: Table 5.13)
+// and the organic amendment SFo = (1 + ROA × 0.19)^0.59, for straw ploughed in more than 30 days before the rice
+// (Table 5.14; ROA in t dry matter/ha). Over 100 years methane warms 27 times as much as CO₂ (IPCC AR6, non-fossil).
+// Boro is irrigated (flooded, or AWD when chosen); T. Aman is rainfed; Aus here is direct-seeded, not flooded.
+// Nitrous oxide is not counted. Soil carbon change is the model's ten-year change, as CO₂.
+export const CH4 = { ef: 0.85, sfw: { flooded: 1, awd: 0.55, rainfed: 0.54 }, sfp: 1, cfoa: 0.19, exp: 0.59, gwp: 27 };
+const strawT = (id, tHa, residue) => {
+  const c = CARBON[id];
+  if (!c || !tHa) return 0;
+  return tHa * c.dm * (1 / c.hi - 1) * c.keep[residue === 'retain' ? 1 : 0];
+};
+export function climateLedger(ctx, rot, rows, { awd = false } = {}) {
+  if (!rows?.length) return null;
+  const tOf = (y, id, slot) => (slot === 2 ? ctx.amanSlot.tHa : slot === 0 ? ctx.rabi[id]?.tHa : ctx.k1[y.rabi]?.[id]?.tHa) ?? 0;
+  let prev = { id: 'aman', t: ctx.amanSlot.tHa }; // the Aman before year one
+  const perYear = [];
+  for (let k = 0; k < YEARS; k++) {
+    const y = yearOf(rot, k);
+    let kg = 0;
+    [[y.rabi, 0], [y.k1, 1], ['aman', 2]].forEach(([id, slot]) => {
+      if (id === 'fallow') return;
+      const t = tOf(y, id, slot);
+      if (id === 'boro' || id === 'aman') {
+        const roa = strawT(prev.id, prev.t, rot.residue);
+        const sfw = id === 'aman' ? CH4.sfw.rainfed : awd ? CH4.sfw.awd : CH4.sfw.flooded;
+        const days = id === 'aman' ? AMAN_DAYS : RABI_CROPS.boro.days;
+        kg += CH4.ef * sfw * CH4.sfp * (1 + roa * CH4.cfoa) ** CH4.exp * days;
+      }
+      prev = { id, t };
+    });
+    perYear.push(kg);
+  }
+  const ch4 = mean(perYear); // kg CH₄/ha a year
+  const ch4Co2e = (ch4 * CH4.gwp) / 1000; // t CO₂e/ha a year
+  const soilCo2 = (((rows[rows.length - 1].soc - ctx.soc0) / YEARS) * 44) / 12; // t CO₂/ha a year taken up (+) or lost (−)
+  return { ch4, ch4Co2e, soilCo2, net: ch4Co2e - soilCo2, hasBoro: rot.cycle.some((y) => y.rabi === 'boro') };
+}
+
+// ---- robustness: the same rotations under each climate model on its own ----
+// The 2040s above use the models' median change. Here every candidate is run again under each of the models
+// separately, and counted: in how many it keeps or builds the soil, in how many its weather risk is no worse than
+// the usual rotation's, and in how many it scores best among the candidates. A choice that holds up whichever model
+// turns out right is a robust one (Lempert et al. 2006, Manage. Sci. 52:514, robust decision making).
+export function modelChange(deltas, upazilaId, scenario, name) {
+  const cellKey = deltas?.upazilas?.[upazilaId];
+  const d = cellKey && deltas.cells[cellKey]?.scenarios?.[scenario]?.[name];
+  return d ? { scenario, name, dTmax: d.dTmax, dTmin: d.dTmin, rain: d.rain } : null;
+}
+export function modelTest({ base, deltas, upazilaId, scenario, rots, habit, cal, priorities, range, models }) {
+  const names = models ?? Object.keys(deltas?.cells?.[deltas?.upazilas?.[upazilaId]]?.scenarios?.[scenario] ?? {});
+  const k = (rot) => `${rot.residue}|${rot.cycle.map((y) => `${y.rabi}-${y.k1}`).join('|')}`;
+  rots = [...new Map(rots.map((r) => [k(r), r])).values()]; // each rotation once
+  const tally = Object.fromEntries(rots.map((r) => [k(r), { rot: r, wins: 0, keepsSoil: 0, safer: 0, dSoc: [] }]));
+  const perModel = [];
+  for (const name of names) {
+    const ctxM = fieldContext({ ...base, change: modelChange(deltas, upazilaId, scenario, name) });
+    const evals = rots.map((r) => evaluate(ctxM, r, cal));
+    const h = evaluate(ctxM, habit, cal);
+    const { evals: ranked } = rank(evals.slice(), priorities, range); // on the full ranking's scale
+    tally[k(ranked[0].rot)].wins++;
+    for (const e of evals) {
+      const t = tally[k(e.rot)];
+      if (e.sFut.dSoc >= 0) t.keepsSoil++;
+      if (e.sFut.risk <= h.sFut.risk + 1e-9) t.safer++;
+      t.dSoc.push(e.sFut.dSoc);
+    }
+    perModel.push({ name, winner: k(ranked[0].rot) });
+  }
+  const list = Object.values(tally).map((t) => ({ ...t, n: names.length, worstDSoc: Math.min(...t.dSoc) }));
+  // Most robust: keeps the soil in the most models, then is safest, then wins most, then the best worst case.
+  const order = (a, b) => b.keepsSoil - a.keepsSoil || b.safer - a.safer || b.wins - a.wins || b.worstDSoc - a.worstDSoc;
+  list.sort(order);
+  const robust = list[0];
+  return { n: names.length, list, perModel, robust, order };
+}
