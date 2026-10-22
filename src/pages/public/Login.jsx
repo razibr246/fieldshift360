@@ -23,7 +23,8 @@ export default function Login() {
   // One sample farmer per upazila, each where that upazila's area alert is: Rahim in Purbapara, Deopara (tomato leaf
   // spot, Godagari) and Razib Miah in Chauhat village, Chauhat union (mustard aphids and a cold-hit seedbed, Dhamrai).
   // and, for the other five divisions, the story farmers (data/stories.js), each in a real village of their upazila.
-  const heroes = ['RAHIM', 'RAZIB', 'DIDARUL', 'PRAHLAD', 'KADER', 'MOFIZUL', 'RAHIMA'].map((id) => farmers.find((f) => f.id === id)).filter(Boolean);
+  // Both lists run in the story level order: Dhaka, Rajshahi, Barishal, then the rest.
+  const heroes = LEVELS.map((l) => farmers.find((f) => f.id === l.live)).filter(Boolean);
   const enterFarmer = (id) => { dispatch({ type: 'chooseFarmer', id }); navigate('/farmer'); };
   const where = (h) => {
     const u = demo.unions.find((x) => x.id === h.union);
@@ -77,7 +78,7 @@ export default function Login() {
             </div>
           ) : (
             <div className="mt-5 space-y-2.5">
-              {Object.values(UPAZILAS).map((u) => (
+              {LEVELS.map((l) => UPAZILAS[l.upz]).filter(Boolean).map((u) => (
                 <button key={u.id} type="button" onClick={() => enterOfficer(u)} className="group flex w-full items-center gap-3 rounded-2xl bg-primary-950 p-3.5 text-left text-white transition hover:bg-primary-900">
                   <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10"><Building2 size={21} /></span>
                   <span className="min-w-0 flex-1">

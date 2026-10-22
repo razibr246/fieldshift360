@@ -1,5 +1,6 @@
 // Seven Divisions, seven farmers: the story levels. Levels 1–2 (Dhaka, Rajshahi) are the app's two live sample
-// farms; levels 3–7 are missions played on each upazila's real NASA data (engine/missions.js).
+// farms; levels 3–7 are missions played on each upazila's real NASA data (engine/missions.js). Listed everywhere in
+// level order: Dhaka, Rajshahi, Barishal, then Chattogram, Khulna, Rangpur and Sylhet.
 // The farmers and their families are composite characters written from what farmers in these places commonly face;
 // they are not real people. Each lives on as a sample farm in the app, in a real village of their upazila. The stories
 // name the officer only by post: the real head of each upazila agriculture office is shown beside the story, from the
@@ -11,7 +12,7 @@ export const PILLARS = [
   L('চাষের পদ্ধতি', 'Cultivation'), L('ফসল তোলা ও ফলন', 'Harvest and yield'), L('আবহাওয়ার আঘাত', 'Weather impact'), L('বাজার ও বিক্রি', 'Marketing and selling'),
 ];
 
-export const LEVELS = [
+const STORY_LEVELS = [
   {
     id: 'dhaka', n: 1, live: 'RAZIB', upz: 'dhamrai', division: L('ঢাকা', 'Dhaka'), zila: L('ঢাকা', 'Dhaka'), upazila: L('ধামরাই', 'Dhamrai'), lat: 23.93, lon: 90.14,
     farmer: L('রাজিব মিয়া', 'Razib Miah'), tone: '#6d5bd0',
@@ -33,7 +34,7 @@ export const LEVELS = [
       'Deopara’s red Barind soil cracks in the hot season, and the deep tube wells reach lower every year. Rahim Uddin has four fields, Boro flowering in heat over 35 °C and leaf spot in the tomatoes. This level is also played in the live sample farm: a season plan on 25 years of NASA weather, the irrigation colour, and ten-year rotations in NASA’s 2040s climate.'),
   },
   {
-    id: 'chattogram', n: 3, live: 'DIDARUL', upz: 'sitakunda', mission: 'chattogram', division: L('চট্টগ্রাম', 'Chattogram'), zila: L('চট্টগ্রাম', 'Chattogram'), upazila: L('সীতাকুণ্ড', 'Sitakunda'), union: L('সৈয়দপুর', 'Syedpur'), lat: 22.6167, lon: 91.6667,
+    id: 'chattogram', n: 4, live: 'DIDARUL', upz: 'sitakunda', mission: 'chattogram', division: L('চট্টগ্রাম', 'Chattogram'), zila: L('চট্টগ্রাম', 'Chattogram'), upazila: L('সীতাকুণ্ড', 'Sitakunda'), union: L('সৈয়দপুর', 'Syedpur'), lat: 22.6167, lon: 91.6667,
     farmer: L('মো. দিদারুল আলম', 'Md. Didarul Alam'), age: 48, tone: '#2f8a8f', acres: 2.4,
     hazard: L('পাহাড়ি ঢল আর ঘূর্ণিঝড়ের বাতাস', 'Hill-foot flash runoff and cyclone winds'),
     bio: L('শিমের ফল ছিদ্রকারী পোকা, শিকড় পচা', 'Bean pod borer and Fusarium root rot'),
@@ -56,7 +57,7 @@ export const LEVELS = [
       'The upazila agriculture officer enrolled Didarul in FieldShift. On the cloudburst alert he dug perimeter drains round the hill plot 48 hours before the depression and moved to raised, mulched beds. When the borer appeared he sent a photo; the officer matched the larval stage and prescribed pheromone traps and spinosad instead of strong poison. Short-duration BRRI dhan75 freed the land three weeks early, and his early beans reached market at the best prices.'),
   },
   {
-    id: 'khulna', n: 4, live: 'PRAHLAD', upz: 'dacope', mission: 'khulna', division: L('খুলনা', 'Khulna'), zila: L('খুলনা', 'Khulna'), upazila: L('দাকোপ', 'Dacope'), union: L('তিলডাঙ্গা', 'Tildanga'), lat: 22.5726, lon: 89.5115,
+    id: 'khulna', n: 5, live: 'PRAHLAD', upz: 'dacope', mission: 'khulna', division: L('খুলনা', 'Khulna'), zila: L('খুলনা', 'Khulna'), upazila: L('দাকোপ', 'Dacope'), union: L('তিলডাঙ্গা', 'Tildanga'), lat: 22.5726, lon: 89.5115,
     farmer: L('প্রহ্লাদ চন্দ্র রায়', 'Prahlad Chandra Roy'), age: 52, tone: '#a8552a', acres: 3.0,
     hazard: L('মাটি ও পানিতে লবণ (১২ dS/m ছাড়িয়ে)', 'Soil and water salinity (past 12 dS/m)'),
     bio: L('লবণের চাপে নেতিয়ে পড়া, গামি স্টেম ব্লাইট', 'Salt-stress wilt and gummy stem blight'),
@@ -79,7 +80,7 @@ export const LEVELS = [
       'With the salinity index and the officer’s guidance, Prahlad dug a small kuni pond to catch rain in a corner of his second plot before the monsoon ended. Instead of bare soil he laid straw mulch to stop the salt rising, and planted salt-tolerant BRRI dhan97 and watermelon on raised ridges with drip. Linked straight to a Khulna wholesaler, he sold sweet watermelon from land people had called cursed with salt.'),
   },
   {
-    id: 'barishal', n: 5, live: 'KADER', upz: 'bakerganj', mission: 'barishal', division: L('বরিশাল', 'Barishal'), zila: L('বরিশাল', 'Barishal'), upazila: L('বাকেরগঞ্জ', 'Bakerganj'), union: L('গারুড়িয়া', 'Garuria'), lat: 22.55, lon: 90.3333,
+    id: 'barishal', n: 3, live: 'KADER', upz: 'bakerganj', mission: 'barishal', division: L('বরিশাল', 'Barishal'), zila: L('বরিশাল', 'Barishal'), upazila: L('বাকেরগঞ্জ', 'Bakerganj'), union: L('গারুড়িয়া', 'Garuria'), lat: 22.55, lon: 90.3333,
     farmer: L('আবদুল কাদের হাওলাদার', 'Abdul Kader Howlader'), age: 45, tone: '#245a28', acres: 2.5,
     hazard: L('দিনে দুবার জোয়ার-ভাটা, কোটালে জমি ডোবা', 'Twice-daily tides, fields under at spring tide'),
     bio: L('হলুদ মাজরা পোকা, পামরি, ইঁদুর', 'Yellow stem borer, hispa and rats'),
@@ -148,6 +149,8 @@ export const LEVELS = [
       'With the officer, Rahima replaced the late variety with short-duration BRRI dhan88 and Bangabandhu dhan100, which ripen two to three weeks earlier. For the tila, a dolomite dose from her soil pH, and Bordeaux paste for the lemon trees. Above all, when the upstream rain radar caught heavy storms over Meghalaya, the officer sent a subsidised combine harvester straight to her plot, and the whole crop was cut before the water came. Today Rahima leads a 25-woman FieldShift farming cooperative in Gowainghat.'),
   },
 ];
+
+export const LEVELS = STORY_LEVELS.sort((a, b) => a.n - b.n);
 
 export const levelOf = (id) => LEVELS.find((l) => l.id === id);
 // Rough position on the country map (geo/bangladesh_crops.json is drawn in a 600 × 850 box over 88.01–92.68 °E and
