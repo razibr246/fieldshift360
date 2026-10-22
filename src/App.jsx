@@ -31,6 +31,7 @@ const Harvest = load(() => import('./pages/farmer/Harvest'));
 const FieldFuture = load(() => import('./pages/farmer/FieldFuture'));
 const MyFarm = load(() => import('./pages/farmer/MyFarm'));
 const FarmerVoice = load(() => import('./pages/farmer/Voice'));
+const SmsMode = load(() => import('./pages/farmer/SmsMode'));
 const OfficerVoice = load(() => import('./pages/officer/Voice'));
 const Radar = load(() => import('./pages/officer/Radar'));
 const RadarOriginal = load(() => import('./pages/officer/RadarOriginal'));
@@ -116,6 +117,7 @@ export default function App() {
           <Route path="future" element={page(<FieldFuture />)} />
           <Route path="farm" element={page(<MyFarm />)} />
           <Route path="voice" element={page(<FarmerVoice />)} />
+          <Route path="sms" element={page(<SmsMode />)} />
         </Route>
         <Route path="/officer" element={page(<OfficerLayout />)}>
           <Route index element={page(<OfficerDashboard />)} />

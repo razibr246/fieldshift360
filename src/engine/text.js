@@ -22,3 +22,17 @@ export function smsParts(text = '') {
   const parts = units === 0 ? 0 : units <= one ? 1 : Math.ceil(units / per);
   return { unicode: !gsm, units, parts, limit: parts <= 1 ? one : parts * per };
 }
+
+// A reply cut into SMS parts at word breaks, each with room for its "(১/৩)" mark within one 67-character Unicode part.
+const PART = 67;
+export function smsSplit(text) {
+  if (smsParts(text).parts <= 1) return [text];
+  const out = [];
+  let cur = '';
+  for (const w of text.split(' ')) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (next.length > PART - 6 && cur) { out.push(cur); cur = w; } else cur = next;
+  }
+  if (cur) out.push(cur);
+  return out;
+}

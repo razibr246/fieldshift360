@@ -16,6 +16,8 @@ spring heat and a falling water table; on the low land of Dhamrai it is floods a
 flash floods and cold waves. Most advice stops at one season. FieldShift 360 looks ten years ahead, for one real
 field:
 
+- **Starting from what the satellite saw.** The field's Sentinel-2 green-cover curve names the crops it actually
+  grew last Rabi and this monsoon; the ten years start from that rotation.
 - **Every feasible rotation, ten years each.** All one- and two-year cycles of a Rabi crop, a Kharif-1 crop and
   T. Aman, with or without the straw kept (several hundred per field), run on the upazila's 25 seasons of NASA POWER
   weather. Each is scored on soil carbon (the ICBM model, started from the field's ISRIC SoilGrids carbon) and the
@@ -23,8 +25,8 @@ field:
 - **The farmer's priorities decide.** More income, less water, less risk, better soil or an early harvest
   re-weight the ranking. The best rotation is the top scorer among those that do not run the soil down.
 - **Adapting to change.** The same rotations are replayed in the 2040s with NASA NEX-GDDP-CMIP6, and the best ones
-  are re-run in each of the eight climate models on its own: a rotation that keeps the soil and adds no risk in
-  most futures is the robust choice.
+  are re-run in each of the eight climate models with each of five real FAOSTAT yield years: 40 futures, so every
+  rotation has a chance of keeping the soil and of beating the farmer's current one.
 - **Water and climate.** Irrigation per bigha for each rotation, AWD for Boro, the Rabi-season root-zone soil
   wetness from NASA POWER since 2002, the water stored under the region from GRACE (falling under the Barind),
   this month's root-zone soil moisture from SMAP, and a climate account that sets paddy methane (IPCC 2019) against the carbon
@@ -33,7 +35,10 @@ field:
   weather and answered as KEEP, ADJUST or SHIFT, with today's field tasks, in Bangla, by voice or typing, on a
   phone.
 
-Union officers receive farmers' problem reports and reply from the same numbers; upazila officers see Ropon Radar,
+Farmers can watch a narrated 30-second story of their own field's ten years and save it as a video, print the
+rotation as a picture poster, or ask by SMS from a feature phone. Upazila officers see what a switch by a share of
+Boro farmers would save across the upazila in water, greenhouse gas and soil carbon. Union officers receive
+farmers' problem reports and reply from the same numbers; upazila officers see Ropon Radar,
 when the rains set in each year (GPM IMERG) and when Aman was actually transplanted (Sentinel-1 radar), for every
 upazila of seven districts; the rain-onset rule agrees with BMD station-based onsets within a week. The full engine
 covers seven upazilas, one in each division of Bangladesh; sample farms in India, Pakistan, Nepal, Bhutan and Myanmar
@@ -81,14 +86,15 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
 
 | Time | Screen | Say (subtitle) |
 | --- | --- | --- |
-| 0:00–0:20 | Home: the drought/flood photo and 25 seasons of NASA weather | "The weather has moved, and the crop calendar our parents trusted no longer fits. NASA POWER shows how much in 25 seasons." |
-| 0:20–0:45 | Step 2: Field Future, the soil time machine (Rahim, Godagari) | "One real field, three rotations, ten years. It starts from this field's own soil. Boro and Aman as now hold the soil still; pulses and jute in the rotation build it." |
-| 0:45–1:10 | Step 3: the best rotation, then pick "less water" | "Several hundred rotations, each run for ten years: soil health, water, profit, weather risk and pests. The farmer's own priorities change the ranking." |
-| 1:10–1:30 | Step 4: the climate account, switch Boro to AWD | "Flooded paddy gives off methane. Set against the carbon stored in the soil, the best rotation cuts the field's net greenhouse gas, and AWD cuts it again." |
-| 1:30–1:55 | Step 5: the eight-model test | "No one knows which climate model will be right, so each rotation is run in all eight NASA projections. The robust choice keeps the soil in every one of them." |
-| 1:55–2:15 | Step 6: Razib's season plan (Dhamrai) | "This year's step of the rotation, tested on 25 seasons of NASA weather. Flood-prone Dhamrai gets its own answer from its own data." |
-| 2:15–2:35 | Step 7: voice, ask "এই ধান কাটার পর কী লাগামু?" | "Farmers ask in Bangla, by voice or by typing. The answer comes from the same working." |
-| 2:35–3:00 | Step 8: Ropon Radar | "When do the rains set in, and when was rice actually planted? NASA IMERG rain and Sentinel-1 radar, for every upazila. Real data; farmers are sample people; the rules are open for officers to check." |
+| 0:00–0:15 | Home: the drought/flood photo and 25 seasons of NASA weather | "The weather has moved, and the crop calendar our parents trusted no longer fits. NASA POWER shows how much in 25 seasons." |
+| 0:15–0:40 | Step 2: Field Future, the satellite-seen rotation and the soil time machine (Rahim, Godagari) | "Sentinel-2 saw mustard then Boro on Rahim's field. From there, one field, three rotations, ten years, from its own soil: the plough pan, the roots, the carbon." |
+| 0:40–1:00 | Step 3: the best rotation, then pick "less water" | "Several hundred rotations, ten years each: soil health, water, profit, weather risk and pests. The farmer's priorities change the ranking." |
+| 1:00–1:15 | Step 4: the climate account, Boro to AWD; then "My field's ten years" story | "Paddy methane against soil carbon; AWD cuts it again. And the farmer gets a narrated story of their own field to share." |
+| 1:15–1:35 | Step 5: the 40-future test | "Eight NASA climate models times five real yield years: forty futures. The robust choice keeps the soil in nearly all of them." |
+| 1:35–1:55 | Step 6: Razib's season plan (Dhamrai) | "This year's step, tested on 25 seasons of NASA weather. Flood-prone Dhamrai gets its own answer." |
+| 1:55–2:10 | Step 7: voice, then the SMS screen | "By voice, by typing, or by SMS from a basic phone, in Bangla: the same working answers." |
+| 2:10–2:35 | Step 8: Ropon Radar | "When do the rains set in, and when was rice planted? NASA IMERG rain, checked against BMD, and Sentinel-1 radar, for every upazila." |
+| 2:35–3:00 | Step 9: the upazila impact | "If a third of Godagari's Boro farmers switched: millions of cubic metres of water a year, while GRACE shows the water underground falling. Real data; sample farmers; open rules." |
 
 ## Slide notes (short deck)
 
@@ -101,10 +107,13 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
    priorities → every rotation run for ten years → soil carbon, NRCS soil health, water, profit, risk, pests.
 5. **The soil time machine.** One field, three rotations, a living soil profile season by season.
 6. **Water and climate.** Irrigation per rotation, AWD, Rabi soil wetness since 2002, methane against soil carbon.
-7. **Robust to any future.** NEX-GDDP-CMIP6 2040s; the best rotations re-run in each of the eight models.
-8. **This season's step.** KEEP / ADJUST / SHIFT on 25 seasons; voice in Bangla; officers see reports and Ropon
+7. **Robust to any future.** NEX-GDDP-CMIP6 2040s; the best rotations re-run in 8 models × 5 yield years = 40 futures,
+   each with its chance of keeping the soil. Field Future starts from the rotation Sentinel-2 saw on the field.
+8. **For every farmer and officer.** A narrated story video and a picture poster of the farmer's own rotation; SMS
+   for feature phones; the upazila-wide effect of a switch for the officer.
+9. **This season's step.** KEEP / ADJUST / SHIFT on 25 seasons; voice in Bangla; officers see reports and Ropon
    Radar for seven districts.
-9. **Honest data.** Real vs sample tags on every number; DATA_SOURCES and THRESHOLDS documents; what still needs an
+10. **Honest data.** Real vs sample tags on every number; DATA_SOURCES and THRESHOLDS documents; what still needs an
    officer's review.
-10. **Next.** Officer review of thresholds, BMD onset validation, a pilot with one union; the same engine for any
+11. **Next.** Officer review of thresholds, BMD onset checks for Sylhet and Chattogram, a pilot with one union and an SMS short code; the same engine for any
     country, since POWER, SoilGrids and CMIP6 are global.

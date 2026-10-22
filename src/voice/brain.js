@@ -247,7 +247,7 @@ function planSay(snap, session) {
   let head;
   if (p.label === 'KEEP') head = T(`${crop} রাখাই ভালো।`, `Keep ${crop}.`);
   else if (p.label === 'ADJUST') head = T(`${crop} রাখুন, তবে লাগানোর সময় ${num(Math.abs(p.shiftDays), lang)} দিন ${p.shiftDays < 0 ? 'এগিয়ে' : 'পিছিয়ে'} আনুন।`, `Keep ${crop}, but plant ${num(Math.abs(p.shiftDays), lang)} days ${p.shiftDays < 0 ? 'earlier' : 'later'}.`);
-  else head = T(`${L(f.lastCrop, lang)} থেকে ${crop}-এ বদলানোর কথা ভাবুন।`, `Think about shifting from ${L(f.lastCrop, lang)} to ${crop}.`);
+  else head = T(`${L(f.lastCrop, lang)} থেকে ${crop} চাষে বদলানোর কথা ভাবুন।`, `Think about shifting from ${L(f.lastCrop, lang)} to ${crop}.`);
   const caution = p.caution ? T(' তবে এই ফসলের জন্য আপনার জমির অবস্থা খুব ভালো নয়, তাই সাবধানে এগোন।', ' This crop is only a modest fit for your field, so go carefully.') : '';
   const glut = p.glut.level !== 'Low' ? T(` কাছাকাছি সবাই একই সময়ে লাগালে দাম পড়ার ঝুঁকি ${riskWord(p.glut.level, lang)}।`, ` Price-drop risk is ${riskWord(p.glut.level, lang)} if everyone nearby plants then.`) : '';
   return T(`${L(f.name, lang)}, এই রবিতে আপনার জমির জন্য আমার হিসাব: ${head} ${date} তারিখে ${act}।${caution}${glut}`, `${L(f.name, lang)}, for your field this Rabi: ${head} ${act} on ${date}.${caution}${glut}`);

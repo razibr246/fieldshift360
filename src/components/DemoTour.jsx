@@ -23,6 +23,8 @@ export const TOUR = [
     say: { bn: '"এই ধান কাটার পর কী লাগামু?" বলুন বা চিপে চাপুন। একই হিসাব থেকে উত্তর আসে, বাংলায়।', en: 'Say "এই ধান কাটার পর কী লাগামু?" (what do I plant after this rice?) or tap a chip. The answer comes from the same working, in Bangla.' } },
   { path: '/officer/radar', officer: ['godagari', 'Deopara'], title: { bn: 'বৃষ্টি কবে নামে, রোপণ কবে হয়', en: 'When the rains set in, when planting happens' },
     say: { bn: 'জিপিএম আইমার্জের ২৫ বছরের বৃষ্টি থেকে প্রতি বছরের বৃষ্টি শুরু, আর সেন্টিনেল-১ রাডারে আমন রোপণ; জেলার প্রতিটি উপজেলায়। কৃষি কর্মকর্তা এখান থেকেই এলাকার ফসলচক্র সাজাতে পারেন।', en: 'The date the rains set in each year from 25 years of GPM IMERG rain, and Aman transplanting from Sentinel-1 radar, for every upazila of the district. From here the officer can plan the area’s rotations.' } },
+  { path: '/officer/upazila', officer: ['godagari', 'Deopara'], hash: 'up-rotation', title: { bn: 'পুরো উপজেলায় কী বদলায়', en: 'What changes across the upazila' },
+    say: { bn: 'বোরো চাষিদের একটা অংশ ফসলচক্র বদলালে উপজেলায় বছরে কত পানি বাঁচে, কত গ্রিনহাউস গ্যাস কমে, মাটিতে কত কার্বন জমে; পাশে GRACE উপগ্রহে মাটির নিচের পানি কমার হার।', en: 'If a share of Boro farmers changed rotation: water saved a year across the upazila, greenhouse gas cut, carbon built in the soil; beside it the fall in water underground from the GRACE satellites.' } },
 ];
 
 export function startTour(dispatch, navigate) { dispatch({ type: 'set', patch: { tour: 0 } }); go(TOUR[0], dispatch, navigate); }

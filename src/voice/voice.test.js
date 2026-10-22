@@ -253,3 +253,14 @@ test('the same question gets each farmer’s own region: Godagari for Rahim, Dha
   assert.notEqual(rahim, razib);
   assert.notEqual(fsnap('RAHIM').prov, undefined);
 });
+
+test('SMS mode cuts a Bangla reply into numbered parts that each fit one Unicode SMS part, at word breaks', async () => {
+  const { smsSplit, smsParts } = await import('../engine/text.js');
+  const reply = 'এবার রবিতে: সরিষা। দশ বছরের সেরা ফসলচক্র: মসুর ডাল-পাট-রোপা আমন, পরের বছর টমেটো-পাট-রোপা আমন, খড় জমিতে রাখুন। ১০ বছরে মাটির জৈব পদার্থ +২.৩%।';
+  const parts = smsSplit(reply);
+  assert.ok(parts.length > 1);
+  assert.equal(parts.join(' '), reply, 'nothing lost or reordered');
+  for (const p of parts) assert.ok(`${p} (১/৩)`.length <= 67, `part fits with its mark: ${p}`);
+  assert.deepEqual(smsSplit('আজ সেচ লাগবে না।'), ['আজ সেচ লাগবে না।']);
+  assert.equal(smsParts('আজ সেচ লাগবে না।').parts, 1);
+});

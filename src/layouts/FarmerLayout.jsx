@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
-import { Bell, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut } from 'lucide-react';
+import { Bell, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, ResetDemo, BackButton } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
@@ -19,6 +19,7 @@ export function useFarmerNav() {
     { to: '/farmer/future', icon: Telescope, label: T('জমির ভবিষ্যৎ', 'Field future'), short: T('ভবিষ্যৎ', 'Future') },
     { to: '/farmer/today', icon: Droplets, label: T('আজকের কাজ', 'Today'), short: T('আজ', 'Today') },
     { to: '/farmer/voice', icon: Mic, label: T('কথা বলে জানুন', 'Ask by voice'), short: T('ভয়েস', 'Voice') },
+    { to: '/farmer/sms', icon: MessageSquareText, label: T('এসএমএসে', 'By SMS'), short: T('এসএমএস', 'SMS') },
     { to: '/farmer/doctor', icon: ScanLine, label: T('ফসলের ডাক্তার', 'Crop doctor'), short: T('ডাক্তার', 'Doctor') },
     { to: '/farmer/help', icon: LifeBuoy, label: T('সাহায্য', 'Help') },
     { to: '/farmer/harvest', icon: Wheat, label: T('ফসল তোলা ও বিক্রি', 'Harvest'), short: T('ফসল তোলা', 'Harvest') },

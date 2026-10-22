@@ -36,7 +36,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 
 | The challenge statement | How FieldShift 360 answers it | Where |
 | --- | --- | --- |
-| A **decision-support tool** | Field Future ranks every feasible rotation for the field and names the best and the most robust; the season plan turns this year's step into KEEP, ADJUST or SHIFT with the evidence behind it | `/farmer/future`, `/farmer/plan` |
+| A **decision-support tool** | Field Future ranks every feasible rotation for the field, starting from the rotation Sentinel-2 actually saw on it, and names the best and the most robust (with its chance over 40 futures); the season plan turns this year's step into KEEP, ADJUST or SHIFT; officers see the upazila-wide effect of a switch | `/farmer/future`, `/farmer/plan`, `/officer/upazila` |
 | Uses **NASA Earth observations** | NASA POWER (weather and root-zone soil wetness), GPM IMERG rain, NEX-GDDP-CMIP6 projections, GIBS HLS imagery, FIRMS fires | Every score; table below |
 | **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's own carbon; SRDI fertilizer doses per union | `src/data/soil_*.json`, Field Future soil column |
 | **Crop characteristics** | Per crop: duration, sowing windows, water need (FAO-56 coefficients), weather failure rules, family, legume nitrogen, harvest index and root-to-shoot ratio for carbon | `src/engine/crops.js`, `src/engine/soilfuture.js` |
@@ -48,7 +48,9 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 | **Water shortages** | Irrigation per bigha for every rotation (FAO-56); AWD for Boro; Rabi-season root-zone soil wetness 2002–2025 (NASA POWER); the water stored under the region 2003–2021 (GRACE: falling 8.9 cm a decade under Godagari, p < 0.01); root-zone soil moisture this month against normal (SMAP, r = 0.89–0.96 with POWER) | Field Future "Soil water", climate account |
 | **Extreme weather** | Each crop's failure rules replayed over every season; drought and flood indices; live seven-day weather warnings | Planner, officer alerts |
 | **Adapt to changing conditions** | The 2040s from NEX-GDDP-CMIP6 (two pathways); every top rotation re-run in each of the eight models on its own, counting the futures it keeps the soil and adds no risk in (robust decision making) | Field Future "Eight-model test" |
-| **Long-term resilience** | Ten-year runs, the worst model's result, and a climate account (IPCC 2019 Tier 1 paddy methane against soil carbon) | Field Future |
+| **Long-term resilience** | Ten-year runs; an ensemble of 8 climate models × 5 real FAOSTAT yield years giving each rotation's chance of keeping the soil; the worst model's result; a climate account (IPCC 2019 Tier 1 paddy methane against soil carbon) | Field Future |
+| **Arts & Multimedia** | A season-by-season soil profile animation; "My field's ten years", a narrated story of the farmer's own numbers saved as a video to share; a printable picture poster of the rotation by Bangla season; Bangla voice | Field Future |
+| Reaching every farmer | Bangla voice and typing; an SMS mode for feature phones (keywords or everyday Bangla, answered by the same engine in 70-character parts) | `/farmer/voice`, `/farmer/sms` |
 | Farmers **around the world** | Full engine for seven upazilas, one in each division of Bangladesh. Sample farms in India, Pakistan, Nepal, Bhutan and Myanmar with the season plan, risks, the 2040s, GRACE and SMAP water, and ten-year rotation options on the farm's own SoilGrids soil and the country's FAOSTAT yields (the same soil-carbon, nitrogen and methane model). Every input is global | `/abroad/*/future` |
 
 ## What was built before and during the event
@@ -63,6 +65,9 @@ After the challenge statement was read (22 October 2026):
 - NASA GRACE and SMAP water records through GIBS (`scripts/fetch-gibs-water.mjs`), in Field Future and abroad.
 - Rotation options for the five neighbouring-country farms (`scripts/data/build_abroad_soil_yields.py`,
   `src/engine/rotationAbroad.js`).
+- Field Future starts from the rotation Sentinel-2 saw on the field; the robustness test became a 40-future
+  ensemble (8 models × 5 FAOSTAT yield years); the officers' upazila impact estimate; the narrated story video and
+  the printable poster; SMS mode.
 - The rain-onset rule checked against BMD station-based onsets (`pipeline/onset/compare_bmd.mjs`); the search now
   opens on 15 May instead of 15 April, and every upazila's onset was re-worked.
 
