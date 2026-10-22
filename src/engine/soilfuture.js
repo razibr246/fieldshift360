@@ -468,14 +468,46 @@ export function modelChange(deltas, upazilaId, scenario, name) {
   const d = cellKey && deltas.cells[cellKey]?.scenarios?.[scenario]?.[name];
   return d ? { scenario, name, dTmax: d.dTmax, dTmin: d.dTmin, rain: d.rain } : null;
 }
+// Each FAOSTAT year 2020–2024 as a yield factor per crop (that year's national yield over the five-year mean).
+// Rice's factor goes to Boro, Aman and Aus alike; mungbean has no FAOSTAT series and stays at its mean.
+export function yieldYears() {
+  const years = Object.keys(yieldHistory.crops.boro.tHa);
+  return years.map((y) => ({
+    year: +y,
+    f: Object.fromEntries(Object.entries(yieldHistory.crops).map(([id, c]) => { const v = Object.values(c.tHa); return [id, c.tHa[y] / mean(v)]; })),
+  }));
+}
+function scaledCtx(ctx, f) {
+  const k = (id) => f[id] ?? (['aman', 'aus'].includes(id) ? f.boro : 1) ?? 1;
+  const slot = (x) => (x && x.tHa != null ? { ...x, tHa: x.tHa * (k(x.id) ?? 1) } : x);
+  return {
+    ...ctx,
+    rabi: Object.fromEntries(Object.entries(ctx.rabi).map(([id, x]) => [id, slot(x)])),
+    k1: Object.fromEntries(Object.entries(ctx.k1).map(([r, ks]) => [r, Object.fromEntries(Object.entries(ks).map(([id, x]) => [id, slot(x)]))])),
+    amanSlot: { ...ctx.amanSlot, tHa: ctx.amanSlot.tHa * (f.boro ?? 1) },
+  };
+}
+
 export function modelTest({ base, deltas, upazilaId, scenario, rots, habit, cal, priorities, range, models }) {
   const names = models ?? Object.keys(deltas?.cells?.[deltas?.upazilas?.[upazilaId]]?.scenarios?.[scenario] ?? {});
   const k = (rot) => `${rot.residue}|${rot.cycle.map((y) => `${y.rabi}-${y.k1}`).join('|')}`;
   rots = [...new Map(rots.map((r) => [k(r), r])).values()]; // each rotation once
   const tally = Object.fromEntries(rots.map((r) => [k(r), { rot: r, wins: 0, keepsSoil: 0, safer: 0, dSoc: [] }]));
   const perModel = [];
+  // The ensemble: every model with every FAOSTAT yield year, so each rotation's chances rest only on real spreads.
+  const years = yieldYears();
+  const ens = Object.fromEntries(rots.map((r) => [k(r), { keep: 0, beat: 0, win: 0 }]));
+  let runs = 0;
   for (const name of names) {
     const ctxM = fieldContext({ ...base, change: modelChange(deltas, upazilaId, scenario, name) });
+    for (const y of years) {
+      const ctxY = scaledCtx(ctxM, y.f);
+      const ev = rots.map((r) => evaluate(ctxY, r, cal)), hy = evaluate(ctxY, habit, cal);
+      const { evals: rk } = rank(ev.slice(), priorities, range);
+      ens[k(rk[0].rot)].win++;
+      for (const e of ev) { const t = ens[k(e.rot)]; if (e.sFut.dSoc >= 0) t.keep++; if (e.sFut.dSoc > hy.sFut.dSoc + 1e-9) t.beat++; }
+      runs++;
+    }
     const evals = rots.map((r) => evaluate(ctxM, r, cal));
     const h = evaluate(ctxM, habit, cal);
     const { evals: ranked } = rank(evals.slice(), priorities, range); // on the full ranking's scale
@@ -488,10 +520,10 @@ export function modelTest({ base, deltas, upazilaId, scenario, rots, habit, cal,
     }
     perModel.push({ name, winner: k(ranked[0].rot) });
   }
-  const list = Object.values(tally).map((t) => ({ ...t, n: names.length, worstDSoc: Math.min(...t.dSoc) }));
-  // Most robust: keeps the soil in the most models, then is safest, then wins most, then the best worst case.
-  const order = (a, b) => b.keepsSoil - a.keepsSoil || b.safer - a.safer || b.wins - a.wins || b.worstDSoc - a.worstDSoc;
+  const list = Object.values(tally).map((t) => { const e = ens[k(t.rot)]; return { ...t, n: names.length, worstDSoc: Math.min(...t.dSoc), runs, pKeep: e.keep / runs, pBeat: e.beat / runs, pWin: e.win / runs }; });
+  // Most robust: the best chance of keeping the soil over every model and yield year, then the models, risk, wins.
+  const order = (a, b) => b.pKeep - a.pKeep || b.keepsSoil - a.keepsSoil || b.safer - a.safer || b.wins - a.wins || b.worstDSoc - a.worstDSoc;
   list.sort(order);
   const robust = list[0];
-  return { n: names.length, list, perModel, robust, order };
+  return { n: names.length, runs, years: years.map((y) => y.year), list, perModel, robust, order };
 }

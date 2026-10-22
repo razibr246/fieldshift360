@@ -320,3 +320,16 @@ test('satellite water and abroad rotations: GRACE, SMAP and ten-year soil option
     assert.ok(r.options.every((o) => Number.isFinite(o.net)));
   }
 });
+
+test('robustness ensemble: every climate model with every FAOSTAT yield year, chances between 0 and 1', async () => {
+  const sf = await import('./soilfuture.js');
+  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const base = { clim: makeClimate(climJson), soil: Object.values(soilJson.unions)[0], plot: { irrigation: 'dtw' }, amanT: null, econ: null };
+  const ctx = sf.fieldContext({ ...base, change: sf.climateChange(deltas, 'godagari') });
+  const ff = sf.fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'mustard', k1: 'fallow' }, priorities: [] });
+  const mt = sf.modelTest({ base, deltas, upazilaId: 'godagari', scenario: 'ssp245', rots: [ff.best.rot, ff.habit.rot], habit: ff.habit.rot, cal: ff.cal, priorities: [], range: ff.range });
+  assert.equal(mt.runs, 8 * sf.yieldYears().length);
+  for (const x of mt.list) for (const k of ['pKeep', 'pBeat', 'pWin']) assert.ok(x[k] >= 0 && x[k] <= 1);
+  const habit = mt.list.find((x) => JSON.stringify(x.rot) === JSON.stringify(ff.habit.rot));
+  assert.equal(habit.pBeat, 0, 'the usual rotation never beats itself');
+});

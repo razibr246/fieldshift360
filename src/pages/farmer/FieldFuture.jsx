@@ -457,7 +457,8 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
   const bestRow = res?.list.find((x) => keyOf(x.rot) === keyOf(ff.best.rot));
   const robustIsBest = !!res && keyOf(res.robust.rot) === keyOf(ff.best.rot);
   // Level with the most robust on keeping the soil and on risk: then both are safe, and the worst case decides.
-  const level = !!res && !!bestRow && !robustIsBest && bestRow.keepsSoil >= res.robust.keepsSoil && bestRow.safer >= res.robust.safer;
+  const level = !!res && !!bestRow && !robustIsBest && bestRow.pKeep >= res.robust.pKeep - 0.05 && bestRow.safer >= res.robust.safer;
+  const pct = (x) => `${num(Math.round(x * 100), lang)}%`;
   const rows = res ? res.list : [];
   const top = res?.robust;
   const of = (x, n) => T(`${num(x, 'bn')}/${num(n, 'bn')}`, `${x}/${n}`);
@@ -466,22 +467,23 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="max-w-3xl">
           <h2 className="flex items-center gap-2 text-[20px] font-bold"><ShieldCheck size={20} className="text-primary-700" />{T('৮টি জলবায়ু মডেলে আলাদা পরীক্ষা', 'Tested under each of the eight climate models')}</h2>
-          <p className="text-[14px] leading-6 text-muted">{T('ওপরের ২০৪০-এর হিসাব মডেলগুলোর মাঝামাঝি পরিবর্তনে। কিন্তু কোন মডেল ঠিক হবে কেউ জানে না। তাই প্রতিটি ভালো ফসলচক্র প্রতিটি মডেলের ভবিষ্যতে আলাদা করে চালানো হলো: যেটা যেকোনো ভবিষ্যতে টেকে, সেটাই নিরাপদ বাছাই।', 'The 2040s above use the middle of the models’ change. No one knows which model will be right, so each good rotation is run again in each model’s future on its own: the one that holds up whatever happens is the safe choice.')}</p>
+          <p className="text-[14px] leading-6 text-muted">{T('ওপরের ২০৪০-এর হিসাব মডেলগুলোর মাঝামাঝি পরিবর্তনে। কিন্তু কোন মডেল ঠিক হবে কেউ জানে না। তাই প্রতিটি ভালো ফসলচক্র প্রতিটি মডেলের ভবিষ্যতে আলাদা করে চালানো হলো, ফলনের ভালো-খারাপ বছরসহ: যেটা যেকোনো ভবিষ্যতে টেকে, সেটাই নিরাপদ বাছাই।', 'The 2040s above use the middle of the models’ change. No one knows which model will be right, so each good rotation is run again in each model’s future on its own, with good and bad yield years: the one that holds up whatever happens is the safe choice.')}</p>
         </div>
         <Tags list={['REAL', 'RULE']} />
       </div>
       {!res ? (
         <div className="mt-4 flex items-center gap-2 text-[14px] text-muted"><Loader2 size={16} className="animate-spin" />{T('৮টি মডেলে চালানো হচ্ছে…', 'Running the eight models…')}</div>
       ) : <>
-        <Note tone={robustIsBest || level ? 'ok' : 'gold'} className="mt-4">
+        <p className="mt-4 text-[14px] leading-6">{T(`${num(res.n, 'bn')}টি জলবায়ু মডেল × ফলনের ${num(res.years.length, 'bn')}টি আসল বছর (FAOSTAT ${bnDigits(res.years[0])}–${bnDigits(res.years[res.years.length - 1])}) = ${num(res.runs, 'bn')}টি সম্ভাব্য ভবিষ্যৎ। সেরা ফসলচক্রে `, `${res.n} climate models × ${res.years.length} real yield years (FAOSTAT ${res.years[0]}–${res.years[res.years.length - 1]}) = ${res.runs} possible futures. With the best rotation, `)}<b>{T(`${pct(bestRow?.pBeat ?? 0)} ভবিষ্যতে মাটি এখনকার চাষের চেয়ে ভালো থাকে`, `the soil ends better than farming as now in ${pct(bestRow?.pBeat ?? 0)} of them`)}</b>{T(`, আর ${pct(bestRow?.pKeep ?? 0)} ভবিষ্যতে মাটির কার্বন একটুও কমে না।`, `, and the soil carbon does not fall at all in ${pct(bestRow?.pKeep ?? 0)}.`)}</p>
+        <Note tone={robustIsBest || level ? 'ok' : 'gold'} className="mt-3">
           {level
             ? T(`সেরা ফসলচক্রও ${of(bestRow.keepsSoil, res.n)} মডেলে মাটির কার্বন ধরে রাখে, তাই এটি নিরাপদ বাছাই। নিচের প্রথমটিও তাই, আর সবচেয়ে খারাপ মডেলেও তাতে কার্বন একটু বেশি বাড়ে (${signed(res.robust.worstDSoc, 'bn')}% বনাম ${signed(bestRow.worstDSoc, 'bn')}%)।`, `The best rotation also keeps the soil carbon in ${of(bestRow.keepsSoil, res.n)} models, so it is a safe choice. So does the first one below, and it builds a little more carbon even under the worst model (${signed(res.robust.worstDSoc, 'en')}% against ${signed(bestRow.worstDSoc, 'en')}%).`)
             : robustIsBest
             ? T(`সেরা ফসলচক্রটিই সবচেয়ে টেকসই: ${of(bestRow.keepsSoil, res.n)} মডেলে মাটির কার্বন ধরে রাখে, ${of(bestRow.wins, res.n)} মডেলে সবার সেরা।`, `The best rotation is also the most robust: it keeps the soil carbon in ${of(bestRow.keepsSoil, res.n)} models and comes first in ${of(bestRow.wins, res.n)}.`)
-            : T(`সেরা ফসলচক্র ${of(bestRow?.keepsSoil ?? 0, res.n)} মডেলে মাটির কার্বন ধরে রাখে আর ${of(bestRow?.safer ?? 0, res.n)} মডেলে ঝুঁকি বাড়ায় না। নিচের প্রথমটিতে ${of(res.robust.keepsSoil, res.n)} আর ${of(res.robust.safer, res.n)}: জলবায়ু যেদিকেই যাক, সেটি বেশি নিরাপদ বাছাই।`, `The best rotation keeps the soil carbon in ${of(bestRow?.keepsSoil ?? 0, res.n)} models and adds no risk in ${of(bestRow?.safer ?? 0, res.n)}. The first one below: ${of(res.robust.keepsSoil, res.n)} and ${of(res.robust.safer, res.n)}. Whichever way the climate goes, it is the safer choice.`)}
+            : T(`সেরা ফসলচক্রে ${num(res.runs, 'bn')}টি ভবিষ্যতের ${pct(bestRow?.pKeep ?? 0)}-এ মাটির কার্বন টেকে; নিচের প্রথমটিতে ${pct(res.robust.pKeep)}-এ (${of(res.robust.keepsSoil, res.n)} মডেলে, ঝুঁকি বাড়ে না ${of(res.robust.safer, res.n)} মডেলে)। জলবায়ু আর ফলন যেদিকেই যাক, মাটির জন্য সেটি বেশি নিরাপদ বাছাই।`, `With the best rotation the soil carbon holds in ${pct(bestRow?.pKeep ?? 0)} of the ${res.runs} futures; with the first one below, in ${pct(res.robust.pKeep)} (${of(res.robust.keepsSoil, res.n)} models, no added risk in ${of(res.robust.safer, res.n)}). Whichever way the climate and the yields go, it is the safer choice for the soil.`)}
         </Note>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-[13.5px]">
+          <table className="w-full min-w-[880px] text-[13.5px]">
             <thead>
               <tr className="text-left text-muted">
                 <th className="py-2 pr-2 font-semibold">{T('ফসলচক্র', 'Rotation')}</th>
@@ -489,6 +491,8 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
                 <th className="px-2 py-2 font-semibold">{T('ঝুঁকি বাড়ে না', 'Risk no higher')}</th>
                 <th className="px-2 py-2 font-semibold">{T('সবার সেরা', 'Comes first')}</th>
                 <th className="px-2 py-2 font-semibold">{T('সবচেয়ে খারাপ মডেলে কার্বন', 'Carbon, worst model')}</th>
+                <th className="px-2 py-2 font-semibold">{T(`${num(res.runs, 'bn')} ভবিষ্যতে মাটি টেকে`, `Soil holds, ${res.runs} futures`)}</th>
+                <th className="px-2 py-2 font-semibold">{T('এখনকার চেয়ে ভালো', 'Better than now')}</th>
               </tr>
             </thead>
             <tbody>
@@ -507,6 +511,8 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
                   <td className="px-2 py-2 tabular">{of(x.safer, x.n)}</td>
                   <td className="px-2 py-2 tabular">{of(x.wins, x.n)}</td>
                   <td className={`px-2 py-2 tabular font-semibold ${x.worstDSoc >= 0 ? 'text-primary-800' : 'text-red-700'}`}>{signed(x.worstDSoc, lang)}%</td>
+                  <td className="px-2 py-2"><div className="flex items-center gap-1.5"><div className="h-2 w-16 rounded-full bg-black/[.08]"><div className="h-2 rounded-full bg-primary-600" style={{ width: `${x.pKeep * 100}%` }} /></div><b className="tabular">{pct(x.pKeep)}</b></div></td>
+                  <td className="px-2 py-2 tabular">{pct(x.pBeat)}</td>
                 </tr>
               ))}
             </tbody>
