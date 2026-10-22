@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermome
 import { useStore } from '../../store';
 import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } from '../../components/ui';
 import { SectionNav } from '../../components/SectionNav';
-import SoilColumn from '../../components/charts/SoilColumn';
+import SoilColumn, { SoilLegend } from '../../components/charts/SoilColumn';
 import CropPhoto from '../../components/CropPhoto';
 import deltas from '../../data/cmip6_deltas.json';
 import { num, bnDigits } from '../../engine/dates';
@@ -113,7 +113,7 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-[20px] font-bold">{T('মাটির টাইম মেশিন', 'Soil time machine')}</h2>
-          <p className="text-[14px] leading-6 text-muted">{T('একই জমি, তিন রকম চাষ। উপরে সেই মৌসুমের ফসল, নিচে মাটি: যত কালো, তত জৈব পদার্থ; কেঁচো মাটির স্বাস্থ্য, লাল পোকা মানে একই গোত্রের ফসল পরপর।', 'One field, three ways of farming it. On top, that season’s crop; below, the soil: darker means more organic matter, earthworms follow soil health, red pests mean the same crop family twice running.')}</p>
+          <p className="text-[14px] leading-6 text-muted">{T('একই জমি, তিন রকম চাষ। উপরে সেই মৌসুমের ফসল, নিচে আপনার জমির ০–৩০ সেমি মাটির কাটা অংশ: স্তর, শিকড়, কেঁচো আর জৈব পদার্থ, সবই হিসাব আর জমির SoilGrids তথ্য থেকে আঁকা।', 'One field, three ways of farming it. On top, that season’s crop; below, a cut through your field’s top 30 cm: its layers, roots, earthworms and organic matter, all drawn from the model and the field’s SoilGrids profile.')}</p>
         </div>
         <Tags list={['REAL', 'RULE']} />
       </div>
@@ -135,7 +135,7 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
           const rows = rowsOf(c.e), sm = sumOf(c.e);
           return (
             <div key={c.id} className="min-w-0">
-              <SoilColumn row={rows[year]} season={season} soc0={ctx.soc0} soil={ctx.soil} health={sm.health.score} title={c.title} tone={c.tone} />
+              <SoilColumn row={rows[year]} season={season} soc0={ctx.soc0} soil={ctx.soil} health={sm.health.score} title={c.title} tone={c.tone} residue={c.e.rot?.residue} />
               <div className="mt-2 flex items-center gap-2">
                 <ScoreRing value={sm.health.score} size={42} color={c.tone} />
                 <div className="min-w-0 text-[12px] leading-[1.35] text-muted">
@@ -147,6 +147,7 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
           );
         })}
       </div>
+      <SoilLegend />
       {w === 'fut' && <Note tone="gold" className="mt-3">{T(`২০৪০-এর দশকের গরমে মাটির জৈব পদার্থ প্রায় ${num((ctx.temp.fut - 1) * 100, 'bn')}% দ্রুত পচে যায়, তাই একই চাষেও মাটি দুর্বল হয়। যে ফসলচক্র শিকড় আর খড় বেশি ফেরত দেয়, সেটাই এই ক্ষতি সামলায়।`, `In the warmer 2040s organic matter breaks down about ${num((ctx.temp.fut - 1) * 100, 'en')}% faster, so even the same farming wears the soil. Rotations that put more roots and straw back are the ones that hold up.`)}</Note>}
     </Card>
   );
