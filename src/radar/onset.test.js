@@ -42,11 +42,20 @@ test('every app upazila has its own real onset series from IMERG, 2001 to 2025 f
     assert.equal(f.provenance.primary, 'imerg');
     const ref = f.years.filter((r) => r.year >= 2001 && r.year <= 2025);
     assert.equal(ref.length, 25);
-    assert.ok(ref.every((r) => r.imerg.complete && r.imerg.doy >= 105 && r.imerg.doy <= 274), `${u}: every final year has an onset between 15 April and 30 September`);
+    assert.ok(ref.every((r) => r.imerg.complete && r.imerg.doy >= 135 && r.imerg.doy <= 274), `${u}: every final year has an onset between 15 May and 30 September`);
     const o = onsetSummary(u);
-    assert.ok(o.usual >= 105 && o.usual < 180, `${u}: usual onset between mid-April and June`);
+    assert.ok(o.usual >= 135 && o.usual < 180, `${u}: usual onset between mid-May and June`);
   }
   assert.notDeepEqual(ONSET.godagari.years.map((r) => r.imerg.date), ONSET.dhamrai.years.map((r) => r.imerg.date));
   assert.equal(onsetSummary('rangpur'), null);
 });
 
+
+test('the onset rule agrees with BMD station-based onsets within a week (pipeline/onset/compare_bmd.mjs)', () => {
+  const v = JSON.parse(readFileSync(new URL('../data/onset_validation.json', import.meta.url)));
+  assert.equal(v.rows.length, 3);
+  for (const r of v.rows) {
+    assert.ok(Math.abs(r.diffD1) <= 7, `${r.station}: IMERG against BMD gauges, same rule, within a week`);
+    assert.ok(Math.abs(r.diffOurs) <= 7, `${r.station}: this app's rule within a week of the BMD-based mean`);
+  }
+});

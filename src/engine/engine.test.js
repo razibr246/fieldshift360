@@ -297,3 +297,26 @@ test('Rabi soil wetness: NASA POWER GWETROOT for all seven upazilas, Nov–Mar s
   }
   assert.equal(rabiWetness(sw, 'nowhere'), null);
 });
+
+test('satellite water and abroad rotations: GRACE, SMAP and ten-year soil options for every farm', async () => {
+  const w = await import('./soilwater.js');
+  const ra = await import('./rotationAbroad.js');
+  const sf = await import('./soilfuture.js');
+  const ws = JSON.parse(readFileSync(new URL('../data/water_sat.json', import.meta.url)));
+  const sw = JSON.parse(readFileSync(new URL('../data/soil_wetness.json', import.meta.url)));
+  const sy = JSON.parse(readFileSync(new URL('../data/abroad_soil_yields.json', import.meta.url)));
+  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const g = w.graceRecord(ws, 'godagari');
+  assert.ok(g.years.length >= 15 && g.trend.perDecade < 0, 'GRACE: water under the Barind is falling');
+  assert.ok(w.smapVsPower(ws, sw, 'godagari').r > 0.7, 'SMAP and POWER root-zone wetness agree');
+  assert.ok(w.smapNow(ws, 'dhamrai').normal > 0);
+  for (const c of ['india', 'pakistan', 'nepal', 'bhutan', 'myanmar']) {
+    const d = JSON.parse(readFileSync(new URL(`../data/abroad/${c}.json`, import.meta.url)));
+    const r = ra.abroadRotations({ country: c, soil: sy.countries[c].soil, yields: sy.countries[c].yields, normals: d.points.farm.normals, change: sf.climateChange(deltas, `abroad_${c}`) });
+    const habit = r.options.find((o) => o.habit);
+    assert.ok(Math.abs(habit.dSoc) < 1e-6, `${c}: the current cycle holds today's carbon`);
+    const kept = r.options.find((o) => o.residue === 'retain' && JSON.stringify(o.cycle) === JSON.stringify(habit.cycle));
+    if (kept) assert.ok(kept.dSoc > 0, `${c}: keeping the straw builds carbon`);
+    assert.ok(r.options.every((o) => Number.isFinite(o.net)));
+  }
+});

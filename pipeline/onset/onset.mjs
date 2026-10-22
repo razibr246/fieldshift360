@@ -5,18 +5,21 @@
 //
 //   node pipeline/onset/onset.mjs godagari dhamrai
 //
-// Onset (an agronomic definition in the family of Stern et al. 1981 and Moron & Robertson 2014, thresholds to be
-// validated): the first day D on or after 15 April such that
+// Onset (an agronomic definition in the family of Stern et al. 1981 and Moron & Robertson 2014): the first day D on
+// or after 15 May such that
 //   1. the 5 days D..D+4 bring at least the site's wet-spell threshold W, with rain (>= 1 mm) on at least 3 of them,
 //      where W is the mean 5-day rain of June–September over the reference years (the site's own monsoon pentad);
 //   2. no false start: in the 30 days after the wet spell there is no 10-day window with less than 5 mm in total;
 //   3. the rains have set in: those 30 days bring at least half the site's mean 30-day June–September rain
 //      (this is what separates the monsoon from a burst of pre-monsoon nor'wester storms in April and May).
+// The search starts on 15 May, as in Han et al. (2024), after the check against BMD-based onsets
+// (pipeline/onset/compare_bmd.mjs, 22 October 2026): from 15 April the rule landed 17 days early near Rangpur and a
+// week early at Rajshahi, on pre-monsoon storms; from 15 May it is within 5 days at all three BMD stations.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-export const RULE = { searchFrom: [4, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years' };
+export const RULE = { searchFrom: [5, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years' };
 const DAY = 864e5;
 
 export function series(json, key) {
@@ -86,7 +89,8 @@ export function onsetFor(json, upazila) {
       // IMERG through POWER after `finalTo` is the early satellite-only estimate (see aman_radar.json rainFinalTo)
       let complete = y <= RULE.finalTo && Date.parse(json.provenance.end) >= lookedTo;
       for (let k = at(s, y, ...RULE.searchFrom); complete && s.t0 + k * DAY <= lookedTo; k++) if (s.v[k] == null) complete = false;
-      row[name] = { date, doy: date ? Math.round((Date.parse(date) - Date.UTC(y, 0, 1)) / DAY) + 1 : null, complete };
+      // atStart: the rains had already set in when the search opens (on or before 15 May)
+      row[name] = { date, doy: date ? Math.round((Date.parse(date) - Date.UTC(y, 0, 1)) / DAY) + 1 : null, complete, ...(i != null && i === at(s, y, ...RULE.searchFrom) ? { atStart: true } : {}) };
     }
   }
   const ys = out.years.filter((r) => r.year >= RULE.refYears[0] && r.year <= RULE.refYears[1]);
@@ -106,7 +110,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const file = {
       provenance: {
         status: 'REAL',
-        method: 'pipeline/onset/onset.mjs; definition in docs/RADAR.md (an assumption to be validated against BMD onset records)',
+        method: 'pipeline/onset/onset.mjs; definition in docs/RADAR.md; checked against BMD-based onsets in pipeline/onset/compare_bmd.mjs',
         rule: RULE,
         primary: 'imerg',
         sources: {

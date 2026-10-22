@@ -12,7 +12,7 @@ import gowainghat from '../data/onset_gowainghat.json' with { type: 'json' };
 export const ONSET = { godagari, dhamrai, sitakunda, dacope, bakerganj, gangachara, gowainghat };
 
 function fromRow(upazila, o) {
-  const years = Object.entries(o.years).map(([y, doy]) => ({ year: +y, imerg: { doy, complete: +y <= o.finalTo }, power: { doy: null } }));
+  const years = Object.entries(o.years).map(([y, doy]) => ({ year: +y, imerg: { doy, complete: +y <= o.finalTo, ...(o.atStart?.includes(+y) ? { atStart: true } : {}) }, power: { doy: null } }));
   const ref = years.filter((r) => r.imerg.complete && r.imerg.doy != null);
   const last = years[years.length - 1];
   return {
@@ -20,6 +20,7 @@ function fromRow(upazila, o) {
     earliest: Math.min(...ref.map((r) => r.imerg.doy)), latestDoy: Math.max(...ref.map((r) => r.imerg.doy)),
     trend: o.trend, trendPower: null, latest: ref.length ? { year: ref[ref.length - 1].year, doy: ref[ref.length - 1].imerg.doy } : null,
     current: last && !last.imerg.complete ? { year: last.year, doy: last.imerg.doy } : null, rows: years, imergOnly: true,
+    atStartYears: ref.filter((r) => r.imerg.atStart).length, refYears: ref.length,
   };
 }
 
@@ -42,6 +43,6 @@ export function onsetSummary(upazila, row = null, file = ONSET[upazila]) {
     trend: sources.imerg.trend, trendPower: sources.power.trend,
     latest: latest && { year: latest.year, doy: latest.imerg.doy },
     current: current && !current.imerg.complete ? { year: current.year, doy: current.imerg.doy } : null,
-    rows: file.years,
+    rows: file.years, atStartYears: ref.filter((r) => r.imerg.atStart).length, refYears: ref.length,
   };
 }

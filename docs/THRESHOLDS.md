@@ -71,7 +71,7 @@ Yields are FAOSTAT 2024 national averages (real data), not thresholds.
 
 | Rule | Value | Basis | Reviewed by |
 | --- | --- | --- | --- |
-| Rain onset | First day after 15 April starting a 5-day spell of at least the place's mean June–September 5-day rain (3+ rainy days), no 10-day window under 5 mm in the next 30 days, and at least half a monsoon month's rain in those 30 days | In the family of Stern et al. (1981) and Moron & Robertson (2014); thresholds an assumption, to be checked against BMD onset records (docs/RADAR.md) | |
+| Rain onset | First day from 15 May starting a 5-day spell of at least the place's mean June–September 5-day rain (3+ rainy days), no 10-day window under 5 mm in the next 30 days, and at least half a monsoon month's rain in those 30 days | In the family of Stern et al. (1981) and Moron & Robertson (2014); start day from Han et al. (2024). Checked against BMD station-based onsets on 22 Oct 2026: within a week at Rajshahi, Barishal and Dinajpur (docs/RADAR.md) | |
 | Transplanting detected | Sentinel-1 VH falls at least 3 dB, then rises at least 4 dB within 45 days | Assumption, in line with published Sentinel-1 rice-mapping methods | |
 | Upazila date | Given only when at least 6 of 36 sample fields show transplanting | Assumption | |
 | On time | Within ±7 days of the upazila's 2017–2025 median (about one radar revisit) | Assumption | |

@@ -3,7 +3,7 @@
 // in real numbers, and fires), Field future (2040s and the data check) and Help (ask the local office).
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CloudSun, CalendarDays, Satellite, BookOpen, Flame, Telescope, Scale, MapPin, Droplets, Sprout, CheckCircle2, PauseCircle, AlertTriangle, Building2, Info, ArrowRight, Send, Phone, MessageSquareReply, Clock } from 'lucide-react';
+import { CloudSun, CalendarDays, Satellite, BookOpen, Flame, Telescope, Scale, MapPin, Droplets, Sprout, CheckCircle2, PauseCircle, AlertTriangle, Building2, Info, ArrowRight, Send, Phone, MessageSquareReply, Clock, Waves } from 'lucide-react';
 import { useStore } from '../../store';
 import { num, bnDigits } from '../../engine/dates';
 import { weatherOf } from '../../engine/forecast';
@@ -12,6 +12,8 @@ import { areaIn } from '../../data/abroad';
 import { useAbroad } from '../../layouts/AbroadLayout';
 import { WeatherIcon } from '../../components/charts/LiveWeather';
 import FarmerAvatar from '../../components/brand/FarmerAvatar';
+import SatWater from '../../components/charts/SatWater';
+import AbroadRotations from '../../components/charts/AbroadRotations';
 import { Section, SourceTag, Stat, Sources, WeekStrip, SeasonCharts, RecordCheck, EventChart, FieldPanel, FiresPanel, FuturePanel, fullDate, dayMonth, baseText, baseYears, BoardChip } from './parts';
 
 const EVENTS = {
@@ -282,6 +284,12 @@ export function Future() {
     <div className="page-shell space-y-5">
       <Section icon={Telescope} title={T('২০৪০-এর দশকে এই খামার', 'This farm in the 2040s')} sub={T('আটটি জলবায়ু মডেল, দুই পথে', 'Eight climate models, two paths')} tag={<SourceTag>NASA NEX-GDDP-CMIP6</SourceTag>}>
         <FuturePanel id={c.id} />
+      </Section>
+      <Section icon={Sprout} title={T('ফসলচক্র আর মাটি, ১০ বছর', 'Rotations and the soil, ten years')} sub={T('এই খামারের নিজের মাটি আর দেশের ফলনে, বাংলাদেশের একই মডেলে', 'On this farm’s own soil and its country’s yields, with the same model as Bangladesh')} tag={<SourceTag>SoilGrids · FAOSTAT · CMIP6</SourceTag>}>
+        <AbroadRotations id={c.id} normals={data.points.farm.normals} />
+      </Section>
+      <Section icon={Waves} title={T('মাটির নিচের পানি আর শিকড়ের মাটি', 'Water underground and in the root zone')} sub={T('নাসার GRACE ও SMAP উপগ্রহ, এই খামারের অঞ্চলে', 'NASA’s GRACE and SMAP satellites, over this farm’s region')} tag={<SourceTag>NASA GRACE · SMAP</SourceTag>}>
+        <SatWater id={c.id} />
       </Section>
       <Section icon={Scale} title={T('তথ্য যাচাই: বৃষ্টির তিন হিসাব', 'Data check: three records of the same rain')} sub={T('একটি উৎসকে চোখ বুজে বিশ্বাস না করে, তিনটি পাশাপাশি রাখা হয়েছে', 'Rather than trust one source blindly, three are set side by side')} tag={<SourceTag tone="amber">{T('মান যাচাই', 'Quality check')}</SourceTag>}>
         <RecordCheck point={data.points.farm} />

@@ -26,7 +26,8 @@ field:
   are re-run in each of the eight climate models on its own: a rotation that keeps the soil and adds no risk in
   most futures is the robust choice.
 - **Water and climate.** Irrigation per bigha for each rotation, AWD for Boro, the Rabi-season root-zone soil
-  wetness from NASA POWER since 2002, and a climate account that sets paddy methane (IPCC 2019) against the carbon
+  wetness from NASA POWER since 2002, the water stored under the region from GRACE (falling under the Barind),
+  this month's root-zone soil moisture from SMAP, and a climate account that sets paddy methane (IPCC 2019) against the carbon
   stored in the soil.
 - **This season's step.** The rotation's first step (which crop, which date) is tested against 25 seasons of NASA
   weather and answered as KEEP, ADJUST or SHIFT, with today's field tasks, in Bangla, by voice or typing, on a
@@ -34,8 +35,9 @@ field:
 
 Union officers receive farmers' problem reports and reply from the same numbers; upazila officers see Ropon Radar,
 when the rains set in each year (GPM IMERG) and when Aman was actually transplanted (Sentinel-1 radar), for every
-upazila of seven districts. The full engine covers seven upazilas, one in each division of Bangladesh, and sample
-farms show the approach in India, Pakistan, Nepal, Bhutan and Myanmar; every input it needs is global.
+upazila of seven districts; the rain-onset rule agrees with BMD station-based onsets within a week. The full engine
+covers seven upazilas, one in each division of Bangladesh; sample farms in India, Pakistan, Nepal, Bhutan and Myanmar
+get ten-year rotation options on their own soil and their country's yields, with GRACE and SMAP water.
 
 Everything is honest about its data: every number is tagged real, rule, AI or sample. Climate, rain, radar, soil,
 prices and yields are real; the farmers are sample people; crop thresholds are stated starting values for an
@@ -50,6 +52,8 @@ agriculture officer to review.
 | NASA POWER daily point API (community AG): T2M_MAX, T2M_MIN, PRECTOTCORR, RH2M, ALLSKY_SFC_SW_DWN | 25-season backtest, rotation runs, scores, harvest timing, climate change "then vs now" | https://power.larc.nasa.gov |
 | NASA POWER monthly GWETROOT, GWETTOP (root-zone and surface soil wetness, NASA GMAO MERRA-2) | Rabi-season soil water 2002–2025 and its trend, beside each rotation's irrigation need | https://power.larc.nasa.gov |
 | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT via POWER; GPM_3IMERGDF v07 at GES DISC) | Rain onset, June–July rain, drought/flood indices, rain cross-check | https://gpm.nasa.gov/data/imerg · https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary |
+| NASA GRACE / GRACE-FO (JPL mascons, CRI) via NASA GIBS | Water stored on and under the land, 2003–2021, under each upazila and farm abroad | https://nasa-gibs.github.io/gibs-api-docs/ |
+| NASA SMAP Level 4 root-zone soil moisture via NASA GIBS | This month's root-zone soil moisture against normal; a check on POWER's soil wetness | https://smap.jpl.nasa.gov |
 | NASA NEX-GDDP-CMIP6 v2.0 | The 2040s for every rotation; each of the 8 models on its own for the robustness test | https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6 |
 | NASA GIBS, HLS (Harmonized Landsat Sentinel-2) | Satellite photos of the fields through the season | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA FIRMS (neighbouring-country pages) | Fire detections | https://firms.modaps.eosdis.nasa.gov |

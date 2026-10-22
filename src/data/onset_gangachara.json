@@ -1,10 +1,10 @@
 {
  "provenance": {
   "status": "REAL",
-  "method": "pipeline/onset/onset.mjs; definition in docs/RADAR.md (an assumption to be validated against BMD onset records)",
+  "method": "pipeline/onset/onset.mjs; definition in docs/RADAR.md; checked against BMD-based onsets in pipeline/onset/compare_bmd.mjs",
   "rule": {
    "searchFrom": [
-    4,
+    5,
     15
    ],
    "wetDays": 5,
@@ -29,10 +29,10 @@
     "thresholdMm": 70.6,
     "trend": {
      "n": 25,
-     "perDecade": -2.1,
-     "S": -29,
-     "z": -0.655,
-     "p": 0.5123,
+     "perDecade": 0.9,
+     "S": 31,
+     "z": 0.704,
+     "p": 0.4813,
      "significant": false
     }
    },
@@ -42,10 +42,10 @@
     "thresholdMm": 65,
     "trend": {
      "n": 25,
-     "perDecade": -16.5,
-     "S": -125,
-     "z": -2.901,
-     "p": 0.0037,
+     "perDecade": -8.6,
+     "S": -161,
+     "z": -3.756,
+     "p": 0.0002,
      "significant": true
     }
    }
@@ -54,15 +54,16 @@
   "lat": 25.85,
   "lon": 89.2167,
   "rainThrough": "2026-10-15",
-  "generated": "2026-10-21"
+  "generated": "2026-10-22"
  },
  "years": [
   {
    "year": 2001,
    "imerg": {
-    "date": "2001-05-13",
-    "doy": 133,
-    "complete": true
+    "date": "2001-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    },
    "power": {
     "date": "2001-07-09",
@@ -73,8 +74,8 @@
   {
    "year": 2002,
    "imerg": {
-    "date": "2002-04-19",
-    "doy": 109,
+    "date": "2002-05-21",
+    "doy": 141,
     "complete": true
    },
    "power": {
@@ -99,14 +100,16 @@
   {
    "year": 2004,
    "imerg": {
-    "date": "2004-05-13",
-    "doy": 134,
-    "complete": true
+    "date": "2004-05-15",
+    "doy": 136,
+    "complete": true,
+    "atStart": true
    },
    "power": {
     "date": "2004-05-15",
     "doy": 136,
-    "complete": true
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -125,21 +128,21 @@
   {
    "year": 2006,
    "imerg": {
-    "date": "2006-05-09",
-    "doy": 129,
+    "date": "2006-05-25",
+    "doy": 145,
     "complete": true
    },
    "power": {
-    "date": "2006-05-09",
-    "doy": 129,
+    "date": "2006-05-25",
+    "doy": 145,
     "complete": true
    }
   },
   {
    "year": 2007,
    "imerg": {
-    "date": "2007-05-08",
-    "doy": 128,
+    "date": "2007-05-22",
+    "doy": 142,
     "complete": true
    },
    "power": {
@@ -164,22 +167,23 @@
   {
    "year": 2009,
    "imerg": {
-    "date": "2009-04-27",
-    "doy": 117,
+    "date": "2009-06-07",
+    "doy": 158,
     "complete": true
    },
    "power": {
-    "date": "2009-04-27",
-    "doy": 117,
+    "date": "2009-05-25",
+    "doy": 145,
     "complete": true
    }
   },
   {
    "year": 2010,
    "imerg": {
-    "date": "2010-04-15",
-    "doy": 105,
-    "complete": true
+    "date": "2010-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    },
    "power": {
     "date": "2010-05-20",
@@ -190,9 +194,10 @@
   {
    "year": 2011,
    "imerg": {
-    "date": "2011-05-13",
-    "doy": 133,
-    "complete": true
+    "date": "2011-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    },
    "power": {
     "date": "2011-05-29",
@@ -216,13 +221,13 @@
   {
    "year": 2013,
    "imerg": {
-    "date": "2013-04-30",
-    "doy": 120,
+    "date": "2013-05-27",
+    "doy": 147,
     "complete": true
    },
    "power": {
-    "date": "2013-05-10",
-    "doy": 130,
+    "date": "2013-05-19",
+    "doy": 139,
     "complete": true
    }
   },
@@ -255,92 +260,98 @@
   {
    "year": 2016,
    "imerg": {
-    "date": "2016-05-09",
-    "doy": 130,
-    "complete": true
+    "date": "2016-05-15",
+    "doy": 136,
+    "complete": true,
+    "atStart": true
    },
    "power": {
-    "date": "2016-05-11",
-    "doy": 132,
-    "complete": true
+    "date": "2016-05-15",
+    "doy": 136,
+    "complete": true,
+    "atStart": true
    }
   },
   {
    "year": 2017,
    "imerg": {
-    "date": "2017-04-18",
-    "doy": 108,
+    "date": "2017-05-18",
+    "doy": 138,
     "complete": true
    },
    "power": {
-    "date": "2017-04-17",
-    "doy": 107,
+    "date": "2017-05-18",
+    "doy": 138,
     "complete": true
    }
   },
   {
    "year": 2018,
    "imerg": {
-    "date": "2018-04-30",
-    "doy": 120,
+    "date": "2018-05-22",
+    "doy": 142,
     "complete": true
    },
    "power": {
-    "date": "2018-04-26",
-    "doy": 116,
+    "date": "2018-05-20",
+    "doy": 140,
     "complete": true
    }
   },
   {
    "year": 2019,
    "imerg": {
-    "date": "2019-05-12",
-    "doy": 132,
+    "date": "2019-05-26",
+    "doy": 146,
     "complete": true
    },
    "power": {
-    "date": "2019-04-27",
-    "doy": 117,
-    "complete": true
+    "date": "2019-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
    "year": 2020,
    "imerg": {
-    "date": "2020-04-15",
-    "doy": 106,
-    "complete": true
+    "date": "2020-05-15",
+    "doy": 136,
+    "complete": true,
+    "atStart": true
    },
    "power": {
-    "date": "2020-04-15",
-    "doy": 106,
-    "complete": true
+    "date": "2020-05-15",
+    "doy": 136,
+    "complete": true,
+    "atStart": true
    }
   },
   {
    "year": 2021,
    "imerg": {
-    "date": "2021-04-28",
-    "doy": 118,
+    "date": "2021-05-26",
+    "doy": 146,
     "complete": true
    },
    "power": {
-    "date": "2021-05-01",
-    "doy": 121,
+    "date": "2021-05-25",
+    "doy": 145,
     "complete": true
    }
   },
   {
    "year": 2022,
    "imerg": {
-    "date": "2022-04-18",
-    "doy": 108,
+    "date": "2022-06-01",
+    "doy": 152,
     "complete": true
    },
    "power": {
-    "date": "2022-05-09",
-    "doy": 129,
-    "complete": true
+    "date": "2022-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -353,7 +364,8 @@
    "power": {
     "date": "2023-05-15",
     "doy": 135,
-    "complete": true
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -372,27 +384,30 @@
   {
    "year": 2025,
    "imerg": {
-    "date": "2025-05-10",
-    "doy": 130,
-    "complete": true
+    "date": "2025-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    },
    "power": {
-    "date": "2025-05-09",
-    "doy": 129,
-    "complete": true
+    "date": "2025-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
    "year": 2026,
    "imerg": {
-    "date": "2026-04-15",
-    "doy": 105,
+    "date": "2026-05-18",
+    "doy": 138,
     "complete": false
    },
    "power": {
-    "date": "2026-04-22",
-    "doy": 112,
-    "complete": false
+    "date": "2026-05-15",
+    "doy": 135,
+    "complete": false,
+    "atStart": true
    }
   }
  ]

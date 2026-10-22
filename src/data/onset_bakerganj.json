@@ -1,10 +1,10 @@
 {
  "provenance": {
   "status": "REAL",
-  "method": "pipeline/onset/onset.mjs; definition in docs/RADAR.md (an assumption to be validated against BMD onset records)",
+  "method": "pipeline/onset/onset.mjs; definition in docs/RADAR.md; checked against BMD-based onsets in pipeline/onset/compare_bmd.mjs",
   "rule": {
    "searchFrom": [
-    4,
+    5,
     15
    ],
    "wetDays": 5,
@@ -29,10 +29,10 @@
     "thresholdMm": 70.8,
     "trend": {
      "n": 25,
-     "perDecade": 4.2,
-     "S": 30,
-     "z": 0.678,
-     "p": 0.4977,
+     "perDecade": -0.3,
+     "S": -5,
+     "z": -0.094,
+     "p": 0.9255,
      "significant": false
     }
    },
@@ -42,10 +42,10 @@
     "thresholdMm": 87,
     "trend": {
      "n": 25,
-     "perDecade": -19.1,
-     "S": -118,
-     "z": -2.734,
-     "p": 0.0063,
+     "perDecade": -10,
+     "S": -108,
+     "z": -2.505,
+     "p": 0.0122,
      "significant": true
     }
    }
@@ -54,27 +54,27 @@
   "lat": 22.55,
   "lon": 90.3333,
   "rainThrough": "2026-10-15",
-  "generated": "2026-10-21"
+  "generated": "2026-10-22"
  },
  "years": [
   {
    "year": 2001,
    "imerg": {
-    "date": "2001-05-08",
-    "doy": 128,
+    "date": "2001-05-30",
+    "doy": 150,
     "complete": true
    },
    "power": {
-    "date": "2001-05-04",
-    "doy": 124,
+    "date": "2001-06-02",
+    "doy": 153,
     "complete": true
    }
   },
   {
    "year": 2002,
    "imerg": {
-    "date": "2002-05-07",
-    "doy": 127,
+    "date": "2002-05-22",
+    "doy": 142,
     "complete": true
    },
    "power": {
@@ -125,8 +125,8 @@
   {
    "year": 2006,
    "imerg": {
-    "date": "2006-05-11",
-    "doy": 131,
+    "date": "2006-05-23",
+    "doy": 143,
     "complete": true
    },
    "power": {
@@ -216,14 +216,15 @@
   {
    "year": 2013,
    "imerg": {
-    "date": "2013-05-02",
-    "doy": 122,
+    "date": "2013-05-18",
+    "doy": 138,
     "complete": true
    },
    "power": {
-    "date": "2013-05-02",
-    "doy": 122,
-    "complete": true
+    "date": "2013-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -257,12 +258,14 @@
    "imerg": {
     "date": "2016-05-15",
     "doy": 136,
-    "complete": true
+    "complete": true,
+    "atStart": true
    },
    "power": {
     "date": "2016-05-15",
     "doy": 136,
-    "complete": true
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -273,9 +276,10 @@
     "complete": true
    },
    "power": {
-    "date": "2017-04-16",
-    "doy": 106,
-    "complete": true
+    "date": "2017-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -286,9 +290,10 @@
     "complete": true
    },
    "power": {
-    "date": "2018-04-29",
-    "doy": 119,
-    "complete": true
+    "date": "2018-05-15",
+    "doy": 135,
+    "complete": true,
+    "atStart": true
    }
   },
   {
@@ -299,8 +304,8 @@
     "complete": true
    },
    "power": {
-    "date": "2019-05-01",
-    "doy": 121,
+    "date": "2019-05-20",
+    "doy": 140,
     "complete": true
    }
   },
@@ -312,8 +317,8 @@
     "complete": true
    },
    "power": {
-    "date": "2020-04-17",
-    "doy": 108,
+    "date": "2020-05-17",
+    "doy": 138,
     "complete": true
    }
   },
@@ -338,8 +343,8 @@
     "complete": true
    },
    "power": {
-    "date": "2022-05-07",
-    "doy": 127,
+    "date": "2022-05-17",
+    "doy": 137,
     "complete": true
    }
   },
@@ -359,13 +364,13 @@
   {
    "year": 2024,
    "imerg": {
-    "date": "2024-05-04",
-    "doy": 125,
+    "date": "2024-05-23",
+    "doy": 144,
     "complete": true
    },
    "power": {
-    "date": "2024-05-03",
-    "doy": 124,
+    "date": "2024-05-22",
+    "doy": 143,
     "complete": true
    }
   },
@@ -377,8 +382,8 @@
     "complete": true
    },
    "power": {
-    "date": "2025-04-19",
-    "doy": 109,
+    "date": "2025-05-17",
+    "doy": 137,
     "complete": true
    }
   },
@@ -390,8 +395,8 @@
     "complete": false
    },
    "power": {
-    "date": "2026-04-25",
-    "doy": 115,
+    "date": "2026-05-23",
+    "doy": 143,
     "complete": false
    }
   }

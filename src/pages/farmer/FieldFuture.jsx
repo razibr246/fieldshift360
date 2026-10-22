@@ -12,6 +12,7 @@ import deltas from '../../data/cmip6_deltas.json';
 import soilWetness from '../../data/soil_wetness.json';
 import { rabiWetness } from '../../engine/soilwater';
 import { bnOf } from '../../engine/text';
+import SatWater from '../../components/charts/SatWater';
 import { num, bnDigits } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
@@ -362,7 +363,7 @@ function SoilWater({ ff, sumOf }) {
     <Card id="ff-water" className="mt-5 scroll-mt-40 p-4 sm:p-5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="max-w-3xl">
-          <h2 className="flex items-center gap-2 text-[20px] font-bold"><Droplets size={20} className="text-sky-700" />{T(`শীতে ${bnOf(upazila.name.bn)} মাটিতে কতটা পানি থাকে`, `How much water ${upazila.name.en}’s soil holds through the winter`)}</h2>
+          <h2 className="flex items-center gap-2 text-[20px] font-bold"><Droplets size={20} className="text-sky-700" />{T(`${bnOf(upazila.name.bn)} জমির পানি: ওপরের মাটি থেকে মাটির নিচে`, `${upazila.name.en}’s water: from the topsoil to underground`)}</h2>
           <p className="text-[14px] leading-6 text-muted">{T('রবি ফসল বাঁচে বর্ষার পর মাটিতে থেকে যাওয়া পানি আর সেচে। নাসার হিসাবে প্রতি রবি মৌসুমে (নভেম্বর–মার্চ) ওপরের এক মিটার মাটি কতটা ভেজা ছিল: ০% একদম শুকনো, ১০০% পানিতে ভরা।', 'Rabi crops live on the water the monsoon leaves in the soil, and on irrigation. NASA’s record of how wet the top metre of soil was in each Rabi season (November–March): 0% bone dry, 100% saturated.')}</p>
         </div>
         <Tags list={['REAL']} />
@@ -391,7 +392,8 @@ function SoilWater({ ff, sumOf }) {
           : T('শীতের মাটির ভেজা ভাব প্রায় একই আছে। পানির টান মূলত সেচের পানিতে: ', 'Winter soil wetness has held about steady. The water squeeze is mainly in irrigation: ')}
         {!down && T(`এখনকার চাষে বিঘায় বছরে ${num(habitW * WATER_M3_PER_MM_BIGHA, 'bn')} ঘনমিটার, সেরা ফসলচক্রে ${num(bestW * WATER_M3_PER_MM_BIGHA, 'bn')} ঘনমিটার।`, `${num(habitW * WATER_M3_PER_MM_BIGHA, 'en')} m³ a bigha a year as now, ${num(bestW * WATER_M3_PER_MM_BIGHA, 'en')} m³ with the best rotation.`)}
       </Note>
-      <p className="mt-2 text-[12.5px] leading-5 text-muted">{T('উৎস: নাসা পাওয়ার মাসিক GWETROOT (নাসা জিএমএও MERRA-2, উপগ্রহ ও মাটির পর্যবেক্ষণ মেলানো মডেল), উপজেলার কেন্দ্রে। এটা ওপরের এক মিটার মাটির হিসাব; গভীর নলকূপের পানির স্তর আলাদা জিনিস, এতে দেখা যায় না।', 'Source: NASA POWER monthly GWETROOT (NASA GMAO MERRA-2, a model that assimilates satellite and ground observations), at the upazila centre. It covers the top metre of soil; the deep tube-well water table is a separate thing it does not show.')}</p>
+      <SatWater id={upazila.id} />
+      <p className="mt-2 text-[12.5px] leading-5 text-muted">{T('আর্দ্রতার চার্ট: নাসা পাওয়ার মাসিক GWETROOT (নাসা জিএমএও MERRA-2, উপগ্রহ ও মাটির পর্যবেক্ষণ মেলানো মডেল), উপজেলার কেন্দ্রে, ওপরের এক মিটার মাটির। তার নিচের পানি GRACE-এর ঘরে।', 'Wetness chart: NASA POWER monthly GWETROOT (NASA GMAO MERRA-2, a model that assimilates satellite and ground observations), at the upazila centre, for the top metre of soil. The water under it is in the GRACE panel.')}</p>
     </Card>
   );
 }
