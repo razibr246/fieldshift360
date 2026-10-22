@@ -12,6 +12,7 @@ import { num, fmtDate, todayDhaka } from '../../engine/dates';
 import { bnOf } from '../../engine/text';
 import { unionGlut, cropsByArea } from './shared';
 import UpazilaNow from './UpazilaNow';
+import RotationImpact from './RotationImpact';
 import { SectionNav, LazyMount } from '../../components/SectionNav';
 import { AMAN, districtOf } from '../../radar/aman';
 import { districtOutlook, cropSwitch } from '../../engine/outlook';
@@ -50,6 +51,7 @@ export function Upazila() {
 
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
         { id: 'up-now', label: T('এখন মাঠে', 'In the fields') },
+        { id: 'up-rotation', label: T('ফসলচক্রের প্রভাব', 'Rotation impact') },
         { id: 'up-weather', label: T('আবহাওয়া', 'Weather') },
         { id: 'up-crops', label: T('ফসল', 'Crops') },
         { id: 'up-prices', label: T('বাজারদর', 'Prices') },
@@ -58,6 +60,7 @@ export function Upazila() {
       ]} />
 
       <UpazilaNow />
+      <RotationImpact />
 
       <div id="up-sample" className="mt-12 mb-4 flex flex-wrap items-center gap-3 border-t border-border pt-8">
         <h2 className="text-[22px] font-bold">{T(`নমুনা পরিকল্পনা: ${bnOf(cropName(crop, 'bn'))} দাম পড়ার ঝুঁকি, ইউনিয়ন অনুযায়ী`, `Sample planning: ${cropName(crop, 'en').toLowerCase()} price-drop risk by union`)}</h2>
