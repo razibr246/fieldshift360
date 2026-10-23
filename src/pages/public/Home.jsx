@@ -20,7 +20,7 @@ import { useStore } from '../../store';
 import { startTour } from '../../components/DemoTour';
 import { num, fmtDate, fmtBangla, banglaDate, daysBetween, bnDigits } from '../../engine/dates';
 import { THEN, NOW } from '../../engine/climate';
-import { PROJECT_NAME, PROJECT_TAGLINE, PROJECT_EVENT } from '../../config/brand';
+import { PROJECT_NAME, PROJECT_TAGLINE, PROJECT_EVENT, PROJECT_TEAM } from '../../config/brand';
 
 export default function Home() {
   const { s, T, L, decision: d, dispatch, today } = useStore();
@@ -108,9 +108,9 @@ export default function Home() {
           </div>
           <ol className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
             {steps.map(([Icon, t, d2], i) => (
-              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="lift glass flat relative rounded-[24px] p-6 pt-8">
-                <span className="btn-gloss font-display absolute -top-[15px] left-6 grid h-8 min-w-8 place-items-center rounded-full px-2 text-[14px] font-bold text-white">{num(i + 1, lang)}</span>
-                <div className="flex items-center gap-2"><Icon size={19} className="text-primary-600" /><h3 className="text-[19px] font-bold">{t}</h3></div>
+              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="lift glass flat spotlight-card group relative rounded-[24px] p-6 pt-8 transition-all hover:border-primary-300">
+                <span className="btn-gloss font-display absolute -top-[15px] left-6 grid h-8 min-w-8 place-items-center rounded-full px-2 text-[14px] font-bold text-white shadow-md transition-transform duration-300 group-hover:scale-110">{num(i + 1, lang)}</span>
+                <div className="flex items-center gap-2"><Icon size={19} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary-700" /><h3 className="text-[19px] font-bold">{t}</h3></div>
                 <p className="mt-1.5 text-[15px] leading-7 text-muted">{d2}</p>
               </li>
             ))}
@@ -121,7 +121,7 @@ export default function Home() {
       {/* Game teaser: learn the tools by living one season of problems. */}
       <section className="py-8 sm:py-12">
         <div className="page-shell">
-          <div data-reveal className="glass flat relative overflow-hidden rounded-[30px] p-7 sm:p-10">
+          <div data-reveal className="glass flat spotlight-card relative overflow-hidden rounded-[30px] p-7 sm:p-10">
             <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(237,192,103,.45),transparent_70%)]" />
             <div className="pointer-events-none absolute -bottom-28 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(67,134,58,.28),transparent_70%)]" />
             <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
@@ -129,12 +129,12 @@ export default function Home() {
                 <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold text-primary-800"><Swords size={15} />{T('খেলে শিখুন', 'Learn by playing')}</p>
                 <h2 className="mt-4 text-[32px] font-semibold tracking-[-0.025em] sm:text-[42px]">{T('মাঠের লড়াই: এক মৌসুমের গল্প', 'Field Fight: one season\'s story')}</h2>
                 <p className="mt-3 max-w-xl text-[17px] leading-8 text-ink/70">{T('খরা, কুয়াশা, পোকা, দাম পড়া — রহিম ভাইয়ের মাঠে ছয় মাসে ছয়টা বিপদ। আগের অভ্যাসে চলবেন, নাকি FieldShift-এর হাতিয়ার দিয়ে লড়বেন? খেলতে খেলতেই শিখে যান কোন সমস্যায় কোন পাতা।', 'Drought, fog, pests, a price crash — six problems in six months on Rahim\'s field. Follow the old habit, or fight back with FieldShift\'s tools? Learn which page solves which problem, just by playing.')}</p>
-                <div className="mt-6 flex flex-wrap gap-3"><Link to="/farm" className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white"><Sprout size={18} />{T('খামারের খেলা — মাঠের মানুষ', 'Farm game — Field Folk')}</Link><Link to="/play" className="glass-pill inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold"><Swords size={18} />{T('গল্পের খেলা', 'Story game')}</Link></div>
+                <div className="mt-6 flex flex-wrap gap-3"><Link to="/farm" className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white transition-transform hover:scale-105 active:scale-95"><Sprout size={18} />{T('খামারের খেলা — মাঠের মানুষ', 'Farm game — Field Folk')}</Link><Link to="/play" className="glass-pill inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold transition-transform hover:scale-105 active:scale-95"><Swords size={18} />{T('গল্পের খেলা', 'Story game')}</Link></div>
               </div>
               <div className="flex flex-wrap justify-center gap-2.5 lg:justify-end">
                 {[[CloudSun, T('খরা', 'Drought'), 'from-amber-300 to-orange-500'], [Layers, T('কুয়াশা', 'Fog'), 'from-slate-300 to-slate-500'], [ScanLine, T('পাতায় দাগ', 'Leaf spots'), 'from-violet-400 to-violet-700'], [TrendingDown, T('দাম পড়া', 'Price crash'), 'from-paddy-300 to-clay-500'], [Droplets, T('সেচ', 'Irrigation'), 'from-sky-300 to-sky-700'], [LifeBuoy, T('পোকা', 'Pests'), 'from-rose-400 to-red-600']].map(([Icon, l, g], k) => (
-                  <span key={l} className="lift glass-pill drift inline-flex items-center gap-2 rounded-full py-2 pl-2 pr-4 text-[15px] font-semibold" style={{ animationDelay: `${k * -0.9}s` }}>
-                    <span className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${g} text-white`}><Icon size={16} /></span>{l}
+                  <span key={l} className="lift glass-pill drift group inline-flex items-center gap-2 rounded-full py-2 pl-2 pr-4 text-[15px] font-semibold transition-all hover:scale-105 active:scale-95" style={{ animationDelay: `${k * -0.9}s` }}>
+                    <span className={`grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br ${g} text-white shadow-sm transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110`}><Icon size={16} /></span>{l}
                   </span>
                 ))}
               </div>
@@ -176,9 +176,9 @@ export default function Home() {
                 const x = LABEL_STYLE[k];
                 const body = { KEEP: T('আপনার আগের ফসলই এখনও সবচেয়ে ভালো, স্বাভাবিক সময়ে।', 'Your usual crop at the usual time is still the best choice.'), ADJUST: T('একই ফসল, তবে দুই সপ্তাহ আগে বা পরে লাগালে ঝুঁকি কমে।', 'Same crop, but two weeks earlier or later lowers the risk.'), SHIFT: T('অন্য একটি ফসল এই মৌসুমে আপনার জমিতে স্পষ্টভাবে ভালো।', 'Another crop clearly does better on your field this season.') }[k];
                 return (
-                  <div key={k} className="lift glass flat flex gap-4 rounded-[20px] p-4">
-                    <span className={`mt-1 h-10 w-1.5 shrink-0 rounded-full ${x.bg}`} />
-                    <div><div className={`font-display text-[19px] font-bold ${x.text}`}>{L(x)}</div><p className="text-[15px] leading-7 text-muted">{body}</p></div>
+                  <div key={k} className="lift glass flat spotlight-card group flex gap-4 rounded-[20px] p-4 transition-all hover:border-primary-300">
+                    <span className={`mt-1 h-10 w-1.5 shrink-0 rounded-full transition-transform duration-300 group-hover:scale-y-110 ${x.bg}`} />
+                    <div><div className={`font-display text-[19px] font-bold transition-transform duration-300 group-hover:translate-x-0.5 ${x.text}`}>{L(x)}</div><p className="text-[15px] leading-7 text-muted">{body}</p></div>
                   </div>
                 );
               })}
@@ -269,7 +269,7 @@ export default function Home() {
           <div className="space-y-2 text-[14px] leading-6 text-primary-200 sm:text-right">
             <p>{L(PROJECT_EVENT)}</p>
             <p>{T('এটি সিদ্ধান্ত নিতে সাহায্যের একটি নমুনা প্রকল্প, কোনো নিশ্চয়তা নয়। ফসলের হিসাবের সীমাগুলো কৃষিবিদ দিয়ে যাচাই করে নিতে হবে।', 'A decision-support prototype, not a guarantee. Crop thresholds still need checking by an agronomist.')}</p>
-            <p className="text-primary-300">© {new Date().getFullYear()} {PROJECT_NAME}</p>
+            <p className="text-primary-300">© {new Date().getFullYear()} {PROJECT_NAME} by {PROJECT_TEAM}</p>
           </div>
         </div>
         <div className="page-shell mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[14px]">

@@ -3,6 +3,7 @@
 // (vite.config.js reads this file to fill %PROJECT_NAME% and %PROJECT_DESCRIPTION% in index.html.)
 
 export const PROJECT_NAME = 'FieldShift 360';
+export const PROJECT_TEAM = 'BRM AstraX Team';
 
 // The logo sets the last word of the name in the accent colour ("FieldShift" + "360").
 // If the name is a single word, the whole name is shown in one colour.

@@ -53,7 +53,7 @@ export default function RotationTeaser() {
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {cols.map((c) => (
-            <div key={c.title} className="glass flat grid grid-cols-[minmax(0,.8fr)_minmax(0,1fr)] gap-3 rounded-[24px] p-3 sm:p-4">
+            <div key={c.title} className="glass flat spotlight-card lift grid grid-cols-[minmax(0,.8fr)_minmax(0,1fr)] gap-3 rounded-[24px] p-3 sm:p-4 transition-all hover:border-primary-300">
               <SoilColumn row={c.e.now[last]} season={0} soc0={ctx.soc0} soil={ctx.soil} health={c.e.sNow.health.score} title={c.title} tone={c.tone} residue={c.e.rot.residue} />
               <div className="min-w-0 pt-6">
                 <p className="text-[12.5px] leading-5 text-muted">{name(c.e.rot)}{c.e.rot.residue === 'retain' ? T(' · খড় জমিতে', ' · straw kept') : ''}</p>
@@ -66,7 +66,7 @@ export default function RotationTeaser() {
             </div>
           ))}
         </div>
-        <Link to="/farmer/future" className="btn-gloss mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white">{T('পুরো ১০ বছরের হিসাব দেখুন', 'See the full ten years')}<ArrowRight size={18} /></Link>
+        <Link to="/farmer/future" className="btn-gloss group mt-6 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white transition-transform hover:scale-105 active:scale-95">{T('পুরো ১০ বছরের হিসাব দেখুন', 'See the full ten years')}<ArrowRight size={18} className="transition-transform duration-200 group-hover:translate-x-1" /></Link>
       </div>
     </section>
   );

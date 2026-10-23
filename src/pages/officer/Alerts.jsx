@@ -122,7 +122,7 @@ export default function Alerts() {
     <div>
       <PageHeader eyebrow={T(`আগাম সতর্কতা · ${L(union.meta)} ইউনিয়ন · ${fmtDate(todayDhaka(), lang)}`, `Early warnings · ${L(union.meta)} union · ${fmtDate(todayDhaka(), lang)}`)} title={T('এলাকার সতর্কতা', 'Area alerts')}
         subtitle={T('আগামী ৮ দিনের আবহাওয়া আর রোগের ঝুঁকি, উপগ্রহে দুর্বল দেখানো জমি, কাছাকাছি একই সমস্যা, খুব শুকনো জমি আর দাম পড়ার ঝুঁকি — সবচেয়ে জরুরিটা আগে।', 'Weather and disease risk for the next 8 days, fields that look weak from space, the same problem nearby, badly dry fields and price-drop risk — most urgent first.')} tags={['REAL', 'AI', 'RULE', 'DEMO']} />
-      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6" data-stagger>
         {counts.map(([Icon, label, n]) => (
           <div key={label} className={`rounded-xl border px-3 py-2.5 ${n ? 'border-amber-200 bg-amber-50/70' : 'border-border bg-white'}`}>
             <div className="flex items-center gap-1.5 text-[12.5px] text-muted"><Icon size={14} />{label}</div>

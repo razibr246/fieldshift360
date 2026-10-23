@@ -34,12 +34,12 @@ function SlidingTabs({ tabs, label, lang }) {
     return () => ro.disconnect();
   }, [pathname, lang, tabs.length]);
   return (
-    <nav ref={nav} className="hide-scrollbar relative flex min-w-0 flex-1 gap-0.5 overflow-x-auto" aria-label={label}>
-      {pill && <span aria-hidden="true" className="pointer-events-none absolute top-0 h-8 rounded-full bg-white shadow-[0_2px_8px_-4px_rgba(13,38,20,.35)] ring-1 ring-black/5 transition-[transform,width] duration-500 ease-[cubic-bezier(.34,1.3,.64,1)] motion-reduce:transition-none" style={{ width: pill.w, transform: `translateX(${pill.x}px)` }} />}
+    <nav ref={nav} className="hide-scrollbar relative flex min-w-0 flex-1 gap-0.5 overflow-x-auto [mask-image:linear-gradient(90deg,transparent_0,#000_8px,#000_calc(100%-8px),transparent_100%)] sm:[mask-image:none]" aria-label={label}>
+      {pill && <span aria-hidden="true" className="pointer-events-none absolute top-0 h-8 rounded-full bg-white shadow-[0_4px_12px_-2px_rgba(13,38,20,.2),inset_0_1px_0_rgba(255,255,255,.95)] ring-1 ring-black/5 transition-[transform,width] duration-[400ms] ease-[cubic-bezier(.34,1.4,.64,1)] motion-reduce:transition-none" style={{ width: pill.w, transform: `translateX(${pill.x}px)` }} />}
       {tabs.map((t) => (
-        <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `relative z-10 inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-colors duration-300 ${isActive ? 'text-ink' : 'text-muted hover:text-ink'}`}>
-          <t.icon size={14} />{t.label}
-          {t.badge > 0 && <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-clay-500 px-1 text-[10.5px] font-bold text-white tabular">{lang === 'bn' ? String(t.badge).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]) : t.badge}</span>}
+        <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `relative z-10 inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-all duration-250 active:scale-95 ${isActive ? 'text-ink' : 'text-muted hover:text-ink hover:bg-white/40'}`}>
+          <t.icon size={14} className="transition-transform duration-200 group-hover:scale-110" />{t.label}
+          {t.badge > 0 && <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-clay-500 px-1 text-[10.5px] font-bold text-white tabular shadow-sm">{lang === 'bn' ? String(t.badge).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]) : t.badge}</span>}
         </NavLink>
       ))}
     </nav>
@@ -101,7 +101,7 @@ function Shell({ c }) {
               const here = id === c.id;
               const suffix = pathname.replace(base, ''); // same tab in the other country
               return (
-                <Link key={id} to={`/abroad/${id}${suffix}`} aria-current={here ? 'page' : undefined} className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-semibold transition-all duration-300 ${here ? 'bg-white text-ink shadow-[0_2px_10px_-4px_rgba(13,38,20,.35)]' : 'text-muted hover:text-ink'}`}>
+                <Link key={id} to={`/abroad/${id}${suffix}`} aria-current={here ? 'page' : undefined} className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13.5px] font-semibold transition-all duration-250 active:scale-95 ${here ? 'bg-white text-ink shadow-[0_4px_14px_-3px_rgba(13,38,20,.25),inset_0_1px_0_rgba(255,255,255,.95)] scale-[1.02]' : 'text-muted hover:text-ink hover:bg-white/60 hover:scale-[1.01]'}`}>
                   <span aria-hidden="true">{ABROAD[id].flag}</span><span className="hidden sm:inline">{L(ABROAD[id].name)}</span>
                 </Link>
               );
@@ -112,7 +112,7 @@ function Shell({ c }) {
         <div className="page-shell flex items-center gap-2 pb-2">
           <div className="inline-flex shrink-0 rounded-full bg-white/55 p-1 ring-1 ring-white/70">
             {[[base, UserRound, T('কৃষক', 'Farmer'), !officer], [`${base}/officer`, Building2, T('কৃষি কর্মকর্তা', 'Officer'), officer]].map(([to, Icon, label, on]) => (
-              <Link key={to} to={to} className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-all duration-300 ${on ? 'text-white shadow-sm' : 'text-muted hover:text-ink'}`} style={on ? { background: c.tone } : undefined}>
+              <Link key={to} to={to} className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold transition-all duration-250 active:scale-95 ${on ? 'text-white shadow-sm' : 'text-muted hover:text-ink hover:bg-white/50'}`} style={on ? { background: c.tone } : undefined}>
                 <Icon size={14} />{label}
               </Link>
             ))}

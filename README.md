@@ -228,7 +228,8 @@ All of this is dummy data stored in the browser (localStorage). **Restart the de
 
 ## Refresh the NASA data
 
-The app ships the **real** NASA POWER series for Godagari (Oct 2000 to mid-Oct 2026) with GPM IMERG rain alongside.
+The app ships the **real** NASA POWER series for all seven app upazilas (Godagari, Dhamrai, Sitakunda, Dacope,
+Bakerganj, Gangachara, Gowainghat; Oct 2000 to mid-Oct 2026) with GPM IMERG rain alongside.
 To bring it up to date:
 
 ```bash
@@ -241,9 +242,10 @@ The script (`scripts/fetch-power.mjs`, plain Node, no login) downloads daily T2M
 GPM IMERG rain (`IMERG_PRECTOT`, which POWER serves on UTC days only) in a second request, and writes
 `src/data/climate_godagari.json` with provenance marked REAL.
 
-Optional Python helpers live in `scripts/python/` (see its README): `build_soil.py` is how real SRDI soil values are
-entered; the rest are superseded by `npm run fetch:power`. Soil values stay marked "sample" until real SRDI figures are
-entered in `src/data/soil_godagari.json`.
+Optional Python helpers live in `scripts/python/` (see its README): `build_soil.py` rebuilds the SoilGrids-derived
+`src/data/soil_*.json` (provenance REAL — a 250 m model estimate, not a field soil test); fertilizer doses come from
+SRDI's union-level recommendations in `src/data/srdi_frs.json`. Other helpers there are superseded by
+`npm run fetch:power`.
 
 The geographic layers (boundary, unions, villages, land use, the Bangladesh crop map) are rebuilt from their public
 sources with `npm run data:build`; see `scripts/data/README.md` and `docs/DATA.md`.

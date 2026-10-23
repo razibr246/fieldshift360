@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Droplets, ScanLine, Sprout, Wheat, TrendingDown, LifeBuoy, MapPinned, CheckCircle2, MessageSquareText, ChevronRight, Telescope } from 'lucide-react';
 import { useStore, demo } from '../../store';
-import { Button, StatCard, Card, Note, Tags, LABEL_STYLE, RISK_STYLE, WATER_STYLE, ScoreRing, climateTag } from '../../components/ui';
+import { Button, StatCard, Card, Note, Tags, LABEL_STYLE, RISK_STYLE, WATER_STYLE, ScoreRing, climateTag, CountUp } from '../../components/ui';
 import Photo from '../../components/Photo';
 import SeasonRibbon from '../../components/charts/SeasonRibbon';
 import SeasonSoFar from '../../components/charts/SeasonSoFar';
@@ -44,7 +44,7 @@ export default function Dashboard() {
         <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
           <div>
             <p className="text-[15px] text-white/80">{T(`আসসালামু আলাইকুম, ${farmer.name.bn}`, `Assalamu alaikum, ${farmer.name.en}`)}</p>
-            <h1 className="mt-2 text-[30px] font-bold leading-tight sm:text-[40px]">{L(st)}<span className="block text-paddy-300">{T(`${chosen.crop.name.bn}, ${chosen.crop.action.bn} ${fmtBangla(chosen.t0, 'bn')}`, `${chosen.crop.name.en}, ${chosen.crop.action.en.toLowerCase()} ${fmtDate(chosen.t0, 'en')}`)}</span></h1>
+            <h1 className="mt-2 text-[30px] font-bold leading-tight sm:text-[40px]">{L(st)}<span className="grad-shine block">{T(`${chosen.crop.name.bn}, ${chosen.crop.action.bn} ${fmtBangla(chosen.t0, 'bn')}`, `${chosen.crop.name.en}, ${chosen.crop.action.en.toLowerCase()} ${fmtDate(chosen.t0, 'en')}`)}</span></h1>
             <p className="mt-3 max-w-xl text-[15.5px] leading-7 text-white/80">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
             <div className="mt-3"><Tags list={[climateTag(), 'RULE']} /></div>
           </div>
@@ -72,10 +72,10 @@ export default function Dashboard() {
 
       <SeasonSoFar clim={clim} lat={farmer.lat} lon={farmer.lon} />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-stagger>
         <StatCard icon={Droplets} tone={ws.tone === 'red' ? 'red' : ws.tone === 'amber' ? 'amber' : 'green'} label={T('আজ সেচ', 'Water today')} value={L(WATER_COLORS[water.color])} note={L(stage)} to="/farmer/today" />
         <StatCard icon={TrendingDown} tone={chosen.glut.level === 'High' ? 'red' : chosen.glut.level === 'Medium' ? 'amber' : 'green'} label={T('দাম পড়ার ঝুঁকি', 'Price-drop risk')} value={L(RISK_STYLE[chosen.glut.level])} note={T(`ইউনিয়নের ${num(chosen.glut.share * 100, 'bn')}% জমিতে ${chosen.crop.name.bn}`, `${num(chosen.glut.share * 100, 'en')}% of the union is ${chosen.crop.name.en.toLowerCase()}`)} to="/farmer/plan" />
-        <StatCard icon={Wheat} tone="amber" label={T('ফসল তোলা', 'Harvest')} value={daysTo > 0 ? T(`${num(daysTo, 'bn')} দিন বাকি`, `in ${daysTo} days`) : T('এখন চলছে', 'under way')} note={fmtRange(chosen.hw.start, chosen.hw.end, lang)} to="/farmer/harvest" />
+        <StatCard icon={Wheat} tone="amber" label={T('ফসল তোলা', 'Harvest')} value={daysTo > 0 ? <><CountUp value={daysTo} /> {T('দিন বাকি', 'days left')}</> : T('এখন চলছে', 'under way')} note={fmtRange(chosen.hw.start, chosen.hw.end, lang)} to="/farmer/harvest" />
         <StatCard icon={LifeBuoy} tone="violet" label={T('সাহায্য', 'Help')} value={T(`${num(openReqs, 'bn')}টি অপেক্ষায়`, `${openReqs} waiting`)} note={unreadAdvisories ? T(`${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new message${unreadAdvisories > 1 ? 's' : ''}`) : T('নতুন বার্তা নেই', 'No new messages')} to="/farmer/help" />
       </div>
 
@@ -91,7 +91,7 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
         <Card className="p-5 sm:p-6">
           <h2 className="text-[20px] font-bold">{T('এই সপ্তাহের কাজ', 'This week')}</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 sm:grid-cols-3" data-stagger>
             {[
               [Droplets, L(WATER_COLORS[water.color]), water.reasons[0] ? L(water.reasons[0]) : '', '/farmer/today'],
               [ScanLine, T('পাতা দেখে নিন', 'Check the leaves'), T('দাগ বা পোকা দেখলে ছবি তুলে পাঠান', 'Photograph any spots or pests and send them'), '/farmer/doctor'],

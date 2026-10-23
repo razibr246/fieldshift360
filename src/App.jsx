@@ -62,10 +62,15 @@ const AbPlanting = load(() => import('./pages/abroad/officer'), 'Planting');
 // A quiet placeholder while a page's code arrives (usually a fraction of a second).
 function PageLoading() {
   return (
-    <div className="page-shell animate-pulse py-10" aria-busy="true" aria-label="Loading">
-      <div className="h-7 w-56 rounded-lg bg-primary-100/70" />
-      <div className="mt-3 h-4 w-80 max-w-full rounded bg-primary-50" />
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-28 rounded-2xl bg-primary-50" />)}</div>
+    <div className="page-shell py-10" aria-busy="true" aria-label="Loading">
+      <div className="skeleton h-7 w-56" style={{ animationDelay: '0ms' }} />
+      <div className="skeleton mt-3 h-4 w-80 max-w-full" style={{ animationDelay: '80ms' }} />
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {[0, 1, 2].map((i) => <div key={i} className="skeleton h-28" style={{ animationDelay: `${160 + i * 60}ms` }} />)}
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {[0, 1].map((i) => <div key={i} className="skeleton h-20" style={{ animationDelay: `${340 + i * 60}ms` }} />)}
+      </div>
     </div>
   );
 }

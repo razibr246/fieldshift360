@@ -94,10 +94,10 @@ export function SectionNav({ sections, label }) {
   return (
     <nav ref={nav} aria-label={label} data-stuck={stuck || undefined} className="section-nav sticky top-[64px] z-[25] -mt-2.5 mb-3.5 py-2.5">
       <div ref={bar} className="section-nav-glass hide-scrollbar flex gap-1 overflow-x-auto rounded-2xl p-1.5">
-        {thumb && <span aria-hidden="true" className="section-nav-thumb absolute top-1.5 bottom-1.5 rounded-xl" style={{ left: thumb.x, width: thumb.w, transition: thumb.glide ? 'left .32s var(--ease-smooth), width .32s var(--ease-smooth)' : 'none' }} />}
+        {thumb && <span aria-hidden="true" className="section-nav-thumb absolute top-1.5 bottom-1.5 rounded-xl" style={{ left: thumb.x, width: thumb.w, transition: thumb.glide ? 'left .35s var(--ease-spring), width .35s var(--ease-spring)' : 'none' }} />}
         {sections.map((s) => (
           <button key={s.id} data-id={s.id} type="button" aria-current={active === s.id ? 'true' : undefined} onClick={() => go(s.id)}
-            className={`relative z-10 shrink-0 whitespace-nowrap rounded-xl px-3.5 py-1.5 text-[13.5px] font-semibold transition-colors duration-200 ${active === s.id ? 'text-white' : 'text-ink/70 hover:bg-black/[.04] hover:text-ink'}`}>
+            className={`relative z-10 shrink-0 whitespace-nowrap rounded-xl px-3.5 py-1.5 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${active === s.id ? 'text-white font-bold' : 'text-ink/75 hover:bg-black/[.05] hover:text-ink'}`}>
             {s.label}
           </button>
         ))}
@@ -113,11 +113,11 @@ export function LazyMount({ height = 200, children, className = '' }) {
   useEffect(() => {
     if (on) return undefined;
     if (!('IntersectionObserver' in window)) { setOn(true); return undefined; }
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '400px 0px' });
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '600px 0px' });
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [on]);
-  return <div ref={ref} className={className} style={on ? undefined : { minHeight: height }}>{on ? children : <Skeleton height={height} />}</div>;
+  return <div ref={ref} className={className} style={on ? undefined : { minHeight: height }}>{on ? <div className="swap-in">{children}</div> : <Skeleton height={height} />}</div>;
 }
 
 export function Skeleton({ height = 160, className = '' }) {
@@ -129,7 +129,7 @@ export function BackToTop() {
   useEffect(() => onScroll((y) => setShow((p) => (p === y > 900 ? p : y > 900))), []);
   return (
     <button type="button" onClick={() => scrollToTop(true)} aria-label="Back to top"
-      className={`fixed bottom-24 right-5 z-40 grid h-11 w-11 place-items-center rounded-full bg-primary-800 text-white shadow-[var(--shadow-lift)] transition-all duration-500 hover:bg-primary-700 active:scale-90 lg:bottom-8 ${show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'}`}>
+      className={`fixed bottom-24 right-5 z-40 grid h-11 w-11 place-items-center rounded-full bg-primary-800 text-white shadow-[0_12px_28px_-6px_rgba(36,90,40,0.6)] transition-all duration-400 ease-[cubic-bezier(.34,1.4,.64,1)] hover:bg-primary-700 hover:scale-110 active:scale-90 lg:bottom-8 ${show ? 'translate-y-0 opacity-100 scale-100' : 'pointer-events-none translate-y-6 opacity-0 scale-75'}`}>
       <ArrowUp size={18} />
     </button>
   );

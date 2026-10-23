@@ -38,19 +38,21 @@ export default function Plan() {
           <h1 className="text-[24px] font-bold sm:text-[28px]">{T('রবি ২০২৬–২৭ মৌসুমের পরিকল্পনা', 'Plan for Rabi 2026–27')}</h1>
           <span className="shrink-0 text-[14px] text-muted">{T(`${num(steps.length, 'bn')} ধাপের ${num(i + 1, 'bn')} নম্বর`, `Step ${i + 1} of ${steps.length}`)}</span>
         </div>
-        <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-black/[.06]" aria-hidden="true"><div className="h-full rounded-full bg-primary-600 transition-all" style={{ width: `${((i + 1) / steps.length) * 100}%` }} /></div>
+        <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-black/[.06]" aria-hidden="true"><div className="progress-sheen h-full rounded-full bg-primary-600 transition-all duration-500 ease-[var(--ease-gentle)]" style={{ width: `${((i + 1) / steps.length) * 100}%` }} /></div>
         <ol className="hide-scrollbar -mx-1 mb-6 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" aria-label={T('ধাপগুলো', 'Steps')}>
           {steps.map((st, k) => (
             <li key={k} className="shrink-0">
               <button type="button" onClick={() => go(k)} aria-current={k === i ? 'step' : undefined}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13.5px] font-semibold transition ${k === i ? 'border-primary-700 bg-primary-700 text-white' : k < i ? 'border-primary-200 bg-primary-50 text-primary-800' : 'border-border bg-white text-ink/75 hover:text-ink'}`}>
-                {k < i ? <Check size={14} /> : <st.icon size={14} />}{st.label}
+                className={`group flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${k === i ? 'border-primary-700 bg-primary-700 text-white shadow-sm' : k < i ? 'border-primary-200 bg-primary-50 text-primary-800 hover:bg-primary-100 hover:border-primary-300' : 'border-border bg-white text-ink/75 hover:text-ink hover:border-primary-200'}`}>
+                {k < i ? <Check size={14} className="transition-transform duration-200 group-hover:scale-110" /> : <st.icon size={14} className="transition-transform duration-200 group-hover:scale-110" />}{st.label}
               </button>
             </li>
           ))}
         </ol>
         <div className="mx-auto max-w-[740px]">
-          <Step />
+          <div key={i} className="swap-in">
+            <Step />
+          </div>
           <div className="sticky bottom-20 z-10 mt-8 flex gap-2 rounded-2xl border border-border bg-white/95 p-2 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
             <button type="button" className="btn-ghost flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
             {i < steps.length - 1
@@ -82,25 +84,25 @@ function StoryRail({ current, go, steps }) {
   ];
   return (
     <aside className="hidden lg:sticky lg:top-32 lg:block">
-      <div className="surface-card rounded-[20px] p-5">
+      <div className="surface-card spotlight-card lift rounded-[20px] p-5">
         <div className="font-display text-[18px] font-bold">{T('আপনার হিসাব এক নজরে', 'Your plan at a glance')}</div>
         <p className="mt-0.5 text-[13.5px] leading-5 text-muted">{T('যেকোনো ধাপে কিছু বদলালে বাকিগুলো নিজে থেকে নতুন করে হিসাব হয়।', 'Change anything and the rest is worked out again.')}</p>
         <ol className="relative ml-3 mt-4 space-y-3 border-l-2 border-primary-100">
           {steps.map((st, k) => (
             <li key={k} className="relative pl-5">
-              <span className={`absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full text-[11px] font-bold ${k === current ? 'bg-primary-800 text-white ring-4 ring-primary-100' : k < current ? 'bg-primary-600 text-white' : 'border-2 border-primary-200 bg-white text-ink/40'}`}>{num(k + 1, lang)}</span>
-              <button type="button" onClick={() => go(k)} className="group text-left">
-                <div className={`text-[14.5px] font-semibold ${k === current ? 'text-primary-800' : 'text-ink/80 group-hover:text-primary-700'}`}>{st.label}</div>
-                <div className="text-[13px] text-muted">{out[k]}</div>
+              <span className={`absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full text-[11px] font-bold transition-all duration-300 ${k === current ? 'bg-primary-800 text-white ring-4 ring-primary-100 scale-110 shadow-sm' : k < current ? 'bg-primary-600 text-white' : 'border-2 border-primary-200 bg-white text-ink/40'}`}>{num(k + 1, lang)}</span>
+              <button type="button" onClick={() => go(k)} className="group text-left transition-transform duration-200 active:scale-[0.98]">
+                <div className={`text-[14.5px] font-semibold transition-colors duration-200 ${k === current ? 'text-primary-800' : 'text-ink/80 group-hover:text-primary-700'}`}>{st.label}</div>
+                <div className="text-[13px] text-muted transition-colors group-hover:text-ink/70">{out[k]}</div>
               </button>
             </li>
           ))}
           {after.map((a, k) => (
             <li key={a.to} className="relative pl-5">
-              <span className="absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-primary-200 bg-white text-[11px] font-bold text-ink/40">{num(steps.length + k + 1, lang)}</span>
-              <Link to={a.to} className="group block">
-                <div className="text-[14.5px] font-semibold text-ink/80 group-hover:text-primary-700">{a.label}</div>
-                <div className="text-[13px] text-muted">{a.out}</div>
+              <span className="absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full border-2 border-primary-200 bg-white text-[11px] font-bold text-ink/40 transition-transform duration-200 hover:scale-110">{num(steps.length + k + 1, lang)}</span>
+              <Link to={a.to} className="group block transition-transform duration-200 active:scale-[0.98]">
+                <div className="text-[14.5px] font-semibold text-ink/80 transition-colors group-hover:text-primary-700">{a.label}</div>
+                <div className="text-[13px] text-muted transition-colors group-hover:text-ink/70">{a.out}</div>
               </Link>
             </li>
           ))}

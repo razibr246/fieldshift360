@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, PackageCheck, Scale, Wheat, RefreshCw, ClipboardCheck, Coins, Sprout, CloudRain, Thermometer, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../../store';
-import { PageHeader, Card, Button, WhyButton, Tags, Note, climateSource, RISK_STYLE } from '../../components/ui';
+import { PageHeader, Card, Button, WhyButton, Tags, Note, climateSource, RISK_STYLE, CountUp } from '../../components/ui';
 import SupplyChart from '../../components/charts/SupplyChart';
 import { BoardStatus, PriceHistory } from './steps/StepsB';
 import { liveHarvest, yieldFromHistory } from '../../engine/harvest';
@@ -93,12 +93,12 @@ export default function Harvest() {
           <div className="bg-paddy-50 p-7 text-center sm:p-9">
             <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white text-paddy-500 shadow-sm"><Wheat size={38} /></div>
             <p className="mt-5 text-[15px] font-semibold text-paddy-700">{inHarvest ? T('ফসল তোলার সময় চলছে', 'Harvest is under way') : today > hw.end ? T('ফসল তোলার সময় শেষ', 'Harvest time is over') : T('ফসল তুলতে বাকি আরও', 'Harvest starts in about')}</p>
-            {daysTo > 0 && <div className="font-display mt-1 text-[52px] font-bold leading-none text-paddy-700 tabular">{num(daysTo, lang)} <span className="text-[24px]">{T('দিন', 'days')}</span></div>}
+            {daysTo > 0 && <div className="font-display mt-1 text-[52px] font-bold leading-none text-paddy-700"><CountUp value={daysTo} /> <span className="text-[24px]">{T('দিন', 'days')}</span></div>}
             <p className="mt-2 text-[13.5px] text-paddy-700">{T(`আজ ${fmtDate(today, 'bn')} থেকে`, `From today, ${fmtDate(today, 'en')}`)}</p>
             {dPlant >= 0 ? (
               <div className="mx-auto mt-5 max-w-[260px] text-left">
                 <div className="flex justify-between text-[12.5px] text-paddy-800"><span>{T('পাকার জন্য দরকারি তাপ জমেছে', 'Warmth needed, built up')}</span><b className="tabular">{num(Math.round(hw.progress * 100), lang)}%</b></div>
-                <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-paddy-500" style={{ width: `${hw.progress * 100}%` }} /></div>
+                <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-white"><div className="bar-grow h-full rounded-full bg-paddy-500" style={{ width: `${hw.progress * 100}%` }} /></div>
                 {hw.live && hw.shift !== 0 && <p className="mt-2 text-[12.5px] leading-5 text-paddy-800">{T(`এবারের আসল তাপে গড়ের চেয়ে ${bnDigits(Math.abs(hw.shift))} দিন ${hw.shift < 0 ? 'আগে' : 'পরে'}।`, `This season’s real warmth puts it ${Math.abs(hw.shift)} days ${hw.shift < 0 ? 'earlier' : 'later'} than average.`)}</p>}
               </div>
             ) : (
@@ -106,7 +106,7 @@ export default function Harvest() {
             )}
           </div>
           <div className="p-6 sm:p-8">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-3" data-stagger>
               {[[CalendarDays, T('ফসল তোলার সময়', 'Harvest weeks'), fmtRange(hw.start, hw.end, lang), T(`${fmtBangla(hw.start, 'bn')} থেকে`, `from ${fmtBangla(hw.start, 'en')}`)],
                 [PackageCheck, T('আনুমানিক ফলন', 'Likely yield'), T(`${num(y.maundLow, 'bn')}–${num(y.maundHigh, 'bn')} মণ`, `${num(y.maundLow, 'en')}–${num(y.maundHigh, 'en')} maund`), T(`${num(farmer.area_dec, 'bn')} শতকে, খারাপ থেকে ভালো বছর`, `on ${farmer.area_dec} decimal, poor to good year`)],
                 [Scale, T('কেজিতে', 'In kilograms'), `${num(Math.round(y.kgLow / 10) * 10, lang)}–${num(Math.round(y.kgHigh / 10) * 10, lang)}`, y.years ? T(`দেশের গড় ফলন, ${bnDigits(y.years[0])}–${bnDigits(y.years[1])}`, `national yields, ${y.years[0]}–${y.years[1]}`) : T('মোটামুটি', 'roughly')]].map(([Icon, l, v, sub]) => (

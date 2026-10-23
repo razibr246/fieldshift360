@@ -159,7 +159,7 @@ export function FarmDetail() {
       <div className="grid gap-6 xl:grid-cols-[1fr_.85fr]">
         <Card className="overflow-hidden">
           <MapView center={[f.lat, f.lon]} zoom={15} basemap="satellite" points={[...u.farmers.filter((x) => x.id !== f.id).map((x) => ({ id: x.id, lat: x.lat, lon: x.lon, color: '#b9d8aa', r: 4 })), { id: f.id, lat: f.lat, lon: f.lon, color: '#d08f26', r: 10, ring: '#ffffff', label: L(f.name) }]} height={320} className="!rounded-none !border-0" label={T('জমির মানচিত্র', 'Field map')} />
-          <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4" data-stagger>
             {[[Sprout, T('এই রবিতে', 'This Rabi'), plan ? `${cropName(plan.crop, lang)}, ${fmtDate(plan.date, lang)}` : T('ঠিক করেননি', 'Not decided')], [Sprout, T('গত রবিতে', 'Last Rabi'), cropName(f.last_crop, lang)], [Droplets, T('সেচ', 'Water'), L(IRRIGATION[f.irrigation])], [Layers, T('মাটি', 'Soil'), `pH ${num(soil.ph, lang, { dp: 1 })}`]].map(([Icon, l, v]) => (
               <div key={l} className="rounded-xl bg-canvas p-3.5"><Icon size={17} className="text-primary-600" /><div className="mt-2 text-[13px] text-muted">{l}</div><div className="mt-0.5 text-[14.5px] font-bold">{v}</div></div>
             ))}

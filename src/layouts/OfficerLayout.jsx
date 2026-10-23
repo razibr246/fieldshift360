@@ -91,9 +91,9 @@ function Sidebar({ onNavigate }) {
             <div className="px-3 pb-1 text-[11.5px] font-semibold uppercase tracking-wide text-primary-300">{g.title}</div>
             {g.items.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end} onClick={onNavigate}
-                className={({ isActive }) => `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14.5px] font-semibold transition-colors duration-300 ${isActive ? `text-primary-950 ${thumb ? '' : 'bg-white'}` : 'text-primary-100 hover:bg-white/[.08]'}`}>
-                <n.icon size={18} /><span className="flex-1">{n.label}</span>
-                {n.badge > 0 && <span className={`rounded-full px-1.5 text-[12px] font-bold ${n.hot ? 'bg-red-600 text-white' : 'bg-paddy-700 text-white'}`}>{n.badge}</span>}
+                className={({ isActive }) => `group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14.5px] font-semibold transition-all duration-200 active:scale-[0.98] ${isActive ? `text-primary-950 font-bold ${thumb ? '' : 'bg-white shadow-sm'}` : 'text-primary-100 hover:bg-white/[.08] hover:text-white'}`}>
+                <n.icon size={18} className="transition-transform duration-200 group-hover:scale-110" /><span className="flex-1">{n.label}</span>
+                {n.badge > 0 && <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-bold ${n.hot ? 'pulse-ring bg-red-600 text-white shadow-sm' : 'bg-paddy-700 text-white'}`}>{n.badge}</span>}
               </NavLink>
             ))}
           </div>
@@ -153,14 +153,17 @@ export default function OfficerLayout() {
           <div className="flex h-[64px] items-center gap-2.5 px-4 sm:px-6">
             <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')}><Menu size={19} /></button>
             <BackButton />
-            <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 md:flex" role="search">
-              <Search size={17} className="text-muted" />
+            <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">
+              <Search size={17} className="text-muted transition-colors duration-200 group-focus-within:text-primary-600" />
               <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-label={T('খুঁজুন', 'Search')} aria-keyshortcuts="/" />
-              <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted lg:inline" aria-hidden="true">/</kbd>
+              <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted shadow-2xs lg:inline" aria-hidden="true">/</kbd>
             </form>
             <div className="ml-auto flex items-center gap-2">
-              <button type="button" onClick={() => navigate('/officer/requests')} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-white hover:bg-primary-50" aria-label={T(`খোলা অনুরোধ ${open}টি`, `${open} open requests`)}>
-                <Bell size={18} />{open > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">{open}</span>}
+              <button type="button" onClick={() => navigate('/officer/requests')}
+                className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 ${open > 0 ? 'border-amber-200 text-amber-700 shadow-[0_0_12px_rgba(208,143,38,0.25)] hover:bg-amber-50/50' : 'border-border text-ink hover:bg-primary-50'}`}
+                aria-label={T(`খোলা অনুরোধ ${open}টি`, `${open} open requests`)}>
+                <Bell size={18} />
+                {open > 0 && <span className="pulse-ring absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-600 px-1 text-[11px] font-bold text-white shadow-sm">{open}</span>}
               </button>
               <LangToggle />
               <div className="hidden text-right sm:block">

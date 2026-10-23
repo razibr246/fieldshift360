@@ -1,19 +1,28 @@
 // Shared UI kit: buttons, badges, page headers, stat tiles, data-source tags, score ring, notes and empty states.
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HelpCircle, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useStore, clim, soilData } from '../store.jsx';
 import { bnDigits } from '../engine/dates.js';
 import { smsParts } from '../engine/text.js';
+import { useCountUp } from './Motion.jsx';
 
-const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-[cubic-bezier(.22,1,.36,1)] active:scale-[.97] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-4';
+// A number that counts up to its value the first time it appears (instant for reduced motion; Bangla digits in Bangla).
+export function CountUp({ value, duration, className = '' }) {
+  const { s } = useStore();
+  const n = useCountUp(value, duration);
+  return <span className={`tabular ${className}`}>{s.lang === 'bn' ? bnDigits(n) : n}</span>;
+}
+
+const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-all duration-250 ease-[cubic-bezier(.16,1,.3,1)] active:scale-[.96] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-4 will-change-transform select-none';
 const BTN = {
-  primary: 'bg-primary-600 text-white shadow-sm hover:bg-primary-700 focus-visible:ring-primary-100',
-  secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50 focus-visible:ring-primary-50',
-  ghost: 'text-ink hover:bg-primary-50 focus-visible:ring-primary-50',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-100',
-  dark: 'bg-primary-950 text-white hover:bg-primary-900 focus-visible:ring-primary-200',
-  light: 'bg-white text-primary-900 hover:bg-primary-50 focus-visible:ring-white/40',
+  // Glossy green: the same lit gradient and light sweep as the header CTAs, so every primary action reads as one.
+  primary: 'btn-gloss text-white focus-visible:ring-primary-100',
+  secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-50',
+  ghost: 'text-ink hover:bg-primary-50/80 hover:text-primary-800 focus-visible:ring-primary-50 active:bg-primary-100',
+  danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-red-100',
+  dark: 'bg-primary-950 text-white hover:bg-primary-900 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-primary-200',
+  light: 'bg-white text-primary-900 hover:bg-primary-50 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-white/40',
 };
 export function Button({ to, variant = 'primary', className = '', children, type = 'button', ...props }) {
   const cls = `${BTN_BASE} ${BTN[variant]} ${className}`;
@@ -22,16 +31,16 @@ export function Button({ to, variant = 'primary', className = '', children, type
 }
 
 const BADGE = {
-  green: 'border-primary-200 bg-primary-50 text-primary-800',
-  amber: 'border-amber-200 bg-amber-50 text-amber-800',
-  red: 'border-red-200 bg-red-50 text-red-700',
-  blue: 'border-sky-200 bg-sky-50 text-sky-800',
-  violet: 'border-violet-200 bg-violet-50 text-violet-700',
-  slate: 'border-slate-200 bg-slate-50 text-slate-700',
+  green: 'border-primary-200 bg-primary-50 text-primary-800 hover:border-primary-300',
+  amber: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300',
+  red: 'border-red-200 bg-red-50 text-red-700 hover:border-red-300',
+  blue: 'border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-300',
+  violet: 'border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300',
+  slate: 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300',
   dark: 'border-primary-700 bg-primary-700 text-white',
 };
 export function Badge({ tone = 'green', children, className = '' }) {
-  return <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold ${BADGE[tone]} ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold transition-all duration-200 hover:scale-[1.03] ${BADGE[tone]} ${className}`}>{children}</span>;
 }
 
 // Page title block. `eyebrow` is a short plain-case pointer to where the user is, not a shouted label.
@@ -52,26 +61,34 @@ export function PageHeader({ eyebrow, title, subtitle, action, tags }) {
 export function ProgressBar({ value, className = '', color = 'bg-primary-500' }) {
   return (
     <div className={`h-2 overflow-hidden rounded-full bg-black/[.06] ${className}`}>
-      <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
+      <div className={`progress-sheen h-full rounded-full ${color} transition-[width] duration-700 ease-[cubic-bezier(.22,1,.36,1)]`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
     </div>
   );
 }
 
 const STAT_TONE = { green: 'bg-primary-50 text-primary-700', blue: 'bg-sky-50 text-sky-700', amber: 'bg-amber-50 text-amber-700', red: 'bg-red-50 text-red-700', violet: 'bg-violet-50 text-violet-700', clay: 'bg-clay-50 text-clay-700' };
+const STAT_GLOW = {
+  green: 'hover:border-primary-300 hover:shadow-[0_16px_36px_-12px_rgba(67,134,58,0.25)]',
+  blue: 'hover:border-sky-300 hover:shadow-[0_16px_36px_-12px_rgba(47,138,143,0.25)]',
+  amber: 'hover:border-amber-300 hover:shadow-[0_16px_36px_-12px_rgba(208,143,38,0.25)]',
+  red: 'hover:border-red-300 hover:shadow-[0_16px_36px_-12px_rgba(220,38,38,0.25)]',
+  violet: 'hover:border-violet-300 hover:shadow-[0_16px_36px_-12px_rgba(139,92,246,0.25)]',
+  clay: 'hover:border-clay-300 hover:shadow-[0_16px_36px_-12px_rgba(168,85,42,0.25)]',
+};
 export function StatCard({ icon: Icon, label, value, note, tone = 'green', tag, to }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
         <span className="text-[13.5px] font-semibold text-muted">{label}</span>
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${STAT_TONE[tone]}`}>{Icon && <Icon size={18} />}</span>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-110 ${STAT_TONE[tone]}`}>{Icon && <Icon size={18} />}</span>
       </div>
       <p className="font-display mt-1 text-[24px] font-bold leading-tight text-ink tabular">{value}</p>
       {note && <p className="mt-1 text-[13px] leading-5 text-muted">{note}</p>}
       {tag && <div className="mt-2"><Tags list={[tag]} /></div>}
     </>
   );
-  const cls = 'surface-card block rounded-2xl p-4';
-  return to ? <Link to={to} className={`${cls} lift hover:border-primary-300`}>{body}</Link> : <div className={cls}>{body}</div>;
+  const cls = `surface-card group block rounded-2xl p-4 transition-all duration-300 ${STAT_GLOW[tone] || ''}`;
+  return to ? <Link to={to} className={`${cls} lift`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 export function Card({ className = '', children, ...p }) {
@@ -110,12 +127,17 @@ export function Tags({ list }) {
 
 export function ScoreRing({ value, size = 48, color = '#2f6e2f', track = '#e5ece1', textColor = '#13261b' }) {
   const { s } = useStore();
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setDrawn(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
   const r = (size - 6) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, value));
   const txt = Math.round(v);
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${s.lang === 'bn' ? 'স্কোর' : 'score'} ${txt}`} className="shrink-0">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth="5" />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * v) / 100} ${c}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * v) / 100} ${c}`} strokeDashoffset={drawn ? 0 : (c * v) / 100} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .7s cubic-bezier(.22,1,.36,1), stroke-dashoffset .7s cubic-bezier(.22,1,.36,1)' }} />
       <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle" fontSize={size * 0.32} fontWeight="700" fill={textColor}>{s.lang === 'bn' ? bnDigits(txt) : txt}</text>
     </svg>
   );
@@ -180,15 +202,15 @@ export function Segmented({ value, onChange, options, className = '' }) {
     return () => ro.disconnect();
   }, [value, options.length]);
   return (
-    <div ref={box} className={`relative inline-flex rounded-xl bg-black/[.05] p-1 ${className}`} role="tablist">
+    <div ref={box} className={`relative inline-flex rounded-xl bg-black/[.05] p-1 shadow-inner ${className}`} role="tablist">
       {thumb && (
-        <span aria-hidden="true" className="seg-thumb pointer-events-none absolute left-0 top-0 rounded-lg bg-white shadow-sm"
+        <span aria-hidden="true" className="seg-thumb pointer-events-none absolute left-0 top-0 rounded-lg bg-white shadow-[0_2px_10px_-2px_rgba(13,38,20,0.22),0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-black/5"
           style={{ transform: `translate(${thumb.x}px, ${thumb.y}px)`, width: thumb.w, height: thumb.h, transitionProperty: thumb.glide ? 'transform, width, height' : 'none' }} />
       )}
       {options.map((o) => (
         <button key={o.value} type="button" role="tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}
-          className={`relative flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[14px] font-semibold transition-colors duration-300 ${value === o.value ? 'text-primary-800' : 'text-muted hover:text-ink'} ${thumb ? '' : value === o.value ? 'bg-white shadow-sm' : ''}`}>
-          {o.icon && <o.icon size={16} />}{o.label}
+          className={`relative flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[14px] font-semibold transition-all duration-250 active:scale-[0.96] ${value === o.value ? 'text-primary-800' : 'text-muted hover:text-ink hover:bg-white/40'} ${thumb ? '' : value === o.value ? 'bg-white shadow-sm' : ''}`}>
+          {o.icon && <o.icon size={16} className={`transition-transform duration-200 ${value === o.value ? 'scale-110' : ''}`} />}{o.label}
         </button>
       ))}
     </div>

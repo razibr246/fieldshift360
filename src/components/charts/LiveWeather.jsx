@@ -102,10 +102,14 @@ export default function LiveWeather({ className = '', place = null }) {
             <button type="button" onClick={reload} className="font-semibold text-primary-700 underline-offset-4 hover:underline">{T('আবার চেষ্টা', 'Try again')}</button>
           </div>
         ) : (
-          <div className="animate-pulse space-y-4" aria-label={T('আবহাওয়া আসছে', 'Loading weather')}>
-            <div className="flex items-center gap-4"><div className="h-16 w-16 rounded-full bg-primary-100" /><div className="h-12 w-28 rounded-lg bg-primary-100" /><div className="h-12 w-40 rounded-lg bg-primary-50" /></div>
-            <div className="h-32 rounded-xl bg-primary-50" />
-            <div className="h-20 rounded-xl bg-primary-50" />
+          <div className="space-y-4" aria-label={T('আবহাওয়া আসছে', 'Loading weather')}>
+            <div className="flex items-center gap-4">
+              <div className="skeleton h-16 w-16 !rounded-full" />
+              <div className="skeleton h-12 w-28 !rounded-xl" />
+              <div className="skeleton h-12 w-40 !rounded-xl" />
+            </div>
+            <div className="skeleton h-32 !rounded-2xl" />
+            <div className="skeleton h-20 !rounded-2xl" />
           </div>
         )}
       </div>
@@ -210,11 +214,11 @@ export default function LiveWeather({ className = '', place = null }) {
           <div className="mt-4 grid grid-cols-8 gap-1.5">
             {data.days.map((d, i) => (
               <button key={d.date} type="button" onClick={() => setDayIdx(i)} aria-pressed={dayIdx === i}
-                className={`flex flex-col items-center rounded-2xl px-1 py-2.5 transition-[background-color,box-shadow,transform] duration-300 active:scale-[.97] ${dayIdx === i ? 'bg-primary-50 ring-1 ring-primary-200' : 'hover:bg-black/[.03]'}`}>
+                className={`group flex flex-col items-center rounded-2xl px-1 py-2.5 transition-all duration-300 active:scale-[.95] ${dayIdx === i ? 'bg-primary-50 ring-1 ring-primary-300 shadow-[0_4px_14px_-3px_rgba(67,134,58,0.22)] scale-[1.02]' : 'hover:bg-black/[.04] hover:scale-[1.01]'}`}>
                 <span className="font-display text-[17px] font-semibold text-ink">{i === 0 ? T('আজ', 'Today') : dayShort(d.date, lang)}</span>
                 <span className="whitespace-nowrap text-[12.5px] leading-5 text-ink/80">{fmtDate(parseISO(d.date), lang)}</span>
                 <span className="whitespace-nowrap text-[11.5px] leading-4 text-muted">{fmtBangla(parseISO(d.date), lang)}</span>
-                <WeatherIcon kind={weatherOf(d.code).kind} size={52} className="my-1" />
+                <WeatherIcon kind={weatherOf(d.code).kind} size={52} className="my-1 transition-transform duration-300 group-hover:scale-110" />
                 <span className="text-[14.5px] tabular"><span className="font-semibold text-ink">{deg(d.max)}°</span> <span className="text-muted">{deg(d.min)}°</span></span>
               </button>
             ))}

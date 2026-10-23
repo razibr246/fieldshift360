@@ -66,7 +66,7 @@ export default function MyFarm() {
                   <h2 className="text-[18px] font-bold">{T(`আমার ${num(myParcels.length, 'bn')}টি জমি`, `My ${myParcels.length} fields`)}</h2>
                   <span className="text-[13px] text-muted">{T(`মোট ${num(totalDec, 'bn')} শতক`, `${totalDec} decimal in all`)}</span>
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-2" data-stagger>
                   {myParcels.map((p, i) => {
                     const r = readingOf(p.id), look = LEVEL_LOOK[levels[p.id]], on = p.id === selected?.id;
                     return (
@@ -128,7 +128,7 @@ export default function MyFarm() {
         </Card>
         <Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-2"><h2 className="flex items-center gap-2 text-[20px] font-bold"><Layers size={19} className="text-clay-500" />{soil.scope === 'field' ? T('এই জমির মাটি', 'This field’s soil') : T(`${union.meta.full.bnOf} মাটি`, `Soil in ${union.meta.en}`)}</h2><Tags list={[soilTag()]} /></div>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center" data-stagger>
             <div className="rounded-xl bg-clay-50 p-3"><div className="text-[12.5px] text-clay-700">pH</div><div className="font-display text-[20px] font-bold tabular">{num(soil.ph, lang, { dp: 1 })}</div></div>
             <div className="rounded-xl bg-clay-50 p-3"><div className="text-[12.5px] text-clay-700">{T('জৈব পদার্থ', 'Organic matter')}</div><div className="font-display text-[20px] font-bold tabular">{num(soil.om_pct, lang, { dp: 1 })}%</div></div>
             <div className="rounded-xl bg-clay-50 p-3"><div className="text-[12.5px] text-clay-700">{T('পানি নামে', 'Drainage')}</div><div className="text-[15px] font-bold">{{ poor: T('ধীরে', 'Slowly'), imperfect: T('মাঝারি', 'Fair'), good: T('দ্রুত', 'Quickly') }[soil.drainage] ?? '–'}</div></div>

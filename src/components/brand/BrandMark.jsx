@@ -7,7 +7,7 @@ export function LogoGlyph({ size = 40, inverse = false }) {
   const leaf = inverse ? '#2f6e2f' : '#8dbe78';
   const vein = inverse ? '#f0f6ec' : '#153a1d';
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" className="shrink-0">
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" className="shrink-0 transition-transform duration-300 ease-[cubic-bezier(.34,1.4,.64,1)] group-hover:scale-105 group-hover:rotate-1">
       <rect width="40" height="40" rx="11" fill={bg} />
       <path d="M8.5 27.5C10.5 17 18.5 10 31 9.5C30 21.5 22.5 29.5 12 30.5Z" fill={leaf} />
       <path d="M10.5 29C15 23 20.5 17.5 27 13" stroke={vein} strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -19,11 +19,11 @@ export function LogoGlyph({ size = 40, inverse = false }) {
 
 export default function BrandMark({ compact = false, inverse = false, sub, size = 40 }) {
   return (
-    <span className="flex items-center gap-2.5" aria-label={PROJECT_NAME}>
+    <span className="group flex items-center gap-2.5 transition-transform duration-200 active:scale-95" aria-label={PROJECT_NAME}>
       <LogoGlyph inverse={inverse} size={size} />
       {!compact && (
         <span className="leading-none">
-          <span className={`font-display block text-[21px] font-bold tracking-[-0.015em] ${inverse ? 'text-white' : 'text-ink'}`}>
+          <span className={`font-display block text-[21px] font-bold tracking-[-0.015em] transition-colors duration-200 ${inverse ? 'text-white' : 'text-ink group-hover:text-primary-900'}`}>
             {PROJECT_NAME_PARTS.main}{PROJECT_NAME_PARTS.accent && <span className={inverse ? 'text-paddy-300' : 'text-primary-600'}> {PROJECT_NAME_PARTS.accent}</span>}
           </span>
           {sub && <span className={`mt-1 block text-[12px] font-medium ${inverse ? 'text-primary-200' : 'text-muted'}`}>{sub}</span>}

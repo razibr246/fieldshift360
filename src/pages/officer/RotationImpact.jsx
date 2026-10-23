@@ -105,7 +105,7 @@ export default function RotationImpact() {
         </label>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
         <Out icon={Users} label={T('ফসলচক্র বদলায়', 'Hectares that switch')} value={`${big(ha)} ${T('হে.', 'ha')}`} sub={T('বোরো জমির মধ্যে', 'of the Boro land')} />
         <Out icon={Droplets} tone="text-sky-700" label={T('সেচের পানি বাঁচে, বছরে', 'Irrigation saved a year')} value={`${mil(waterM3)} ${T('ঘনমিটার', 'm³')}`} sub={T(`পুরো ফসলি জমিতে প্রায় ${num(mmOverLand, 'bn', { dp: 0 })} মিমি`, `about ${num(mmOverLand, 'en', { dp: 0 })} mm over all the cropland`)} />
         <Out icon={Scale} tone="text-primary-800" label={T('গ্রিনহাউস গ্যাস কমে, বছরে', 'Greenhouse gas cut a year')} value={`${mil(co2)} ${T('টন CO₂e', 't CO₂e')}`} sub={T('মিথেন কমে আর মাটিতে কার্বন জমে', 'less methane, more carbon in the soil')} />

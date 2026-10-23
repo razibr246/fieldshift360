@@ -111,12 +111,12 @@ export default function CropDoctor() {
         subtitle={T('Claude AI ছবিটা খুঁটিয়ে দেখে, আপনার জমির এই সপ্তাহের আবহাওয়া, উপগ্রহের ছবি আর মাটির সঙ্গে মিলিয়ে, কৃষি সম্প্রসারণ অধিদপ্তর ও বারি-ব্রির এখনকার সুপারিশ দেখে বলে। এটা নিশ্চিত রোগ নির্ণয় নয়; সন্দেহ থাকলে কৃষি কর্মকর্তাকে পাঠান।', 'Claude AI studies the photo against your field’s weather this week, the satellite picture and the soil, and checks current DAE, BARI and BRRI guidance. It is not a diagnosis; if in doubt, send it to your officer.')}
         tags={['AI', 'REAL']} />
       <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
-        <Card className="p-5 sm:p-6">
+        <Card className="spotlight-card lift p-5 sm:p-6">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-[14px]">
             <span className="font-semibold">{T('কোন ফসলের ছবি?', 'Which crop is this?')}</span>
             {[...(amanNow ? [AMAN] : []), ...Object.values(RABI_CROPS)].map((c) => (
               <button key={c.id} type="button" onClick={() => setCrop(c.id)} aria-pressed={crop === c.id}
-                className={`rounded-full border px-3 py-1 text-[13.5px] font-semibold ${crop === c.id ? 'border-primary-600 bg-primary-50 text-primary-800' : 'border-border hover:bg-canvas'}`}>{L(c.name)}</button>
+                className={`rounded-full border px-3.5 py-1 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${crop === c.id ? 'border-primary-600 bg-primary-50 text-primary-800 shadow-sm' : 'border-border hover:bg-canvas hover:border-primary-200'}`}>{L(c.name)}</button>
             ))}
           </div>
           <div className="grid min-h-72 place-items-center rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/60 p-6 text-center">
@@ -124,16 +124,24 @@ export default function CropDoctor() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
             {img ? (
               <div className="w-full">
-                <img src={img} alt={T('আপনার তোলা ফসলের ছবি', 'Your crop photo')} className="mx-auto max-h-72 rounded-xl object-contain" />
+                <div className="relative mx-auto max-h-72 w-max overflow-hidden rounded-xl">
+                  <img src={img} alt={T('আপনার তোলা ফসলের ছবি', 'Your crop photo')} className="mx-auto max-h-72 rounded-xl object-contain shadow-sm" />
+                  {st.phase === 'checking' && (
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                      <div className="scan-laser-beam" />
+                      <div className="absolute inset-0 bg-violet-600/10 backdrop-contrast-[1.1] animate-pulse" />
+                    </div>
+                  )}
+                </div>
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
                   {st.phase !== 'checking' && st.phase !== 'done' && <Button onClick={check}><ScanLine size={17} />{T('ডাক্তারকে দেখান', 'Ask the doctor')}</Button>}
-                  {st.phase === 'checking' && <Button disabled><Loader2 size={17} className="animate-spin" />{T('খুঁটিয়ে দেখছে…', 'Looking closely…')}</Button>}
+                  {st.phase === 'checking' && <Button disabled><Loader2 size={17} className="animate-spin text-primary-700" />{T('খুঁটিয়ে দেখছে…', 'Looking closely…')}</Button>}
                   <Button variant="secondary" onClick={reset}><X size={16} />{T('অন্য ছবি', 'Another photo')}</Button>
                 </div>
               </div>
             ) : (
               <div>
-                <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white text-primary-700 shadow-sm"><Camera size={30} /></div>
+                <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white text-primary-700 shadow-sm transition-transform duration-300 hover:scale-105"><Camera size={30} /></div>
                 <h2 className="mt-4 text-[21px] font-bold">{T(`${bnOf(cropObj.name.bn)} পরিষ্কার একটা ছবি দিন`, `Add a clear photo of the ${cropObj.name.en.toLowerCase()}`)}</h2>
                 <p className="mx-auto mt-2 max-w-sm text-[15px] leading-7 text-muted">{T('দিনের আলোয়, কাছ থেকে, দাগ বা পোকা যেন স্পষ্ট দেখা যায়। সম্ভব হলে পাতার নিচের দিকেরও একটা।', 'In daylight, up close, with spots or insects clearly visible; the underside of a leaf too if you can.')}</p>
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -159,15 +167,16 @@ export default function CropDoctor() {
           </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
+        <Card className="spotlight-card lift p-5 sm:p-6">
+          <div key={st.phase} className="swap-in">
           {st.phase === 'idle' && (
             <div className="grid h-full min-h-72 place-items-center text-center">
-              <div><div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-violet-50 text-violet-700"><ScanLine size={26} /></div><div className="mt-3 text-[17px] font-bold">{T('ফলাফল এখানে আসবে', 'The result will show here')}</div><p className="mt-1 text-[14.5px] text-muted">{T('কী কী হতে পারে, কেন মনে হচ্ছে, কতটা জরুরি, আর এখনই কী করবেন।', 'What it might be, why, how urgent, and what to do now.')}</p></div>
+              <div><div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-violet-50 text-violet-700 transition-transform duration-300 hover:scale-105"><ScanLine size={26} /></div><div className="mt-3 text-[17px] font-bold">{T('ফলাফল এখানে আসবে', 'The result will show here')}</div><p className="mt-1 text-[14.5px] text-muted">{T('কী কী হতে পারে, কেন মনে হচ্ছে, কতটা জরুরি, আর এখনই কী করবেন।', 'What it might be, why, how urgent, and what to do now.')}</p></div>
             </div>
           )}
           {st.phase === 'checking' && (
             <div className="grid h-full min-h-72 place-items-center text-center">
-              <div><Loader2 size={30} className="mx-auto animate-spin text-violet-600" /><div className="mt-3 text-[17px] font-bold">{T('ডাক্তার ছবিটা খুঁটিয়ে দেখছে', 'The doctor is looking closely')}</div><p className="mx-auto mt-1 max-w-xs text-[14px] text-muted">{T('দাগের ধরন, রং, পোকা দেখছে; আবহাওয়া আর উপগ্রহের সঙ্গে মেলাচ্ছে; দরকার হলে সরকারি সুপারিশ দেখছে। আধা মিনিট থেকে এক মিনিট লাগতে পারে।', 'Spot patterns, colour, insects; matching them with the weather and satellite; checking official guidance if needed. This can take half a minute to a minute.')}</p></div>
+              <div><Loader2 size={32} className="mx-auto animate-spin text-violet-600" /><div className="mt-3 text-[17px] font-bold">{T('ডাক্তার ছবিটা খুঁটিয়ে দেখছে', 'The doctor is looking closely')}</div><p className="mx-auto mt-1 max-w-xs text-[14px] text-muted">{T('দাগের ধরন, রং, পোকা দেখছে; আবহাওয়া আর উপগ্রহের সঙ্গে মেলাচ্ছে; দরকার হলে সরকারি সুপারিশ দেখছে। আধা মিনিট থেকে এক মিনিট লাগতে পারে।', 'Spot patterns, colour, insects; matching them with the weather and satellite; checking official guidance if needed. This can take half a minute to a minute.')}</p></div>
             </div>
           )}
           {(st.phase === 'off' || st.phase === 'error') && (
@@ -232,6 +241,7 @@ export default function CropDoctor() {
               <p className="mt-3 text-[12px] text-muted">{T(`উত্তর দিয়েছে ${st.model ?? 'Claude'} (Anthropic), ${clockText(st.at, 'bn')}। AI ভুল করতে পারে।`, `Answered by ${st.model ?? 'Claude'} (Anthropic) at ${clockText(st.at, 'en')}. AI can be wrong.`)}</p>
             </>
           )}
+          </div>
         </Card>
       </div>
     </div>

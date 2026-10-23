@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CloudRain, Droplets, SunMedium, Thermometer, Sprout, AlertTriangle, ScanLine, Satellite, Loader2, CalendarDays, Wind, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react';
 import { useStore } from '../../store';
-import { PageHeader, Card, Button, WhyButton, Note, Tags, Segmented, WATER_STYLE } from '../../components/ui';
+import { PageHeader, Card, Button, WhyButton, Note, Tags, Segmented, WATER_STYLE, CountUp } from '../../components/ui';
 import { Picture, PhotoPicture } from '../../components/fields/FieldSatellite';
 import { useFieldWatch } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
@@ -34,13 +34,13 @@ function forecastAlerts(wx, crop, dToday) {
 
 // The field's soil water as a bar: how full the root zone is, and where the crop starts to suffer.
 function WaterGauge({ fw }) {
-  const { T, s } = useStore();
+  const { T } = useStore();
   const full = Math.max(0, 1 - fw.now.Dr / fw.now.TAW), stress = 1 - fw.now.RAW / fw.now.TAW;
   return (
     <div className="mt-5 rounded-2xl bg-white/15 p-3.5">
       <div className="flex items-baseline justify-between text-[13.5px] text-white/85">
         <span>{T('শিকড়ের নাগালে মাটির পানি', 'Water within reach of the roots')}</span>
-        <b className="text-[18px] text-white tabular">{num(Math.round(full * 100), s.lang)}%</b>
+        <b className="text-[18px] text-white"><CountUp value={Math.round(full * 100)} />%</b>
       </div>
       <div className="relative mt-2 h-3 rounded-full bg-black/25" role="img" aria-label={T(`মাটির পানি ${bnDigits(Math.round(full * 100))}%`, `Soil water ${Math.round(full * 100)}%`)}>
         <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: `${full * 100}%` }} />
@@ -181,7 +181,7 @@ export default function Today() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[.95fr_1.05fr]">
-        <section className={`relative overflow-hidden rounded-[22px] bg-gradient-to-br ${dToday < 0 ? 'from-primary-700 to-primary-900' : ws.grad} p-6 text-white shadow-[var(--shadow-card)] sm:p-8 lg:sticky lg:top-32 lg:self-start`} aria-live="polite">
+        <section className={`spotlight-card lift relative overflow-hidden rounded-[22px] bg-gradient-to-br ${dToday < 0 ? 'from-primary-700 to-primary-900' : ws.grad} p-6 text-white shadow-[var(--shadow-card)] sm:p-8 lg:sticky lg:top-32 lg:self-start`} aria-live="polite">
           <div className="flex items-center justify-between">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20">{dToday < 0 ? <Sprout size={28} /> : <Droplets size={28} />}</div>
             {dToday >= 0 && <span className="chip bg-white/20 !text-[13px] text-white">{L(ws)}</span>}
@@ -220,12 +220,12 @@ export default function Today() {
               <div className="mt-2 grid grid-cols-3 gap-2">
                 {['wet', 'dry'].map((k) => (
                   <button key={k} type="button" onClick={() => dispatch({ type: 'set', patch: { fieldCheck: s.fieldCheck === k ? null : k } })} aria-pressed={s.fieldCheck === k}
-                    className={`rounded-xl px-2 py-3 text-[14.5px] font-bold transition ${s.fieldCheck === k ? 'bg-white text-ink' : 'bg-white/15 text-white hover:bg-white/25'}`}>
+                    className={`rounded-xl px-2 py-3 text-[14.5px] font-bold transition-all duration-200 active:scale-95 ${s.fieldCheck === k ? 'bg-white text-ink shadow-sm scale-[1.02]' : 'bg-white/15 text-white hover:bg-white/25 active:bg-white/30'}`}>
                     {k === 'wet' ? T('মাটি ভেজা', 'Soil is wet') : T('মাটি শুকনো', 'Soil is dry')}
                   </button>
                 ))}
                 <button type="button" onClick={logIrrigation} aria-pressed={irrigatedOn === iso(today)}
-                  className={`rounded-xl px-2 py-3 text-[14.5px] font-bold transition ${irrigatedOn === iso(today) ? 'bg-white text-ink' : 'bg-white/15 text-white hover:bg-white/25'}`}>
+                  className={`rounded-xl px-2 py-3 text-[14.5px] font-bold transition-all duration-200 active:scale-95 ${irrigatedOn === iso(today) ? 'bg-white text-ink shadow-sm scale-[1.02]' : 'bg-white/15 text-white hover:bg-white/25 active:bg-white/30'}`}>
                   {irrigatedOn === iso(today) ? <span className="inline-flex items-center gap-1"><CheckCircle2 size={15} />{T('সেচ লেখা হলো', 'Logged')}</span> : T('আজ সেচ দিয়েছি', 'I irrigated today')}
                 </button>
               </div>
@@ -236,7 +236,7 @@ export default function Today() {
         </section>
 
         <div className="space-y-6">
-          <Card className="p-5 sm:p-6">
+          <Card className="spotlight-card lift p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-[20px] font-bold">{T('আপনার জমির আবহাওয়া', 'Weather at your field')}</h2>
               {liveWeather ? <Tags list={['REAL']} /> : null}
@@ -248,7 +248,7 @@ export default function Today() {
                     [CloudRain, T('আগামী ৩ দিন', 'Next 3 days'), `${num(wx.rainNext3, lang)} ${T('মিমি', 'mm')}`],
                     [Thermometer, T('আজ সর্বোচ্চ', 'High today'), `${num(wx.tmax, lang)}°`],
                     [Wind, T('আজ উবে যাবে (ET₀)', 'Evaporation today (ET₀)'), `${num(wx.days[wx.today].et0, lang, { dp: 1 })} ${T('মিমি', 'mm')}`]].map(([Icon, l, v]) => (
-                    <div key={l} className="rounded-xl bg-canvas p-3.5">
+                    <div key={l} className="rounded-xl bg-canvas p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-canvas/80">
                       <Icon size={18} className="text-sky-600" />
                       <div className="mt-2 text-[12.5px] leading-tight text-muted">{l}</div>
                       <div className="font-display mt-0.5 text-[20px] font-bold tabular">{v}</div>
@@ -259,10 +259,10 @@ export default function Today() {
                   {wx.days.slice(wx.today, wx.today + 7).map((x, i) => {
                     const t = parseISO(x.d);
                     return (
-                      <div key={x.d} className={`rounded-xl px-1 py-2 text-center ${i === 0 ? 'bg-primary-50 ring-1 ring-primary-200' : 'bg-canvas'}`} title={T(`${fmtDate(t, 'bn')}: বৃষ্টি ${num(x.rain, 'bn', { dp: 1 })} মিমি, ${num(x.tmin, 'bn')}–${num(x.tmax, 'bn')}°, ET₀ ${num(x.et0, 'bn', { dp: 1 })} মিমি`, `${fmtDate(t, 'en')}: rain ${x.rain} mm, ${x.tmin}–${x.tmax}°, ET₀ ${x.et0} mm`)}>
+                      <div key={x.d} className={`rounded-xl px-1 py-2 text-center transition-all duration-200 hover:-translate-y-0.5 ${i === 0 ? 'bg-primary-50 ring-1 ring-primary-200' : 'bg-canvas hover:bg-canvas/80'}`} title={T(`${fmtDate(t, 'bn')}: বৃষ্টি ${num(x.rain, 'bn', { dp: 1 })} মিমি, ${num(x.tmin, 'bn')}–${num(x.tmax, 'bn')}°, ET₀ ${num(x.et0, 'bn', { dp: 1 })} মিমি`, `${fmtDate(t, 'en')}: rain ${x.rain} mm, ${x.tmin}–${x.tmax}°, ET₀ ${x.et0} mm`)}>
                         <div className="text-[11.5px] font-semibold text-muted">{i === 0 ? T('আজ', 'Today') : WEEKDAY[lang][new Date(t).getUTCDay()]}</div>
                         <div className="mt-1 text-[13px] font-bold tabular">{num(x.tmax, lang)}°</div>
-                        <div className="mx-auto mt-1 flex h-8 w-2 flex-col justify-end overflow-hidden rounded-full bg-sky-100"><div className="w-full rounded-full bg-sky-500" style={{ height: `${Math.min(100, ((x.rain ?? 0) / 30) * 100)}%` }} /></div>
+                        <div className="mx-auto mt-1 flex h-8 w-2 flex-col justify-end overflow-hidden rounded-full bg-sky-100"><div className="w-full rounded-full bg-sky-500 transition-all duration-500" style={{ height: `${Math.min(100, ((x.rain ?? 0) / 30) * 100)}%` }} /></div>
                         <div className="mt-1 text-[11px] tabular text-sky-800">{num(x.rain, lang, { dp: (x.rain ?? 0) < 10 ? 1 : 0 })}</div>
                       </div>
                     );

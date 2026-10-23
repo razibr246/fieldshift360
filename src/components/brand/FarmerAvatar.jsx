@@ -26,8 +26,8 @@ export default function FarmerAvatar({ id, size = 48, className = '', flag, fall
   const dark = (hex, k = 0.82) => `#${hex.slice(1).match(/../g).map((h) => Math.round(parseInt(h, 16) * k).toString(16).padStart(2, '0')).join('')}`;
   const face = c.hat === 'hijab' ? { rx: 9.6, ry: 11, cy: 30 } : { rx: 11, ry: 12.5, cy: 29 };
   return (
-    <span className={`relative inline-block shrink-0 overflow-hidden ${rounded} ${className}`} style={{ width: size, height: size }} aria-hidden="true">
-      <svg viewBox="7 5 50 50" width={size} height={size} className="fa-avatar block">
+    <span className={`relative inline-block shrink-0 overflow-hidden transition-transform duration-300 ease-[cubic-bezier(.34,1.4,.64,1)] group-hover:scale-105 ${rounded} ${className}`} style={{ width: size, height: size }} aria-hidden="true">
+      <svg viewBox="7 5 50 50" width={size} height={size} className="fa-avatar block transition-transform duration-300">
         <rect width="64" height="64" fill={c.bg} />
         <circle cx="50" cy="12" r="16" fill="#fff" opacity=".35" />
         {/* hair or scarf behind the head */}

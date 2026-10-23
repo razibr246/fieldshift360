@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, UsersRound, LifeBuoy, BellRing, Sprout, TrendingDown, MapPinned, ClipboardCheck } from 'lucide-react';
 import { useStore } from '../../store';
-import { PageHeader, StatCard, Card, Badge, Button, Tags, RISK_STYLE } from '../../components/ui';
+import { PageHeader, StatCard, Card, Badge, Button, Tags, RISK_STYLE, CountUp } from '../../components/ui';
 import MapView from '../../components/map/MapView';
 import { areaInfo } from '../../components/map/UpazilaLayers';
 import SupplyChart from '../../components/charts/SupplyChart';
@@ -48,10 +48,10 @@ export default function OfficerDashboard() {
     <div>
       <PageHeader eyebrow={T(`আজ ${fmtBangla(todayDhaka(), 'bn')}, ${fmtDate(todayDhaka(), 'bn')}`, `Today, ${fmtDate(todayDhaka(), 'en')} (${fmtBangla(todayDhaka(), 'en')})`)} title={T(`${union.meta.full.bn}`, `${union.meta.full.en}`)}
         subtitle={T('কৃষকদের অনুরোধ, এলাকার সতর্কতা আর এই রবিতে কে কী লাগাচ্ছেন — এক জায়গায়।', 'Farmer requests, area alerts and what everyone is planting this Rabi, in one place.')} tags={['DEMO']} />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <StatCard icon={UsersRound} label={T('কৃষক', 'Farmers')} value={num(union.farmers.length, lang)} note={T(union.meta.full.bnIn, `in ${union.meta.full.en}`)} to="/officer/farmers" />
-        <StatCard icon={LifeBuoy} tone={open.length ? 'amber' : 'green'} label={T('খোলা অনুরোধ', 'Open requests')} value={num(open.length, lang)} note={T(`${num(open.filter((r) => r.priority === 'High').length, 'bn')}টি জরুরি`, `${open.filter((r) => r.priority === 'High').length} urgent`)} to="/officer/requests" />
-        <StatCard icon={BellRing} tone={hs.length ? 'red' : 'green'} label={T('এলাকার সতর্কতা', 'Area alerts')} value={num(hs.length, lang)} note={hs.length ? T('একই সমস্যা কয়েক জমিতে', 'Same problem in several fields') : T('কিছু নেই', 'None')} to="/officer/alerts" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" data-stagger>
+        <StatCard icon={UsersRound} label={T('কৃষক', 'Farmers')} value={<CountUp value={union.farmers.length} />} note={T(union.meta.full.bnIn, `in ${union.meta.full.en}`)} to="/officer/farmers" />
+        <StatCard icon={LifeBuoy} tone={open.length ? 'amber' : 'green'} label={T('খোলা অনুরোধ', 'Open requests')} value={<CountUp value={open.length} />} note={T(`${num(open.filter((r) => r.priority === 'High').length, 'bn')}টি জরুরি`, `${open.filter((r) => r.priority === 'High').length} urgent`)} to="/officer/requests" />
+        <StatCard icon={BellRing} tone={hs.length ? 'red' : 'green'} label={T('এলাকার সতর্কতা', 'Area alerts')} value={<CountUp value={hs.length} />} note={hs.length ? T('একই সমস্যা কয়েক জমিতে', 'Same problem in several fields') : T('কিছু নেই', 'None')} to="/officer/alerts" />
         <StatCard icon={Sprout} tone="blue" label={cropName(crop, lang)} value={`${num(cropShare * 100, lang)}%`} note={T('পরিকল্পিত জমির', 'of planned land')} to="/officer/planting" />
         <StatCard icon={TrendingDown} tone={g.risk.level === 'High' ? 'red' : g.risk.level === 'Medium' ? 'amber' : 'green'} label={T('দাম পড়ার ঝুঁকি', 'Price-drop risk')} value={L(RISK_STYLE[g.risk.level])} note={T(`সবচেয়ে ব্যস্ত সপ্তাহে স্বাভাবিকের ${num(g.peak, 'bn', { dp: 1 })} গুণ`, `Busiest week ${num(g.peak, 'en', { dp: 1 })}× normal`)} to="/officer/planting" />
       </div>

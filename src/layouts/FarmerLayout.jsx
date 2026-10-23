@@ -62,7 +62,7 @@ function AccountMenu() {
         <ChevronDown size={15} className="text-muted" />
       </button>
       {open && (
-        <div className="absolute right-0 top-12 z-50 w-[320px] max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-white p-2 shadow-[var(--shadow-lift)]" role="menu">
+        <div className="menu-pop absolute right-0 top-12 z-50 w-[320px] max-w-[calc(100vw-24px)] rounded-2xl border border-border bg-white p-2 shadow-[var(--shadow-lift)]" role="menu">
           <div className="flex items-start gap-3 rounded-xl bg-primary-50 p-3">
             <FarmerAvatar id={farmer.id} size={44} fallback={<span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-100 text-[18px] font-bold text-primary-800">{L(farmer.name).slice(0, 1)}</span>} />
             <span className="min-w-0 flex-1">
@@ -128,20 +128,34 @@ export default function FarmerLayout() {
             <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => navigate('/farmer/help')} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/70 hover:bg-primary-50" aria-label={unreadAdvisories ? T(`কর্মকর্তার ${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new messages from your officer`) : T('কর্মকর্তার বার্তা', 'Messages from your officer')}>
-              <Bell size={18} />
-              {unreadAdvisories > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white">{T(num(unreadAdvisories, 'bn'), String(unreadAdvisories))}</span>}
+            <button type="button" onClick={() => navigate('/farmer/help')}
+              className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 ${unreadAdvisories > 0 ? 'border-red-200 text-red-600 shadow-[0_0_14px_rgba(220,38,38,0.25)] hover:bg-red-50/50' : 'border-border text-ink/70 hover:bg-primary-50'}`}
+              aria-label={unreadAdvisories ? T(`কর্মকর্তার ${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new messages from your officer`) : T('কর্মকর্তার বার্তা', 'Messages from your officer')}>
+              <Bell size={18} className={unreadAdvisories > 0 ? 'animate-[drift_3s_ease-in-out_infinite]' : ''} />
+              {unreadAdvisories > 0 && (
+                <span className="pulse-ring absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-600 px-1 text-[11px] font-bold text-white shadow-sm">
+                  {T(num(unreadAdvisories, 'bn'), String(unreadAdvisories))}
+                </span>
+              )}
             </button>
             <AccountMenu />
             <LangToggle />
-            <NavLink to="/farmer/profile" className={({ isActive }) => `hidden h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-[14px] font-semibold text-white transition lg:inline-flex ${isActive ? 'bg-primary-700' : 'bg-primary-950 hover:bg-primary-900'}`}><UserRound size={16} />{T('আমার প্রোফাইল', 'My profile')}</NavLink>
+            <NavLink to="/farmer/profile" className={({ isActive }) => `hidden h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-[14px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lg:inline-flex ${isActive ? 'bg-primary-700 shadow-sm' : 'bg-primary-950 hover:bg-primary-900'}`}><UserRound size={16} />{T('আমার প্রোফাইল', 'My profile')}</NavLink>
           </div>
         </div>
         <nav className="hidden border-t border-border lg:block" aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
           <div className="page-shell hide-scrollbar flex gap-1 overflow-x-auto">
             {nav.map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `relative flex items-center gap-1.5 whitespace-nowrap px-3 py-3 text-[14.5px] font-semibold transition ${isActive ? 'text-primary-800 after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-t after:bg-primary-600' : 'text-ink/65 hover:text-ink'}`}>
-                <n.icon size={16} />{n.label}
+              <NavLink key={n.to} to={n.to} end={n.end}
+                className={({ isActive }) => `group relative isolate flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[14.5px] font-semibold transition-[background-color,color,box-shadow,transform] duration-300 ease-[var(--ease-smooth)] active:scale-[.98] ${isActive ? 'bg-primary-50 text-primary-900 shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_2px_8px_-4px_rgba(36,90,40,.3)] ring-1 ring-primary-200/80' : 'text-ink/65 hover:bg-primary-50/65 hover:text-primary-800'}`}>
+                {({ isActive }) => (
+                  <>
+                    {isActive && <span aria-hidden="true" className="tab-line absolute inset-0 -z-10 rounded-xl bg-gradient-to-b from-white/55 to-primary-50/40" />}
+                    <n.icon size={16} className={`transition-transform duration-300 ease-[var(--ease-spring)] ${isActive ? 'scale-110 text-primary-700' : 'group-hover:scale-110'}`} />
+                    <span>{n.label}</span>
+                    {isActive && <span aria-hidden="true" className="nav-active-dot ml-0.5 h-1.5 w-1.5 rounded-full bg-primary-600 shadow-[0_0_0_3px_rgba(67,134,58,.12)]" />}
+                  </>
+                )}
               </NavLink>
             ))}
           </div>
@@ -156,14 +170,14 @@ export default function FarmerLayout() {
         </div>
       </footer>
       <nav className="fixed inset-x-3 bottom-0 z-50 lg:hidden" style={{ paddingBottom: 'max(.75rem, env(safe-area-inset-bottom))' }} aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
-        <div className="glass mx-auto grid max-w-lg grid-cols-5 rounded-[28px] px-1.5 py-1.5">
+        <div className="glass mx-auto grid max-w-lg grid-cols-5 rounded-[28px] border border-white/60 px-1.5 py-1.5 shadow-[0_16px_40px_-10px_rgba(13,38,20,0.35)] backdrop-blur-xl">
           {bottom.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition active:scale-95 ${isActive ? 'text-primary-800' : 'text-ink/70'}`}>
-              {({ isActive }) => (<><span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-500 ${isActive ? 'scale-105 bg-primary-600/15 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]' : 'scale-95'}`}><n.icon size={19} /></span><span>{n.short ?? n.label}</span></>)}
+            <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition-all duration-200 active:scale-95 ${isActive ? 'text-primary-900 font-bold' : 'text-ink/70 hover:text-ink'}`}>
+              {({ isActive }) => (<><span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-400 ease-[cubic-bezier(.34,1.4,.64,1)] ${isActive ? 'scale-110 bg-primary-600/20 text-primary-800 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_2px_8px_-2px_rgba(67,134,58,0.35)]' : 'scale-100'}`}><n.icon size={19} /></span><span>{n.short ?? n.label}</span></>)}
             </NavLink>
           ))}
-          <button type="button" onClick={() => setMore(true)} className={`flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition active:scale-95 ${restActive ? 'text-primary-800' : 'text-ink/70'}`} aria-haspopup="dialog">
-            <span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-500 ${restActive ? 'scale-105 bg-primary-600/15 shadow-[inset_0_1px_0_rgba(255,255,255,.9)]' : 'scale-95'}`}><Ellipsis size={19} /></span><span>{T('আরও', 'More')}</span>
+          <button type="button" onClick={() => setMore(true)} className={`flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition-all duration-200 active:scale-95 ${restActive ? 'text-primary-900 font-bold' : 'text-ink/70 hover:text-ink'}`} aria-haspopup="dialog">
+            <span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-400 ease-[cubic-bezier(.34,1.4,.64,1)] ${restActive ? 'scale-110 bg-primary-600/20 text-primary-800 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_2px_8px_-2px_rgba(67,134,58,0.35)]' : 'scale-100'}`}><Ellipsis size={19} /></span><span>{T('আরও', 'More')}</span>
           </button>
         </div>
       </nav>

@@ -15,8 +15,9 @@ function Sheet({ onClose, children, wide, label }) {
     return () => { window.removeEventListener('keydown', k); prev?.focus?.(); };
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-[2000] flex items-end justify-center bg-primary-950/45 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={label}>
-      <div ref={ref} tabIndex={-1} className={`max-h-[88vh] w-full overflow-auto scroll-thin rounded-t-[24px] bg-white p-5 shadow-2xl outline-none sm:rounded-[24px] sm:p-6 ${wide ? 'sm:max-w-2xl' : 'sm:max-w-xl'}`} onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-fade fixed inset-0 z-[2000] flex items-end justify-center bg-primary-950/45 backdrop-blur-[3px] sm:items-center sm:p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={label}>
+      <div ref={ref} tabIndex={-1} className={`sheet-up max-h-[88vh] w-full overflow-auto scroll-thin rounded-t-[28px] border border-white/60 bg-white p-5 shadow-[0_24px_60px_-15px_rgba(13,38,20,0.4)] outline-none will-change-transform sm:rounded-[28px] sm:p-6 ${wide ? 'sm:max-w-2xl' : 'sm:max-w-xl'}`} onClick={(e) => e.stopPropagation()}>
+        <div className="mx-auto -mt-1.5 mb-3.5 h-1.5 w-12 rounded-full bg-black/15 sm:hidden" aria-hidden="true" />
         {children}
       </div>
     </div>
@@ -102,8 +103,11 @@ export function Toast() {
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[2100] flex justify-center px-4 lg:bottom-8" role="status" aria-live="polite">
       {s.toast && (
-        <div key={s.toast.at} className="flex items-center gap-2 rounded-xl bg-primary-950 px-4 py-3 text-[14.5px] font-semibold text-white shadow-2xl">
-          <CheckCircle2 size={18} className="text-primary-300" />{L(s.toast)}
+        <div key={s.toast.at} className="sheet-up relative flex items-center gap-2.5 overflow-hidden rounded-full border border-white/25 bg-[#13261b]/95 px-5 py-3 text-[14.5px] font-semibold text-white shadow-[0_20px_48px_-12px_rgba(13,38,20,0.6),inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-md">
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-500/25 text-primary-300 shadow-[0_0_12px_rgba(67,134,58,0.4)]">
+            <CheckCircle2 size={16} />
+          </span>
+          <span className="pr-1">{L(s.toast)}</span>
         </div>
       )}
     </div>

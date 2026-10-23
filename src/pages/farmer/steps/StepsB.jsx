@@ -205,7 +205,7 @@ export function StepDecision() {
           const isChosen = o.crop.id === chosen.crop.id && o.shift === chosen.shift;
           const isCur = o.crop.id === farmer.last_crop;
           return (
-            <Card key={o.crop.id} className={`p-4 ${isChosen ? 'ring-2 ring-primary-600' : ''}`}>
+            <Card key={o.crop.id} className={`spotlight-card lift p-4 transition-all duration-300 hover:-translate-y-0.5 ${isChosen ? 'ring-2 ring-primary-600 shadow-md' : 'hover:border-primary-300'}`}>
               <div className="flex items-start gap-3">
                 <ScoreRing value={o.score} size={50} color={isRec ? '#2f6e2f' : '#8a9a8f'} />
                 <div className="min-w-0 flex-1">
@@ -226,7 +226,7 @@ export function StepDecision() {
               <div className="mt-3 flex items-center justify-between gap-2">
                 <WhyButton small payload={optionWhy(o, d, ctx)} />
                 <button type="button" onClick={() => dispatch({ type: 'set', patch: { pick: { crop: o.crop.id, shift: o.shift } } })} aria-pressed={isChosen}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[14px] font-semibold ${isChosen ? 'bg-primary-700 text-white' : 'bg-primary-50 text-primary-800 hover:bg-primary-100'}`}>
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[14px] font-semibold transition-all duration-200 active:scale-95 ${isChosen ? 'bg-primary-700 text-white shadow-sm' : 'bg-primary-50 text-primary-800 hover:bg-primary-100 hover:scale-[1.02]'}`}>
                   {isChosen ? <><CheckCircle2 size={15} />{T('এটা বেছে নিয়েছেন', 'Your choice')}</> : T('এটা বেছে নিন', 'Choose this')}
                 </button>
               </div>

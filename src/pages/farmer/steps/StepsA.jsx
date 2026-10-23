@@ -26,8 +26,8 @@ export function StepField() {
             const on = p.id === activeParcel?.id;
             return (
               <button key={p.id} type="button" role="radio" aria-checked={on} onClick={() => !on && dispatch({ type: 'useParcel', id: farmer.id, parcel: p })}
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-[14px] ${on ? 'border-primary-600 bg-primary-50 font-semibold text-primary-900' : 'border-border bg-white hover:border-primary-300'}`}>
-                <span className={`grid h-6 w-6 place-items-center rounded-full text-[12px] font-bold ${on ? 'bg-primary-700 text-white' : 'bg-black/[.06]'}`}>{num(i + 1, lang)}</span>
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-[14px] transition-all duration-200 active:scale-95 ${on ? 'border-primary-600 bg-primary-50 font-semibold text-primary-900 shadow-sm scale-[1.02]' : 'border-border bg-white hover:border-primary-300 hover:bg-primary-50/40'}`}>
+                <span className={`grid h-6 w-6 place-items-center rounded-full text-[12px] font-bold transition-colors ${on ? 'bg-primary-700 text-white' : 'bg-black/[.06]'}`}>{num(i + 1, lang)}</span>
                 <span>{L(p.name)}<span className="block text-[12.5px] font-normal text-muted">{T(`${num(p.area_dec / 33, 'bn', { dp: 1 })} বিঘা, গতবার ${cropName(p.last_crop, 'bn')}`, `${num(p.area_dec / 33, 'en', { dp: 1 })} bigha, last ${cropName(p.last_crop, 'en').toLowerCase()}`)}</span></span>
               </button>
             );
@@ -37,7 +37,7 @@ export function StepField() {
       {editing ? (
         <LandPicker compact height={340} onDone={() => setEditing(false)} />
       ) : (
-        <Card className="overflow-hidden">
+        <Card className="spotlight-card lift overflow-hidden">
           <div className="relative aspect-[16/7]">
             <Photo name="landParcels" fill sizes="720px" />
             <div className="absolute inset-0 bg-gradient-to-t from-primary-950/80 to-transparent" />

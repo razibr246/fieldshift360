@@ -4,7 +4,7 @@ import { Menu, X, Swords } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner } from '../components/chrome';
 import { useStore } from '../store';
-import { ScrollProgress, scrollToEl, scrollToTop, useScrollOnNavigate } from '../components/Motion';
+import { PageOutlet, ScrollProgress, scrollToEl, scrollToTop, useScrollOnNavigate } from '../components/Motion';
 
 export const scrollToId = (id) => scrollToEl(document.getElementById(id), 0); // sections carry their own scroll margin for the header
 
@@ -148,23 +148,27 @@ export default function PublicLayout() {
             <div className="ml-auto hidden items-center gap-2 whitespace-nowrap sm:flex xl:ml-0">
               <span className="xl:hidden">{playLink('inline-flex items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition hover:bg-primary-600/20')}</span>
               <LangToggle glass />
-              <Link to="/login" className="btn-gloss inline-flex h-10 items-center rounded-full px-5 text-[15px] font-semibold text-white">{T('শুরু করুন', 'Get started')}</Link>
+              <Link to="/login" className="btn-gloss inline-flex h-10 items-center rounded-full px-5 text-[15px] font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.97] shadow-sm">{T('শুরু করুন', 'Get started')}</Link>
             </div>
-            <button type="button" onClick={() => setOpen(!open)} className="glass-pill grid h-10 w-10 shrink-0 place-items-center rounded-full xl:hidden" aria-label={T('মেনু', 'Menu')} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
+            <button type="button" onClick={() => setOpen(!open)} className="glass-pill grid h-10 w-10 shrink-0 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95 xl:hidden" aria-label={T('মেনু', 'Menu')} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
           </div>
-          <div className={`grid transition-[grid-template-rows,opacity] duration-500 xl:hidden ${open ? 'mt-2 grid-rows-[1fr] opacity-100' : 'pointer-events-none grid-rows-[0fr] opacity-0'}`}>
+          <div className={`grid transition-[grid-template-rows,opacity] duration-[500ms] ease-[cubic-bezier(.34,1.4,.64,1)] xl:hidden ${open ? 'mt-2 grid-rows-[1fr] opacity-100' : 'pointer-events-none grid-rows-[0fr] opacity-0'}`}>
             <div className="-mx-3 overflow-hidden px-3 pb-6">
-              <div className="glass ml-auto flex max-w-md flex-col gap-1 rounded-[24px] !bg-white/85 p-2.5">
-                {playLink('flex items-center gap-2 rounded-2xl bg-primary-600/10 px-3.5 py-3 text-[15.5px] font-semibold text-primary-800')}
-                {nav.map(([id, label]) => <button key={id} type="button" onClick={() => go(id)} aria-current={active === id ? 'true' : undefined} className={`rounded-2xl px-3.5 py-3 text-left text-[15.5px] font-semibold transition-colors duration-300 ${active === id ? 'bg-primary-700 text-white' : 'hover:bg-white/60'}`}>{label}</button>)}
-                <div className="mt-1 flex gap-2 sm:hidden"><LangToggle glass /><Link to="/login" className="btn-gloss inline-flex h-10 flex-1 items-center justify-center rounded-full text-[15px] font-semibold text-white">{T('শুরু করুন', 'Get started')}</Link></div>
+              <div className="glass ml-auto flex max-w-md flex-col gap-1 rounded-[24px] border border-white/60 !bg-white/90 p-2.5 shadow-xl backdrop-blur-xl">
+                {playLink('flex items-center gap-2 rounded-2xl bg-primary-600/10 px-3.5 py-3 text-[15.5px] font-semibold text-primary-800 transition-all active:scale-[0.98]')}
+                {nav.map(([id, label], i) => (
+                  <button key={id} type="button" onClick={() => go(id)} aria-current={active === id ? 'true' : undefined}
+                    style={{ animation: open ? 'page-in 0.35s var(--ease-spring) both' : 'none', animationDelay: `${i * 45}ms` }}
+                    className={`rounded-2xl px-3.5 py-3 text-left text-[15.5px] font-semibold transition-all duration-200 active:scale-[0.98] ${active === id ? 'bg-primary-700 text-white shadow-sm' : 'hover:bg-white/80'}`}>{label}</button>
+                ))}
+                <div className="mt-1 flex gap-2 sm:hidden"><LangToggle glass /><Link to="/login" className="btn-gloss inline-flex h-10 flex-1 items-center justify-center rounded-full text-[15px] font-semibold text-white active:scale-95">{T('শুরু করুন', 'Get started')}</Link></div>
               </div>
             </div>
           </div>
         </div>
       </header>
       <ScrollProgress />
-      <main id="main" tabIndex={-1} className="outline-none"><Outlet /></main>
+      <main id="main" tabIndex={-1} className="outline-none"><PageOutlet /></main>
       <div className="fixed inset-x-0 bottom-0 z-40"><PlaceholderBanner /></div>
     </div>
   );

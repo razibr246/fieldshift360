@@ -7,7 +7,7 @@
 //    nothing flickers, and without JavaScript (or with reduced motion) everything simply shows.
 // 3. Page transitions: each routed page eases in quickly when the address changes.
 // 4. Back and Forward return to where you were on the page; a new page opens at the top.
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -72,17 +72,62 @@ export function useScrollOnNavigate({ skip = false } = {}) {
   }, [loc.pathname, loc.key]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-const AUTO = 'main .surface-card, main section, main [data-reveal-children] > *';
+const AUTO = 'main .surface-card, main section, main [data-reveal-children] > *, main [data-stagger] > *, main .stagger-grid > *';
 
 export function MotionManager() {
   const { pathname } = useLocation();
+
+  // Interactive spotlight for cards on mouse movement (compositor-friendly, non-touch only)
+  useEffect(() => {
+    if (reducedMotion() || (typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches)) return undefined;
+    let hovered = null;
+    let raf = 0;
+    const onPointerMove = (e) => {
+      const card = e.target?.closest?.('.spotlight-card, .lift, .surface-card');
+      if (card !== hovered) {
+        if (hovered) hovered.style.setProperty('--spotlight-opacity', '0');
+        hovered = card;
+        if (hovered) hovered.style.setProperty('--spotlight-opacity', '1');
+      }
+      if (!hovered) return;
+      const { clientX, clientY } = e;
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          if (!hovered) return;
+          const rect = hovered.getBoundingClientRect();
+          hovered.style.setProperty('--mouse-x', `${clientX - rect.left}px`);
+          hovered.style.setProperty('--mouse-y', `${clientY - rect.top}px`);
+        });
+      }
+    };
+    const onPointerLeave = () => {
+      if (hovered) {
+        hovered.style.setProperty('--spotlight-opacity', '0');
+        hovered = null;
+      }
+    };
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.addEventListener('mouseleave', onPointerLeave, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('mouseleave', onPointerLeave);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return undefined;
     document.documentElement.classList.add('reveal-ready');
     // Reveal a little before an element reaches the screen, so a fast scroll never lands on empty space.
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-    }, { rootMargin: '0px 0px 18% 0px', threshold: 0 }); // reveal well before arrival, so a fast scroll never waits
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-in');
+          io.unobserve(e.target);
+        }
+      }
+    }, { rootMargin: '0px 0px 22% 0px', threshold: 0 }); // reveal well ahead of arrival for seamless scrolling
     const seen = new WeakSet(); // checked once each, so later scans do not measure the whole page again
     const scan = () => {
       const fresh = [...document.querySelectorAll(AUTO)].filter((el) => !seen.has(el));
@@ -94,9 +139,11 @@ export function MotionManager() {
         if (el.hasAttribute('data-reveal') || el.parentElement?.closest('[data-reveal]') || el.closest('[data-no-reveal]')) return;
         if (tops[k] > fold) { el.setAttribute('data-reveal', ''); io.observe(el); }
       });
-      // Children of a [data-reveal-children] group arrive one after another.
-      document.querySelectorAll('[data-reveal-children]').forEach((g) => {
-        [...g.children].forEach((c, k) => { if (!c.style.getPropertyValue('--d')) c.style.setProperty('--d', `${(k % 5) * 30}ms`); });
+      // Stagger children of grid groups, [data-reveal-children] and [data-stagger]
+      document.querySelectorAll('[data-reveal-children], [data-stagger], .stagger-grid').forEach((g) => {
+        [...g.children].forEach((c, k) => {
+          if (!c.style.getPropertyValue('--d')) c.style.setProperty('--d', `${(k % 6) * 45}ms`);
+        });
       });
       document.querySelectorAll('[data-reveal]:not(.is-in)').forEach((el) => io.observe(el));
     };
@@ -105,14 +152,17 @@ export function MotionManager() {
     const idle = window.requestIdleCallback ?? ((f) => setTimeout(f, 60));
     const cancel = window.cancelIdleCallback ?? clearTimeout;
     let t = 0, h = 0;
-    const mo = new MutationObserver(() => { clearTimeout(t); t = setTimeout(() => { cancel(h); h = idle(scan, { timeout: 300 }); }, 80); });
+    const mo = new MutationObserver(() => {
+      clearTimeout(t);
+      t = setTimeout(() => { cancel(h); h = idle(scan, { timeout: 300 }); }, 80);
+    });
     mo.observe(document.querySelector('main') ?? document.body, { childList: true, subtree: true });
     return () => { io.disconnect(); mo.disconnect(); clearTimeout(t); cancel(h); };
   }, [pathname]);
   return null;
 }
 
-// The routed page, re-entering with a soft rise each time the address changes.
+// The routed page, re-entering with a soft rise and hardware accelerated scale settle each time the address changes.
 export function PageOutlet() {
   const { pathname } = useLocation();
   return <div key={pathname} className="page-enter"><Outlet /></div>;
@@ -130,4 +180,31 @@ export function ScrollProgress() {
     });
   }, []);
   return <div className="scroll-progress" aria-hidden="true" />;
+}
+
+// Hook to animate numbers smoothly from 0 to target on mount
+export function useCountUp(target, duration = 700) {
+  const [val, setVal] = useState(reducedMotion() ? target : 0);
+  useEffect(() => {
+    if (reducedMotion()) {
+      setVal(target);
+      return undefined;
+    }
+    let start = 0;
+    let raf = 0;
+    const startTime = performance.now();
+    const frame = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // spring-like ease out
+      const ease = 1 - Math.pow(1 - progress, 3);
+      setVal(Math.round(start + (target - start) * ease));
+      if (progress < 1) {
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
 }

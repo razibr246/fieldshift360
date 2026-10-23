@@ -23,11 +23,11 @@ export function LangToggle({ dark = false, glass = false }) {
           patch: { lang: s.lang === 'bn' ? 'en' : 'bn' },
         })
       }
-      className={`inline-flex h-10 items-center gap-1.5 px-3 text-[14px] font-semibold ${glass ? 'glass-pill rounded-full px-3.5 text-ink' : dark ? 'rounded-xl bg-white/10 text-white hover:bg-white/20' : 'rounded-xl border border-border bg-white text-ink hover:bg-primary-50'}`}
+      className={`group inline-flex h-10 items-center gap-1.5 px-3 text-[14px] font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95 ${glass ? 'glass-pill rounded-full px-3.5 text-ink' : dark ? 'rounded-xl bg-white/10 text-white hover:bg-white/20' : 'rounded-xl border border-border bg-white text-ink hover:bg-primary-50 shadow-2xs'}`}
       aria-label={s.lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}
       lang={s.lang === 'bn' ? 'en' : 'bn'}
     >
-      <Languages size={16} />
+      <Languages size={16} className="transition-transform duration-300 group-hover:rotate-12" />
       {next}
     </button>
   );
@@ -40,8 +40,8 @@ export function BackButton({ className = '' }) {
   const back = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/'));
   return (
     <button type="button" onClick={back} aria-label={T('আগের পাতায় ফিরে যান', 'Go back to the previous page')}
-      className={`inline-flex h-10 shrink-0 items-center gap-1 rounded-full border border-border bg-white px-3 text-[14px] font-semibold text-ink/75 transition hover:bg-primary-50 hover:text-ink ${className}`}>
-      <ArrowLeft size={17} /><span className="hidden sm:inline">{T('ফিরে যান', 'Back')}</span>
+      className={`group inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-[14px] font-semibold text-ink/80 shadow-2xs transition-all duration-200 hover:border-primary-300 hover:bg-primary-50 hover:text-ink hover:scale-105 active:scale-95 ${className}`}>
+      <ArrowLeft size={17} className="transition-transform duration-200 group-hover:-translate-x-0.5" /><span className="hidden sm:inline">{T('ফিরে যান', 'Back')}</span>
     </button>
   );
 }

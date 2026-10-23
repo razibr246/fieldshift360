@@ -96,7 +96,7 @@ export function DistrictAman({ outlook, selected, home, onPick }) {
       <h2 className="flex flex-wrap items-center gap-2 text-[20px] font-bold"><Satellite size={19} className="text-primary-600" />{T(`${district.bn} জেলার আমন ${yr(year)}: কোথায় কবে, কত ধান উঠবে`, `${district.en} district Aman ${year}: where, when and how much`)}<Tags list={['REAL', 'RULE']} /></h2>
       <p className="mt-1 text-[13.5px] leading-6 text-muted">{T(`সেন্টিনেল-১ রাডারে মাপা রোপণের দিন থেকে প্রতিটি উপজেলায় ধান কাটার সময় (রোপণের ${num(HARVEST_AFTER[0], 'bn')}–${num(HARVEST_AFTER[1], 'bn')} দিন পরে)। রাডারের তথ্য ${fmtDate(Date.parse(THROUGH), 'bn')} পর্যন্ত; "আজ" প্রতিদিন নিজে থেকে এগোয়।`, `Each upazila's harvest window from its transplanting day measured by Sentinel-1 radar (${HARVEST_AFTER[0]}–${HARVEST_AFTER[1]} days after). Radar to ${fmtDate(Date.parse(THROUGH), 'en')}; "today" moves on by itself.`)}</p>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-3" data-stagger>
         <Kpi icon={Wheat} label={T('জেলায় আনুমানিক আমন', 'Expected Aman in the district')} value={outlook.bbsHa ? T(`${num(Math.round(outlook.tonnes / 100) * 100, 'bn')} টন চাল`, `${num(Math.round(outlook.tonnes / 100) * 100, 'en')} t of rice`) : '—'}
           note={T(`বিবিএস: জেলায় আমনের জমি ${num(outlook.bbsHa, 'bn')} হেক্টর (২০২২-২৩) × জাতীয় গড় ফলন ${num(AMAN_YIELD.tHa, 'bn', { dp: 2 })} টন/হেক্টর (২০২৪-২৫)`, `BBS: ${num(outlook.bbsHa, 'en')} ha of Aman in the district (2022-23) × national yield ${AMAN_YIELD.tHa} t/ha (FY2024-25)`)} />
         <Kpi icon={TrendingUp} label={T('সবচেয়ে বেশি ধান যে সপ্তাহে', 'Busiest week')} value={peak ? T(`${peak.label} থেকে`, `From ${peak.label}`) : '—'}
