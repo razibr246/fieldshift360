@@ -13,10 +13,10 @@ import { AMAN, CAT, LATEST, SHIFT_DAYS, MIN_FIELDS, RAIN_FINAL_TO, THROUGH, catO
 import { fmtDate, num } from '../../engine/dates';
 import { UPAZILAS } from '../../data/upazilas';
 import { onsetSummary } from '../../radar/onset';
-import validation from '../../data/onset_validation.json';
+import validation from '../../data/radar/onset_validation.json';
 import { GEO, hasGeo, loadGeo } from '../../data/geo';
 
-// Ropan Radar: rain and Aman planting, from real satellites (scripts/data/build_aman_radar.mjs). An upazila officer sees their own
+// Ropan Radar: rain and Aman planting, from real satellites (scripts/build/build_aman_radar.mjs). An upazila officer sees their own
 // upazila in depth (season, progress, every sample field, unions, rain) and can open any other upazila of the district that
 // has its maps, radar frames and hazards built (src/data/geo); the rest of the district is there for comparison.
 // The season and the upazila live in the URL (?y=…&u=…) so Back works.
@@ -385,7 +385,7 @@ function OnsetCard({ upazila, name }) {
   );
 }
 
-// The onset checked against Bangladesh Meteorological Department records (pipeline/onset/compare_bmd.mjs).
+// The onset checked against Bangladesh Meteorological Department records (scripts/onset/compare_bmd.mjs).
 function BmdCheck() {
   const { s, T } = useStore();
   const lang = s.lang;
@@ -447,11 +447,11 @@ function rainTrendText(row, T) {
   );
 }
 
-// The radar covers only the districts built by scripts/data/build_aman_radar.mjs; elsewhere the page says so.
+// The radar covers only the districts built by scripts/build/build_aman_radar.mjs; elsewhere the page says so.
 export default function Radar() {
   const { T, officerUpazila } = useStore();
   if (!(AMAN.districts[districtOf(officerUpazila.id)]?.upazilas.some((u) => u.id === officerUpazila.id))) {
-    return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-[15px] leading-7 text-amber-900">{T(`${officerUpazila.name.bn} উপজেলার সেন্টিনেল-১ রাডারের তথ্য এখনো তৈরি হয়নি (scripts/data/build_aman_radar.mjs)। তৈরি হলে এখানে আমন রোপণের সময় দেখা যাবে।`, `Sentinel-1 radar data for ${officerUpazila.name.en} has not been built yet (scripts/data/build_aman_radar.mjs). Once it is, the Aman transplanting dates appear here.`)}</div>;
+    return <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-[15px] leading-7 text-amber-900">{T(`${officerUpazila.name.bn} উপজেলার সেন্টিনেল-১ রাডারের তথ্য এখনো তৈরি হয়নি (scripts/build/build_aman_radar.mjs)। তৈরি হলে এখানে আমন রোপণের সময় দেখা যাবে।`, `Sentinel-1 radar data for ${officerUpazila.name.en} has not been built yet (scripts/build/build_aman_radar.mjs). Once it is, the Aman transplanting dates appear here.`)}</div>;
   }
   return <RadarPage />;
 }

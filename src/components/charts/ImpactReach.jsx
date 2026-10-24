@@ -1,14 +1,14 @@
 // Who this is for, and how many: the farm households of Bangladesh (Agriculture Census 2019), the people of the seven
 // upazilas the app runs in today (Population Census 2022), and, for each upazila, three NASA SEDAC measures of the
-// land and its people (scripts/fetch-sedac.mjs): how crowded it is, how much of it lies below 10 m on the coast,
+// land and its people (scripts/fetch/sedac.mjs): how crowded it is, how much of it lies below 10 m on the coast,
 // and how much of it is cropland.
 import { useStore } from '../../store';
 import { Tags } from '../ui';
 import { num } from '../../engine/dates';
 import { UPAZILAS } from '../../data/upazilas';
 import { LEVELS } from '../../data/stories';
-import census from '../../data/census.json';
-import sedac from '../../data/sedac.json';
+import census from '../../data/region/census.json';
+import sedac from '../../data/region/sedac.json';
 import BD from '../../data/geo/bangladesh_crops.json';
 
 const BORO_HA = BD.national.rabi.find((c) => c.key === 'boro').ha;

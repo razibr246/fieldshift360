@@ -4,7 +4,7 @@ import { useStore } from '../../store.jsx';
 import { PRICE_SEASONS, noHarvestPrices } from '../../engine/glut.js';
 import { num, fmtDate, parseISO, bnDigits } from '../../engine/dates.js';
 import { Tags } from '../ui';
-import MARKET from '../../data/market_dhaka.json';
+import MARKET from '../../data/market/market_dhaka.json';
 
 const MONTHS = { bn: ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রি', 'মে', 'জুন', 'জুলা', 'আগ', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] };
 const FULL = { bn: ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'], en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] };

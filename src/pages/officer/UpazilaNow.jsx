@@ -9,10 +9,10 @@ import LiveWeather from '../../components/charts/LiveWeather';
 import { landcoverOf } from '../../components/map/UpazilaLayers';
 import { AMAN, CAT, LATEST, SHIFT_DAYS, catOf, districtOf, doyToMs } from '../../radar/aman';
 import { UPAZILA_FACTS } from '../../data/upazila_facts';
-import MARKET from '../../data/market_dhaka.json';
+import MARKET from '../../data/market/market_dhaka.json';
 import CROPS from '../../data/geo/bangladesh_crops.json';
-import SEDAC from '../../data/sedac.json';
-import CENSUS from '../../data/census.json';
+import SEDAC from '../../data/region/sedac.json';
+import CENSUS from '../../data/region/census.json';
 import { fmtDate, num, todayDhaka } from '../../engine/dates';
 import { HARVEST_AFTER } from '../../engine/outlook';
 
@@ -131,7 +131,7 @@ function UpazilaNowPage() {
               <Src>{T('উপগ্রহ: সেন্টিনেল-২ ১০ মিটার ভূমি-ব্যবহার (এসরি, ইমপ্যাক্ট অবজারভেটরি, মাইক্রোসফট), পুরো উপজেলা, ২০১৭ ও ২০২৫', 'Satellite: Sentinel-2 10 m land cover (Esri, Impact Observatory, Microsoft), whole upazila, 2017 and 2025')}</Src>
             </>
           ) : <p className="mt-3 text-muted">{T('ভূমি-ব্যবহারের তথ্য নেই।', 'No land-cover data.')}</p>}
-          {/* The upazila's people and land in NASA SEDAC's own measures (scripts/fetch-sedac.mjs), and the census. */}
+          {/* The upazila's people and land in NASA SEDAC's own measures (scripts/fetch/sedac.mjs), and the census. */}
           {SEDAC.upazilas[upz.id] && (() => {
             const sd = SEDAC.upazilas[upz.id], [lo, hi] = sd.density.medianClass, share = (x) => `${num(Math.round(x * 100), lang)}%`;
             return (
@@ -220,7 +220,7 @@ function UpazilaNowPage() {
   );
 }
 
-// The radar covers only the districts built by scripts/data/build_aman_radar.mjs; elsewhere the page says so.
+// The radar covers only the districts built by scripts/build/build_aman_radar.mjs; elsewhere the page says so.
 export default function UpazilaNow() {
   const { T, officerUpazila } = useStore();
   if (!(AMAN.districts[districtOf(officerUpazila.id)]?.upazilas.some((u) => u.id === officerUpazila.id))) {

@@ -10,7 +10,7 @@ import { UPAZILAS, placeLine } from '../../data/upazilas';
 import { cropName, IRRIGATION } from '../../engine/crops';
 import { num } from '../../engine/dates';
 import { PROJECT_NAME } from '../../config/brand';
-import registry from '../../data/parcels.json';
+import registry from '../../data/fields/parcels.json';
 import { LEVELS } from '../../data/stories';
 import { bnDigits } from '../../engine/dates';
 import { ABROAD, ABROAD_ORDER, areaIn } from '../../data/abroad';

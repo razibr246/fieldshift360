@@ -1,5 +1,5 @@
 // Registry of the photographs used across the site.
-// Each entry has four widths (900 / 1600 / 2400 / 3200 px, WebP; AI-sharpened, scripts/python/upscale_photos.py),
+// Each entry has four widths (900 / 1600 / 2400 / 3200 px, WebP; AI-sharpened, scripts/photos/upscale_photos.py),
 // its intrinsic size, a focal point for object-position,
 // and bilingual alt text. Components use <Photo name="…"> (src/components/Photo.jsx) rather than raw paths.
 import heroAerialDawn1600 from './hero-aerial-dawn-1600.webp';

@@ -130,7 +130,7 @@ const slimClimate = () => ({
   name: 'slim-climate',
   enforce: 'pre',
   transform(code, id) {
-    if (!/[\\/]src[\\/]data[\\/]climate_[a-z]+\.json$/.test(id)) return null;
+    if (!/[\\/]src[\\/]data[\\/]climate[\\/]climate_[a-z]+\.json$/.test(id)) return null;
     const j = JSON.parse(code);
     return { code: JSON.stringify(Object.fromEntries(Object.entries(j).filter(([k]) => CLIMATE_IN_APP.has(k)))), map: null };
   },

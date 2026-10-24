@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { onsetIndex, threshold, trend, RULE } from '../../pipeline/onset/onset.mjs';
+import { onsetIndex, threshold, trend, RULE } from '../../scripts/onset/onset.mjs';
 import { onsetSummary, ONSET } from './onset.js';
 
 const DAY = 864e5;
@@ -37,7 +37,7 @@ test('Mann–Kendall and Sen’s slope: a steady rise is significant, noise is n
 
 test('every app upazila has its own real onset series from IMERG, 2001 to 2025 final', () => {
   for (const u of ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat']) {
-    const f = JSON.parse(readFileSync(new URL(`../data/onset_${u}.json`, import.meta.url)));
+    const f = JSON.parse(readFileSync(new URL(`../data/radar/onset_${u}.json`, import.meta.url)));
     assert.equal(f.provenance.status, 'REAL');
     assert.equal(f.provenance.primary, 'imerg');
     const ref = f.years.filter((r) => r.year >= 2001 && r.year <= 2025);
@@ -51,8 +51,8 @@ test('every app upazila has its own real onset series from IMERG, 2001 to 2025 f
 });
 
 
-test('the onset rule agrees with BMD station-based onsets within a week (pipeline/onset/compare_bmd.mjs)', () => {
-  const v = JSON.parse(readFileSync(new URL('../data/onset_validation.json', import.meta.url)));
+test('the onset rule agrees with BMD station-based onsets within a week (scripts/onset/compare_bmd.mjs)', () => {
+  const v = JSON.parse(readFileSync(new URL('../data/radar/onset_validation.json', import.meta.url)));
   assert.equal(v.rows.length, 3);
   for (const r of v.rows) {
     assert.ok(Math.abs(r.diffD1) <= 7, `${r.station}: IMERG against BMD gauges, same rule, within a week`);

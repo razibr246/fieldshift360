@@ -12,7 +12,7 @@ import { smsSplit } from '../../engine/text';
 import { createSession, respond } from '../../voice/brain';
 import { farmerSnapshot } from '../../voice/snapshot';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
-import deltas from '../../data/cmip6_deltas.json';
+import deltas from '../../data/climate/cmip6_deltas.json';
 import { climateChange, fieldContext, fieldFuture, cropOf, WATER_M3_PER_MM_BIGHA } from '../../engine/soilfuture';
 
 const KEYS = [

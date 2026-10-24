@@ -6,7 +6,7 @@ import { Note } from '../ui';
 import { num } from '../../engine/dates';
 import { climateChange } from '../../engine/soilfuture';
 import { abroadRotations, cropAbroad } from '../../engine/rotationAbroad';
-import soilYields from '../../data/abroad_soil_yields.json';
+import soilYields from '../../data/soil/abroad_soil_yields.json';
 import { TEXTURE } from '../../engine/soil';
 
 const signed = (x, lang, dp = 1) => { const r = Math.round(x * 10 ** dp) / 10 ** dp; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${num(Math.abs(r), lang, { dp })}`; };
@@ -15,7 +15,7 @@ export default function AbroadRotations({ id, normals }) {
   const { s, T, L } = useStore();
   const lang = s.lang;
   const [deltas, setDeltas] = useState(null);
-  useEffect(() => { import('../../data/cmip6_deltas.json').then((m) => setDeltas(m.default)); }, []);
+  useEffect(() => { import('../../data/climate/cmip6_deltas.json').then((m) => setDeltas(m.default)); }, []);
   const c = soilYields.countries[id];
   const res = useMemo(() => (c ? abroadRotations({ country: id, soil: c.soil, yields: c.yields, normals, change: deltas ? climateChange(deltas, `abroad_${id}`, 'ssp245') : null }) : null), [c, id, normals, deltas]);
   if (!res) return null;

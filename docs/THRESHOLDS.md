@@ -4,7 +4,7 @@ Every threshold and rule the app uses to judge a crop, a date or a risk, with it
 from general agronomy, chosen to be reasonable and stated openly; none has yet been reviewed by an agriculture
 officer. Please check each line, correct it where local experience or a BARI/BRRI/DAE guide says otherwise, and sign
 the last column. The values live in `src/engine/crops.js` (crop rules), `src/engine/decision.js` (decision),
-`src/engine/glut.js` (harvest glut), `scripts/data/build_aman_radar.mjs` (radar) and `pipeline/onset/onset.mjs`
+`src/engine/glut.js` (harvest glut), `scripts/build/build_aman_radar.mjs` (radar) and `scripts/onset/onset.mjs`
 (rain onset).
 
 "Consistent with" means the value agrees with the named source's general guidance; the exact number (a day count, a
@@ -43,7 +43,7 @@ The usual date is tested, and so are two weeks earlier and two weeks later (the 
 | Lentil | 5 November | 105 | Low | 6.0–8.0 | Date consistent with BARI's late October – mid November sowing; the rest assumption | |
 | Mustard | 1 November | 85 | Low | 5.5–7.5 | Date consistent with BARI's late October – November sowing; the rest assumption | |
 | Planting band | Usual date, −14 days, +14 days | — | — | — | Assumption (design choice) | |
-| Well-drained crops (tomato, wheat, lentil, mustard) | Penalised on soil whose drainage is "poor" | — | — | — | Drainage class derived from the SoilGrids WRB soil group (`scripts/data/build_soil.py`); assumption | |
+| Well-drained crops (tomato, wheat, lentil, mustard) | Penalised on soil whose drainage is "poor" | — | — | — | Drainage class derived from the SoilGrids WRB soil group (`scripts/build/build_soil.py`); assumption | |
 
 Yields are FAOSTAT 2024 national averages (real data), not thresholds.
 

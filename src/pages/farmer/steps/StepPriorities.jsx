@@ -10,7 +10,7 @@ import { WATER_SOURCES } from '../../../engine/cropwater.js';
 import { ECON_SOURCES } from '../../../engine/economics.js';
 import { num, fmtDate } from '../../../engine/dates.js';
 import { cropName } from '../../../engine/crops.js';
-import cropEconomics from '../../../data/crop_economics.json';
+import cropEconomics from '../../../data/market/crop_economics.json';
 
 const ICONS = { droplets: Droplets, coins: Coins, shield: Shield, sprout: Sprout, timer: Timer };
 export const W_LABEL = { C: { bn: 'আবহাওয়ার ঝুঁকি', en: 'Weather safety' }, W: { bn: 'সেচের পানি', en: 'Water' }, S: { bn: 'মাটির সঙ্গে মিল', en: 'Soil match' }, P: { bn: 'ফসলের দাম', en: 'Harvest value' }, R: { bn: 'ফসলচক্র', en: 'Rotation' }, G: { bn: 'দাম পড়ার ঝুঁকি', en: 'Price-drop risk' }, E: { bn: 'আগাম ফসল', en: 'Early harvest' } };

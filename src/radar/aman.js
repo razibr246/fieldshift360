@@ -1,8 +1,8 @@
-// Real Aman data (scripts/data/build_aman_radar.mjs): NASA GPM IMERG June–July rain and Sentinel-1 radar transplanting
+// Real Aman data (scripts/build/build_aman_radar.mjs): NASA GPM IMERG June–July rain and Sentinel-1 radar transplanting
 // dates for every rural upazila of Rajshahi and Dhaka districts. The district summary ships with the app; one
 // upazila's season curves and radar frames are fetched from public/aman/ when that upazila is opened.
 import { useEffect, useState } from 'react';
-import AMAN from '../data/aman_radar.json';
+import AMAN from '../data/radar/aman_radar.json';
 
 export { AMAN };
 export const SHIFT_DAYS = AMAN.shiftDays; // a transplanting date within ±7 days of the upazila's own normal is normal

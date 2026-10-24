@@ -15,7 +15,7 @@ import { AMAN_PREP } from '../../../engine/rotation.js';
 import { bnOf } from '../../../engine/text.js';
 import { num, fmtDate, fmtRange, fmtBangla, bnDigits, MONTHS_BN, MONTHS_EN } from '../../../engine/dates.js';
 import { supplyCurve, normalWeekly, PRICE_DIP, slotLoad, slotOf, weekOf, weekStart, midYield, harvestPriceHistory, STORABLE } from '../../../engine/glut.js';
-import MARKET from '../../../data/market_dhaka.json';
+import MARKET from '../../../data/market/market_dhaka.json';
 
 export const shiftLabel = (shift, T) => (shift === 0 ? T('স্বাভাবিক সময়ে', 'at the usual time') : shift < 0 ? T('দুই সপ্তাহ আগে', 'two weeks earlier') : T('দুই সপ্তাহ পরে', 'two weeks later'));
 const WATER_DROPS = { High: 3, Medium: 2, 'Low-Medium': 1.5, Low: 1 };

@@ -25,7 +25,7 @@ import { cropWaterNeed } from './cropwater.js';
 import { evalRule, plantDate, NOW, PLAN_SEASON } from './climate.js';
 import { cropMoney } from './economics.js';
 import { ymd, addDays, DAY, monthOf, dayOf } from './dates.js';
-import yieldHistory from '../data/yield_history.json' with { type: 'json' };
+import yieldHistory from '../data/market/yield_history.json' with { type: 'json' };
 
 export const YEARS = 10;
 export const FIRST_YEAR = PLAN_SEASON; // Rabi 2026–27 is year one

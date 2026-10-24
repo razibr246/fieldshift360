@@ -1,30 +1,57 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+FieldShift 360: a NASA Space Apps 2026 crop-rotation decision tool for Bangladeshi smallholders and agriculture
+officers. A Vite + React 19 single-page app (HashRouter, Tailwind v4, recharts, Leaflet/MapLibre) that computes
+everything in the browser from committed data; `README.md` maps each line of the challenge statement to a page.
+This is the one guide for every coding agent (`CLAUDE.md`, `GEMINI.md` and `.github/copilot-instructions.md` point here).
 
-The main application is a Vite and React site. `src/pages/` contains farmer, officer, public, and abroad screens; `src/components/`, `src/layouts/`, and `src/config/` hold reusable UI and app setup. Agriculture and planning logic lives in `src/engine/`; related features and tests are in `src/voice/`, `src/game/`, and `src/radar/`. `src/data/` and `src/assets/` contain app data and imagery. Static files and the Ropon Radar prototype are under `public/`. Server endpoints are in `api/`, data utilities in `scripts/` and `pipeline/`, and the voice service in `services/voice-agent/`. Project notes and data references are in `docs/`.
+## Commands
 
-## Build, Test, and Development Commands
+```bash
+npm install
+npm run dev                          # Vite dev server, with in-memory stand-ins for api/*
+npm test                             # every Node test suite (list in package.json "test")
+node --test src/engine/engine.test.js                                  # one suite
+node --test --test-name-pattern="weights" src/engine/engine.test.js    # one test by name
+npm run build && npm run preview     # production build in dist/, served locally
+npm run build:single                 # one self-contained dist-single/index.html
+npm run fetch:* / data:* / photos:*  # data and photo scripts, listed in scripts/README.md
+```
 
-- `npm install` installs the root app dependencies.
-- `npm run dev` starts the local Vite development server.
-- `npm run build` creates the production site in `dist/`; `npm run preview` serves that build locally.
-- `npm test` runs the Node test suites for the engine, voice, game, and radar onset logic.
-- `npm run build:single` builds the single-file variant.
-- Data refresh and generation scripts are exposed as `npm run fetch:power`, `npm run data:build`, and other `data:*` / `fetch:*` commands. Check each script's README before changing generated datasets.
+There is no linter or formatter. `npm test` plus `npm run build` is the validation path; for UI changes also open
+the affected farmer, officer or public page. Tests import engine modules and JSON (via `readFileSync`) only: Node
+cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. `smsSplit` lives in `engine/text.js`).
 
-## Coding Style & Naming Conventions
+## Layout
 
-Use the existing JavaScript ES module and JSX patterns. Components use PascalCase filenames (for example, `HarvestOutlook.jsx`); engine modules and scripts use lowercase names, often camelCase or descriptive kebab-case. Match the surrounding indentation and quote style when editing; there is no root formatter or linter configured. Keep UI components focused and place crop, weather, soil, and rotation calculations in `src/engine/` rather than duplicating them in pages.
+- `src/App.jsx`: routes, every page lazy-loaded; four groups with their own layout in `src/layouts/`: public (`/`,
+  `/stories`, games), `/farmer/*`, `/officer/*`, `/abroad/:cc/*` (India, Pakistan, Nepal, Bhutan, Myanmar).
+- `src/store.jsx`: one context holds the selected farmer, field, priorities, requests and officer context, and derives
+  the season decision (`engine/decision.js`), rotation (`engine/rotation.js`), field water and hotspots. NASA POWER
+  climate per upazila loads lazily (`loadClimate(id)`) and is corrected to BMD station normals. Bilingual text goes
+  through `T(bn, en)` and `L({ bn, en })`; numbers through `num()` / `bnDigits()` (`engine/dates.js`). Bangla first.
+- `src/engine/`: pure functions, no React. `soilfuture.js` is Field Future: `fieldContext` → `fieldFuture` runs every
+  feasible rotation for ten years (ICBM soil carbon, FAO-56 water, NRCS soil health), `rank()` re-weights by the
+  farmer's priorities, `climateLedger` does IPCC paddy methane, `modelTest` the 40-future ensemble.
+- `src/data/`: grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `fields/`, `market/`, `region/`, `media/`,
+  `abroad/`, `geo/`) plus the data modules (`upazilas.js`, `demo.js`, `stories.js` ...); see `src/data/README.md`.
+  Seven upazilas, one per division (`UPAZILAS`); `stories.js` `LEVELS` fixes their order everywhere.
+- `scripts/`: `fetch/`, `build/`, `onset/` (the rain-onset rule, also imported by `src/radar/onset.test.js`),
+  `photos/`, `lib/`; index in `scripts/README.md`. Do not hand-edit generated data: change the script and re-run it.
+  Moving a script changes its depth, so check its `ROOT` path and relative imports.
+- `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `ANTHROPIC_API_KEY`); `vite.config.js`
+  serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
+- `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
+  project with its own guide. `public/radar/` is the original Ropon Radar prototype (Apache-2.0).
 
-## Testing Guidelines
+## Rules of this project
 
-Tests use Node's built-in test runner and are named `*.test.js` beside the code or feature they cover. Run `npm test` after changes to decision logic or shared behavior. For UI changes, run `npm run dev` and check the affected farmer, officer, or public flow in the browser; for production-facing changes, confirm `npm run build` succeeds.
-
-## Commit & Pull Request Guidelines
-
-Recent commits use concise, sentence-style subjects describing the user-visible change (for example, “SMS mode for feature phones…”); no fixed prefix convention is evident. Keep commits focused. Pull requests should explain the behavior and motivation, list validation commands run, link related issues when available, and include screenshots for visible UI changes. Call out generated data or configuration changes explicitly.
-
-## Security & Configuration
-
-Use `.env.example` as the reference for local configuration. Keep secrets in local environment files and never commit them. Treat generated data as inputs with documented sources and licensing; update the relevant documentation when its provenance or build process changes.
+- Real vs sample is a product rule: climate, rain, radar, soil, prices and yields are real; farmers, requests and the
+  register's owners are sample. Every number carries a `<Tags list={[...]} />` label (`REAL`, `RULE`, `AI`, ...);
+  keep them truthful.
+- Before changing behaviour, check `docs/THRESHOLDS.md` (crop thresholds), `docs/DATA_SOURCES.md` (update it when
+  data changes), `docs/RADAR.md` (onset rule), `docs/VOICE.md` and `docs/MERGE.md`.
+- Style: ES modules and JSX as the surrounding code; PascalCase component files, lowercase engine and script files;
+  match indentation and quotes. Keep calculations in `src/engine/`, not in pages.
+- Commits: short sentence-style subjects naming the user-visible change; call out generated data or config changes.
+- Secrets live in `.env.local` (see `.env.example`), never in the repo.

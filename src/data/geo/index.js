@@ -1,4 +1,4 @@
-// Boundary and places for each upazila the app covers (built by scripts/data/build_godagari_*.py <upazila>).
+// Boundary and places for each upazila the app covers (built by scripts/build/build_godagari_*.py <upazila>).
 // Savar, Keraniganj, Dohar and Nawabganj are here for Ropan Radar, which shows every Dhaka district upazila in depth.
 import godagariBoundary from './godagari_boundary.json';
 import godagariPlaces from './godagari_places.json';
@@ -25,7 +25,7 @@ import gowainghatBoundary from './gowainghat_boundary.json';
 import gowainghatPlaces from './gowainghat_places.json';
 
 // Ropon Radar's other upazilas (every rural upazila of the seven districts) have light maps in ./radar/, built by
-// scripts/data/build_radar_geo.py and fetched only when the radar page opens one (loadGeo adds it to GEO).
+// scripts/build/build_radar_geo.py and fetched only when the radar page opens one (loadGeo adds it to GEO).
 const RADAR_GEO = import.meta.glob('./radar/*.json', { import: 'default' });
 const RADAR_GEO_IDS = new Set(Object.keys(RADAR_GEO).map((k) => k.slice('./radar/'.length, -'.json'.length)));
 export const hasGeo = (id) => !!GEO[id] || RADAR_GEO_IDS.has(id);

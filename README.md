@@ -39,7 +39,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 | --- | --- | --- |
 | A **decision-support tool** | Field Future ranks every feasible rotation for the field, starting from the rotation Sentinel-2 actually saw on it, and names the best and the most robust (with its chance over 40 futures); the season plan turns this year's step into KEEP, ADJUST or SHIFT; officers see the upazila-wide effect of a switch | `/farmer/future`, `/farmer/plan`, `/officer/upazila` |
 | Uses **NASA Earth observations** | NASA POWER (weather and root-zone soil wetness), GPM IMERG rain, NEX-GDDP-CMIP6 projections, GIBS HLS imagery, FIRMS fires | Every score; table below |
-| **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's own carbon; SRDI fertilizer doses per union | `src/data/soil_*.json`, Field Future soil column |
+| **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's own carbon; SRDI fertilizer doses per union | `src/data/soil/soil_*.json`, Field Future soil column |
 | **Crop characteristics** | Per crop: duration, sowing windows, water need (FAO-56 coefficients), weather failure rules, family, legume nitrogen, harvest index and root-to-shoot ratio for carbon | `src/engine/crops.js`, `src/engine/soilfuture.js` |
 | **Farmer priorities** | More income, less water, less risk, better soil, an early harvest: they re-weight both the rotation ranking and the season plan at once | Planner step 4, Field Future |
 | **Explore rotation strategies** | All one- and two-year cycles of a Rabi crop, a Kharif-1 crop and T. Aman, with or without the straw kept; side-by-side comparison; build your own; every rotation on a profit-against-soil chart | `/farmer/future` |
@@ -62,15 +62,15 @@ the planner, the data pipelines, the officer views, the voice assistant, Ropon R
 
 After the challenge statement was read (22 October 2026):
 - Field Future: the climate account (paddy methane against soil carbon, with AWD), the eight-model robustness test,
-  the Rabi soil-water record (NASA POWER GWETROOT, `scripts/fetch-soil-wetness.mjs`) and the redrawn soil profile.
+  the Rabi soil-water record (NASA POWER GWETROOT, `scripts/fetch/soil-wetness.mjs`) and the redrawn soil profile.
 - The home page leads with ten-year rotations; the demo story starts from rotations and soil health.
-- NASA GRACE and SMAP water records through GIBS (`scripts/fetch-gibs-water.mjs`), in Field Future and abroad.
-- Rotation options for the five neighbouring-country farms (`scripts/data/build_abroad_soil_yields.py`,
+- NASA GRACE and SMAP water records through GIBS (`scripts/fetch/gibs-water.mjs`), in Field Future and abroad.
+- Rotation options for the five neighbouring-country farms (`scripts/build/build_abroad_soil_yields.py`,
   `src/engine/rotationAbroad.js`).
 - Field Future starts from the rotation Sentinel-2 saw on the field; the robustness test became a 40-future
   ensemble (8 models × 5 FAOSTAT yield years); the officers' upazila impact estimate; the narrated story video and
   the printable poster; SMS mode.
-- The rain-onset rule checked against BMD station-based onsets (`pipeline/onset/compare_bmd.mjs`); the search now
+- The rain-onset rule checked against BMD station-based onsets (`scripts/onset/compare_bmd.mjs`); the search now
   opens on 15 May instead of 15 April, and every upazila's onset was re-worked.
 
 The commit history shows each change with its date.
@@ -99,21 +99,21 @@ shared plan board (`api/plans.js`, see below), so every farmer's confirmed plan 
 | NASA data | What it does here | How it is fetched |
 | --- | --- | --- |
 | **NASA POWER** daily (T2M_MAX, T2M_MIN, PRECTOTCORR), Oct 2000 to Oct 2026 | Every backtest, score, harvest window and the "then vs now" comparison | `npm run fetch:power` (no login), saved in the app |
-| **NASA POWER** monthly GWETROOT and GWETTOP (root-zone and surface soil wetness, MERRA-2), 2001–2025 | Field Future's Rabi soil-water record: each season's wetness, before against now, and its trend | `node scripts/fetch-soil-wetness.mjs` (no login), saved as `src/data/soil_wetness.json` |
+| **NASA POWER** monthly GWETROOT and GWETTOP (root-zone and surface soil wetness, MERRA-2), 2001–2025 | Field Future's Rabi soil-water record: each season's wetness, before against now, and its trend | `node scripts/fetch/soil-wetness.mjs` (no login), saved as `src/data/water/soil_wetness.json` |
 | **NASA POWER**, last ~80 days, live | "This season so far" card; falls back to the saved series, with its date, when NASA cannot be reached | Browser call to the POWER API |
 | **NASA/JAXA GPM IMERG** daily (`IMERG_PRECTOT` through POWER, UTC days) | Independent satellite check of POWER rain: Rabi seasons r = 0.81, monsoon r = 0.76 over 25 seasons | Same script, second request |
-| **NASA NEX-GDDP-CMIP6 v2.0** (NCCS, 0.25°, bias-corrected, 8 models, SSP2-4.5 and SSP5-8.5) | Field Future's 2040s: each model's monthly change in Tmax, Tmin and rain at the upazila's cell, added to its own NASA POWER days | `npm run fetch:cmip6` (no login; NASA THREDDS point subsets, cached and resumable), saved as `src/data/cmip6_deltas.json` |
+| **NASA NEX-GDDP-CMIP6 v2.0** (NCCS, 0.25°, bias-corrected, 8 models, SSP2-4.5 and SSP5-8.5) | Field Future's 2040s: each model's monthly change in Tmax, Tmin and rain at the upazila's cell, added to its own NASA POWER days | `npm run fetch:cmip6` (no login; NASA THREDDS point subsets, cached and resumable), saved as `src/data/climate/cmip6_deltas.json` |
 | **NASA GIBS · HLS** (Harmonized Landsat 8/9 and Sentinel-2, 30 m) | "NASA satellite" map type with cloud-free dates from Agrahayan to Aman, chosen per upazila (each checked over the whole upazila: full coverage, nearly no cloud; Godagari's dates are blank over Dhamrai) | WMTS tiles from gibs.earthdata.nasa.gov |
-| **NASA GRACE / GRACE-FO** (JPL mascons, CRI) and **NASA SMAP** L4 root-zone soil moisture, through NASA GIBS (Worldview's imagery service) | Field Future "Soil water": the water stored under each upazila since 2002 (falling 8.9 cm a decade under Godagari), this month's root-zone moisture against normal | `node scripts/fetch-gibs-water.mjs` (no login), saved as `src/data/water_sat.json` |
+| **NASA GRACE / GRACE-FO** (JPL mascons, CRI) and **NASA SMAP** L4 root-zone soil moisture, through NASA GIBS (Worldview's imagery service) | Field Future "Soil water": the water stored under each upazila since 2002 (falling 8.9 cm a decade under Godagari), this month's root-zone moisture against normal | `node scripts/fetch/gibs-water.mjs` (no login), saved as `src/data/water/water_sat.json` |
 | **NASA FIRMS** (VIIRS fires) | Fires and straw burning on the neighbouring-country pages | Saved in `src/data/abroad/*.json` (`npm run fetch:neighbours`) |
-| **NASA SEDAC** (through NASA GIBS): GPW v4.11 population density 2020, LECZ v3 land below 10 m, Global Agricultural Lands croplands 2000 | Home "Who it is for": each upazila's density, low-lying land and cropland share, measured inside its own boundary | `npm run fetch:sedac` (no login), saved as `src/data/sedac.json` |
-| **NASA Image and Video Library** | Home "Bangladesh through NASA's eyes": the delta from the Space Shuttle, the Sundarbans and the coast from the ISS, Rupganj by ASTER, each credited and linked | `npm run photos:nasa` (no key), saved in `src/assets/images/nasa/` and `src/data/nasa_images.json` |
+| **NASA SEDAC** (through NASA GIBS): GPW v4.11 population density 2020, LECZ v3 land below 10 m, Global Agricultural Lands croplands 2000 | Home "Who it is for": each upazila's density, low-lying land and cropland share, measured inside its own boundary | `npm run fetch:sedac` (no login), saved as `src/data/region/sedac.json` |
+| **NASA Image and Video Library** | Home "Bangladesh through NASA's eyes": the delta from the Space Shuttle, the Sundarbans and the coast from the ISS, Rupganj by ASTER, each credited and linked | `npm run photos:nasa` (no key), saved in `src/assets/images/nasa/` and `src/data/media/nasa_images.json` |
 | **NASA Giovanni** (GES DISC), GPM IMERG V07 monthly | Ready: an independent check of the POWER rain behind every plan, at each upazila | `npm run fetch:giovanni` (needs a free Earthdata token in `.env.local`) |
 
 Copernicus **Sentinel-2 L2A** (ESA, 10 m) through Microsoft Planetary Computer (no key) watches every registered field:
 green cover (NDVI), moisture (NDMI) and standing water on each clear pass since June 2025, a true-colour and green-cover
 picture of the latest pass, and the "Sentinel-2 (10 m)" map type (clearest pass of a chosen month, retina tiles). The
-saved copy is `src/data/field_watch.json` (`npm run data:fields`); the app adds newer passes live when online.
+saved copy is `src/data/fields/field_watch.json` (`npm run data:fields`); the app adds newer passes live when online.
 
 Other open data, each labelled in the app: BBS/OCHA union and upazila boundaries (geoBoundaries), GeoNames village
 names, Esri/Impact Observatory/Microsoft Sentinel-2 land cover, BBS Yearbook of Agricultural Statistics 2023 (district
@@ -178,7 +178,7 @@ has a space, the part after the last space is drawn in the accent colour in the 
 
 ## Images
 
-The supplied photos are in `src/assets/images/`, AI-sharpened (Real-ESRGAN, `scripts/python/upscale_photos.py`) and saved as WebP at 900, 1600, 2400 and 3200 px widths (original
+The supplied photos are in `src/assets/images/`, AI-sharpened (Real-ESRGAN, `scripts/photos/upscale_photos.py`) and saved as WebP at 900, 1600, 2400 and 3200 px widths (original
 aspect ratios kept). `src/assets/images/index.js` exports them with their size, focal point and Bangla/English
 alt text, and `src/components/Photo.jsx` renders them with `srcset`, `object-fit: cover` and the focal point,
 lazy-loaded except the hero. No text is placed on top of a photo except where a soft gradient keeps it readable.
@@ -200,7 +200,7 @@ Bernard Gagnon, CC BY-SA 4.0; Bamyan wheat, Afghanistan — Monikajoannah, CC BY
 
 ## Every field, from the upazila office register, watched by satellite
 
-Each upazila agriculture office keeps a register of the fields each farmer works (`src/data/parcels.json`). For now it
+Each upazila agriculture office keeps a register of the fields each farmer works (`src/data/fields/parcels.json`). For now it
 holds Rahim Uddin (Godagari, Rajshahi) and Razib Miah (Dhamrai, Dhaka), four fields each in three or four unions, 0.5 to 5
 bigha. The positions are real cropland (checked against Esri / Impact Observatory 10 m land cover 2025 and Sentinel-2);
 owners, sizes, names and register numbers are sample data.
@@ -245,17 +245,16 @@ npm run fetch:power -- --lat 24.47 --lon 88.40   # another point
 npm run build                                    # every number recalculates
 ```
 
-The script (`scripts/fetch-power.mjs`, plain Node, no login) downloads daily T2M_MAX, T2M_MIN and PRECTOTCORR, then
+The script (`scripts/fetch/power.mjs`, plain Node, no login) downloads daily T2M_MAX, T2M_MIN and PRECTOTCORR, then
 GPM IMERG rain (`IMERG_PRECTOT`, which POWER serves on UTC days only) in a second request, and writes
-`src/data/climate_godagari.json` with provenance marked REAL.
+`src/data/climate/climate_godagari.json` with provenance marked REAL.
 
-Optional Python helpers live in `scripts/python/` (see its README): `build_soil.py` rebuilds the SoilGrids-derived
-`src/data/soil_*.json` (provenance REAL — a 250 m model estimate, not a field soil test); fertilizer doses come from
-SRDI's union-level recommendations in `src/data/srdi_frs.json`. Other helpers there are superseded by
-`npm run fetch:power`.
+`npm run data:soil` (`scripts/build/build_soil.py`) rebuilds the SoilGrids-derived `src/data/soil/soil_*.json`
+(provenance REAL — a 250 m model estimate, not a field soil test); fertilizer doses come from SRDI's union-level
+recommendations in `src/data/soil/srdi_frs.json`. Every script is listed in [scripts/README.md](scripts/README.md).
 
 The geographic layers (boundary, unions, villages, land use, the Bangladesh crop map) are rebuilt from their public
-sources with `npm run data:build`; see `scripts/data/README.md` and `docs/DATA.md`.
+sources with `npm run data:build`; see `scripts/build/README.md` and `docs/DATA.md`.
 
 ## Neighbouring countries: one farmer and one local officer each
 
@@ -289,7 +288,7 @@ Open them from the login page (each country is one card: farmer on one side, off
 - **Names**: offices are real. A person is named only where an official page read on 19 Oct 2026 names them (the
   national secretaries of India, Pakistan and Bhutan, shown as context); no local officer's name could be confirmed,
   so none is shown, and each page says why.
-- **Data**: `npm run fetch:neighbours` (`scripts/data/build_neighbours.py`) writes `src/data/abroad/<country>.json`:
+- **Data**: `npm run fetch:neighbours` (`scripts/build/build_neighbours.py`) writes `src/data/abroad/<country>.json`:
   ERA5 daily weather (Open-Meteo archive, `models=era5`), NASA/JAXA GPM IMERG rain via NASA POWER, NASA FIRMS VIIRS
   fires (7 days), Sentinel-2 field readings and the officer's area. NASA POWER's PRECTOTCORR is kept only for the
   record check: at these cells it has breaks that are not climate (Chauk, Myanmar: about 50 mm a year before 2008,
@@ -351,36 +350,37 @@ Crop thresholds in `src/engine/crops.js` are starting values for an agronomist o
 
 ```
 index.html, vite.config.js, vercel.json, package.json      app entry and build setup
-public/                 sw.js (offline), manifest.webmanifest, icon.svg, radar/ (the Aman radar, served as is)
+api/                    Vercel functions: plans (shared plan board), messages, abroad, doctor (Claude crop doctor)
+public/                 sw.js (offline), manifest, icon; aman/ (radar data per upazila), models/ (photo AI),
+                        radar/ (the original Ropon Radar prototype, served as is)
 src/
   main.jsx, App.jsx     start-up and routes (every page but Home loads on demand)
   store.jsx             app state (React context + reducer, saved to localStorage)
   index.css             design tokens, glass, motion
   config/brand.js       project name, tagline, description (the only place the name is written)
-  layouts/              PublicLayout, FarmerLayout, OfficerLayout
-  pages/                public/ (Home, Login, games), farmer/ (dashboard, plan + steps, today, doctor, help, harvest, farm, voice),
-                        officer/ (overview, requests, farmers, area map, alerts, planting, supply/upazila, voice, radar)
-  components/           ui kit, chrome, Overlays, Photo, Motion, brand/
-    map/                MapFrame, MapView, VectorBasemap, UpazilaBoundary, UpazilaLayers, LandPicker, hdSatellite
-    charts/             SeasonRibbon, LiveWeather, SeasonSoFar, RainCheck, CountryCrops, SupplyChart
-  engine/               climate, crops, decision, rotation, glut, harvest, water, cluster, world, forecast, dates, text (+ tests)
-  data/                 climate_godagari.json (NASA), soil_godagari.json, demo.js, advice.js, story.js
-    geo/                boundary, unions and villages, land use, Bangladesh crops (built by scripts/data)
-  assets/               images/ (six photos, WebP), maps/ (land-use images)
-  voice/, radar/        the voice assistant, the radar model
-  game/                 "মাঠের মানুষ", the 3D farm game: regions.js + regions_bd.js (the 12 farmers, their places, crops,
-                        questions), places.js (each village's named places and memories, neighbours, local-script
-                        signs), layout.js (each world's props, water and ground), sim.js (the rules, + sim.test.js,
-                        a bot that wins every farmer's season), three/ (people, props, field, world, life, stage)
-scripts/
-  fetch-power.mjs       NASA POWER + GPM IMERG download (npm run fetch:power)
-  fetch-cmip6.mjs       NASA NEX-GDDP-CMIP6 change signals per upazila (npm run fetch:cmip6)
-  fetch-stories.mjs     NASA POWER + GPM IMERG + SoilGrids for the five story upazilas and Sohra (npm run fetch:stories)
+  layouts/              Public, Farmer, Officer and Abroad layouts
+  pages/                public/ (Home, Login, stories, games), farmer/ (dashboard, plan + steps, Field Future, today,
+                        doctor, help, harvest, farm, voice, SMS), officer/ (overview, requests, farmers, map, alerts,
+                        planting, upazila, radar, voice), abroad/ (the five neighbouring-country farmers and officers)
+  components/           ui kit, chrome, Overlays, Photo, Motion, SectionNav, NasaEyes, brand/,
+                        charts/, map/, fields/ (satellite field watch), story/ (story video, rotation poster)
+  engine/               climate, crops, decision, rotation, soilfuture (Field Future), water, glut, harvest,
+                        abroad, cluster, forecast, dates, text (+ tests)
+  data/                 the app's data, nearly all of it built by a script (see src/data/README.md):
+                        climate/, water/, soil/, radar/, fields/, market/, region/, media/, abroad/, geo/,
+                        and the data modules (upazilas.js, demo.js, stories.js, parcels.js, crop_problems.js ...)
+  assets/               images/ (photos, WebP at four widths; nasa/), maps/ (land use), fields/ (satellite thumbnails)
+  voice/, radar/, ai/   the voice assistant, the rain-onset and Aman radar model, on-device photo sharpening
+  game/                 "মাঠের মানুষ", the 3D farm game (regions, places, sim + tests, three/ for the 3D world)
+scripts/                every data and photo script (index in scripts/README.md):
+  fetch/                downloads from NASA and others: POWER, CMIP6, soil wetness, GIBS water, SEDAC, Giovanni
+  build/                rebuild boundaries, places, land use, soil, prices, field watch, radar (Python and Node)
+  onset/                the rain-onset rule and its check against BMD (also used by the app's tests)
+  photos/               photo tools: upscaler, neighbouring-country photos, NASA images
+  lib/                  shared helpers (NASA GIBS image decoding)
   sync-voice.mjs        copies the voice brain into services/voice-agent (npm run sync:voice)
-  data/                 rebuild the geographic data from public sources (npm run data:build)
-  python/               optional soil and photo helpers
-services/voice-agent/   phone and browser voice pipeline (Soniox + Groq)
-docs/                   DATA.md, MERGE.md, VOICE.md, RADAR.md (index in docs/README.md)
+services/voice-agent/   phone and browser voice pipeline (Soniox + Groq), its own project
+docs/                   DATA_SOURCES, THRESHOLDS, RADAR, VOICE, MERGE, SUBMISSION (index in docs/README.md)
 ```
 
 Ready for a backend later: all reads go through `useStore()` and all changes are reducer actions

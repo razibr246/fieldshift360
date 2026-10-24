@@ -1,7 +1,7 @@
 // The upazila offices' land registry (parcels.json) and the saved satellite readings for each field
-// (field_watch.json, built by scripts/data/build_field_watch.py), with the bundled pictures of each field.
-import registry from './parcels.json';
-import watch from './field_watch.json';
+// (field_watch.json, built by scripts/build/build_field_watch.py), with the bundled pictures of each field.
+import registry from './fields/parcels.json';
+import watch from './fields/field_watch.json';
 import { distanceKm } from '../engine/world.js';
 
 export const PARCELS = registry.parcels;

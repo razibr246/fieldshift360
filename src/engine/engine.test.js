@@ -11,8 +11,8 @@ import { dbscan, findHotspots } from './cluster.js';
 import { buildDemo } from '../data/demo.js';
 import { makeUnion } from './world.js';
 
-const climJson = JSON.parse(readFileSync(new URL('../data/climate_godagari.json', import.meta.url)));
-const soilJson = JSON.parse(readFileSync(new URL('../data/soil_godagari.json', import.meta.url)));
+const climJson = JSON.parse(readFileSync(new URL('../data/climate/climate_godagari.json', import.meta.url)));
+const soilJson = JSON.parse(readFileSync(new URL('../data/soil/soil_godagari.json', import.meta.url)));
 const clim = makeClimate(climJson);
 
 test('25 seasons, backtest covers them all', () => {
@@ -73,7 +73,7 @@ test('time machine produces then/now means', () => {
 });
 
 test('Dhamrai: real NASA climate, every demo farm inside its real union outline, and a plan for Razib', () => {
-  const dClim = makeClimate(JSON.parse(readFileSync(new URL('../data/climate_dhamrai.json', import.meta.url))));
+  const dClim = makeClimate(JSON.parse(readFileSync(new URL('../data/climate/climate_dhamrai.json', import.meta.url))));
   assert.equal(dClim.prov.status, 'REAL');
   const demo = buildDemo();
   const places = JSON.parse(readFileSync(new URL('../data/geo/dhamrai_places.json', import.meta.url)));
@@ -90,7 +90,7 @@ test('Dhamrai: real NASA climate, every demo farm inside its real union outline,
   for (const f of dh) assert.ok(inside(f.lat, f.lon, places.unions.find((u) => u.en === f.union).ring), `${f.id} in ${f.union}`);
   const razib = demo.farmers.find((f) => f.id === 'RAZIB');
   assert.equal(razib.union, 'Chauhat');
-  const soil = JSON.parse(readFileSync(new URL('../data/soil_dhamrai.json', import.meta.url))).unions.Chauhat;
+  const soil = JSON.parse(readFileSync(new URL('../data/soil/soil_dhamrai.json', import.meta.url))).unions.Chauhat;
   const d = decide({ clim: dClim, soil, plot: razib, union: makeUnion(dClim, demo, 'Chauhat'), priorities: [] });
   assert.ok(d.rec && d.rec.bt.now.n > 0);
   assert.ok(!d.rec.soilNotes.some((n) => n.en.includes('Barind')), 'no Barind wording on Dhamrai land');
@@ -163,7 +163,7 @@ test('weather warnings follow BMD classes and the Hutton criteria', () => {
 // ---- Field Future (soilfuture.js) ----
 import { fieldContext, fieldFuture, cropCarbon, socStock, futureClimate, climateChange, feasible } from './soilfuture.js';
 
-const ffEcon = { prices: JSON.parse(readFileSync(new URL('../data/price_seasons.json', import.meta.url))), costs: JSON.parse(readFileSync(new URL('../data/crop_economics.json', import.meta.url))) };
+const ffEcon = { prices: JSON.parse(readFileSync(new URL('../data/market/price_seasons.json', import.meta.url))), costs: JSON.parse(readFileSync(new URL('../data/market/crop_economics.json', import.meta.url))) };
 const ffSoil = { ph: 6.2, soc_g_kg: 12, bulk_density: 1.32, drainage: 'imperfect' };
 
 test('field future: the usual rotation holds today’s carbon, and Boro leaves no room for a Kharif-1 crop', () => {
@@ -199,7 +199,7 @@ test('field future: a uniform +2 °C change warms every day by 2 °C and speeds 
 
 // ---- Seven Divisions missions (missions.js) ----
 import { MISSIONS, history, relYield, limeDose, isKotal, moonAge } from './missions.js';
-const storiesData = JSON.parse(readFileSync(new URL('../data/stories_climate.json', import.meta.url)));
+const storiesData = JSON.parse(readFileSync(new URL('../data/climate/stories_climate.json', import.meta.url)));
 
 test('missions: the Sohra IMERG rule finds the four big haor flash floods on their days', () => {
   const s = MISSIONS.sylhet;
@@ -229,7 +229,7 @@ test('missions: Maas–Hoffman, lime and moon helpers', () => {
 });
 
 test('Godagari and Dhamrai each run on their own real NASA POWER file, 25 seasons, backtest for both', () => {
-  const read = (u) => JSON.parse(readFileSync(new URL(`../data/climate_${u}.json`, import.meta.url)));
+  const read = (u) => JSON.parse(readFileSync(new URL(`../data/climate/climate_${u}.json`, import.meta.url)));
   const g = read('godagari'), d = read('dhamrai');
   for (const [name, j] of [['godagari', g], ['dhamrai', d]]) {
     assert.equal(j.provenance.status, 'REAL', `${name} is real`);
@@ -257,7 +257,7 @@ test('in Kartik the sample inbox is about the standing Aman, dated up to today',
 
 test('climate account: Boro-Aman paddy gives off methane, AWD cuts it, and a rotation without Boro less again', async () => {
   const sf = await import('./soilfuture.js');
-  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const deltas = JSON.parse(readFileSync(new URL('../data/climate/cmip6_deltas.json', import.meta.url)));
   const clim = makeClimate(climJson);
   const soil = Object.values(soilJson.unions)[0];
   const ctx = sf.fieldContext({ clim, change: sf.climateChange(deltas, 'godagari'), soil, plot: { irrigation: 'dtw' }, amanT: null, econ: null });
@@ -273,7 +273,7 @@ test('climate account: Boro-Aman paddy gives off methane, AWD cuts it, and a rot
 
 test('eight-model test: each rotation counted once, every count within the number of models', async () => {
   const sf = await import('./soilfuture.js');
-  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const deltas = JSON.parse(readFileSync(new URL('../data/climate/cmip6_deltas.json', import.meta.url)));
   const base = { clim: makeClimate(climJson), soil: Object.values(soilJson.unions)[0], plot: { irrigation: 'dtw' }, amanT: null, econ: null };
   const ctx = sf.fieldContext({ ...base, change: sf.climateChange(deltas, 'godagari') });
   const ff = sf.fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'mustard', k1: 'fallow' }, priorities: [] });
@@ -287,7 +287,7 @@ test('eight-model test: each rotation counted once, every count within the numbe
 
 test('Rabi soil wetness: NASA POWER GWETROOT for all seven upazilas, Nov–Mar seasons from 2002, with a trend', async () => {
   const { rabiWetness } = await import('./soilwater.js');
-  const sw = JSON.parse(readFileSync(new URL('../data/soil_wetness.json', import.meta.url)));
+  const sw = JSON.parse(readFileSync(new URL('../data/water/soil_wetness.json', import.meta.url)));
   for (const id of ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat']) {
     const r = rabiWetness(sw, id);
     assert.equal(r.first, 2002, `${id}: the first full Rabi season`);
@@ -302,10 +302,10 @@ test('satellite water and abroad rotations: GRACE, SMAP and ten-year soil option
   const w = await import('./soilwater.js');
   const ra = await import('./rotationAbroad.js');
   const sf = await import('./soilfuture.js');
-  const ws = JSON.parse(readFileSync(new URL('../data/water_sat.json', import.meta.url)));
-  const sw = JSON.parse(readFileSync(new URL('../data/soil_wetness.json', import.meta.url)));
-  const sy = JSON.parse(readFileSync(new URL('../data/abroad_soil_yields.json', import.meta.url)));
-  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const ws = JSON.parse(readFileSync(new URL('../data/water/water_sat.json', import.meta.url)));
+  const sw = JSON.parse(readFileSync(new URL('../data/water/soil_wetness.json', import.meta.url)));
+  const sy = JSON.parse(readFileSync(new URL('../data/soil/abroad_soil_yields.json', import.meta.url)));
+  const deltas = JSON.parse(readFileSync(new URL('../data/climate/cmip6_deltas.json', import.meta.url)));
   const g = w.graceRecord(ws, 'godagari');
   assert.ok(g.years.length >= 15 && g.trend.perDecade < 0, 'GRACE: water under the Barind is falling');
   assert.ok(w.smapVsPower(ws, sw, 'godagari').r > 0.7, 'SMAP and POWER root-zone wetness agree');
@@ -323,7 +323,7 @@ test('satellite water and abroad rotations: GRACE, SMAP and ten-year soil option
 
 test('robustness ensemble: every climate model with every FAOSTAT yield year, chances between 0 and 1', async () => {
   const sf = await import('./soilfuture.js');
-  const deltas = JSON.parse(readFileSync(new URL('../data/cmip6_deltas.json', import.meta.url)));
+  const deltas = JSON.parse(readFileSync(new URL('../data/climate/cmip6_deltas.json', import.meta.url)));
   const base = { clim: makeClimate(climJson), soil: Object.values(soilJson.unions)[0], plot: { irrigation: 'dtw' }, amanT: null, econ: null };
   const ctx = sf.fieldContext({ ...base, change: sf.climateChange(deltas, 'godagari') });
   const ff = sf.fieldFuture({ ctx, lastCrop: 'boro', plan: { rabi: 'mustard', k1: 'fallow' }, priorities: [] });
@@ -335,8 +335,8 @@ test('robustness ensemble: every climate model with every FAOSTAT yield year, ch
 });
 
 test('SEDAC and census: every upazila measured, shares between 0 and 1, and the coast where the map says', () => {
-  const sedac = JSON.parse(readFileSync(new URL('../data/sedac.json', import.meta.url)));
-  const census = JSON.parse(readFileSync(new URL('../data/census.json', import.meta.url)));
+  const sedac = JSON.parse(readFileSync(new URL('../data/region/sedac.json', import.meta.url)));
+  const census = JSON.parse(readFileSync(new URL('../data/region/census.json', import.meta.url)));
   const ids = ['dhamrai', 'godagari', 'bakerganj', 'sitakunda', 'dacope', 'gangachara', 'gowainghat'];
   for (const id of ids) {
     const u = sedac.upazilas[id];

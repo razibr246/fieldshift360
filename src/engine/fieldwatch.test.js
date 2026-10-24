@@ -6,8 +6,8 @@ import { readField, matchSeason, despike, looksLikeField, seasonOf } from './fie
 import { buildDemo } from '../data/demo.js';
 
 const json = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url)));
-const registry = json('../data/parcels.json');
-const watch = json('../data/field_watch.json');
+const registry = json('../data/fields/parcels.json');
+const watch = json('../data/fields/field_watch.json');
 const inside = (lat, lon, r) => {
   let c = false;
   for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
@@ -102,9 +102,9 @@ import { makeClimate, stationCorrect } from './climate.js';
 import { mannKendall, agroClimate, rabiWarming, hargreaves } from './agroclimate.js';
 
 test('station correction brings NASA April maximum to the station normal, rain untouched', () => {
-  const normals = json('../data/station_normals.json');
+  const normals = json('../data/climate/station_normals.json');
   for (const k of ['godagari', 'dhamrai']) {
-    const raw = json(`../data/climate_${k}.json`), st = normals.stations[k];
+    const raw = json(`../data/climate/climate_${k}.json`), st = normals.stations[k];
     const fixed = stationCorrect(raw, st);
     const aprMean = (arr) => { let s = 0, n = 0; arr.forEach((x, i) => { const d = new Date(Date.parse(raw.start) + i * 864e5); if (x != null && d.getUTCMonth() === 3 && d.getUTCFullYear() >= 2001 && d.getUTCFullYear() <= 2020) { s += x; n++; } }); return s / n; };
     assert.ok(aprMean(raw.tmax) - st.tmax[3] > 2, `${k}: NASA April runs hot`);
@@ -120,8 +120,8 @@ test('Mann–Kendall and Sen’s slope on known series; indicators cover 26 seas
   assert.ok(up.p < 0.001 && Math.abs(up.slope - 2) < 0.2);
   const flat = mannKendall(xs.map((x) => (x % 2 ? 5 : 6)), xs);
   assert.ok(flat.p > 0.2);
-  const normals = json('../data/station_normals.json');
-  const clim = makeClimate(stationCorrect(json('../data/climate_dhamrai.json'), normals.stations.dhamrai));
+  const normals = json('../data/climate/station_normals.json');
+  const clim = makeClimate(stationCorrect(json('../data/climate/climate_dhamrai.json'), normals.stations.dhamrai));
   const ac = agroClimate(clim);
   for (const a of Object.values(ac)) assert.equal(a.n, 26, a.id);
   assert.ok(ac.rabiRain.trend.perDecade > 0 && ac.rabiRain.trend.sure === 'sure', 'Dhamrai Rabi rain has risen');
@@ -137,7 +137,7 @@ import { fertilizerPlan, FERT_PRICE, phWord, has, srdiUnionOf } from './soil.js'
 
 test('soil: every union and registered field has real SoilGrids values with ranges', () => {
   for (const k of ['godagari', 'dhamrai']) {
-    const s = json(`../data/soil_${k}.json`);
+    const s = json(`../data/soil/soil_${k}.json`);
     assert.equal(s.provenance.status, 'REAL');
     for (const [id, u] of Object.entries(s.unions)) {
       assert.ok(u.ph > 3.5 && u.ph < 9, `${id} pH ${u.ph}`);
@@ -146,12 +146,12 @@ test('soil: every union and registered field has real SoilGrids values with rang
       for (const fake of ['n_level', 'p_level', 'k_level', 'calcareous']) assert.equal(u[fake], undefined, `${id} has no invented ${fake}`);
     }
   }
-  const f = json('../data/soil_fields.json').fields;
+  const f = json('../data/soil/soil_fields.json').fields;
   for (const p of registry.parcels) assert.ok(f[p.id], `${p.id} soil`);
 });
 
 test('SRDI doses: read from SRDI’s own words, scaled to the field, costed at official prices', () => {
-  const frs = json('../data/srdi_frs.json');
+  const frs = json('../data/soil/srdi_frs.json');
   const ch = srdiUnionOf(frs, 'Chauhat');
   assert.ok(ch, 'Chauhat collected');
   const plan = fertilizerPlan(ch, 'mustard', { land: 'medium_high', areaDec: 66 });
@@ -170,13 +170,13 @@ import { cropMoney } from './economics.js';
 import { RABI_CROPS } from './crops.js';
 
 test('crop water need from FAO-56 on local weather; profit from published prices and costs', () => {
-  const normals = json('../data/station_normals.json');
-  const clim = makeClimate(stationCorrect(json('../data/climate_dhamrai.json'), normals.stations.dhamrai));
+  const normals = json('../data/climate/station_normals.json');
+  const clim = makeClimate(stationCorrect(json('../data/climate/climate_dhamrai.json'), normals.stations.dhamrai));
   const boro = cropWaterNeed(clim, RABI_CROPS.boro, Date.UTC(2027, 0, 15));
   const mustard = cropWaterNeed(clim, RABI_CROPS.mustard, Date.UTC(2026, 10, 1));
   assert.ok(boro.mm > 400 && boro.mm < 1300, `Boro ${boro.mm} mm`);
   assert.ok(mustard.mm > 50 && mustard.mm < boro.mm / 2, `mustard ${mustard.mm} mm`);
-  const econ = { prices: json('../data/price_seasons.json'), costs: json('../data/crop_economics.json'), srdiUnion: null };
+  const econ = { prices: json('../data/market/price_seasons.json'), costs: json('../data/market/crop_economics.json'), srdiUnion: null };
   for (const c of Object.values(RABI_CROPS)) {
     const m = cropMoney(econ, c);
     assert.ok(m, c.id);

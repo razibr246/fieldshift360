@@ -1,0 +1,5 @@
+# For scripts/photos/*.py
+Pillow>=10
+numpy
+# only for upscale_photos.py and abroad_photos.py (without it they resize with Lanczos alone)
+torch

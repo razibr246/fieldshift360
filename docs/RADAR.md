@@ -8,8 +8,8 @@ an assumption.
 | Quantity | Source | Coverage | Status |
 | --- | --- | --- | --- |
 | Daily rain | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT) through the NASA POWER API, at each upazila's point | 2001 – Oct 2026 | Real. Rain after 2025 is IMERG's early satellite-only estimate and is marked provisional |
-| Rain onset date per year (every upazila) | Computed from that rain by `pipeline/onset/onset.mjs`, rule below | 2001 – 2026 | Real data, rule checked against BMD station-based onsets (within a week at three stations) |
-| Aman transplanting date per season | Copernicus Sentinel-1 RTC radar (VH), every pass 15 Apr – 31 Oct, 36 sample cropland fields per upazila (`scripts/data/build_aman_radar.mjs`) | 2017 – 2026, all 67 rural upazilas of the seven districts (Rajshahi, Dhaka, Chattogram, Khulna, Barishal, Rangpur, Sylhet) | Real. A date is given only when at least 6 fields show the signal |
+| Rain onset date per year (every upazila) | Computed from that rain by `scripts/onset/onset.mjs`, rule below | 2001 – 2026 | Real data, rule checked against BMD station-based onsets (within a week at three stations) |
+| Aman transplanting date per season | Copernicus Sentinel-1 RTC radar (VH), every pass 15 Apr – 31 Oct, 36 sample cropland fields per upazila (`scripts/build/build_aman_radar.mjs`) | 2017 – 2026, all 67 rural upazilas of the seven districts (Rajshahi, Dhaka, Chattogram, Khulna, Barishal, Rangpur, Sylhet) | Real. A date is given only when at least 6 fields show the signal |
 | Drought and flood hazards | IMERG rain indices (SPI, dry spells, heavy-rain days) and Sentinel-1 water | 2001/2017 – 2026 | Real data, WMO and agronomic rules |
 
 Transplanting is measured, not planned: Sentinel-1 radar sees a field's backscatter drop when it is flooded for
@@ -34,7 +34,7 @@ our choices.
 
 ### The check against Bangladesh Meteorological Department records (22 October 2026)
 
-`pipeline/onset/compare_bmd.mjs` writes `src/data/onset_validation.json`. Han et al. (2024, *Climatic Change* 177:77)
+`scripts/onset/compare_bmd.mjs` writes `src/data/radar/onset_validation.json`. Han et al. (2024, *Climatic Change* 177:77)
 worked out mean onset dates from BMD station rain, 1981–2017, with a simple rule (from 15 May, the first day that
 starts three days with at least 50 mm). The same rule on IMERG at the nearest app upazila, 2001–2017, tests the
 satellite record against the gauges; this page's rule is set beside both, with what farmers there call the usual
@@ -71,10 +71,10 @@ significant shift over 25 years. The same rule on NASA POWER's own rain (a reana
 with several significant earlier trends; the two products disagree, so the app shows IMERG as the main series and
 POWER alongside, and makes no trend claim. Years counted as "by 15 May" enter the trend at 15 May, which damps it.
 
-The same rule runs on every Ropon Radar upazila's IMERG rain (`row.onset` in `src/data/aman_radar.json`; after a rule
-change, `node scripts/data/refresh_radar_onset.mjs` re-works it from the cached rain without re-running the radar).
-Outputs for the app's seven upazilas: `src/data/onset_<upazila>.json`. Rebuild with
-`node pipeline/onset/onset.mjs godagari dhamrai sitakunda dacope bakerganj gangachara gowainghat`; tests in
+The same rule runs on every Ropon Radar upazila's IMERG rain (`row.onset` in `src/data/radar/aman_radar.json`; after a rule
+change, `node scripts/build/refresh_radar_onset.mjs` re-works it from the cached rain without re-running the radar).
+Outputs for the app's seven upazilas: `src/data/radar/onset_<upazila>.json`. Rebuild with
+`node scripts/onset/onset.mjs godagari dhamrai sitakunda dacope bakerganj gangachara gowainghat`; tests in
 `src/radar/onset.test.js`.
 
 ## IMERG straight from NASA GES DISC (optional cross-check)
@@ -86,8 +86,8 @@ daily, `GPM_3IMERGDF` version 07, DOI 10.5067/GPM/IMERGDF/DAY/07):
    "NASA GESDISC DATA ARCHIVE" (Profile → Applications → Authorized Apps).
 2. Optionally save the login in `~/.netrc`: `machine urs.earthdata.nasa.gov login <user> password <password>`.
 3. `python3 -m pip install earthaccess xarray h5netcdf`
-4. `python3 pipeline/onset/fetch_imerg_gesdisc.py` (a few hours; it resumes from `.cache/imerg/`).
-5. `node pipeline/onset/onset.mjs godagari dhamrai` adds the GES DISC series as a third source in the onset files.
+4. `python3 scripts/onset/fetch_imerg_gesdisc.py` (a few hours; it resumes from `.cache/imerg/`).
+5. `node scripts/onset/onset.mjs godagari dhamrai` adds the GES DISC series as a third source in the onset files.
 
 This has not been run yet (no Earthdata credentials in this environment).
 
@@ -108,6 +108,6 @@ geoBoundaries carries.
 
 ## Refreshing the real data
 
-`npm run data:aman` rebuilds the radar and IMERG rain (`src/data/aman_radar.json`, `public/aman/`; resumes from
+`npm run data:aman` rebuilds the radar and IMERG rain (`src/data/radar/aman_radar.json`, `public/aman/`; resumes from
 `.cache/data/aman`). `npm run fetch:power -- --upazila <id> --lat … --lon …` refreshes a climate file, then rerun the
-onset pipeline. The method and its limits are at the top of `scripts/data/build_aman_radar.mjs`.
+onset pipeline. The method and its limits are at the top of `scripts/build/build_aman_radar.mjs`.

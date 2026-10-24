@@ -419,7 +419,7 @@ export function FuturePanel({ id }) {
   const { s, T } = useStore();
   const lang = s.lang;
   const [deltas, setDeltas] = useState(null);
-  useEffect(() => { import('../../data/cmip6_deltas.json').then((m) => setDeltas(m.default)); }, []);
+  useEffect(() => { import('../../data/climate/cmip6_deltas.json').then((m) => setDeltas(m.default)); }, []);
   const cc = useMemo(() => deltas && ['ssp245', 'ssp585'].map((sc) => climateChange(deltas, `abroad_${id}`, sc)), [deltas, id]);
   if (!deltas) return <div className="h-24 animate-pulse rounded-2xl bg-white/50" />;
   if (!cc[0]) return <p className="text-[14px] leading-6 text-muted">{T('এই খামারের ২০৪১–২০৫০ সালের নাসা জলবায়ু অনুমান এখনো নামানো হচ্ছে (npm run fetch:cmip6)।', 'The NASA 2041–2050 projection for this farm is still being downloaded (npm run fetch:cmip6).')}</p>;

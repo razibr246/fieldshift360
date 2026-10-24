@@ -21,7 +21,7 @@ const tick = { fontSize: 11, fill: MUTED };
 const yr = (y, lang) => (lang === 'bn' ? bnDigits(y) : String(y));
 
 let dataPromise = null;
-const loadData = () => (dataPromise ??= import('../../data/stories_climate.json').then((m) => m.default));
+const loadData = () => (dataPromise ??= import('../../data/climate/stories_climate.json').then((m) => m.default));
 
 export default function StoryLevel() {
   const { id } = useParams();

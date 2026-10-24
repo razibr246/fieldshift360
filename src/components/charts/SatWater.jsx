@@ -1,4 +1,4 @@
-// Water under the field and in its root zone, from two NASA satellites through GIBS (scripts/fetch-gibs-water.mjs):
+// Water under the field and in its root zone, from two NASA satellites through GIBS (scripts/fetch/gibs-water.mjs):
 // GRACE/GRACE-FO, the water stored on and under the land in the region, year by year since 2003; and SMAP, the
 // root-zone soil moisture in the latest month against the same month in every year since 2015. Used by Field Future
 // in Bangladesh and by the neighbouring-country farm pages. [REAL]
@@ -8,8 +8,8 @@ import { Waves, Sprout } from 'lucide-react';
 import { useStore } from '../../store';
 import { Note } from '../ui';
 import { num, bnDigits, MONTHS_BN, MONTHS_EN } from '../../engine/dates';
-import waterSat from '../../data/water_sat.json';
-import soilWetness from '../../data/soil_wetness.json';
+import waterSat from '../../data/water/water_sat.json';
+import soilWetness from '../../data/water/soil_wetness.json';
 import { graceRecord, smapNow, smapVsPower, GRACE_CAP } from '../../engine/soilwater';
 
 const MUTED = '#5d6a63', GRID = '#eef0ec';

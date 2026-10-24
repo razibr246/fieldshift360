@@ -1,10 +1,10 @@
-// Aman weather hazards for the officer's upazila (scripts/data/build_aman_hazards.mjs): drought, flood and heavy rain,
+// Aman weather hazards for the officer's upazila (scripts/build/build_aman_hazards.mjs): drought, flood and heavy rain,
 // heat and cold, each measured in the crop's own windows (hung on the radar-measured transplanting day), 2001 to now,
 // with a trend test, and the adaptations that fit the hazards that actually occur here. Sources are listed at the end.
 import { CloudRain, Droplets, Flame, Snowflake, Sprout, ShieldCheck, ExternalLink, BookOpen } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, Badge, Tags } from '../ui';
-import HAZ from '../../data/aman_hazards.json';
+import HAZ from '../../data/radar/aman_hazards.json';
 import { fmtDate, num } from '../../engine/dates';
 
 const GROUPS = [

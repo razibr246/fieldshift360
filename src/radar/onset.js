@@ -1,13 +1,13 @@
-// Rain onset per year for the app's seven upazilas, one per division (src/data/onset_<upazila>.json, built by pipeline/onset/onset.mjs
+// Rain onset per year for the app's seven upazilas, one per division (src/data/radar/onset_<upazila>.json, built by scripts/onset/onset.mjs
 // from NASA/JAXA GPM IMERG daily rain, with NASA POWER PRECTOTCORR alongside). The rule is in docs/RADAR.md.
 // Pure, so the voice assistant and Node tests can use it.
-import godagari from '../data/onset_godagari.json' with { type: 'json' };
-import dhamrai from '../data/onset_dhamrai.json' with { type: 'json' };
-import sitakunda from '../data/onset_sitakunda.json' with { type: 'json' };
-import dacope from '../data/onset_dacope.json' with { type: 'json' };
-import bakerganj from '../data/onset_bakerganj.json' with { type: 'json' };
-import gangachara from '../data/onset_gangachara.json' with { type: 'json' };
-import gowainghat from '../data/onset_gowainghat.json' with { type: 'json' };
+import godagari from '../data/radar/onset_godagari.json' with { type: 'json' };
+import dhamrai from '../data/radar/onset_dhamrai.json' with { type: 'json' };
+import sitakunda from '../data/radar/onset_sitakunda.json' with { type: 'json' };
+import dacope from '../data/radar/onset_dacope.json' with { type: 'json' };
+import bakerganj from '../data/radar/onset_bakerganj.json' with { type: 'json' };
+import gangachara from '../data/radar/onset_gangachara.json' with { type: 'json' };
+import gowainghat from '../data/radar/onset_gowainghat.json' with { type: 'json' };
 
 export const ONSET = { godagari, dhamrai, sitakunda, dacope, bakerganj, gangachara, gowainghat };
 

@@ -18,10 +18,10 @@ import { fold, speakable } from './bn.js';
 import { replyTemplate as template, advisoryText } from '../engine/advice.js';
 
 const readJson = (f) => JSON.parse(readFileSync(new URL(`../data/${f}`, import.meta.url)));
-const climates = { godagari: makeClimate(readJson('climate_godagari.json')), dhamrai: makeClimate(readJson('climate_dhamrai.json')) };
+const climates = { godagari: makeClimate(readJson('climate/climate_godagari.json')), dhamrai: makeClimate(readJson('climate/climate_dhamrai.json')) };
 const clim = climates.godagari;
-const soilG = readJson('soil_godagari.json');
-const soilData = { provenance: soilG.provenance, unions: { ...soilG.unions, ...readJson('soil_dhamrai.json').unions } };
+const soilG = readJson('soil/soil_godagari.json');
+const soilData = { provenance: soilG.provenance, unions: { ...soilG.unions, ...readJson('soil/soil_dhamrai.json').unions } };
 const demo = buildDemo();
 
 function ctxFor(farmerId = 'RAHIM', officerUnion = 'Deopara', extra = {}) {
@@ -159,7 +159,7 @@ test('radar answer uses the real district data and leads with the officer’s up
   const s = createSession({ role: 'saao' });
   assert.match(ask('আমন রাডার', osnap('saao'), s).say, /এখনো আসেনি/);
   const snap = osnap('saao');
-  snap.radar = radarSummary(readJson('aman_radar.json'), 'rajshahi');
+  snap.radar = radarSummary(readJson('radar/aman_radar.json'), 'rajshahi');
   const r = ask('আমন রাডার', snap, createSession({ role: 'saao' }));
   assert.match(r.say, /আসল উপগ্রহ তথ্য/);
   assert.match(r.say, /রাজশাহী জেলা/);
@@ -213,7 +213,7 @@ test('every phone keypad key gets a real answer, in Bangla and English', () => {
 
 test('the officer’s radar answer says when the rains set in, from the real onset data', () => {
   const snap = osnap('saao');
-  snap.radar = radarSummary(readJson('aman_radar.json'), 'rajshahi', onsetSummary('godagari'));
+  snap.radar = radarSummary(readJson('radar/aman_radar.json'), 'rajshahi', onsetSummary('godagari'));
   const r = ask('আমন রাডার', snap, createSession({ role: 'saao' }));
   assert.match(r.say, /বৃষ্টি টানা শুরু হয় সাধারণত/);
   assert.match(r.say, /ধরে নেওয়া নিয়মে/);

@@ -1,5 +1,5 @@
 // Live Sentinel-2 readings for one field, straight from the browser. The same steps and rules as
-// scripts/data/build_field_watch.py (which makes the saved copy in field_watch.json): Microsoft Planetary Computer's
+// scripts/build/build_field_watch.py (which makes the saved copy in field_watch.json): Microsoft Planetary Computer's
 // public STAC and data APIs (no key; they allow browser requests), one statistics call per pass over the field's
 // square, clear share at least 90%, hazy passes dropped. Used to add passes newer than the saved copy, and to read
 // a field the farmer has just marked or moved. Every function here only fetches; nothing is sent about the farmer.

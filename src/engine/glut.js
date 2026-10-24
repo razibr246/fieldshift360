@@ -3,7 +3,7 @@ import { ymd, addDays, DAY } from './dates.js';
 import { RABI_CROPS, DECIMAL_HA } from './crops.js';
 import { harvestWindow } from './harvest.js';
 import { PLAN_SEASON } from './climate.js';
-import SEASONS from '../data/price_seasons.json' with { type: 'json' };
+import SEASONS from '../data/market/price_seasons.json' with { type: 'json' };
 
 export const WEEK0 = ymd(2026, 10, 5); // a Monday; week bins counted from here
 export const weekOf = (t) => Math.floor((t - WEEK0) / (7 * DAY));

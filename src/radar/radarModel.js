@@ -1,4 +1,4 @@
-// Plain-JSON summary of the real Aman data (src/data/aman_radar.json) for one district, for the voice assistant:
+// Plain-JSON summary of the real Aman data (src/data/radar/aman_radar.json) for one district, for the voice assistant:
 // one row per upazila. Pure, so Node tests can call it with the file they read themselves.
 // `onset` (src/radar/onset.js onsetSummary) adds when the rains set in, for Godagari and Dhamrai.
 export function radarSummary(aman, districtId = 'rajshahi', onset = null) {

@@ -9,7 +9,6 @@ __pycache__
 .DS_Store
 *.log
 .vercel
-scripts/python/soilgrids_check.csv
 .claude/
 **/.claude/
 .env*

@@ -8,8 +8,8 @@ import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } fro
 import { SectionNav, LazyMount } from '../../components/SectionNav';
 import SoilColumn, { SoilLegend } from '../../components/charts/SoilColumn';
 import CropPhoto from '../../components/CropPhoto';
-import deltas from '../../data/cmip6_deltas.json';
-import soilWetness from '../../data/soil_wetness.json';
+import deltas from '../../data/climate/cmip6_deltas.json';
+import soilWetness from '../../data/water/soil_wetness.json';
 import { rabiWetness } from '../../engine/soilwater';
 import { bnOf } from '../../engine/text';
 import SatWater from '../../components/charts/SatWater';

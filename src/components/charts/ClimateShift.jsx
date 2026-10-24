@@ -1,7 +1,7 @@
 // "The weather is not what it used to be": four crop-relevant measures from 25 seasons, the first 12 against the last
 // 13, each with all 25 seasons drawn so the swings show. Bangladesh (Godagari or Dhamrai) reads NASA POWER; the five
 // neighbouring countries read ERA5 at their sample farm (POWER's rain record breaks at those cells; see
-// scripts/data/build_neighbours.py). The words are written from the numbers, so they always say what the data says.
+// scripts/build/build_neighbours.py). The words are written from the numbers, so they always say what the data says.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';

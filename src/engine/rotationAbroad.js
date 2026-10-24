@@ -1,6 +1,6 @@
 // Ten years of soil under a few rotation options on each neighbouring-country farm: the same ICBM soil-carbon model,
 // crop carbon coefficients, legume nitrogen and IPCC paddy methane as Field Future (engine/soilfuture.js), on the
-// farm's own SoilGrids soil and its country's FAOSTAT yields (src/data/abroad_soil_yields.json). [REAL in, RULE]
+// farm's own SoilGrids soil and its country's FAOSTAT yields (src/data/soil/abroad_soil_yields.json). [REAL in, RULE]
 // The options are each region's common cycles of a monsoon (kharif) crop and a winter (rabi) crop, compared with and
 // without the straw kept; they are options to compare, not a local recommendation. The farm's current cycle is
 // taken as the one that holds today's soil carbon (the same calibration as Bangladesh). Chickpea has no coefficients

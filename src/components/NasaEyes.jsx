@@ -1,11 +1,11 @@
 // Bangladesh as NASA's astronauts and satellites have photographed it, from the NASA Image and Video Library
-// (scripts/python/nasa_images.py): the delta that made the soil, the salt coast, and cropland turning into town.
+// (scripts/photos/nasa_images.py): the delta that made the soil, the salt coast, and cropland turning into town.
 // Each picture carries NASA's credit and links to its page in the library, as NASA's media guidelines ask.
 import { ExternalLink } from 'lucide-react';
 import { useStore } from '../store';
 import { Tags } from './ui';
 import { fmtDate, bnDigits } from '../engine/dates';
-import lib from '../data/nasa_images.json';
+import lib from '../data/media/nasa_images.json';
 
 const FILES = import.meta.glob('../assets/images/nasa/*.webp', { eager: true, import: 'default' });
 const src = (id, w) => FILES[`../assets/images/nasa/${id}-${w}.webp`];

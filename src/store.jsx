@@ -2,22 +2,22 @@
 // All data is local demo data. Each "service" this store calls (weather, places, the engine) is a plain function,
 // so swapping in a backend later means replacing those calls, not the components.
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import soilGodagari from './data/soil_godagari.json';
-import soilDhamrai from './data/soil_dhamrai.json';
-import soilSitakunda from './data/soil_sitakunda.json';
-import soilDacope from './data/soil_dacope.json';
-import soilBakerganj from './data/soil_bakerganj.json';
-import soilGangachara from './data/soil_gangachara.json';
-import soilGowainghat from './data/soil_gowainghat.json';
-import soilFields from './data/soil_fields.json';
-import srdiFrs from './data/srdi_frs.json';
-import priceSeasons from './data/price_seasons.json';
-import cropEconomics from './data/crop_economics.json';
+import soilGodagari from './data/soil/soil_godagari.json';
+import soilDhamrai from './data/soil/soil_dhamrai.json';
+import soilSitakunda from './data/soil/soil_sitakunda.json';
+import soilDacope from './data/soil/soil_dacope.json';
+import soilBakerganj from './data/soil/soil_bakerganj.json';
+import soilGangachara from './data/soil/soil_gangachara.json';
+import soilGowainghat from './data/soil/soil_gowainghat.json';
+import soilFields from './data/soil/soil_fields.json';
+import srdiFrs from './data/soil/srdi_frs.json';
+import priceSeasons from './data/market/price_seasons.json';
+import cropEconomics from './data/market/crop_economics.json';
 import { buildDemo, unionsOf, upazilaOfUnion } from './data/demo.js';
 import { UPAZILAS } from './data/upazilas.js';
 import { PARCELS } from './data/parcels.js';
 import { makeClimate, timeMachine, whatIf, stationCorrect } from './engine/climate.js';
-import normals from './data/station_normals.json';
+import normals from './data/climate/station_normals.json';
 import { makeUnion } from './engine/world.js';
 import { decide } from './engine/decision.js';
 import { recommendRotation } from './engine/rotation.js';
@@ -28,7 +28,7 @@ import { daysBetween, todayDhaka, bnDigits as bnDigitsOf } from './engine/dates.
 import { STORAGE_PREFIX } from './config/brand.js';
 import { srdiUnionOf, has } from './engine/soil.js';
 // each upazila's usual Aman transplanting day (Sentinel-1); the full radar data loads only on the radar pages
-import amanNormals from './data/aman_normals.json';
+import amanNormals from './data/radar/aman_normals.json';
 import { loadSharedPlans, sendSharedPlan } from './engine/sharedPlans.js';
 import { loadMessages, postMessage } from './engine/sharedMessages.js';
 import { PLAN_SEASON } from './engine/climate.js';
@@ -38,13 +38,13 @@ import { PLAN_SEASON } from './engine/climate.js';
 // there is chosen, and all seven when the climate comparison scrolls into view. Farmer and officer screens read their
 // own upazila's from the store (useStore().clim / .tm / .officerClim).
 // Temperatures are corrected to the nearest BMD station's normals first (see stationCorrect in engine/climate.js).
-const CLIMATE_FILES = import.meta.glob('./data/climate_*.json', { import: 'default' });
+const CLIMATE_FILES = import.meta.glob('./data/climate/climate_*.json', { import: 'default' });
 export const climates = {};
 const loading = {};
 export function loadClimate(id) {
   if (climates[id]) return Promise.resolve(climates[id]);
-  if (!CLIMATE_FILES[`./data/climate_${id}.json`]) return Promise.reject(new Error(`no climate file for ${id}`));
-  return (loading[id] ??= CLIMATE_FILES[`./data/climate_${id}.json`]().then((j) => (climates[id] = makeClimate(stationCorrect(j, normals.stations[id])))));
+  if (!CLIMATE_FILES[`./data/climate/climate_${id}.json`]) return Promise.reject(new Error(`no climate file for ${id}`));
+  return (loading[id] ??= CLIMATE_FILES[`./data/climate/climate_${id}.json`]().then((j) => (climates[id] = makeClimate(stationCorrect(j, normals.stations[id])))));
 }
 export let clim = null; // Godagari, set by bootClimate() before the app first renders
 export let tm = null;

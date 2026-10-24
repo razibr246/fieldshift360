@@ -3,7 +3,7 @@
 // typical duration from its normal date, using the 2001–2025 average. A warmer recent climate or a
 // different planting date then changes the estimated duration.
 import { ymd, addDays, daysBetween, parseISO } from './dates.js';
-import HIST from '../data/yield_history.json' with { type: 'json' };
+import HIST from '../data/market/yield_history.json' with { type: 'json' };
 import { SEASONS, NOW, tmeanClimatology } from './climate.js';
 import { BIGHA_HA, DECIMAL_HA, MAUND_KG } from './crops.js';
 

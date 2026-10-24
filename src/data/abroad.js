@@ -2,7 +2,7 @@
 // Bhutan and Myanmar. The farmers are sample people (not real), each placed on a real cropland field next to a real
 // village (Esri/Impact Observatory 10 m land cover, GeoNames, geoBoundaries). The heads of office are named only
 // where an official page we could read on 19 October 2026 names them; otherwise only the office is shown.
-// Every number on the pages comes from src/data/abroad/<country>.json (scripts/data/build_neighbours.py) or from the
+// Every number on the pages comes from src/data/abroad/<country>.json (scripts/build/build_neighbours.py) or from the
 // live forecast; the facts below carry their source.
 
 export const ABROAD_ORDER = ['india', 'pakistan', 'nepal', 'bhutan', 'myanmar'];

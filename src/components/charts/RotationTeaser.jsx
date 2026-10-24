@@ -7,7 +7,7 @@ import { ArrowRight, Leaf, Droplets, Scale, Telescope } from 'lucide-react';
 import { useStore } from '../../store';
 import { Tags } from '../ui';
 import SoilColumn from './SoilColumn';
-import deltas from '../../data/cmip6_deltas.json';
+import deltas from '../../data/climate/cmip6_deltas.json';
 import { num } from '../../engine/dates';
 import { climateChange, fieldContext, fieldFuture, cropOf, omPctOf, climateLedger, WATER_M3_PER_MM_BIGHA } from '../../engine/soilfuture';
 import { BIGHA_HA } from '../../engine/crops';

@@ -2,7 +2,7 @@
 //
 // In (all real, each with its source):
 //   * each upazila's Aman transplanting day, cropland share and outline: Sentinel-1 radar and Sentinel-2 land cover
-//     (src/data/aman_radar.json, scripts/data/build_aman_radar.mjs)
+//     (src/data/radar/aman_radar.json, scripts/build/build_aman_radar.mjs)
 //   * the district's Aman rice area: BBS Yearbook of Agricultural Statistics 2023, 2022-23 (bangladesh_crops.json)
 //   * the national Aman yield: BBS, FY2024-25 (AMAN_YIELD below)
 //   * yield, farm price and full cost of each Rabi crop: FAOSTAT 2024, DAM, ministries and field studies
@@ -13,10 +13,10 @@
 //   * BBS publishes Aman area per district, not per upazila, so the district area is shared out in proportion to each
 //     upazila's measured cropland x the share of its radar sample fields that show Aman (an estimate, labelled so)
 //   * land is ready for the next crop a week after the Aman is cut (LAND_PREP_DAYS)
-import AMAN from '../data/aman_radar.json' with { type: 'json' };
+import AMAN from '../data/radar/aman_radar.json' with { type: 'json' };
 import CROPS_BD from '../data/geo/bangladesh_crops.json' with { type: 'json' };
-import SEASONS from '../data/price_seasons.json' with { type: 'json' };
-import ECON from '../data/crop_economics.json' with { type: 'json' };
+import SEASONS from '../data/market/price_seasons.json' with { type: 'json' };
+import ECON from '../data/market/crop_economics.json' with { type: 'json' };
 import { BIGHA_HA, RABI_CROPS } from './crops.js';
 
 export const HARVEST_AFTER = [95, 120];

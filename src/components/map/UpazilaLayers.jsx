@@ -7,7 +7,7 @@ import { ImageOverlay, Marker, Pane, Polygon, useMap, useMapEvents } from 'react
 import { GEO } from '../../data/geo';
 
 export const placesOf = (upazila = 'godagari') => GEO[upazila].places;
-// Land cover for every upazila that has it built (scripts/data/build_godagari_landcover.py <upazila>): the class table
+// Land cover for every upazila that has it built (scripts/build/build_godagari_landcover.py <upazila>): the class table
 // in src/data/geo/<upazila>_landcover.json and one image per year. Classes under 0.5 km² are left out.
 const LC_JSON = import.meta.glob('../../data/geo/*_landcover.json', { eager: true, import: 'default' });
 const LC_PNG = import.meta.glob('../../assets/maps/*-landcover-*.png', { eager: true, import: 'default' });
