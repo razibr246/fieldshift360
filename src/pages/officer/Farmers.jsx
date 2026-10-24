@@ -38,7 +38,7 @@ export default function Farmers() {
       <PageHeader eyebrow={T('কৃষক ও জমি', 'Farmers and fields')} title={T('ইউনিয়নের কৃষকেরা', 'Farmers in your union')} subtitle={T('কে কী লাগাচ্ছেন, কার অনুরোধ খোলা আছে, সেচের পানি কোথা থেকে।', 'What each farmer is planting, who has open requests, and where their water comes from.')} tags={['DEMO']} />
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-border p-4 lg:flex-row lg:items-center">
-          <label className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-black/[.05] px-3 focus-within:ring-2 focus-within:ring-primary-200 lg:flex-1">
+          <label className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-black/[.05] px-3 focus-within:ring-2 focus-within:ring-primary-500 lg:flex-1">
             <Search size={17} className="text-muted" />
             <span className="sr-only">{T('খুঁজুন', 'Search')}</span>
             <input value={q} onChange={(e) => { setQ(e.target.value); setParams(e.target.value ? { q: e.target.value } : {}, { replace: true }); }} className="w-full bg-transparent text-[15px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম', 'Farmer or village name')} />

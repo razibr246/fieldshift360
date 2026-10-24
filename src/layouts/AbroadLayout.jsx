@@ -76,7 +76,7 @@ function Shell({ c }) {
       { to: `${base}/officer/farmer`, icon: UsersRound, label: T('কৃষক ও জমি', 'Farmer and field') },
       { to: `${base}/officer/map`, icon: MapIcon, label: T('এলাকার মানচিত্র', 'Area map') },
       { to: `${base}/officer/planting`, icon: CalendarRange, label: T('লাগানোর সময়', 'Planting calendar') },
-      { to: `${base}/officer/country`, icon: Globe2, label: T('সারা দেশ', 'Whole country') },
+      { to: `${base}/officer/country`, icon: Globe2, label: T('সারা দেশ', 'Whole country'), heading: true },
     ]
     : [
       { to: base, end: true, icon: Home, label: T('হোম', 'Home') },
@@ -86,6 +86,7 @@ function Shell({ c }) {
       { to: `${base}/future`, icon: Telescope, label: T('জমির ভবিষ্যৎ', 'Field future') },
       { to: `${base}/help`, icon: LifeBuoy, label: T('সাহায্য', 'Help'), badge: req.list.filter((r) => r.reply && !r.seen).length },
     ];
+  const here = tabs.find((t) => (t.end ? pathname === t.to : pathname.startsWith(t.to)));
   return (
     <div className="relative min-h-screen overflow-x-clip bg-canvas">
       <div aria-hidden="true" className="pointer-events-none fixed inset-0">
@@ -127,7 +128,11 @@ function Shell({ c }) {
           ) : !data ? (
             <div className="page-shell animate-pulse space-y-4" aria-busy="true"><div className="h-56 rounded-[28px] bg-white/60" /><div className="h-32 rounded-[22px] bg-white/50" /><div className="h-64 rounded-[22px] bg-white/40" /></div>
           ) : (
-            <Outlet context={{ c, data, fc, status, now, alerts, req, notices, boardMode: board.mode }} />
+            <>
+              {/* The overview and whole-country pages carry their own big heading; every other tab gets one for screen readers. */}
+              {here && here !== tabs[0] && !here.heading && <h1 className="sr-only">{L(c.name)} · {here.label}</h1>}
+              <Outlet context={{ c, data, fc, status, now, alerts, req, notices, boardMode: board.mode }} />
+            </>
           )}
         </div>
       </main>

@@ -24,13 +24,26 @@ const tv = (c, v) => (t) => c.val(v, t);
 const count = (arr, p) => (arr ? arr.filter((x) => x != null && p(x)).length : null);
 const total = (arr) => (arr ? Math.round(arr.reduce((s, x) => s + (x ?? 0), 0)) : null);
 
+// Extra-terrestrial radiation (FAO-56 eq. 21), MJ/m²/day: it depends only on the latitude and the day, so each is
+// worked out once (crop water replays the same days for every crop and rotation).
+const RA = new Map();
+function extraterrestrial(latDeg, t) {
+  let byDay = RA.get(latDeg);
+  if (!byDay) RA.set(latDeg, (byDay = new Map()));
+  let Ra = byDay.get(t);
+  if (Ra === undefined) {
+    const J = Math.round((t - Date.UTC(new Date(t).getUTCFullYear(), 0, 1)) / DAY) + 1;
+    const phi = (latDeg * Math.PI) / 180, dr = 1 + 0.033 * Math.cos((2 * Math.PI * J) / 365), d = 0.409 * Math.sin((2 * Math.PI * J) / 365 - 1.39);
+    const ws = Math.acos(-Math.tan(phi) * Math.tan(d));
+    Ra = ((24 * 60) / Math.PI) * 0.082 * dr * (ws * Math.sin(phi) * Math.sin(d) + Math.cos(phi) * Math.cos(d) * Math.sin(ws));
+    byDay.set(t, Ra);
+  }
+  return Ra;
+}
+
 // Hargreaves reference evapotranspiration (FAO-56 eq. 52), mm/day, from Tmax, Tmin and extra-terrestrial radiation.
 export function hargreaves(tmax, tmin, latDeg, t) {
-  const J = Math.round((t - Date.UTC(new Date(t).getUTCFullYear(), 0, 1)) / DAY) + 1;
-  const phi = (latDeg * Math.PI) / 180, dr = 1 + 0.033 * Math.cos((2 * Math.PI * J) / 365), d = 0.409 * Math.sin((2 * Math.PI * J) / 365 - 1.39);
-  const ws = Math.acos(-Math.tan(phi) * Math.tan(d));
-  const Ra = ((24 * 60) / Math.PI) * 0.082 * dr * (ws * Math.sin(phi) * Math.sin(d) + Math.cos(phi) * Math.cos(d) * Math.sin(ws)); // MJ/m²/day
-  return 0.0023 * 0.408 * Ra * ((tmax + tmin) / 2 + 17.8) * Math.sqrt(Math.max(0, tmax - tmin));
+  return 0.0023 * 0.408 * extraterrestrial(latDeg, t) * ((tmax + tmin) / 2 + 17.8) * Math.sqrt(Math.max(0, tmax - tmin));
 }
 
 // Monsoon onset: first day from 15 May with 40 mm or more over five days, not followed by a 10-day spell under 5 mm

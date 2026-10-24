@@ -19,8 +19,13 @@ export function SectionNav({ sections, label }) {
   const lockHandlers = useRef(null);
   const landAt = () => HEADER + (nav.current?.offsetHeight ?? 64) + 12; // where a section's top lands, under the bar
 
+  // Pages pass a fresh array on every render; the spy only needs to start again when the sections themselves change.
+  const secs = useRef(sections);
+  secs.current = sections;
+  const ids = sections.map((x) => x.id).join('|');
   useEffect(() => {
     const spy = () => {
+      const sections = secs.current;
       const docked = !!nav.current && nav.current.getBoundingClientRect().top <= HEADER + 0.5;
       setStuck((p) => (p === docked ? p : docked));
       if (lock.current) return;
@@ -32,9 +37,11 @@ export function SectionNav({ sections, label }) {
       if (window.scrollY > 0 && window.innerHeight + window.scrollY >= root.scrollHeight - 2) cur = sections[sections.length - 1]?.id;
       setActive((p) => (p === cur ? p : cur));
     };
-    spy();
-    return onScroll(spy);
-  }, [sections]); // eslint-disable-line react-hooks/exhaustive-deps
+    // first look on the next frame, not in the middle of React's commit (measuring here forces a layout of the page)
+    const first = requestAnimationFrame(spy);
+    const off = onScroll(spy);
+    return () => { cancelAnimationFrame(first); off(); };
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lift the lock when the glide ends (or after a moment, where scrollend is not supported). If content that loaded on
   // the way moved the section, glide on to it first (up to three times, as charts mount), keeping the lock throughout.
@@ -107,7 +114,9 @@ export function SectionNav({ sections, label }) {
 }
 
 // Renders children once they come within ~400 px of the screen; until then holds their height with a placeholder.
-export function LazyMount({ height = 200, children, className = '' }) {
+// `id`: the id the section inside will carry, put on the placeholder until then, so a SectionNav pill can glide to a
+// section that has not mounted yet (the nav re-aims once it has).
+export function LazyMount({ height = 200, children, className = '', id }) {
   const ref = useRef(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
@@ -117,7 +126,7 @@ export function LazyMount({ height = 200, children, className = '' }) {
     if (ref.current) io.observe(ref.current);
     return () => io.disconnect();
   }, [on]);
-  return <div ref={ref} className={className} style={on ? undefined : { minHeight: height }}>{on ? <div className="swap-in">{children}</div> : <Skeleton height={height} />}</div>;
+  return <div ref={ref} id={on ? undefined : id} className={`${className} ${on ? '' : 'scroll-mt-40'}`} style={on ? undefined : { minHeight: height }}>{on ? <div className="swap-in">{children}</div> : <Skeleton height={height} className="mt-5" />}</div>;
 }
 
 export function Skeleton({ height = 160, className = '' }) {

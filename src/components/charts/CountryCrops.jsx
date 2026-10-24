@@ -72,8 +72,8 @@ export default function CountryCrops() {
                   aria-label={`${T(c.bn, c.en)}: ${area(c.ha, lang)} (${c.src})`}>
                   <span className="truncate text-[14.5px] text-ink">{T(c.bn, c.en)}</span>
                   <span className="flex min-w-0 items-center gap-2">
-                    <span className="bar-grow h-[18px] shrink-0 rounded-r-[4px] transition-opacity duration-300" style={{ width: `${Math.max(1.5, (c.ha / max) * 78)}%`, background: BAR, opacity: barHover && barHover !== c.key ? 0.45 : 1, animationDelay: `${i * 45}ms` }} />
-                    <span className="whitespace-nowrap text-[13px] tabular text-muted">{area(c.ha, lang)}</span>
+                    <span className="min-w-0 flex-1"><span className="bar-grow block h-[18px] rounded-r-[4px] transition-opacity duration-300" style={{ width: `${Math.max(1.5, (c.ha / max) * 100)}%`, background: BAR, opacity: barHover && barHover !== c.key ? 0.45 : 1, animationDelay: `${i * 45}ms` }} /></span>
+                    <span className="shrink-0 whitespace-nowrap text-[13px] tabular text-muted">{area(c.ha, lang)}</span>
                   </span>
                   {barHover === c.key && (
                     <span className="pointer-events-none absolute -top-9 left-24 z-10 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-[12.5px] text-white shadow-lg">
@@ -96,8 +96,8 @@ export default function CountryCrops() {
                     <li key={x.key} className="grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3 sm:grid-cols-[112px_minmax(0,1fr)]">
                       <button type="button" onClick={() => setSeason(x.key)} className={`truncate text-left text-[14px] ${on ? 'font-semibold text-ink' : 'text-muted hover:text-ink'}`}>{T(r.bn, r.en)}</button>
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="h-3.5 shrink-0 rounded-r-[4px] transition-colors duration-500" style={{ width: `${(r.ha / BD.national.kharif2[0].ha) * 78}%`, background: on ? BAR : '#c9cfc6' }} />
-                        <span className="whitespace-nowrap text-[13px] tabular text-muted">{area(r.ha, lang)}</span>
+                        <span className="min-w-0 flex-1"><span className="block h-3.5 rounded-r-[4px] transition-colors duration-500" style={{ width: `${(r.ha / BD.national.kharif2[0].ha) * 100}%`, background: on ? BAR : '#c9cfc6' }} /></span>
+                        <span className="shrink-0 whitespace-nowrap text-[13px] tabular text-muted">{area(r.ha, lang)}</span>
                       </span>
                     </li>
                   );

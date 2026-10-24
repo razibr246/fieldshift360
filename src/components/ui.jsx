@@ -11,18 +11,20 @@ import { useCountUp } from './Motion.jsx';
 export function CountUp({ value, duration, className = '' }) {
   const { s } = useStore();
   const n = useCountUp(value, duration);
-  return <span className={`tabular ${className}`}>{s.lang === 'bn' ? bnDigits(n) : n}</span>;
+  // Screen readers get the final number once, not every step of the count.
+  return <span className={`tabular ${className}`}><span aria-hidden="true">{s.lang === 'bn' ? bnDigits(n) : n}</span><span className="sr-only">{s.lang === 'bn' ? bnDigits(value) : value}</span></span>;
 }
 
-const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-all duration-250 ease-[cubic-bezier(.16,1,.3,1)] active:scale-[.96] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-4 will-change-transform select-none';
+// Focus: a 2 px ring in the button's own strong colour, 2 px off its edge, so keyboard focus is plain on any surface.
+const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-all duration-250 ease-[cubic-bezier(.16,1,.3,1)] active:scale-[.96] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 will-change-transform select-none';
 const BTN = {
   // Glossy green: the same lit gradient and light sweep as the header CTAs, so every primary action reads as one.
-  primary: 'btn-gloss text-white focus-visible:ring-primary-100',
-  secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-50',
-  ghost: 'text-ink hover:bg-primary-50/80 hover:text-primary-800 focus-visible:ring-primary-50 active:bg-primary-100',
-  danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-red-100',
-  dark: 'bg-primary-950 text-white hover:bg-primary-900 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-primary-200',
-  light: 'bg-white text-primary-900 hover:bg-primary-50 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-white/40',
+  primary: 'btn-gloss text-white focus-visible:ring-primary-500',
+  secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-500',
+  ghost: 'text-ink hover:bg-primary-50/80 hover:text-primary-800 focus-visible:ring-primary-500 active:bg-primary-100',
+  danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-red-500',
+  dark: 'bg-primary-950 text-white hover:bg-primary-900 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-primary-600',
+  light: 'bg-white text-primary-900 hover:bg-primary-50 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-white focus-visible:ring-offset-transparent',
 };
 export function Button({ to, variant = 'primary', className = '', children, type = 'button', ...props }) {
   const cls = `${BTN_BASE} ${BTN[variant]} ${className}`;

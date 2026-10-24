@@ -337,7 +337,7 @@ export function Help() {
           <div className="flex flex-wrap gap-1.5">
             {TOPICS.map((t) => <button key={t.k} type="button" onClick={() => setTopic(t.k)} className={`rounded-full px-3 py-1.5 text-[13px] font-semibold ring-1 transition ${topic === t.k ? 'bg-ink text-white ring-ink' : 'bg-white/70 text-ink ring-border hover:bg-white'}`}>{L(t)}</button>)}
           </div>
-          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} className="w-full rounded-2xl border border-border bg-white p-3 text-[15px] outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100" placeholder={T('কী হয়েছে লিখুন — কোন ফসল, কবে থেকে, জমির কোন অংশে', 'Say what is wrong — which crop, since when, which part of the field')} />
+          <textarea aria-label={T(`${c.local.role.bn}-কে কী জানাবেন`, `Your message to the ${c.local.role.en}`)} value={text} onChange={(e) => setText(e.target.value)} rows={4} className="w-full rounded-2xl border border-border bg-white p-3 text-[15px] outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100" placeholder={T('কী হয়েছে লিখুন — কোন ফসল, কবে থেকে, জমির কোন অংশে', 'Say what is wrong — which crop, since when, which part of the field')} />
           <div className="flex items-center gap-3">
             <button type="submit" disabled={!text.trim()} className="btn-gloss inline-flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-semibold text-white disabled:opacity-50"><Send size={16} />{T('পাঠান', 'Send')}</button>
             {sent && <span className="swap-in text-[13.5px] font-semibold text-primary-700">{T('পাঠানো হয়েছে — কর্মকর্তার পাতায় দেখা যাবে', 'Sent — it shows on the officer’s page')}</span>}

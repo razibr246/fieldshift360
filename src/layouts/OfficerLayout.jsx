@@ -155,7 +155,7 @@ export default function OfficerLayout() {
             <BackButton />
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">
               <Search size={17} className="text-muted transition-colors duration-200 group-focus-within:text-primary-600" />
-              <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-label={T('খুঁজুন', 'Search')} aria-keyshortcuts="/" />
+              <input ref={searchRef} type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-label={T('খুঁজুন', 'Search')} aria-keyshortcuts="/" />
               <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted shadow-2xs lg:inline" aria-hidden="true">/</kbd>
             </form>
             <div className="ml-auto flex items-center gap-2">

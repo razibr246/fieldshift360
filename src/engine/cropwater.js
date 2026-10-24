@@ -26,7 +26,7 @@ export const WATER_SOURCES = [
 
 export function kcOn(cropId, day, days) {
   const f = FAO56[cropId];
-  const [a, b, c] = f.stages.map((s) => s * days);
+  const a = f.stages[0] * days, b = f.stages[1] * days, c = f.stages[2] * days;
   const [ini, mid, end] = f.kc;
   if (day < a) return ini;
   if (day < a + b) return ini + ((mid - ini) * (day - a)) / b;
@@ -48,9 +48,22 @@ function seasonNeed(clim, cropId, t0, days) {
   return { need, et, rain };
 }
 
+// The same crop, duration and planting day on the same weather record always gives the same answer, and the
+// planner, the rotation step and every Field Future candidate ask again and again (13 seasons of daily ET₀ each
+// time), so answers are kept per climate record. Callers only read the result.
+const memo = new WeakMap();
+
 // Median over the last 13 seasons, planting on the same day of the year as t0. mm, and m³ per bigha (1 mm = 1.338 m³).
 export function cropWaterNeed(clim, crop, t0) {
   if (!FAO56[crop.id]) return null;
+  let seen = memo.get(clim);
+  if (!seen) memo.set(clim, (seen = new Map()));
+  const key = `${crop.id}|${crop.days}|${t0}`;
+  if (!seen.has(key)) seen.set(key, waterNeed(clim, crop, t0));
+  return seen.get(key);
+}
+
+function waterNeed(clim, crop, t0) {
   const m = new Date(t0).getUTCMonth(), d = new Date(t0).getUTCDate();
   const rows = [];
   for (let y = 2013; y <= 2026; y++) {

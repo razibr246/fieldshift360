@@ -87,9 +87,9 @@ export default function RotationImpact() {
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="block rounded-2xl border border-border bg-white p-3.5">
           <span className="flex items-center gap-1.5 text-[13.5px] font-semibold"><Users size={15} className="text-primary-700" />{T('কত ভাগ বোরো চাষি বদলান', 'Share of Boro farmers who switch')}: <b className="tabular">{big(adopt)}%</b></span>
-          <input type="range" min="5" max="100" step="5" value={adopt} onChange={(e) => setAdopt(+e.target.value)} className="mt-2 w-full accent-primary-700" />
+          <input type="range" aria-label={T('কত ভাগ বোরো চাষি বদলান', 'Share of Boro farmers who switch')} min="5" max="100" step="5" value={adopt} onChange={(e) => setAdopt(+e.target.value)} className="mt-2 w-full accent-primary-700" />
           <span className="mt-3 flex items-center gap-1.5 text-[13.5px] font-semibold">{T('ফসলি জমির কত ভাগে বোরো', 'Share of the cropland under Boro')}: <b className="tabular">{big(boroShare)}%</b></span>
-          <input type="range" min="5" max="100" step="5" value={boroShare} onChange={(e) => setBoro(+e.target.value)} className="mt-2 w-full accent-primary-700" />
+          <input type="range" aria-label={T('ফসলি জমির কত ভাগে বোরো', 'Share of the cropland under Boro')} min="5" max="100" step="5" value={boroShare} onChange={(e) => setBoro(+e.target.value)} className="mt-2 w-full accent-primary-700" />
           <span className="text-[12px] leading-5 text-muted">{enoughFields
             ? T(`শুরুর মান উপগ্রহ থেকে: উপজেলার ${num(seen.n, 'bn')}টি নিবন্ধিত জমির ${num(seen.boro, 'bn')}টিতে গত রবিতে বোরো ছিল।`, `Starting value from Sentinel-2: Boro last Rabi on ${seen.boro} of the upazila's ${seen.n} registered fields.`)
             : T(`${boroIn == null ? 'উদাহরণ হিসেবে ৫০% ধরা; ' : ''}আপনার জানা ভাগ বসান। উপগ্রহে নিবন্ধিত ${num(seen.n, 'bn')}টি জমির ${num(seen.boro, 'bn')}টিতে গত রবিতে বোরো ছিল, কিন্তু এত কম জমিতে ভাগ বলা যায় না।`, `${boroIn == null ? 'An example 50% to start; ' : ''}set the share you know. Sentinel-2 saw Boro last Rabi on ${seen.boro} of ${seen.n} registered fields, too few to set a share.`)}</span>

@@ -54,10 +54,10 @@ export default function Plan() {
             <Step />
           </div>
           <div className="sticky bottom-20 z-10 mt-8 flex gap-2 rounded-2xl border border-border bg-white/95 p-2 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-            <button type="button" className="btn-ghost flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
+            <button type="button" className="btn-ghost shrink-0 whitespace-nowrap sm:flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
             {i < steps.length - 1
-              ? <button type="button" className="btn-primary flex-[2]" onClick={() => go(i + 1)}>{T(`পরের ধাপ: ${steps[i + 1].label}`, `Next: ${steps[i + 1].label}`)}<ArrowRight size={16} /></button>
-              : <button type="button" className="btn-primary flex-[2]" onClick={() => navigate('/farmer/today')}>{T('আজকের কাজ দেখুন', 'See today’s tasks')}<ArrowRight size={16} /></button>}
+              ? <button type="button" className="btn-primary min-w-0 flex-[2] text-center" onClick={() => go(i + 1)}>{T(`পরের ধাপ: ${steps[i + 1].label}`, `Next: ${steps[i + 1].label}`)}<ArrowRight size={16} /></button>
+              : <button type="button" className="btn-primary min-w-0 flex-[2] text-center" onClick={() => navigate('/farmer/today')}>{T('আজকের কাজ দেখুন', 'See today’s tasks')}<ArrowRight size={16} /></button>}
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ function StoryRail({ current, go, steps }) {
         <ol className="relative ml-3 mt-4 space-y-3 border-l-2 border-primary-100">
           {steps.map((st, k) => (
             <li key={k} className="relative pl-5">
-              <span className={`absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full text-[11px] font-bold transition-all duration-300 ${k === current ? 'bg-primary-800 text-white ring-4 ring-primary-100 scale-110 shadow-sm' : k < current ? 'bg-primary-600 text-white' : 'border-2 border-primary-200 bg-white text-ink/40'}`}>{num(k + 1, lang)}</span>
+              <span className={`absolute -left-[11px] top-0.5 grid h-5 w-5 place-items-center rounded-full text-[11px] font-bold transition-all duration-300 ${k === current ? 'bg-primary-800 text-white ring-4 ring-primary-100 scale-110 shadow-sm' : k < current ? 'bg-primary-600 text-white' : 'border-2 border-primary-200 bg-white text-muted'}`}>{num(k + 1, lang)}</span>
               <button type="button" onClick={() => go(k)} className="group text-left transition-transform duration-200 active:scale-[0.98]">
                 <div className={`text-[14.5px] font-semibold transition-colors duration-200 ${k === current ? 'text-primary-800' : 'text-ink/80 group-hover:text-primary-700'}`}>{st.label}</div>
                 <div className="text-[13px] text-muted transition-colors group-hover:text-ink/70">{out[k]}</div>

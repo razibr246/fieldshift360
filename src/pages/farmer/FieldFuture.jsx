@@ -5,7 +5,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { Clapperboard, Printer, Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } from '../../components/ui';
-import { SectionNav } from '../../components/SectionNav';
+import { SectionNav, LazyMount } from '../../components/SectionNav';
 import SoilColumn, { SoilLegend } from '../../components/charts/SoilColumn';
 import CropPhoto from '../../components/CropPhoto';
 import deltas from '../../data/cmip6_deltas.json';
@@ -114,12 +114,13 @@ export default function FieldFuture() {
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
-      <SoilWater ff={ff} sumOf={sumOf} />
+      {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
+      <LazyMount id="ff-water" height={760}><SoilWater ff={ff} sumOf={sumOf} /></LazyMount>
       <div ref={builder}><Builder ctx={ctx} rot={ownRot} setRot={setOwn} e={ownE} sumOf={sumOf} best={ff.best} /></div>
-      <Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} />
-      <Climate change={change} ctx={ctx} ff={ff} ownE={ownE} scen={scen} />
-      {change && <Robust ff={ff} ownE={ownE} base={base} scen={scen} rotName={rotName} onEdit={editFrom} />}
-      <Method ctx={ctx} ff={ff} />
+      <LazyMount id="ff-all" height={820}><Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} /></LazyMount>
+      <LazyMount id="ff-climate" height={760}><Climate change={change} ctx={ctx} ff={ff} ownE={ownE} scen={scen} /></LazyMount>
+      {change && <LazyMount id="ff-robust" height={900}><Robust ff={ff} ownE={ownE} base={base} scen={scen} rotName={rotName} onEdit={editFrom} /></LazyMount>}
+      <LazyMount id="ff-method" height={600}><Method ctx={ctx} ff={ff} /></LazyMount>
     </div>
   );
 }
@@ -298,7 +299,7 @@ function Compare({ ff, ownE, sumOf, ctx, rotName }) {
         <table className="w-full min-w-[620px] text-[14px]">
           <thead>
             <tr className="text-left">
-              <th className="py-2 pr-2 font-semibold text-muted" />
+              <th className="sticky left-0 z-[1] bg-white py-2 pr-2 font-semibold text-muted sm:static sm:bg-transparent" />
               {list.map((c) => <th key={c.id} className="px-2 py-2 align-bottom"><div className="font-bold" style={{ color: c.tone }}>{c.name}</div><div className="mt-0.5 whitespace-pre-line text-[11.5px] font-normal leading-4 text-muted">{rotName(c.e.rot)}</div></th>)}
             </tr>
           </thead>
@@ -308,7 +309,7 @@ function Compare({ ff, ownE, sumOf, ctx, rotName }) {
               const top = Math.max(...vals);
               return (
                 <tr key={r.k} className="border-t border-border">
-                  <td className="py-2 pr-2"><span className="flex items-center gap-1.5 font-semibold"><r.icon size={15} className="shrink-0 text-primary-700" />{r.k}</span></td>
+                  <td className="sticky left-0 z-[1] max-w-[128px] bg-white py-2 pr-2 sm:static sm:max-w-none sm:bg-transparent"><span className="flex items-center gap-1.5 font-semibold"><r.icon size={15} className="shrink-0 text-primary-700" />{r.k}</span></td>
                   {list.map((c, i) => <td key={c.id} className={`px-2 py-2 tabular ${vals[i] === top && new Set(vals).size > 1 ? 'font-bold text-primary-800' : ''}`}>{r.f(sumOf(c.e))}</td>)}
                 </tr>
               );

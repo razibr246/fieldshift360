@@ -44,7 +44,17 @@ export default function DemoTour() {
   // bring the step's section into view once its page is there
   useEffect(() => {
     if (!step?.hash || pathname !== step.path) return undefined;
-    const t = setTimeout(() => document.getElementById(step.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 500);
+    // Sections further up may mount on the way (LazyMount) and push the target down, so look again after each glide,
+    // up to three times, until it has stopped moving.
+    let tries = 0, t = 0;
+    const aim = () => {
+      const el = document.getElementById(step.hash);
+      if (!el) return;
+      const top = el.getBoundingClientRect().top - (parseFloat(getComputedStyle(el).scrollMarginTop) || 0);
+      if (Math.abs(top) > 8) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (Math.abs(top) > 8 && ++tries < 4) t = setTimeout(aim, 1100);
+    };
+    t = setTimeout(aim, 500);
     return () => clearTimeout(t);
   }, [step, pathname]);
   if (!step) return null;

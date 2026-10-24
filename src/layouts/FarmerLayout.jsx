@@ -15,14 +15,14 @@ export function useFarmerNav() {
   return [
     { to: '/farmer', end: true, icon: Home, label: T('হোম', 'Home') },
     { to: '/farmer/farm', icon: MapPinned, label: T('আমার জমি', 'My field') },
-    { to: '/farmer/plan', icon: Sprout, label: T('মৌসুমের পরিকল্পনা', 'Season plan'), short: T('পরিকল্পনা', 'Plan') },
+    { to: '/farmer/plan', icon: Sprout, label: T('মৌসুমের পরিকল্পনা', 'Season plan'), mid: T('পরিকল্পনা', 'Season plan'), short: T('পরিকল্পনা', 'Plan') },
     { to: '/farmer/future', icon: Telescope, label: T('জমির ভবিষ্যৎ', 'Field future'), short: T('ভবিষ্যৎ', 'Future') },
     { to: '/farmer/today', icon: Droplets, label: T('আজকের কাজ', 'Today'), short: T('আজ', 'Today') },
     { to: '/farmer/voice', icon: Mic, label: T('কথা বলে জানুন', 'Ask by voice'), short: T('ভয়েস', 'Voice') },
     { to: '/farmer/sms', icon: MessageSquareText, label: T('এসএমএসে', 'By SMS'), short: T('এসএমএস', 'SMS') },
     { to: '/farmer/doctor', icon: ScanLine, label: T('ফসলের ডাক্তার', 'Crop doctor'), short: T('ডাক্তার', 'Doctor') },
     { to: '/farmer/help', icon: LifeBuoy, label: T('সাহায্য', 'Help') },
-    { to: '/farmer/harvest', icon: Wheat, label: T('ফসল তোলা ও বিক্রি', 'Harvest'), short: T('ফসল তোলা', 'Harvest') },
+    { to: '/farmer/harvest', icon: Wheat, label: T('ফসল তোলা ও বিক্রি', 'Harvest'), mid: T('ফসল তোলা', 'Harvest'), short: T('ফসল তোলা', 'Harvest') },
   ];
 }
 
@@ -147,12 +147,14 @@ export default function FarmerLayout() {
           <div className="page-shell hide-scrollbar flex gap-1 overflow-x-auto">
             {nav.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end}
-                className={({ isActive }) => `group relative isolate flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[14.5px] font-semibold transition-[background-color,color,box-shadow,transform] duration-300 ease-[var(--ease-smooth)] active:scale-[.98] ${isActive ? 'bg-primary-50 text-primary-900 shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_2px_8px_-4px_rgba(36,90,40,.3)] ring-1 ring-primary-200/80' : 'text-ink/65 hover:bg-primary-50/65 hover:text-primary-800'}`}>
+                className={({ isActive }) => `group relative isolate flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[14.5px] font-semibold transition-[background-color,color,box-shadow,transform] duration-300 ease-[var(--ease-smooth)] active:scale-[.98] ${isActive ? 'bg-primary-50 text-primary-900 shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_2px_8px_-4px_rgba(36,90,40,.3)] ring-1 ring-primary-200/80' : 'text-ink/65 hover:bg-primary-50/65 hover:text-primary-800'}`}>
                 {({ isActive }) => (
                   <>
                     {isActive && <span aria-hidden="true" className="tab-line absolute inset-0 -z-10 rounded-xl bg-gradient-to-b from-white/55 to-primary-50/40" />}
                     <n.icon size={16} className={`transition-transform duration-300 ease-[var(--ease-spring)] ${isActive ? 'scale-110 text-primary-700' : 'group-hover:scale-110'}`} />
-                    <span>{n.label}</span>
+                    {/* ten pages in a 1200 px row: the short names on smaller laptops, the two longest shortened above */}
+                    <span className="xl:hidden">{n.short ?? n.label}</span>
+                    <span className="hidden xl:inline">{n.mid ?? n.label}</span>
                     {isActive && <span aria-hidden="true" className="nav-active-dot ml-0.5 h-1.5 w-1.5 rounded-full bg-primary-600 shadow-[0_0_0_3px_rgba(67,134,58,.12)]" />}
                   </>
                 )}

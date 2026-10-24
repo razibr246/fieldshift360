@@ -28,7 +28,7 @@ export default function Requests() {
             { value: 'done', label: T(`উত্তর দেওয়া (${count((r) => !isOpen(r))})`, `Done (${count((r) => !isOpen(r))})`) },
             { value: 'all', label: T(`সব (${num(all.length, lang)})`, `All (${all.length})`) },
           ]} />
-          <label className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-black/[.05] px-3 focus-within:ring-2 focus-within:ring-primary-200 lg:flex-1">
+          <label className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-black/[.05] px-3 focus-within:ring-2 focus-within:ring-primary-500 lg:flex-1">
             <Search size={17} className="text-muted" />
             <span className="sr-only">{T('খুঁজুন', 'Search')}</span>
             <input value={q} onChange={(e) => setQ(e.target.value)} className="w-full bg-transparent text-[15px] outline-none" placeholder={T('কৃষক, গ্রাম বা সমস্যার নাম', 'Farmer, village or problem')} />

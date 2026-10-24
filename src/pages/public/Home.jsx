@@ -106,10 +106,10 @@ export default function Home() {
             <h2 className="text-[32px] font-bold sm:text-[40px]">{T('ছয় ধাপে পুরো মৌসুমের হিসাব', 'The whole season in six steps')}</h2>
             <p className="mt-3 text-[16.5px] leading-8 text-muted">{T('প্রতিটি ধাপের উত্তর পরের ধাপে কাজে লাগে। আপনার কোনো পছন্দ বদলালে বাকি সব হিসাব সঙ্গে সঙ্গে নতুন করে হয়।', 'Each answer feeds the next step. Change any choice and everything after it is worked out again straight away.')}</p>
           </div>
-          <ol className="mt-12 grid gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+          <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {steps.map(([Icon, t, d2], i) => (
-              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="lift glass flat spotlight-card group relative rounded-[24px] p-6 pt-8 transition-all hover:border-primary-300">
-                <span className="btn-gloss font-display absolute -top-[15px] left-6 grid h-8 min-w-8 place-items-center rounded-full px-2 text-[14px] font-bold text-white shadow-md transition-transform duration-300 group-hover:scale-110">{num(i + 1, lang)}</span>
+              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="lift glass flat spotlight-card group relative rounded-[24px] p-6 pr-16 transition-all hover:border-primary-300">
+                <span className="btn-gloss font-display absolute right-5 top-5 grid h-8 min-w-8 place-items-center rounded-full px-2 text-[14px] font-bold text-white shadow-md transition-transform duration-300 group-hover:scale-110">{num(i + 1, lang)}</span>
                 <div className="flex items-center gap-2"><Icon size={19} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary-700" /><h3 className="text-[19px] font-bold">{t}</h3></div>
                 <p className="mt-1.5 text-[15px] leading-7 text-muted">{d2}</p>
               </li>
@@ -429,7 +429,7 @@ function HeroGalleryPill({ gallery }) {
       <span className="relative min-w-0 flex-1 overflow-hidden px-1 sm:w-[18.5rem] sm:flex-none" aria-live="polite">
         <span className="flex items-center gap-1.5 text-[11.5px] font-semibold leading-4 text-primary-700">
           <span key={ch.from} className="caption-in truncate">{L(ch)}</span>
-          <span className="shrink-0 tabular text-ink/40">· {num(gallery.i + 1, s.lang)}/{num(SLIDES.length, s.lang)}</span>
+          <span className="shrink-0 tabular text-muted">· {num(gallery.i + 1, s.lang)}/{num(SLIDES.length, s.lang)}</span>
         </span>
         <span key={gallery.i} className={`${gallery.dir < 0 ? 'caption-in-prev' : 'caption-in-next'} block truncate text-[14px] font-semibold leading-5 text-ink/85`}>{L(SLIDES[gallery.i])}</span>
       </span>

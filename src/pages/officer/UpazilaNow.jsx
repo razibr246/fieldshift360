@@ -179,18 +179,18 @@ function UpazilaNowPage() {
           <Head icon={Store} tags={['REAL']}>{T('বাজারদর (সরকারি, সাপ্তাহিক)', 'Market prices (official, weekly)')}</Head>
           <p className="mt-1 text-[13.5px] text-muted">{T(`ঢাকা মহানগরীর ৪টি বাজারের গড় খুচরা দাম, ${fmtDate(Date.parse(MARKET.week), 'bn')} ${yr(+MARKET.week.slice(0, 4))}; আগের সপ্তাহ আর গত বছরের একই সপ্তাহের সঙ্গে তুলনা। গ্রামের হাটে দাম সাধারণত এর চেয়ে কম।`, `Average retail price in four Dhaka city markets, week of ${fmtDate(Date.parse(MARKET.week), 'en')} ${MARKET.week.slice(0, 4)}; against last week and the same week last year. Village markets are usually cheaper.`)}</p>
         </div>
-        <table className="mt-3 w-full min-w-[620px] text-left text-[14px]">
-          <thead className="text-[12.5px] text-muted"><tr>{[T('পণ্য', 'Item'), T('দাম (টাকা/কেজি)', 'Price (Tk/kg)'), T('আগের সপ্তাহ', 'Last week'), T('গত বছর', 'A year ago'), T('এক বছরে', 'Over a year')].map((h) => <th key={h} className="px-5 py-2.5 font-semibold sm:px-6">{h}</th>)}</tr></thead>
+        <table className="mt-3 w-full min-w-[560px] text-left text-[14px]">
+          <thead className="text-[12.5px] text-muted"><tr>{[T('পণ্য', 'Item'), T('দাম (টাকা/কেজি)', 'Price (Tk/kg)'), T('আগের সপ্তাহ', 'Last week'), T('গত বছর', 'A year ago'), T('এক বছরে', 'Over a year')].map((h, i) => <th key={h} className={`px-3.5 py-2.5 font-semibold sm:px-6 ${i ? '' : 'sticky left-0 z-[1] bg-white sm:static sm:bg-transparent'}`}>{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-border">
             {MARKET.items.map((x) => {
               const d = x.pctYear, Arrow = d > 0.5 ? ArrowUpRight : d < -0.5 ? ArrowDownRight : Minus;
               return (
                 <tr key={x.key}>
-                  <td className="px-5 py-2.5 font-semibold sm:px-6">{L(x)}</td>
-                  <td className="px-5 py-2.5 text-[15px] font-bold tabular sm:px-6">৳{num(x.price, lang, { dp: x.price % 1 ? 2 : 0 })}{x.pctWeek ? <span className={`ml-1.5 text-[11.5px] font-semibold ${x.pctWeek > 0 ? 'text-clay-700' : 'text-primary-700'}`}>{x.pctWeek > 0 ? '+' : '−'}{num(Math.abs(x.pctWeek), lang, { dp: 0 })}%</span> : null}</td>
-                  <td className="px-5 py-2.5 tabular text-muted sm:px-6">৳{num(x.lastWeek, lang, { dp: x.lastWeek % 1 ? 2 : 0 })}</td>
-                  <td className="px-5 py-2.5 tabular text-muted sm:px-6">{x.lastYear === null ? '—' : `৳${num(x.lastYear, lang, { dp: x.lastYear % 1 ? 2 : 0 })}`}</td>
-                  <td className="px-5 py-2.5 sm:px-6">{d === null ? '—' : <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[12px] font-semibold ${d > 0.5 ? 'bg-clay-50 text-clay-700' : d < -0.5 ? 'bg-primary-50 text-primary-800' : 'bg-black/[.04] text-muted'}`}><Arrow size={12} />{num(Math.abs(d), lang, { dp: 0 })}%</span>}</td>
+                  <td className="sticky left-0 z-[1] bg-white px-3.5 py-2.5 font-semibold sm:static sm:bg-transparent sm:px-6">{L(x)}</td>
+                  <td className="px-3.5 py-2.5 text-[15px] font-bold tabular sm:px-6">৳{num(x.price, lang, { dp: x.price % 1 ? 2 : 0 })}{x.pctWeek ? <span className={`ml-1.5 text-[11.5px] font-semibold ${x.pctWeek > 0 ? 'text-clay-700' : 'text-primary-700'}`}>{x.pctWeek > 0 ? '+' : '−'}{num(Math.abs(x.pctWeek), lang, { dp: 0 })}%</span> : null}</td>
+                  <td className="px-3.5 py-2.5 tabular text-muted sm:px-6">৳{num(x.lastWeek, lang, { dp: x.lastWeek % 1 ? 2 : 0 })}</td>
+                  <td className="px-3.5 py-2.5 tabular text-muted sm:px-6">{x.lastYear === null ? '—' : `৳${num(x.lastYear, lang, { dp: x.lastYear % 1 ? 2 : 0 })}`}</td>
+                  <td className="px-3.5 py-2.5 sm:px-6">{d === null ? '—' : <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[12px] font-semibold ${d > 0.5 ? 'bg-clay-50 text-clay-700' : d < -0.5 ? 'bg-primary-50 text-primary-800' : 'bg-black/[.04] text-muted'}`}><Arrow size={12} />{num(Math.abs(d), lang, { dp: 0 })}%</span>}</td>
                 </tr>
               );
             })}

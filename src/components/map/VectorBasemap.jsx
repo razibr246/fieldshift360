@@ -32,13 +32,25 @@ export default function VectorBasemap({ styleUrl, attribution, onError }) {
         ]);
         if (gone) return;
         ml.setWorkerUrl(workerUrl);
-        layer = maplibreGL({
+        const gl = maplibreGL({
           style: latinOnly(style), attribution, interactive: false,
           // Render at least at 2× even on ordinary screens: crisper lines and text, like a supersampled image.
           // sharp also when a big screen zooms the whole page up (index.css --ui-zoom)
           pixelRatio: Math.min(4, Math.max(2, (window.devicePixelRatio || 1) * (parseFloat(getComputedStyle(document.documentElement).zoom) || 1))),
           fadeDuration: 150,
-        }).addTo(map); // throws here when WebGL is unavailable
+        });
+        try {
+          gl.addTo(map); // throws here when WebGL is unavailable
+        } catch (e) {
+          // Leaflet wires the layer's zoom and move handlers before onAdd runs, so a failed onAdd leaves a half-added
+          // layer whose handlers throw on every zoom. Take it back out by hand (removeLayer would call onRemove,
+          // which needs the GL map that was never made).
+          map.off(gl.getEvents(), gl);
+          delete map._layers[gl._leaflet_id];
+          gl._container?.remove();
+          throw e;
+        }
+        layer = gl;
       } catch {
         if (!gone) onError?.();
       }

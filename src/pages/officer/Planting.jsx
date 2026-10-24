@@ -46,14 +46,14 @@ export default function Planting() {
   return (
     <div>
       <PageHeader eyebrow={T('সবাই মিলে পরিকল্পনা', 'Planning together')} title={T('লাগানোর সময় ও দাম পড়ার ঝুঁকি', 'Planting time and price-drop risk')} subtitle={T(`${union.meta.full.bnOf} কৃষকদের পরিকল্পনা ধরে, কোন সপ্তাহে কত ফসল উঠবে।`, `How much ${union.meta.en} will harvest each week, based on farmers’ plans.`)} tags={['RULE', 'REAL', 'DEMO']} action={<WhyButton payload={why} />} />
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_.7fr]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.3fr_.7fr]">
         <Card className="self-start p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label={T('ফসল', 'Crop')}>{Object.values(RABI_CROPS).map((c) => {
+            <div className="-mx-1 flex min-w-0 max-w-full gap-1.5 overflow-x-auto px-1 pb-1" role="group" aria-label={T('ফসল', 'Crop')}>{Object.values(RABI_CROPS).map((c) => {
               const cg = glut[c.id], on = crop === c.id, has = cg.bins.size > 0;
               return (
                 <button key={c.id} type="button" aria-pressed={on} onClick={() => setCrop(c.id)} title={has ? `${T('ঝুঁকি', 'Risk')}: ${L(RISK_STYLE[cg.risk.level])}` : T('কোনো পরিকল্পনা নেই', 'No plans')}
-                  className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold transition ${on ? 'border-primary-600 bg-primary-600 text-white' : `border-border bg-white hover:border-primary-300 ${has ? 'text-ink/75' : 'text-ink/40'}`}`}>
+                  className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold transition ${on ? 'border-primary-600 bg-primary-600 text-white' : `border-border bg-white hover:border-primary-300 ${has ? 'text-ink/75' : 'text-muted'}`}`}>
                   <i className={`inline-block h-2 w-2 rounded-full ${has ? RISK_DOT[cg.risk.level] : 'border border-current'} ${on ? 'ring-2 ring-white/70' : ''}`} aria-hidden="true" />
                   {L(c.name)}
                 </button>

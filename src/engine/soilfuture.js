@@ -128,14 +128,22 @@ function seasonChange(d) {
   }));
 }
 
+// Where day t falls between two mid-months: [earlier month, later month, share of the later]. The same days are asked
+// for by every future climate (eight models, five yield years), so each day is worked out once.
+const BLEND = new Map();
+const blendAt = (t) => {
+  let b = BLEND.get(t);
+  if (!b) {
+    const d = new Date(t), m = d.getUTCMonth(), pos = m + (d.getUTCDate() - 0.5) / DIM[m] - 0.5, a = Math.floor(pos);
+    BLEND.set(t, (b = [(a + 12) % 12, (a + 13) % 12, pos - a]));
+  }
+  return b;
+};
+
 // The upazila's measured days, moved by the models' change for that time of year (blended between mid-months).
 export function futureClimate(clim, change) {
   if (!change) return null;
-  const at = (arr, t) => {
-    const d = new Date(t), m = d.getUTCMonth(), day = d.getUTCDate();
-    const pos = m + (day - 0.5) / DIM[m] - 0.5, a = Math.floor(pos), f = pos - a;
-    return arr[(a + 12) % 12] * (1 - f) + arr[(a + 13) % 12] * f;
-  };
+  const at = (arr, t) => { const [i, j, f] = blendAt(t); return arr[i] * (1 - f) + arr[j] * f; };
   const val = (v, t) => {
     const x = clim.val(v, t);
     if (x == null) return x;

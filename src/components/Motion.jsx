@@ -182,15 +182,19 @@ export function ScrollProgress() {
   return <div className="scroll-progress" aria-hidden="true" />;
 }
 
-// Hook to animate numbers smoothly from 0 to target on mount
+// Hook to animate a whole number up from 0 when it first appears, and from the old value to the new one when it changes
+// (a new union, a request answered), instead of starting again from 0.
 export function useCountUp(target, duration = 700) {
   const [val, setVal] = useState(reducedMotion() ? target : 0);
+  const shown = useRef(val);
+  shown.current = val;
   useEffect(() => {
     if (reducedMotion()) {
       setVal(target);
       return undefined;
     }
-    let start = 0;
+    const start = shown.current;
+    if (start === target) return undefined;
     let raf = 0;
     const startTime = performance.now();
     const frame = (now) => {

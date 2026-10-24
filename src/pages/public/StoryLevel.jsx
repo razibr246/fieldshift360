@@ -396,7 +396,7 @@ function Mission({ m, D, lv }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-primary-950 p-3 text-white">
         <span className="text-[14px] font-semibold">{T('কোন বছরে খেলবেন', 'Which year')}</span>
-        <select value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 rounded-xl bg-white/10 px-3 text-[14px] font-semibold outline-none">
+        <select aria-label={T('কোন বছরে খেলবেন', 'Which year')} value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 rounded-xl bg-white/10 px-3 text-[14px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-white/80">
           {m.years.map((y) => <option key={y} value={y} className="text-ink">{yr(y, lang)}{y === STORY_YEAR[m.id] ? T(' (গল্পের মতো বছর)', ' (like the story)') : ''}</option>)}
         </select>
         <button type="button" onClick={() => { const y = m.years[Math.floor(Math.random() * m.years.length)]; setYear(y); play(y); }} className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-white/10 px-3 text-[14px] font-semibold hover:bg-white/20"><Dices size={16} />{T('এলোমেলো বছর', 'Random year')}</button>

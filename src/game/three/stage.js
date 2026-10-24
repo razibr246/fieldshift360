@@ -19,6 +19,13 @@ import { QUESTS, FIELD_W, FIELD_D } from '../regions';
 
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const isTouch = () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+// Asked once before any renderer is made: when WebGL is off, three.js fills the console with errors on its way to
+// failing, so fail quietly here instead (the page shows its own message).
+let glOK;
+const needWebGL = () => {
+  glOK ??= (() => { try { const c = document.createElement('canvas'); const x = c.getContext('webgl2') || c.getContext('webgl'); x?.getExtension('WEBGL_lose_context')?.loseContext(); return !!x; } catch { return false; } })();
+  if (!glOK) throw new Error('WebGL is not available');
+};
 
 // The cinematic grade, after tone mapping: a little more colour, a gentle S-curve, warm light and cooler shadows,
 // and a soft vignette.
@@ -38,6 +45,7 @@ const GRADE = {
 };
 
 export function createStage({ canvas, overlay, minimap, compass, g, lang, onEvent }) {
+  needWebGL();
   const touch = isTouch();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2));
@@ -342,6 +350,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
 // Small renders of each farmer for the choosing screen, and a turning preview of the chosen one.
 export function createPreview(canvas, look) {
+  needWebGL();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -378,6 +387,7 @@ export function createPreview(canvas, look) {
 
 // Still pictures of several farmers (for the cards), rendered once on one hidden canvas.
 export function portraits(looks, size = 220) {
+  needWebGL();
   const cv = document.createElement('canvas'); cv.width = size; cv.height = Math.round(size * 1.15);
   cv.style.cssText = `position:fixed;left:-9999px;width:${size}px;height:${Math.round(size * 1.15)}px`; document.body.appendChild(cv);
   const pv = createPreview(cv, looks[0]);

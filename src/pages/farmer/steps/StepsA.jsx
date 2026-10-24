@@ -21,7 +21,7 @@ export function StepField() {
           ? T('আপনার সব জমি উপজেলা কৃষি অফিসে নিবন্ধিত আছে। একটি বেছে নিন; ইউনিয়ন, মাটি আর পাশের কৃষকদের হিসাব সেই জমি ধরে হবে।', 'All your fields are registered with the upazila agriculture office. Pick one; the union, soil and neighbours are worked out for it.')
           : T('মানচিত্রে জমির ওপর পিন বসিয়ে নিশ্চিত করুন। এখান থেকেই ইউনিয়ন, মাটি আর পাশের কৃষকদের হিসাব ঠিক হয়।', 'Put the pin on your field and confirm it. Your union, soil and neighbours are worked out from here.')} tags={['DEMO']} />
       {myParcels.length > 1 && (
-        <div className="mb-4 flex flex-wrap gap-2" role="radiogroup" aria-label={T('জমি বাছুন', 'Choose a field')}>
+        <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap" role="radiogroup" aria-label={T('জমি বাছুন', 'Choose a field')}>
           {myParcels.map((p, i) => {
             const on = p.id === activeParcel?.id;
             return (

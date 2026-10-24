@@ -48,7 +48,7 @@ export default function OfficerDashboard() {
     <div>
       <PageHeader eyebrow={T(`আজ ${fmtBangla(todayDhaka(), 'bn')}, ${fmtDate(todayDhaka(), 'bn')}`, `Today, ${fmtDate(todayDhaka(), 'en')} (${fmtBangla(todayDhaka(), 'en')})`)} title={T(`${union.meta.full.bn}`, `${union.meta.full.en}`)}
         subtitle={T('কৃষকদের অনুরোধ, এলাকার সতর্কতা আর এই রবিতে কে কী লাগাচ্ছেন — এক জায়গায়।', 'Farmer requests, area alerts and what everyone is planting this Rabi, in one place.')} tags={['DEMO']} />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5" data-stagger>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:col-span-1" data-stagger>
         <StatCard icon={UsersRound} label={T('কৃষক', 'Farmers')} value={<CountUp value={union.farmers.length} />} note={T(union.meta.full.bnIn, `in ${union.meta.full.en}`)} to="/officer/farmers" />
         <StatCard icon={LifeBuoy} tone={open.length ? 'amber' : 'green'} label={T('খোলা অনুরোধ', 'Open requests')} value={<CountUp value={open.length} />} note={T(`${num(open.filter((r) => r.priority === 'High').length, 'bn')}টি জরুরি`, `${open.filter((r) => r.priority === 'High').length} urgent`)} to="/officer/requests" />
         <StatCard icon={BellRing} tone={hs.length ? 'red' : 'green'} label={T('এলাকার সতর্কতা', 'Area alerts')} value={<CountUp value={hs.length} />} note={hs.length ? T('একই সমস্যা কয়েক জমিতে', 'Same problem in several fields') : T('কিছু নেই', 'None')} to="/officer/alerts" />

@@ -90,7 +90,7 @@ export default function SmsMode() {
               {KEYS.map((x) => <button key={x.k} type="button" onClick={() => send(lang === 'bn' ? x.k : x.en)} className="rounded-full bg-white px-3 py-1 text-[13px] font-semibold text-primary-800 shadow-sm">{lang === 'bn' ? x.k : x.en}</button>)}
             </div>
             <form onSubmit={(e) => { e.preventDefault(); send(text); }} className="flex gap-2">
-              <input value={text} onChange={(e) => setText(e.target.value)} placeholder={T('যেমন: এই ধান কাটার পর কী লাগামু', 'e.g. what do I plant after this rice')} className="min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3 py-2 text-[14px]" />
+              <input aria-label={T('এসএমএস লিখুন', 'Type an SMS')} value={text} onChange={(e) => setText(e.target.value)} placeholder={T('যেমন: এই ধান কাটার পর কী লাগামু', 'e.g. what do I plant after this rice')} className="min-w-0 flex-1 rounded-full border border-black/10 bg-white px-3 py-2 text-[14px]" />
               <button type="submit" aria-label={T('পাঠান', 'Send')} className="grid h-10 w-10 place-items-center rounded-full bg-primary-700 text-white"><Send size={16} /></button>
             </form>
           </div>

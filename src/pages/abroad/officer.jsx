@@ -179,7 +179,7 @@ export function AreaMap() {
         <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
           <AreaMapBox height="min(560px, 62vh)" full focus={focus} />
           <div className="flex min-h-0 flex-col">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={T('গ্রামের নাম খুঁজুন', 'Find a village')} className="h-11 rounded-full border border-border bg-white px-4 text-[14.5px] outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
+            <input type="search" aria-label={T('গ্রামের নাম খুঁজুন', 'Find a village')} value={q} onChange={(e) => setQ(e.target.value)} placeholder={T('গ্রামের নাম খুঁজুন', 'Find a village')} className="h-11 rounded-full border border-border bg-white px-4 text-[14.5px] outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" />
             <ul className="mt-2 max-h-[500px] space-y-1 overflow-y-auto pr-1">
               {list.slice(0, 120).map((p) => (
                 <li key={`${p.n}${p.lat}`}>
@@ -245,7 +245,7 @@ function AlertCard({ a, lang, onSend, sent }) {
               ))}
             </div>
           )}
-          <textarea dir="auto" value={text} onChange={(e) => setText(e.target.value)} rows={3} className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-[14.5px] leading-6 outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" aria-label={T('এসএমএস', 'SMS')} />
+          <textarea aria-label={T('উত্তর', 'Reply')} dir="auto" value={text} onChange={(e) => setText(e.target.value)} rows={3} className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-[14.5px] leading-6 outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" aria-label={T('এসএমএস', 'SMS')} />
           <SmsMeter text={text} className="mt-1" />
           <button type="button" onClick={() => onSend(text)} disabled={sent} className="btn-gloss mt-2.5 inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold text-white disabled:opacity-60">{sent ? <><CheckCircle2 size={16} />{T('আজ পাঠানো হয়েছে', 'Sent today')}</> : <><Send size={15} />{T('কৃষককে পাঠান', 'Send to the farmer')}</>}</button>
         </>
