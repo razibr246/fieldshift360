@@ -171,6 +171,21 @@ export function rainCrossCheck(clim) {
   };
 }
 
+// Whether a live rainfall series agrees with the saved record where the two overlap: totals within a factor of three
+// (or both under 20 mm). In October 2026 NASA POWER served PRECTOTCORR 24 times too large to some requests; a live
+// answer like that is not used. True when they agree or there is too little overlap to tell.
+export function rainAgrees(clim, series) {
+  let live = 0, saved = 0, n = 0;
+  for (let i = 0; i < series.prec.length; i++) {
+    const a = series.prec[i], b = clim.val('prec', addDays(series.start, i));
+    if (a == null || b == null) continue;
+    live += a; saved += b; n++;
+  }
+  if (n < 7 || (live < 20 && saved < 20)) return true;
+  const r = live / Math.max(saved, 1);
+  return r > 1 / 3 && r < 3;
+}
+
 // "This season so far": the last `days` days of a daily series (live NASA POWER or the saved file) against the same
 // calendar window in each of the 25 past seasons. series: { start (UTC ms), prec[], tmax[] } with null for gaps.
 export function seasonSoFar(clim, series, days = 60) {

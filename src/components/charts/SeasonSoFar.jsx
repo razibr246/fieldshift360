@@ -1,9 +1,10 @@
 // "This season so far": the last 60 days of NASA POWER (fetched live in the browser) against the same 60 days in
-// each of the 25 past seasons. If NASA does not answer, the saved data file is used and the card says so, with its date.
+// each of the 25 past seasons. If NASA does not answer, or its rain does not agree with the saved record where they
+// overlap (rainAgrees), the saved data file is used and the card says so, with its date.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, WifiOff } from 'lucide-react';
 import { useStore, clim as godagariClim } from '../../store';
-import { seasonSoFar } from '../../engine/climate';
+import { seasonSoFar, rainAgrees } from '../../engine/climate';
 import { num, fmtDate, fmtBangla, todayDhaka, addDays, iso } from '../../engine/dates';
 
 const DAYS = 60;
@@ -28,7 +29,11 @@ export default function SeasonSoFar({ clim = godagariClim, lat = clim.prov.lat, 
   const [st, setSt] = useState({ series: null, live: false, loading: true });
   const load = useCallback(async () => {
     setSt((p) => ({ ...p, loading: true }));
-    try { setSt({ series: await fetchPower(lat, lon), live: true, loading: false }); }
+    try {
+      const series = await fetchPower(lat, lon);
+      if (!rainAgrees(clim, series)) throw new Error('POWER rain disagrees with the saved record');
+      setSt({ series, live: true, loading: false });
+    }
     catch { setSt({ series: { start: clim.start, prec: clim.raw.prec, tmax: clim.raw.tmax }, live: false, loading: false }); }
   }, [clim, lat, lon]);
   useEffect(() => { load(); }, [load]);

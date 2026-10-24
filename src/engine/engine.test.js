@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { makeClimate, backtest, timeMachine, SEASONS } from './climate.js';
+import { makeClimate, backtest, timeMachine, SEASONS, rainAgrees } from './climate.js';
 import { RABI_CROPS } from './crops.js';
 import { decide, weightsFor } from './decision.js';
 import { recommendRotation } from './rotation.js';
@@ -376,4 +376,23 @@ test('Bangla possessive and locative read naturally', async () => {
   assert.equal(bnOf('গোদাগাড়ী'), 'গোদাগাড়ীর');
   assert.equal(bnIn('ধামরাই'), 'ধামরাইয়ে');
   assert.equal(bnIn('ধান'), 'ধানে');
+});
+
+test('every upazila’s POWER rainfall agrees with GPM IMERG (no 24-times rainfall)', () => {
+  for (const u of ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat']) {
+    const j = JSON.parse(readFileSync(new URL(`../data/climate/climate_${u}.json`, import.meta.url)));
+    let p = 0, q = 0;
+    j.prec.forEach((x, i) => { if (x != null && j.prec_imerg[i] != null) { p += x; q += j.prec_imerg[i]; } });
+    const years = j.prec.length / 365.25, ratio = p / q;
+    assert.ok(ratio > 0.5 && ratio < 2, `${u}: POWER is ${ratio.toFixed(2)} times IMERG`);
+    assert.ok(p / years > 900 && p / years < 6000, `${u}: ${Math.round(p / years)} mm a year is not Bangladesh rainfall`);
+  }
+});
+
+test('a live rain series 24 times too large is not taken for the saved one', () => {
+  const j = JSON.parse(readFileSync(new URL('../data/climate/climate_godagari.json', import.meta.url)));
+  const c = makeClimate(j), from = j.prec.length - 90;
+  const series = { start: c.start + from * 86400000, prec: j.prec.slice(from), tmax: j.tmax.slice(from) };
+  assert.equal(rainAgrees(c, series), true);
+  assert.equal(rainAgrees(c, { ...series, prec: series.prec.map((x) => (x == null ? x : x * 24)) }), false);
 });
