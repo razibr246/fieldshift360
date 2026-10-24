@@ -38,13 +38,17 @@ export default function Plan() {
           <h1 className="text-[24px] font-bold sm:text-[28px]">{T('রবি ২০২৬–২৭ মৌসুমের পরিকল্পনা', 'Plan for Rabi 2026–27')}</h1>
           <span className="shrink-0 text-[14px] text-muted">{T(`${num(steps.length, 'bn')} ধাপের ${num(i + 1, 'bn')} নম্বর`, `Step ${i + 1} of ${steps.length}`)}</span>
         </div>
-        <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-black/[.06]" aria-hidden="true"><div className="progress-sheen h-full rounded-full bg-primary-600 transition-all duration-500 ease-[var(--ease-gentle)]" style={{ width: `${((i + 1) / steps.length) * 100}%` }} /></div>
+        {/* Gold progress: a glowing fill that glides on a spring, a light sweeping across it and a bright bead at its tip. */}
+        <div className="gold-track relative mb-1 h-2.5 rounded-full" aria-hidden="true">
+          <div className="gold-fill progress-sheen h-full rounded-full" style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
+          <span key={i} className="gold-tip" style={{ left: `calc(${((i + 1) / steps.length) * 100}% - 7px)` }} />
+        </div>
         <ol className="hide-scrollbar -mx-1 mb-6 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" aria-label={T('ধাপগুলো', 'Steps')}>
           {steps.map((st, k) => (
             <li key={k} className="shrink-0">
               <button type="button" onClick={() => go(k)} aria-current={k === i ? 'step' : undefined}
-                className={`group flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${k === i ? 'border-primary-700 bg-primary-700 text-white shadow-sm' : k < i ? 'border-primary-200 bg-primary-50 text-primary-800 hover:bg-primary-100 hover:border-primary-300' : 'border-border bg-white text-ink/75 hover:text-ink hover:border-primary-200'}`}>
-                {k < i ? <Check size={14} className="transition-transform duration-200 group-hover:scale-110" /> : <st.icon size={14} className="transition-transform duration-200 group-hover:scale-110" />}{st.label}
+                className={`step-chip group flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold active:scale-95 ${k === i ? 'step-chip-now border-primary-300/80 text-white' : k < i ? 'step-chip-done border-primary-300 bg-primary-50 text-primary-800 hover:-translate-y-px hover:border-primary-500' : 'border-border bg-white text-ink/75 hover:-translate-y-px hover:border-primary-300 hover:text-ink'}`}>
+                {k < i ? <Check size={14} strokeWidth={2.6} className="text-paddy-500 transition-transform duration-300 group-hover:scale-110" /> : <st.icon size={14} className={`transition-transform duration-300 group-hover:scale-110 ${k === i ? 'text-paddy-300' : ''}`} />}{st.label}
               </button>
             </li>
           ))}
@@ -53,11 +57,11 @@ export default function Plan() {
           <div key={i} className="swap-in">
             <Step />
           </div>
-          <div className="sticky bottom-20 z-10 mt-8 flex gap-2 rounded-2xl border border-border bg-white/95 p-2 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-            <button type="button" className="btn-ghost shrink-0 whitespace-nowrap sm:flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
+          <div className="sticky bottom-20 z-10 mt-8 flex gap-2.5 rounded-2xl border border-border bg-white/95 p-2.5 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+            <button type="button" className="btn-ghost shrink-0 whitespace-nowrap py-3 sm:flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
             {i < steps.length - 1
-              ? <button type="button" className="btn-primary min-w-0 flex-[2] text-center" onClick={() => go(i + 1)}>{T(`পরের ধাপ: ${steps[i + 1].label}`, `Next: ${steps[i + 1].label}`)}<ArrowRight size={16} /></button>
-              : <button type="button" className="btn-primary min-w-0 flex-[2] text-center" onClick={() => navigate('/farmer/today')}>{T('আজকের কাজ দেখুন', 'See today’s tasks')}<ArrowRight size={16} /></button>}
+              ? <button type="button" className="btn-primary min-w-0 flex-[2] py-3 text-center text-[15px]" onClick={() => go(i + 1)}>{T(`পরের ধাপ: ${steps[i + 1].label}`, `Next: ${steps[i + 1].label}`)}<ArrowRight size={16} /></button>
+              : <button type="button" className="btn-primary min-w-0 flex-[2] py-3 text-center text-[15px]" onClick={() => navigate('/farmer/today')}>{T('আজকের কাজ দেখুন', 'See today’s tasks')}<ArrowRight size={16} /></button>}
           </div>
         </div>
       </div>

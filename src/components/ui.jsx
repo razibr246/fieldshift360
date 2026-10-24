@@ -1,7 +1,7 @@
 // Shared UI kit: buttons, badges, page headers, stat tiles, data-source tags, score ring, notes and empty states.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HelpCircle, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, Info, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useStore, clim, soilData } from '../store.jsx';
 import { bnDigits } from '../engine/dates.js';
 import { smsParts } from '../engine/text.js';
@@ -21,15 +21,22 @@ const BTN = {
   // Glossy green: the same lit gradient and light sweep as the header CTAs, so every primary action reads as one.
   primary: 'btn-gloss text-white focus-visible:ring-primary-500',
   secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-500',
+  outline: 'border-2 border-primary-600 bg-transparent text-primary-800 hover:bg-primary-50 active:bg-primary-100 focus-visible:ring-primary-500',
   ghost: 'text-ink hover:bg-primary-50/80 hover:text-primary-800 focus-visible:ring-primary-500 active:bg-primary-100',
   danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-red-500',
   dark: 'bg-primary-950 text-white hover:bg-primary-900 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-primary-600',
   light: 'bg-white text-primary-900 hover:bg-primary-50 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-white focus-visible:ring-offset-transparent',
 };
-export function Button({ to, variant = 'primary', className = '', children, type = 'button', ...props }) {
+export function Button({ to, variant = 'primary', loading = false, disabled = false, className = '', children, type = 'button', ...props }) {
   const cls = `${BTN_BASE} ${BTN[variant]} ${className}`;
-  if (to) return <Link to={to} className={cls} {...props}>{children}</Link>;
-  return <button type={type} className={cls} {...props}>{children}</button>;
+  const content = (
+    <>
+      {loading && <Loader2 size={16} className="animate-spin text-current shrink-0" />}
+      {children}
+    </>
+  );
+  if (to) return <Link to={to} className={cls} aria-busy={loading} {...props}>{content}</Link>;
+  return <button type={type} disabled={disabled || loading} aria-busy={loading} className={cls} {...props}>{content}</button>;
 }
 
 const BADGE = {
@@ -41,8 +48,13 @@ const BADGE = {
   slate: 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300',
   dark: 'border-primary-700 bg-primary-700 text-white',
 };
-export function Badge({ tone = 'green', children, className = '' }) {
-  return <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold transition-all duration-200 hover:scale-[1.03] ${BADGE[tone]} ${className}`}>{children}</span>;
+export function Badge({ tone = 'green', dot = false, children, className = '' }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold transition-all duration-200 hover:scale-[1.03] shadow-2xs ${BADGE[tone]} ${className}`}>
+      {dot && <span className="live-dot shrink-0" />}
+      {children}
+    </span>
+  );
 }
 
 // Page title block. `eyebrow` is a short plain-case pointer to where the user is, not a shouted label.
@@ -178,13 +190,48 @@ export function WhyButton({ payload, small, className = '', inverse = false }) {
 
 export function Note({ children, tone = 'info', className = '' }) {
   const map = {
-    info: ['border-primary-100 bg-primary-50 text-primary-900', Info],
-    gold: ['border-amber-200 bg-amber-50 text-amber-900', Info],
-    warn: ['border-red-200 bg-red-50 text-red-800', AlertTriangle],
-    ok: ['border-primary-200 bg-primary-50 text-primary-900', CheckCircle2],
+    info: ['border-l-4 border-l-sky-500 border-sky-100 bg-sky-50/75 text-sky-950 shadow-2xs', Info, 'text-sky-600'],
+    gold: ['border-l-4 border-l-amber-500 border-amber-200 bg-amber-50/80 text-amber-950 shadow-2xs', Info, 'text-amber-600'],
+    warn: ['border-l-4 border-l-red-500 border-red-200 bg-red-50/80 text-red-950 shadow-2xs', AlertTriangle, 'text-red-600'],
+    ok: ['border-l-4 border-l-emerald-600 border-primary-200 bg-primary-50/80 text-primary-950 shadow-2xs', CheckCircle2, 'text-emerald-600'],
   };
-  const [cls, Icon] = map[tone];
-  return <div className={`flex gap-2 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 ${cls} ${className}`}><Icon size={17} className="mt-1 shrink-0" /><div className="min-w-0">{children}</div></div>;
+  const [cls, Icon, iconCls] = map[tone] || map.info;
+  return (
+    <div className={`flex gap-2.5 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 transition-all duration-200 ${cls} ${className}`}>
+      <Icon size={18} className={`mt-0.5 shrink-0 ${iconCls}`} />
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
+
+export function Input({ className = '', ...props }) {
+  return (
+    <input
+      className={`h-11 w-full rounded-xl border border-border bg-white px-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted ${className}`}
+      {...props}
+    />
+  );
+}
+
+export function Textarea({ className = '', rows = 3, ...props }) {
+  return (
+    <textarea
+      rows={rows}
+      className={`w-full rounded-xl border border-border bg-white p-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted ${className}`}
+      {...props}
+    />
+  );
+}
+
+export function Select({ className = '', children, ...props }) {
+  return (
+    <select
+      className={`h-11 w-full rounded-xl border border-border bg-white px-3.5 text-[15px] font-medium text-ink outline-none transition-all duration-200 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted cursor-pointer ${className}`}
+      {...props}
+    >
+      {children}
+    </select>
+  );
 }
 
 // A segmented switch whose white "thumb" glides to the chosen option (and stretches to its width) on a spring.

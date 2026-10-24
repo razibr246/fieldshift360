@@ -116,7 +116,7 @@ export default function Help() {
               <legend className="text-[15px] font-semibold">{T('কী হয়েছে?', 'What is wrong?')}</legend>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {Object.entries(TYPES).map(([k, x]) => (
-                  <label key={k} className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-3 text-[15px] font-semibold transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary-100 ${type === k ? 'border-primary-600 bg-primary-50 text-primary-800' : 'border-border hover:bg-canvas'}`}>
+                  <label key={k} className={`flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-3 text-[15px] font-semibold transition-all duration-150 active:scale-[0.98] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary-100 ${type === k ? 'border-primary-600 bg-primary-50 text-primary-800 shadow-xs' : 'border-border hover:bg-canvas hover:border-primary-200'}`}>
                     <input type="radio" name="type" value={k} checked={type === k} onChange={() => setType(k)} className="sr-only" />
                     <x.icon size={18} className={type === k ? 'text-primary-700' : 'text-muted'} />{L(x)}
                   </label>
@@ -131,7 +131,7 @@ export default function Help() {
                   {[...choices, null].map((p) => {
                     const on = (p?.key ?? null) === problem;
                     return (
-                      <label key={p?.key ?? 'unsure'} className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary-100 ${on ? 'border-primary-600 bg-primary-50' : 'border-border hover:bg-canvas'}`}>
+                      <label key={p?.key ?? 'unsure'} className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5 transition-all duration-150 active:scale-[0.99] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-primary-100 ${on ? 'border-primary-600 bg-primary-50 shadow-xs' : 'border-border hover:bg-canvas hover:border-primary-200'}`}>
                         <input type="radio" name="problem" checked={on} onChange={() => setProblem(p?.key ?? null)} className="mt-1.5 accent-primary-700" />
                         <span className="min-w-0">
                           <span className="flex flex-wrap items-center gap-1.5 text-[14.5px] font-semibold">{p ? L(p) : T('বুঝতে পারছি না', 'Not sure')}{p?.urgent && <span className="chip bg-red-50 text-red-700 ring-1 ring-red-200">{T('দ্রুত ছড়ায়', 'spreads fast')}</span>}</span>
@@ -155,19 +155,19 @@ export default function Help() {
 
             <label className="mt-5 block" htmlFor="help-text">
               <span className="text-[15px] font-semibold">{T('একটু খুলে বলুন', 'Tell us a little more')} <span className="font-normal text-muted">{type === 'question' ? '' : T('(না লিখলেও চলবে)', '(optional)')}</span></span>
-              <textarea id="help-text" rows={3} value={text} onChange={(e) => setText(e.target.value)} className="mt-2 w-full rounded-xl border border-border p-3 text-[15.5px] leading-7 outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-50"
+              <textarea id="help-text" rows={3} value={text} onChange={(e) => setText(e.target.value)} className="mt-2 w-full rounded-xl border border-border p-3 text-[15.5px] leading-7 outline-none transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-100"
                 placeholder={type === 'water' ? T('যেমন: সেচ পাম্প তিন দিন বন্ধ, বিদ্যুৎ নেই', 'For example: the irrigation pump has been off for three days, no power') : type === 'question' ? T('যেমন: সরিষা কাটার পর কত দিনের মধ্যে বোরো রোপণ করলে ভালো?', 'For example: how soon after the mustard should I transplant Boro?') : picked ? T(`যেমন: ${L(picked.look)}`, `For example: ${L(picked.look)}`) : T('যেমন: নিচের পাতায় বাদামি দাগ, তিন দিন ধরে বাড়ছে', 'For example: brown spots on the lower leaves, spreading for three days')} />
             </label>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onFile} />
               <Button variant="secondary" onClick={() => fileRef.current?.click()}><Camera size={16} />{img ? T('ছবি বদলান', 'Change photo') : T('ছবি দিন', 'Add a photo')}</Button>
-              {img && <span className="relative"><img src={img} alt={T('যুক্ত করা ছবি', 'Attached photo')} className="h-11 w-11 rounded-lg object-cover" /><button type="button" onClick={() => setImg(null)} className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-ink text-white" aria-label={T('ছবি সরান', 'Remove photo')}><X size={12} /></button></span>}
-              {t.kinds.length > 0 && !img && <Link to="/farmer/doctor" className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[13.5px] font-semibold text-primary-700 hover:bg-primary-50"><ScanLine size={15} />{T('আগে ফসলের ডাক্তারে ছবি দেখান', 'Try the crop doctor first')}</Link>}
+              {img && <span className="relative"><img src={img} alt={T('যুক্ত করা ছবি', 'Attached photo')} className="h-11 w-11 rounded-lg object-cover ring-2 ring-primary-500/20 shadow-xs" /><button type="button" onClick={() => setImg(null)} className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-ink text-white shadow-xs transition hover:bg-black" aria-label={T('ছবি সরান', 'Remove photo')}><X size={12} /></button></span>}
+              {t.kinds.length > 0 && !img && <Link to="/farmer/doctor" className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[13.5px] font-semibold text-primary-700 hover:bg-primary-50 transition active:scale-95"><ScanLine size={15} />{T('আগে ফসলের ডাক্তারে ছবি দেখান', 'Try the crop doctor first')}</Link>}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-border bg-canvas/70 p-4">
-              <div className="flex items-center justify-between gap-2"><div className="text-[14px] font-semibold">{T('অনুরোধের সঙ্গে নিজে থেকে যাবে', 'Goes with your request')}</div><Tags list={['REAL']} /></div>
-              <ul className="mt-2 space-y-1.5 text-[13.5px] leading-5 text-ink/80">
+            <div className="mt-5 rounded-2xl border border-primary-900/10 bg-primary-50/30 p-4">
+              <div className="flex items-center justify-between gap-2"><div className="text-[14px] font-semibold text-primary-950">{T('অনুরোধের সঙ্গে নিজে থেকে যাবে', 'Goes with your request')}</div><Tags list={['REAL']} /></div>
+              <ul className="mt-2.5 space-y-2 text-[13.5px] leading-5 text-ink/80">
                 <li className="flex gap-2"><MapPin size={15} className="mt-0.5 shrink-0 text-primary-600" />{context.field.name ? `${L(context.field.name)}, ` : ''}{T(`${bnDigits(farmer.area_dec)} শতক`, `${farmer.area_dec} decimal`)}, {lang === 'bn' ? farmer.villageBn : farmer.village}, {L(demo.unions.find((u) => u.id === farmer.union))}</li>
                 <li className="flex gap-2"><Sprout size={15} className="mt-0.5 shrink-0 text-primary-600" />{onAman ? T(`আমন ধান, এখন জমিতে; এরপর ${chosen.crop.name.bn}, লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `Aman rice, in the field now; then ${chosen.crop.name.en.toLowerCase()}, to plant ${fmtDate(chosen.t0, 'en')}`) : daysAfter >= 0 ? T(`${crop.name.bn}, লাগানোর ${bnDigits(daysAfter)} দিন পর: ${stage.bn}`, `${crop.name.en}, ${daysAfter} days after planting: ${stage.en.toLowerCase()}`) : T(`${crop.name.bn}, লাগানো হবে ${fmtDate(chosen.t0, 'bn')}`, `${crop.name.en}, to be planted ${fmtDate(chosen.t0, 'en')}`)}</li>
                 {context.water && <li className="flex gap-2"><Droplets size={15} className="mt-0.5 shrink-0 text-primary-600" />{T('আজকের মাটির পানি: ', 'Soil water today: ')}{L(WATER_STYLE[context.water])} ({L(WATER_COLORS[context.water])})</li>}
@@ -177,7 +177,7 @@ export default function Help() {
             </div>
             {err && <Note tone="warn" className="mt-3">{L(err)}</Note>}
             <div className="mt-5 flex items-center gap-3">
-              <Button type="submit" className="flex-1 py-3"><Send size={16} />{T('পাঠিয়ে দিন', 'Send')}</Button>
+              <Button type="submit" className="flex-1 py-3 shadow-sm active:scale-98"><Send size={16} />{T('পাঠিয়ে দিন', 'Send')}</Button>
               <Badge tone={priority === 'High' ? 'red' : priority === 'Medium' ? 'amber' : 'slate'}>{priority === 'High' ? T('জরুরি', 'Urgent') : priority === 'Medium' ? T('মাঝারি', 'Medium') : T('সাধারণ', 'Routine')}</Badge>
             </div>
           </form>
@@ -189,7 +189,7 @@ export default function Help() {
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary-50 text-primary-700"><UserRoundCheck size={23} /></div>
               <div><h2 className="text-[17px] font-bold">{L(upazila.officer)}</h2><p className="text-[13.5px] text-muted">{T(`উপজেলা কৃষি অফিসার, ${upazila.name.bn} উপজেলা কৃষি অফিস, ${upazila.district.bn}`, `Upazila agriculture officer, ${upazila.name.en} upazila agriculture office, ${upazila.district.en}`)}</p></div>
             </div>
-            <a href="tel:16123" className="mt-4 flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50 px-3.5 py-3 hover:bg-primary-100">
+            <a href="tel:16123" className="mt-4 flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50/70 px-3.5 py-3 hover:bg-primary-100/70 transition active:scale-98">
               <Phone size={18} className="shrink-0 text-primary-700" />
               <span className="min-w-0 text-[13.5px] leading-5"><b className="text-[15px] text-primary-900">{T('কৃষি কল সেন্টার ১৬১২৩', 'Krishi Call Centre 16123')}</b><span className="block text-muted">{T('জরুরি হলে এখনই ফোন করুন: কৃষি তথ্য সার্ভিসের বিশেষজ্ঞ, যেকোনো মোবাইল থেকে।', 'Urgent? Call now: Agriculture Information Service experts, from any mobile.')}</span></span>
             </a>

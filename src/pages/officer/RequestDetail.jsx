@@ -151,7 +151,7 @@ function RequestDetailInner({ id }) {
                     <p>{r.doctor.report.summary}</p>
                     {r.doctor.report.findings.map((f, i) => <p key={i} className="text-violet-900/80"><b>{lang === 'bn' ? f.name_bn : f.name_en}:</b> {f.evidence}</p>)}
                     {r.doctor.report.treatment_note && <p className="text-amber-900"><b>{T('ওষুধ নিয়ে', 'On chemicals')}:</b> {r.doctor.report.treatment_note}</p>}
-                    <p className="text-[12px] text-violet-800/70">{T(`জরুরিতা: ${{ low: 'কম', medium: 'মাঝারি', high: 'বেশি' }[r.doctor.report.urgency]} · ${r.doctor.model ?? 'Claude'}`, `Urgency: ${r.doctor.report.urgency} · ${r.doctor.model ?? 'Claude'}`)}{r.doctor.sources?.length ? T(` · ${bnDigits(r.doctor.sources.length)}টি সূত্র`, ` · ${r.doctor.sources.length} sources`) : ''}</p>
+                    <p className="text-[12px] text-violet-800/70">{T(`জরুরিতা: ${{ low: 'কম', medium: 'মাঝারি', high: 'বেশি' }[r.doctor.report.urgency]} · AI ডাক্তার`, `Urgency: ${r.doctor.report.urgency} · AI doctor`)}{r.doctor.sources?.length ? T(` · ${bnDigits(r.doctor.sources.length)}টি সূত্র`, ` · ${r.doctor.sources.length} sources`) : ''}</p>
                   </div>
                 )}
                 {r.ai[0].p < 0.7 && <p className="mt-3 text-[13.5px] leading-5 text-violet-800">{T('সম্ভাবনা ৭০ শতাংশের কম, তাই আপনার চোখে দেখে নেওয়া দরকার।', 'The top match is under 70%, so it needs your judgement.')}</p>}

@@ -59,22 +59,22 @@ export default function Stories() {
         <ol className="space-y-4">
           {LEVELS.map((l) => (
             <li key={l.id}>
-              <Link to={`/stories/${l.id}`} className="tool-card glass flat group grid overflow-hidden rounded-[24px] sm:grid-cols-[180px_1fr]">
-                <div className="relative min-h-[150px]"><CropPhoto crop={l.crops[0]} width={500} sizes="200px" linkCredit={false} /></div>
+              <Link to={`/stories/${l.id}`} className="tool-card glass flat group grid overflow-hidden rounded-[24px] sm:grid-cols-[180px_1fr] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary-400/50">
+                <div className="relative min-h-[150px] overflow-hidden"><div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-105"><CropPhoto crop={l.crops[0]} width={500} sizes="200px" linkCredit={false} /></div></div>
                 <div className="p-4 sm:p-5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="grid h-7 min-w-7 place-items-center rounded-full px-2 text-[13px] font-bold text-white" style={{ background: l.tone }}>{T(`স্তর ${bnDigits(l.n)}`, `Level ${l.n}`)}</span>
+                    <span className="grid h-7 min-w-7 place-items-center rounded-full px-2 text-[13px] font-bold text-white shadow-xs" style={{ background: l.tone }}>{T(`স্তর ${bnDigits(l.n)}`, `Level ${l.n}`)}</span>
                     <span className="text-[13px] font-semibold text-muted">{L(l.division)} · {L(l.upazila)}</span>
-                    <span className="rounded-full bg-primary-700 px-2 py-0.5 text-[11.5px] font-bold text-white">{T('নমুনা খামার', 'Sample farm')}</span>
+                    <span className="rounded-full bg-primary-700 px-2 py-0.5 text-[11.5px] font-bold text-white shadow-xs">{T('নমুনা খামার', 'Sample farm')}</span>
                     {l.woman && <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[11.5px] font-bold text-violet-800"><HeartHandshake size={12} />{T('নারী কৃষক', 'Woman farmer')}</span>}
                   </div>
-                  <div className="font-display mt-1 text-[22px] font-semibold">{L(l.farmer)}</div>
+                  <div className="font-display mt-1 text-[22px] font-semibold text-ink group-hover:text-primary-800 transition-colors">{L(l.farmer)}</div>
                   <div className="mt-2 grid gap-1.5 text-[13.5px] leading-5 sm:grid-cols-2">
                     <span className="flex gap-1.5"><Swords size={15} className="mt-0.5 shrink-0 text-red-700" /><span><b>{T('পরিবেশের দানব', 'Environmental boss')}:</b> {L(l.hazard)}</span></span>
                     <span className="flex gap-1.5"><Bug size={15} className="mt-0.5 shrink-0 text-paddy-700" /><span><b>{T('রোগ-পোকার দানব', 'Biological boss')}:</b> {L(l.bio)}</span></span>
                   </div>
-                  <div className="mt-2 flex gap-1.5 text-[13.5px] leading-5 text-primary-800"><Sparkles size={15} className="mt-0.5 shrink-0" /><span><b>{T('পাওয়ার-আপ', 'Power-up')}:</b> {L(l.power)}</span></div>
-                  <span className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-700">{l.mission ? T('গল্প পড়ুন, খেলুন, খামারে ঢুকুন', 'Read, play, enter the farm') : T('খামারে ঢুকুন', 'Enter the farm')}<ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></span>
+                  <div className="mt-2 flex gap-1.5 text-[13.5px] leading-5 text-primary-800"><Sparkles size={15} className="mt-0.5 shrink-0 text-amber-500" /><span><b>{T('পাওয়ার-আপ', 'Power-up')}:</b> {L(l.power)}</span></div>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-700 group-hover:text-primary-800">{l.mission ? T('গল্প পড়ুন, খেলুন, খামারে ঢুকুন', 'Read, play, enter the farm') : T('খামারে ঢুকুন', 'Enter the farm')}<ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" /></span>
                 </div>
               </Link>
             </li>

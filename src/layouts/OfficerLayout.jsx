@@ -111,17 +111,22 @@ function Sidebar({ onNavigate }) {
 export default function OfficerLayout() {
   const { s, T, L, officerUpazila: upz } = useStore();
   const [drawer, setDrawer] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [q, setQ] = useState('');
   const loc = useLocation();
   const navigate = useNavigate();
   const searchRef = useRef(null);
   useScrollOnNavigate();
-  useEffect(() => { setDrawer(false); }, [loc.pathname]);
+  useEffect(() => { setDrawer(false); setShowSearch(false); }, [loc.pathname]);
   // "/" jumps to the farmer search from anywhere (unless you are already typing).
   useEffect(() => {
     const k = (e) => {
       if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
-      if (!searchRef.current?.offsetParent) return;
+      if (!searchRef.current?.offsetParent) {
+        setShowSearch(true);
+        setTimeout(() => searchRef.current?.focus(), 50);
+        return;
+      }
       e.preventDefault(); searchRef.current.focus();
     };
     window.addEventListener('keydown', k);
@@ -135,7 +140,7 @@ export default function OfficerLayout() {
   }, [drawer]);
   const open = s.requests.filter((r) => r.status === 'open' && r.union === s.officerUnion).length;
   const name = L(upz.officer);
-  const search = (e) => { e.preventDefault(); navigate(`/officer/farmers?q=${encodeURIComponent(q.trim())}`); };
+  const search = (e) => { e.preventDefault(); navigate(`/officer/farmers?q=${encodeURIComponent(q.trim())}`); setShowSearch(false); };
   return (
     <div className="min-h-screen lg:flex">
       <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 lg:block"><Sidebar /></aside>
@@ -151,7 +156,7 @@ export default function OfficerLayout() {
       <div className="min-w-0 flex-1">
         <header className="glass-bar sticky top-0 z-30">
           <div className="flex h-[64px] items-center gap-2.5 px-4 sm:px-6">
-            <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')}><Menu size={19} /></button>
+            <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink shadow-2xs hover:bg-primary-50 active:scale-95 lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')}><Menu size={19} /></button>
             <BackButton />
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">
               <Search size={17} className="text-muted transition-colors duration-200 group-focus-within:text-primary-600" />
@@ -159,20 +164,32 @@ export default function OfficerLayout() {
               <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted shadow-2xs lg:inline" aria-hidden="true">/</kbd>
             </form>
             <div className="ml-auto flex items-center gap-2">
+              <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')}>
+                <Search size={18} />
+              </button>
               <button type="button" onClick={() => navigate('/officer/requests')}
-                className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 ${open > 0 ? 'border-amber-200 text-amber-700 shadow-[0_0_12px_rgba(208,143,38,0.25)] hover:bg-amber-50/50' : 'border-border text-ink hover:bg-primary-50'}`}
+                className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xs ${open > 0 ? 'border-amber-200 text-amber-700 shadow-[0_0_12px_rgba(208,143,38,0.25)] hover:bg-amber-50/50' : 'border-border text-ink hover:bg-primary-50'}`}
                 aria-label={T(`খোলা অনুরোধ ${open}টি`, `${open} open requests`)}>
                 <Bell size={18} />
                 {open > 0 && <span className="pulse-ring absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-amber-600 px-1 text-[11px] font-bold text-white shadow-sm">{open}</span>}
               </button>
               <LangToggle />
               <div className="hidden text-right sm:block">
-                <div className="text-[14px] font-bold">{name}</div>
+                <div className="text-[14px] font-bold text-ink">{name}</div>
                 <div className="text-[12px] text-muted">{T(`উপজেলা কৃষি অফিসার, ${upz.name.bn}`, `Upazila agriculture officer, ${upz.name.en}`)}</div>
               </div>
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary-100 font-bold text-primary-800">{name.slice(0, 1)}</div>
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary-100 font-bold text-primary-800 shadow-2xs">{name.slice(0, 1)}</div>
             </div>
           </div>
+          {showSearch && (
+            <div className="border-t border-border/80 bg-white/95 p-2.5 backdrop-blur-md md:hidden">
+              <form onSubmit={search} className="flex items-center gap-2 rounded-xl border border-primary-300 bg-primary-50/50 px-3 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20" role="search">
+                <Search size={17} className="text-primary-600" />
+                <input autoFocus type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন…', 'Search farmer or village…')} />
+                <button type="submit" className="rounded-lg bg-primary-600 px-2.5 py-1 text-[12px] font-bold text-white">{T('যান', 'Go')}</button>
+              </form>
+            </div>
+          )}
         </header>
         <PlaceholderBanner />
         {/* Switching union re-plays a soft fade, so the change of data reads as a change, not a flicker. */}

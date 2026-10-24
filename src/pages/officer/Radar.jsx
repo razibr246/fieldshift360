@@ -69,7 +69,7 @@ function RadarPage() {
           <span className="text-[13px] font-semibold text-muted">{T(`${district.bn} জেলার উপজেলা:`, `${district.en} district:`)}</span>
           {openable.map((u) => (
             <button key={u.id} type="button" onClick={() => setView(u.id)} aria-pressed={u.id === view}
-              className={`h-9 rounded-full px-3.5 text-[13.5px] font-semibold transition ${u.id === view ? 'bg-primary-700 text-white' : 'bg-black/[.04] text-ink/75 hover:bg-black/[.08]'}`}>
+              className={`h-9 rounded-full px-3.5 text-[13.5px] font-semibold transition-all duration-150 active:scale-95 ${u.id === view ? 'bg-primary-700 text-white shadow-sm ring-2 ring-primary-700/20' : 'bg-black/[.04] text-ink/75 hover:bg-black/[.08]'}`}>
               {L(u)}{u.id === home && <span className={`ml-1.5 text-[11.5px] ${u.id === view ? 'text-white/80' : 'text-paddy-700'}`}>{T('আপনার', 'yours')}</span>}
             </button>
           ))}
@@ -101,7 +101,7 @@ function RadarPage() {
           <div className="flex flex-wrap gap-1.5" role="group" aria-label={T('বছর', 'Year')}>
             {Object.keys(row.seasons).map(Number).map((y) => (
               <button key={y} type="button" onClick={() => setYear(y)} aria-pressed={y === year}
-                className={`h-8 rounded-lg px-2.5 text-[13px] font-semibold tabular transition ${y === year ? 'bg-primary-700 text-white' : 'bg-black/[.04] text-ink/70 hover:bg-black/[.08]'}`}>{yr(y)}</button>
+                className={`h-8 rounded-lg px-2.5 text-[13px] font-semibold tabular transition-all duration-150 active:scale-95 ${y === year ? 'bg-primary-700 text-white shadow-xs' : 'bg-black/[.04] text-ink/70 hover:bg-black/[.08]'}`}>{yr(y)}</button>
             ))}
           </div>
         </div>
@@ -425,7 +425,7 @@ function BmdCheck() {
 
 function Stat({ icon: Icon, label, value, note, tone }) {
   return (
-    <div className="aman-fade rounded-2xl border border-border bg-white p-4">
+    <div className="aman-fade lift rounded-2xl border border-border bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-2 text-[13px] font-semibold text-muted"><span className="grid h-7 w-7 place-items-center rounded-lg" style={{ background: `${tone}1f`, color: tone }}><Icon size={15} /></span>{label}</div>
       <div className="mt-2 text-[24px] font-bold leading-tight tabular" style={{ color: tone }}>{value}</div>
       {note && <p className="mt-1 text-[12.5px] leading-5 text-muted">{note}</p>}

@@ -37,18 +37,18 @@ function WaterGauge({ fw }) {
   const { T } = useStore();
   const full = Math.max(0, 1 - fw.now.Dr / fw.now.TAW), stress = 1 - fw.now.RAW / fw.now.TAW;
   return (
-    <div className="mt-5 rounded-2xl bg-white/15 p-3.5">
+    <div className="mt-5 rounded-2xl bg-white/15 p-3.5 backdrop-blur-xs">
       <div className="flex items-baseline justify-between text-[13.5px] text-white/85">
         <span>{T('শিকড়ের নাগালে মাটির পানি', 'Water within reach of the roots')}</span>
         <b className="text-[18px] text-white"><CountUp value={Math.round(full * 100)} />%</b>
       </div>
-      <div className="relative mt-2 h-3 rounded-full bg-black/25" role="img" aria-label={T(`মাটির পানি ${bnDigits(Math.round(full * 100))}%`, `Soil water ${Math.round(full * 100)}%`)}>
-        <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: `${full * 100}%` }} />
-        <div className="absolute -inset-y-1 w-0.5 bg-amber-200" style={{ left: `${stress * 100}%` }} />
+      <div className="relative mt-2 h-3.5 rounded-full bg-black/25 overflow-hidden p-0.5" role="img" aria-label={T(`মাটির পানি ${bnDigits(Math.round(full * 100))}%`, `Soil water ${Math.round(full * 100)}%`)}>
+        <div className="h-full rounded-full bg-white transition-all duration-700 ease-out shadow-xs" style={{ width: `${full * 100}%` }} />
+        <div className="absolute inset-y-0 w-1 bg-amber-300 shadow-sm" style={{ left: `${stress * 100}%` }} />
       </div>
       <div className="relative mt-1.5 h-4 text-[11.5px] text-white/70">
         <span className="absolute left-0">{T('শুকনো', 'Dry')}</span>
-        <span className="absolute -translate-x-1/2 whitespace-nowrap text-amber-100" style={{ left: `${stress * 100}%` }}>↑ {T('এর বাঁয়ে পানির টান', 'left of this: stress')}</span>
+        <span className="absolute -translate-x-1/2 whitespace-nowrap text-amber-100 font-medium" style={{ left: `${stress * 100}%` }}>↑ {T('এর বাঁয়ে পানির টান', 'left of this: stress')}</span>
         <span className="absolute right-0">{T('পুরো ভেজা', 'Fully wet')}</span>
       </div>
     </div>

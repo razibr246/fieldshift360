@@ -76,7 +76,7 @@ export default function OfficerDashboard() {
             {reqs.slice(0, 4).map((r) => {
               const f = farmerOf(r.farmerId);
               return (
-                <Link key={r.id} to={`/officer/requests/${r.id}`} className={`block rounded-xl border p-3.5 transition hover:border-primary-300 hover:bg-primary-50/40 ${r.mine ? 'border-sky-200 bg-sky-50/50' : 'border-border'}`}>
+                <Link key={r.id} to={`/officer/requests/${r.id}`} className={`block rounded-xl border p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm hover:border-primary-300 hover:bg-primary-50/40 ${r.mine ? 'border-sky-200 bg-sky-50/50' : 'border-border'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0"><div className="flex items-center gap-1.5"><span className="truncate text-[15px] font-bold">{L(f?.name)}</span>{r.mine && <Badge tone="blue">{T('নতুন', 'New')}</Badge>}</div><div className="mt-0.5 text-[13px] text-muted">{cropName(r.crop, lang)}, {lang === 'bn' ? r.villageBn : r.village}, {ageLabel(r.created, T)}</div></div>
                     <Badge tone={r.status === 'open' ? PRIORITY[r.priority].tone : 'green'}>{r.status === 'open' ? L(PRIORITY[r.priority]) : T('উত্তর দেওয়া', 'Answered')}</Badge>
@@ -99,12 +99,12 @@ export default function OfficerDashboard() {
       </Card>
 
       {/* the rules behind every recommendation, for an officer to check */}
-      <Card className="mt-6 flex flex-wrap items-start gap-3 border-amber-200 bg-amber-50/70 p-5">
-        <ClipboardCheck size={22} className="mt-0.5 shrink-0 text-amber-700" />
+      <Card className="lift mt-6 flex flex-wrap items-start gap-3 border-l-4 !border-l-amber-500 border-amber-200 bg-amber-50/70 p-5 transition-all duration-200 hover:shadow-md">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-800"><ClipboardCheck size={20} /></span>
         <div className="min-w-0 flex-1">
           <h2 className="text-[17px] font-bold text-amber-950">{T('কর্মকর্তার যাচাই দরকার', 'Officer review needed')}</h2>
           <p className="mt-1 text-[14px] leading-6 text-amber-900/85">{T('ফসলের গরম-বৃষ্টির সীমা, লাগানোর তারিখ, দাম পড়ার নিয়ম আর বৃষ্টি শুরুর নিয়ম এখনো শুরুর মান: সাধারণ কৃষিবিজ্ঞান থেকে নেওয়া, কোনো কৃষি কর্মকর্তা যাচাই করেননি। প্রতিটির উৎস আর কারণ এক তালিকায় আছে; ঠিক করে "যাচাই করেছেন" ঘরে নাম দিন।', 'The crop heat and rain limits, planting dates, the price-drop rule and the rain-onset rule are starting values from general agronomy that no agriculture officer has checked yet. Each one is listed with its basis; correct it and sign the “Reviewed by” column.')}</p>
-          <a href="https://github.com/razibr246/nasa-field-shift-360/blob/main/docs/THRESHOLDS.md" target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[14px] font-semibold text-amber-900 underline underline-offset-2">{T('সীমা ও নিয়মের তালিকা খুলুন', 'Open the thresholds list')}<ChevronRight size={15} /></a>
+          <a href="https://github.com/razibr246/nasa-field-shift-360/blob/main/docs/THRESHOLDS.md" target="_blank" rel="noreferrer" className="mt-2.5 inline-flex items-center gap-1 text-[14px] font-semibold text-amber-900 underline underline-offset-4 hover:text-amber-950">{T('সীমা ও নিয়মের তালিকা খুলুন', 'Open the thresholds list')}<ChevronRight size={15} /></a>
         </div>
       </Card>
     </div>

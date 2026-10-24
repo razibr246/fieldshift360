@@ -99,9 +99,14 @@ export default function Dashboard() {
                 ? [Sprout, T('পরের ফসলের কথা ভাবুন', 'Think about the next crop'), r.best ? T(`তোলার পর ${r.best.crop.name.bn}`, `${r.best.crop.name.en} after harvest`) : T('সরাসরি রোপা আমন', 'Straight to Aman'), '/farmer/plan', 5]
                 : [CheckCircle2, T('পরিকল্পনা পাকা করুন', 'Confirm your plan'), T('তাহলে কৃষি কর্মকর্তা দেখতে পাবেন', 'So your officer can see it'), '/farmer/plan', 6],
             ].map(([Icon, t, dsc, to, step]) => (
-              <Link key={t} to={to} onClick={() => step != null && goStep(step)} className="flex items-start gap-3 rounded-xl border border-border p-4 transition hover:border-primary-300 hover:bg-primary-50/50">
-                <Icon size={20} className="mt-0.5 shrink-0 text-primary-600" />
-                <span className="min-w-0"><span className="block text-[15px] font-bold leading-snug">{t}</span><span className="mt-1 block text-[13.5px] leading-5 text-muted">{dsc}</span></span>
+              <Link key={t} to={to} onClick={() => step != null && goStep(step)} className="group flex items-start gap-3 rounded-2xl border border-border bg-white/70 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 hover:bg-primary-50/70 hover:shadow-sm active:scale-[0.98]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary-100">
+                  <Icon size={20} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-bold leading-snug text-ink">{t}</span>
+                  <span className="mt-1 block text-[13px] leading-5 text-muted">{dsc}</span>
+                </span>
               </Link>
             ))}
           </div>

@@ -56,8 +56,12 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Kohinoor Bangla", "Inter Variable", "Noto Sans Bengali Variable", "Segoe UI", system-ui, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Kohinoor Bangla", "Inter Variable", "Noto Sans Bengali Variable", "Segoe UI", system-ui, sans-serif;
 
-  --shadow-card: 0 1px 0 rgba(19, 38, 27, .04), 0 8px 24px -12px rgba(19, 38, 27, .14);
-  --shadow-lift: 0 18px 48px -18px rgba(13, 38, 20, .35);
+  --shadow-card: 0 2px 10px -2px rgba(19, 38, 27, .05), 0 10px 26px -12px rgba(19, 38, 27, .12);
+  --shadow-lift: 0 20px 48px -16px rgba(13, 38, 20, .32), 0 8px 18px -6px rgba(13, 38, 20, .14);
+  --shadow-glow-primary: 0 0 28px -4px rgba(67, 134, 58, .32);
+  --shadow-glow-amber: 0 0 28px -4px rgba(208, 143, 38, .32);
+  --shadow-glow-sky: 0 0 28px -4px rgba(47, 138, 143, .32);
+  --shadow-glow-violet: 0 0 28px -4px rgba(139, 92, 246, .32);
 
   /* One easing for the whole site: quick to start, long soft landing. Every Tailwind `transition` uses it.
      --ease-smooth overshoots a touch and settles, like iOS; it is upgraded to a true spring curve below where supported. */
@@ -486,6 +490,45 @@ img.fade-img.is-loaded { opacity: 1; transform: none; }
   z-index: 1;
 }
 
+/* Viewfinder reticle corners for CropDoctor and camera views */
+.viewfinder-frame {
+  position: relative;
+}
+.viewfinder-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-color: #2f6e2f;
+  pointer-events: none;
+  transition: all .3s var(--ease-spring);
+}
+.viewfinder-corner-tl { top: 10px; left: 10px; border-top-width: 2.5px; border-left-width: 2.5px; border-top-left-radius: 8px; }
+.viewfinder-corner-tr { top: 10px; right: 10px; border-top-width: 2.5px; border-right-width: 2.5px; border-top-right-radius: 8px; }
+.viewfinder-corner-bl { bottom: 10px; left: 10px; border-bottom-width: 2.5px; border-left-width: 2.5px; border-bottom-left-radius: 8px; }
+.viewfinder-corner-br { bottom: 10px; right: 10px; border-bottom-width: 2.5px; border-right-width: 2.5px; border-bottom-right-radius: 8px; }
+
+/* Live status pulse dot */
+.live-dot {
+  position: relative;
+  display: inline-flex;
+  height: 8px;
+  width: 8px;
+  border-radius: 9999px;
+}
+.live-dot::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  opacity: .35;
+  animation: pulse-ring 2s cubic-bezier(.22, 1, .36, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::before { animation: none; opacity: 0; }
+  .viewfinder-corner { transition: none; }
+}
+
 /* ---- Motion ----
    Sections rise in as they scroll into view (only once JS has marked the page ready, so nothing is ever hidden
    without it), and every app page eases in when you move between pages. */
@@ -827,3 +870,34 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
   .poster-sheet { position: absolute; inset: 0 auto auto 0; width: 100%; max-width: none; box-shadow: none !important; border-radius: 0; padding: 0; }
 }
 
+/* ---- Season plan: gold progress and step chips ----
+   The fill glides to its new width on a spring and glows like ripe paddy; a light sweeps across it (progress-sheen)
+   and a bright bead sits at its tip, flaring once each time the step changes. The current step's chip is deep green
+   with a gold rim and a slow breathing halo; finished steps carry gold ticks. Calm when the reader asks for less motion. */
+.gold-track { background: linear-gradient(180deg, rgba(36, 90, 40, .12), rgba(36, 90, 40, .05)); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .08); }
+.gold-fill {
+  background: linear-gradient(90deg, #1c4722 0%, #2f6e2f 30%, #62a04f 68%, #a9c95a 86%, #edc067 100%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset, 0 2px 10px -1px rgba(67, 134, 58, .7), 0 0 20px -2px rgba(141, 190, 120, .65);
+  transition: width .75s cubic-bezier(.34, 1.36, .64, 1);
+}
+.gold-tip {
+  position: absolute; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 9999px;
+  background: radial-gradient(circle at 40% 35%, #fffbe8 0%, #e4ec9a 45%, #8dbe58 100%);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 0 14px 3px rgba(141, 190, 88, .85);
+  transition: left .75s cubic-bezier(.34, 1.36, .64, 1);
+  animation: gold-tip-flare .9s cubic-bezier(.34, 1.56, .64, 1) both, gold-tip-glow 2.6s ease-in-out .9s infinite;
+}
+@keyframes gold-tip-flare { 0% { transform: scale(.4); box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 0 34px 12px rgba(169, 201, 90, .95); } 100% { transform: none; } }
+@keyframes gold-tip-glow { 0%, 100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, .85), 0 0 12px 2px rgba(141, 190, 88, .7), 0 0 4px 1px rgba(237, 192, 103, .6); } 50% { box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 0 24px 7px rgba(141, 190, 88, .9), 0 0 8px 2px rgba(237, 192, 103, .8); } }
+.step-chip { transition: transform .35s cubic-bezier(.34, 1.4, .64, 1), background-color .3s, border-color .3s, color .3s, box-shadow .35s; }
+.step-chip-now {
+  background: linear-gradient(180deg, #2f6e2f 0%, #1c4722 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 0 0 3px rgba(141, 190, 120, .35), 0 8px 22px -8px rgba(67, 134, 58, .85);
+  animation: step-halo 2.8s ease-in-out infinite;
+}
+@keyframes step-halo {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 0 0 3px rgba(141, 190, 120, .32), 0 8px 22px -8px rgba(67, 134, 58, .8); }
+  50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 0 0 5px rgba(169, 201, 90, .45), 0 0 26px -4px rgba(237, 192, 103, .55), 0 10px 28px -6px rgba(67, 134, 58, .9); }
+}
+.step-chip-done { box-shadow: 0 2px 10px -4px rgba(67, 134, 58, .45); }
+@media (prefers-reduced-motion: reduce) { .gold-fill { transition: none; } .gold-tip, .step-chip-now { animation: none; } }

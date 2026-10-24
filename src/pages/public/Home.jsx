@@ -272,10 +272,14 @@ export default function Home() {
             <p className="text-primary-300">© {new Date().getFullYear()} {PROJECT_NAME} by {PROJECT_TEAM}</p>
           </div>
         </div>
-        <div className="page-shell mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[14px]">
-          <Link to="/farmer" className="hover:text-white"><Droplets size={14} className="mr-1 inline" />{T('কৃষকের পাতা', 'Farmer view')}</Link>
-          <Link to="/farmer/harvest" className="hover:text-white"><Wheat size={14} className="mr-1 inline" />{T('ফসল তোলার হিসাব', 'Harvest timing')}</Link>
-          <Link to="/officer" className="hover:text-white"><ShieldCheck size={14} className="mr-1 inline" />{T('কর্মকর্তার পাতা', 'Officer view')}</Link>
+        <div className="page-shell mt-8 flex flex-wrap gap-x-6 gap-y-2.5 text-[14px]">
+          <Link to="/farmer" className="hover:text-white transition-colors duration-150"><Droplets size={14} className="mr-1.5 inline text-sky-400" />{T('কৃষকের পাতা', 'Farmer view')}</Link>
+          <Link to="/farmer/doctor" className="hover:text-white transition-colors duration-150"><ScanLine size={14} className="mr-1.5 inline text-violet-400" />{T('ফসলের ডাক্তার', 'Crop Doctor')}</Link>
+          <Link to="/farmer/future" className="hover:text-white transition-colors duration-150"><Sprout size={14} className="mr-1.5 inline text-primary-400" />{T('জমির ভবিষ্যৎ', 'Field Future')}</Link>
+          <Link to="/farmer/harvest" className="hover:text-white transition-colors duration-150"><Wheat size={14} className="mr-1.5 inline text-amber-400" />{T('ফসল তোলার হিসাব', 'Harvest timing')}</Link>
+          <Link to="/officer" className="hover:text-white transition-colors duration-150"><ShieldCheck size={14} className="mr-1.5 inline text-primary-400" />{T('কর্মকর্তার পাতা', 'Officer view')}</Link>
+          <Link to="/officer/radar" className="hover:text-white transition-colors duration-150"><RadarIcon size={14} className="mr-1.5 inline text-sky-400" />{T('রোপণ রাডার', 'Ropan Radar')}</Link>
+          <Link to="/games" className="hover:text-white transition-colors duration-150"><Swords size={14} className="mr-1.5 inline text-amber-300" />{T('খেলে শিখুন', 'Games')}</Link>
         </div>
       </footer>
     </>

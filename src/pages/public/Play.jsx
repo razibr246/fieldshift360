@@ -81,7 +81,7 @@ export default function Play() {
           {stage === 'choose' && (
             <div key={`c-${i}`} className="scene-in mt-6">
               <p className="font-display text-[22px] font-semibold tracking-[-0.02em]">{T('রহিম ভাই এখন কী করবেন?', 'What should Rahim do now?')}</p>
-              <button type="button" onClick={pickHabit} className="lift glass flat mt-3 flex w-full items-center gap-4 rounded-[22px] p-4 text-left">
+              <button type="button" onClick={pickHabit} className="lift glass flat mt-3 flex w-full items-center gap-4 rounded-[22px] p-4 text-left transition-all duration-200 hover:border-ink/20 hover:-translate-y-0.5 active:scale-[0.99]">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-ink/[.07] text-ink/70"><History size={22} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[12.5px] font-semibold uppercase tracking-wide text-muted">{T('আগের অভ্যাস', 'The old habit')}</span>
@@ -193,7 +193,7 @@ function ToolCard({ id, tool, n, shaking, onPick }) {
   const Icon = TOOL_ICON[id];
   return (
     <button key={shaking ?? id} type="button" onClick={onPick} style={{ '--n': n }}
-      className={`tool-card glass flat group flex flex-col items-start gap-2 rounded-[22px] p-4 text-left ${shaking ? 'tool-shake' : 'tool-deal'}`}>
+      className={`tool-card glass flat group flex flex-col items-start gap-2 rounded-[22px] p-4 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-95 ${shaking ? 'tool-shake' : 'tool-deal'}`}>
       <span className={`grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br ${TOOL_TINT[id]} text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_8px_18px_-8px_rgba(0,0,0,.45)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}><Icon size={21} /></span>
       <span className="text-[16px] font-semibold leading-snug">{L(tool)}</span>
       <span className="text-[13px] leading-5 text-muted">{L(tool.note)}</span>
@@ -229,7 +229,7 @@ function Outcome({ sc, stage, last, onNext }) {
         </div>
       </div>
       <div className="lg:col-span-2">
-        <button type="button" onClick={onNext} className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white">
+        <button type="button" onClick={onNext} className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white shadow-md active:scale-95 transition-all">
           {last ? T('মৌসুমের ফলাফল দেখুন', 'See the season result') : T('পরের মাসে চলুন', 'On to next month')}<ArrowRight size={18} />
         </button>
       </div>

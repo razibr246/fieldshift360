@@ -106,9 +106,9 @@ export default function FieldFuture() {
       {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" onClick={() => setShow('story')} className="btn-gloss inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-white"><Clapperboard size={16} />{T('আমার জমির ১০ বছরের গল্প', 'My field’s ten-year story')}</button>
-        <button type="button" onClick={() => setShow('poster')} className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-primary-800"><Printer size={16} />{T('ফসলচক্রের পোস্টার', 'Rotation poster')}</button>
+      <div className="mt-3 flex flex-wrap gap-2.5">
+        <button type="button" onClick={() => setShow('story')} className="btn-gloss inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-white shadow-sm transition hover:shadow-md active:scale-95"><Clapperboard size={16} />{T('আমার জমির ১০ বছরের গল্প', 'My field’s ten-year story')}</button>
+        <button type="button" onClick={() => setShow('poster')} className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14.5px] font-semibold text-primary-800 shadow-sm transition hover:shadow-md active:scale-95"><Printer size={16} />{T('ফসলচক্রের পোস্টার', 'Rotation poster')}</button>
       </div>
       {show === 'story' && <FieldStory ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
