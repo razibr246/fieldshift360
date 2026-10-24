@@ -1,7 +1,7 @@
 // Shared UI kit: buttons, badges, page headers, stat tiles, data-source tags, score ring, notes and empty states.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { HelpCircle, Info, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ChevronRight, HelpCircle, Info, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useStore, clim, soilData } from '../store.jsx';
 import { bnDigits } from '../engine/dates.js';
 import { smsParts } from '../engine/text.js';
@@ -60,10 +60,10 @@ export function Badge({ tone = 'green', dot = false, children, className = '' })
 // Page title block. `eyebrow` is a short plain-case pointer to where the user is, not a shouted label.
 export function PageHeader({ eyebrow, title, subtitle, action, tags }) {
   return (
-    <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="page-header mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
-        {eyebrow && <p className="mb-1 text-[14px] font-semibold text-primary-700">{eyebrow}</p>}
-        <h1 className="text-[28px] font-bold text-ink sm:text-[34px]">{title}</h1>
+        {eyebrow && <p className="page-header-eyebrow mb-1 text-[13px] font-semibold text-primary-700">{eyebrow}</p>}
+        <h1 className="page-header-title text-[28px] font-bold text-ink sm:text-[34px]">{title}</h1>
         {subtitle && <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">{subtitle}</p>}
         {tags && <div className="mt-3"><Tags list={tags} /></div>}
       </div>
@@ -75,7 +75,7 @@ export function PageHeader({ eyebrow, title, subtitle, action, tags }) {
 export function ProgressBar({ value, className = '', color = 'bg-primary-500' }) {
   return (
     <div className={`h-2 overflow-hidden rounded-full bg-black/[.06] ${className}`}>
-      <div className={`progress-sheen h-full rounded-full ${color} transition-[width] duration-700 ease-[cubic-bezier(.22,1,.36,1)]`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
+      <div className={`progress-sheen h-full rounded-full ${color} transition-[width] duration-500 ease-[cubic-bezier(.22,1,.36,1)]`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
     </div>
   );
 }
@@ -96,12 +96,13 @@ export function StatCard({ icon: Icon, label, value, note, tone = 'green', tag, 
         <span className="text-[13.5px] font-semibold text-muted">{label}</span>
         <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-110 ${STAT_TONE[tone]}`}>{Icon && <Icon size={18} />}</span>
       </div>
-      <p className="font-display mt-1 text-[24px] font-bold leading-tight text-ink tabular">{value}</p>
+      <p className="font-display mt-1 min-w-0 pr-4 text-[24px] font-bold leading-tight text-ink tabular">{value}</p>
       {note && <p className="mt-1 text-[13px] leading-5 text-muted">{note}</p>}
       {tag && <div className="mt-2"><Tags list={[tag]} /></div>}
+      {to && <ChevronRight aria-hidden="true" size={17} className="stat-card-arrow absolute bottom-3 right-3 text-muted/60" />}
     </>
   );
-  const cls = `surface-card group block rounded-2xl p-4 transition-all duration-300 ${STAT_GLOW[tone] || ''}`;
+  const cls = `stat-card surface-card group relative block rounded-2xl p-4 ${to ? 'pb-8' : ''} transition-all duration-300 ${STAT_GLOW[tone] || ''}`;
   return to ? <Link to={to} className={`${cls} lift`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
@@ -197,7 +198,7 @@ export function Note({ children, tone = 'info', className = '' }) {
   };
   const [cls, Icon, iconCls] = map[tone] || map.info;
   return (
-    <div className={`flex gap-2.5 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 transition-all duration-200 ${cls} ${className}`}>
+    <div className={`status-note flex gap-2.5 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 transition-all duration-200 ${cls} ${className}`}>
       <Icon size={18} className={`mt-0.5 shrink-0 ${iconCls}`} />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
@@ -268,8 +269,8 @@ export function Segmented({ value, onChange, options, className = '' }) {
 
 export function EmptyState({ icon: Icon, title, text, action }) {
   return (
-    <div className="grid place-items-center rounded-2xl border border-dashed border-border px-6 py-10 text-center">
-      {Icon && <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary-50 text-primary-700"><Icon size={22} /></div>}
+    <div className="empty-state grid place-items-center rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+      {Icon && <div className="empty-state-icon grid h-12 w-12 place-items-center rounded-xl bg-primary-50 text-primary-700"><Icon size={22} /></div>}
       <div className="mt-3 font-bold">{title}</div>
       {text && <p className="mt-1 max-w-sm text-[14px] text-muted">{text}</p>}
       {action && <div className="mt-4">{action}</div>}

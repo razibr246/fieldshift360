@@ -306,38 +306,38 @@ function LifeDot() {
 
 // Hero gallery. The first photo is picked for the time of day in Bangladesh (seedlings at sunrise in the early
 // morning, the bullock cart under a blue sky by day, the fields at sunset in the late afternoon, the fields from orbit
-// at night), then the photos crossfade every few seconds, each with its own slow pan and zoom.
+// at night), then the photos crossfade every few seconds, each with its own gentle pan and zoom.
 const SLIDES = [
   // Village Bangladesh first, the strongest wide scenes leading: the cart, the harvest, the bridge, the boat; then the
   // close-ups and the farmer's own photos, ending on new seedlings. Wide scenes and close-ups alternate so no two
   // neighbouring photos look alike.
   // `screen`: sized to the first screen instead of the whole (much taller) hero, so what matters in the lower half of
   // the photo sits above the weather card rather than under it.
-  { name: 'bullockCart', screen: true, bn: 'গরুর গাড়িতে ধান নিয়ে বাড়ি ফেরা', en: 'Taking the paddy home by bullock cart', from: 'scale(1.12) translate3d(-1%, 0, 0)', to: 'scale(1.03) translate3d(1%, .5%, 0)' },
-  { name: 'riceHarvest', screen: true, bn: 'সোনালি ধান কাটা ও মাড়াই', en: 'Cutting and threshing golden paddy', from: 'scale(1.05) translate3d(1%, .5%, 0)', to: 'scale(1.15) translate3d(-1.5%, -1%, 0)' },
-  { name: 'dhamraiBridge', screen: true, bn: 'ধামরাইয়ে বালিয়া-চৌহাট সেতু', en: 'Balia–Chauhat bridge, Dhamrai', from: 'scale(1.04) translate3d(-1%, .5%, 0)', to: 'scale(1.14) translate3d(1.5%, -1%, 0)' },
-  { name: 'guavaBoat', screen: true, bn: 'নৌকাভরা পেয়ারা, বরিশাল অঞ্চলের খালে', en: 'A boat full of guavas on a Barishal canal', from: 'scale(1.03) translate3d(0, .5%, 0)', to: 'scale(1.12) translate3d(-1.5%, -.5%, 0)' },
-  { name: 'rajshahiMango', screen: true, bn: 'রাজশাহীর বিখ্যাত ও সুস্বাদু আম', en: 'Rajshahi’s famous, delicious mangoes', from: 'scale(1.14) translate3d(-1%, -.5%, 0)', to: 'scale(1.04) translate3d(1%, .5%, 0)' },
-  { name: 'villageSky', screen: true, bn: 'গ্রামের মাঠে বিকেলের আকাশ', en: 'Afternoon sky over the village fields', from: 'scale(1.03) translate3d(0, 0, 0)', to: 'scale(1.12) translate3d(-1.5%, -1%, 0)' },
-  { name: 'sunsetFields', screen: true, bn: 'সূর্য ডোবার সময় খেতের ধারে', en: 'Beside the fields at sunset', from: 'scale(1.12) translate3d(1%, 0, 0)', to: 'scale(1.03) translate3d(-1%, .5%, 0)' },
-  { name: 'mantisPaddy', screen: true, bn: 'ধানক্ষেতের বন্ধু: ম্যান্টিস ক্ষতিকর পোকা খায়', en: 'A friend of the paddy: the mantis eats pests', from: 'scale(1.02) translate3d(0, 0, 0)', to: 'scale(1.1) translate3d(-1%, 0, 0)' },
-  { name: 'seedlings', bn: 'নতুন চারা, নতুন মৌসুম', en: 'New seedlings, a new season', from: 'scale(1.18) translate3d(1%, 1.5%, 0)', to: 'scale(1.05) translate3d(-1%, 0, 0)' },
+  { name: 'bullockCart', screen: true, bn: 'গরুর গাড়িতে ধান নিয়ে বাড়ি ফেরা', en: 'Taking the paddy home by bullock cart', from: 'scale(1.05) translate3d(-1%, 0, 0)', to: 'scale(1.01) translate3d(1%, .5%, 0)' },
+  { name: 'riceHarvest', screen: true, bn: 'সোনালি ধান কাটা ও মাড়াই', en: 'Cutting and threshing golden paddy', from: 'scale(1.02) translate3d(1%, .5%, 0)', to: 'scale(1.06) translate3d(-1.5%, -1%, 0)' },
+  { name: 'dhamraiBridge', screen: true, bn: 'ধামরাইয়ে বালিয়া-চৌহাট সেতু', en: 'Balia–Chauhat bridge, Dhamrai', from: 'scale(1.02) translate3d(-1%, .5%, 0)', to: 'scale(1.06) translate3d(1.5%, -1%, 0)' },
+  { name: 'guavaBoat', screen: true, bn: 'নৌকাভরা পেয়ারা, বরিশাল অঞ্চলের খালে', en: 'A boat full of guavas on a Barishal canal', from: 'scale(1.01) translate3d(0, .5%, 0)', to: 'scale(1.05) translate3d(-1.5%, -.5%, 0)' },
+  { name: 'rajshahiMango', screen: true, bn: 'রাজশাহীর বিখ্যাত ও সুস্বাদু আম', en: 'Rajshahi’s famous, delicious mangoes', from: 'scale(1.06) translate3d(-1%, -.5%, 0)', to: 'scale(1.02) translate3d(1%, .5%, 0)' },
+  { name: 'villageSky', screen: true, bn: 'গ্রামের মাঠে বিকেলের আকাশ', en: 'Afternoon sky over the village fields', from: 'scale(1.01) translate3d(0, 0, 0)', to: 'scale(1.05) translate3d(-1.5%, -1%, 0)' },
+  { name: 'sunsetFields', screen: true, bn: 'সূর্য ডোবার সময় খেতের ধারে', en: 'Beside the fields at sunset', from: 'scale(1.05) translate3d(1%, 0, 0)', to: 'scale(1.01) translate3d(-1%, .5%, 0)' },
+  { name: 'mantisPaddy', screen: true, bn: 'ধানক্ষেতের বন্ধু: ম্যান্টিস ক্ষতিকর পোকা খায়', en: 'A friend of the paddy: the mantis eats pests', from: 'scale(1.01) translate3d(0, 0, 0)', to: 'scale(1.04) translate3d(-1%, 0, 0)' },
+  { name: 'seedlings', bn: 'নতুন চারা, নতুন মৌসুম', en: 'New seedlings, a new season', from: 'scale(1.07) translate3d(1%, 1.5%, 0)', to: 'scale(1.02) translate3d(-1%, 0, 0)' },
   // Bangladesh beyond the two upazilas: the rivers, wetlands and hills of the other divisions.
-  { name: 'teestaBarrage', screen: true, bn: 'তিস্তা ব্যারেজ, ডালিয়া, লালমনিরহাট', en: 'Teesta Barrage, Dalia, Lalmonirhat', from: 'scale(1.04) translate3d(1%, 0, 0)', to: 'scale(1.13) translate3d(-1.5%, -.5%, 0)' },
-  { name: 'wetlandBoardwalk', screen: true, bn: 'বিলের ওপর আঁকাবাঁকা কাঠের সাঁকো', en: 'A zigzag walkway over the wetland', from: 'scale(1.04) translate3d(0, 0, 0)', to: 'scale(1.14) translate3d(1%, -1%, 0)' },
-  { name: 'stonyRiver', screen: true, bn: 'পাথুরে নদী আর সবুজ পাহাড়, সিলেট', en: 'A stony river under green hills, Sylhet', from: 'scale(1.12) translate3d(1%, .5%, 0)', to: 'scale(1.03) translate3d(-1%, 0, 0)' },
-  { name: 'hillClouds', screen: true, bn: 'মেঘের ওপরে পাহাড়ি ঘর, পার্বত্য চট্টগ্রাম', en: 'A hill cottage above the clouds, Chittagong Hill Tracts', from: 'scale(1.13) translate3d(-1%, -.5%, 0)', to: 'scale(1.04) translate3d(1%, .5%, 0)' },
-  { name: 'hillWaterfall', screen: true, bn: 'পাহাড়ি বনে পাথুরে ঝরনা', en: 'A rocky waterfall in the hill forest', from: 'scale(1.03) translate3d(0, 0, 0)', to: 'scale(1.12) translate3d(-1%, -1%, 0)' },
+  { name: 'teestaBarrage', screen: true, bn: 'তিস্তা ব্যারেজ, ডালিয়া, লালমনিরহাট', en: 'Teesta Barrage, Dalia, Lalmonirhat', from: 'scale(1.02) translate3d(1%, 0, 0)', to: 'scale(1.05) translate3d(-1.5%, -.5%, 0)' },
+  { name: 'wetlandBoardwalk', screen: true, bn: 'বিলের ওপর আঁকাবাঁকা কাঠের সাঁকো', en: 'A zigzag walkway over the wetland', from: 'scale(1.02) translate3d(0, 0, 0)', to: 'scale(1.06) translate3d(1%, -1%, 0)' },
+  { name: 'stonyRiver', screen: true, bn: 'পাথুরে নদী আর সবুজ পাহাড়, সিলেট', en: 'A stony river under green hills, Sylhet', from: 'scale(1.05) translate3d(1%, .5%, 0)', to: 'scale(1.01) translate3d(-1%, 0, 0)' },
+  { name: 'hillClouds', screen: true, bn: 'মেঘের ওপরে পাহাড়ি ঘর, পার্বত্য চট্টগ্রাম', en: 'A hill cottage above the clouds, Chittagong Hill Tracts', from: 'scale(1.05) translate3d(-1%, -.5%, 0)', to: 'scale(1.02) translate3d(1%, .5%, 0)' },
+  { name: 'hillWaterfall', screen: true, bn: 'পাহাড়ি বনে পাথুরে ঝরনা', en: 'A rocky waterfall in the hill forest', from: 'scale(1.01) translate3d(0, 0, 0)', to: 'scale(1.05) translate3d(-1%, -1%, 0)' },
   // The neighbours who share the same rivers, monsoon and mountains: a landscape from each (their farms are on the
   // country cards further down). Bhutan's river and Nepal's sunset peak sit between the lakes, so no two look alike.
-  { name: 'viewBhutan', screen: true, bn: 'পুনাখা জং, দুই নদীর মিলনে, ভুটান', en: 'Punakha Dzong where two rivers meet, Bhutan', from: 'scale(1.04) translate3d(1%, 0, 0)', to: 'scale(1.13) translate3d(-1.5%, -.5%, 0)' },
-  { name: 'viewPakistan', screen: true, bn: 'সাইফুল মুলুক হ্রদ, কাগান উপত্যকা, পাকিস্তান', en: 'Lake Saiful Muluk, Kaghan valley, Pakistan', from: 'scale(1.13) translate3d(-1%, -.5%, 0)', to: 'scale(1.04) translate3d(1%, .5%, 0)' },
-  { name: 'viewNepal', screen: true, bn: 'সূর্যাস্তে আমা দাবলাম, হিমালয়, নেপাল', en: 'Ama Dablam at sunset, Himalaya, Nepal', from: 'scale(1.03) translate3d(0, .5%, 0)', to: 'scale(1.12) translate3d(0, -1%, 0)' },
-  { name: 'viewIndia', screen: true, bn: 'মেঘে ঢাকা পাহাড়ে চা-বাগান, ভারত', en: 'Tea gardens on misty hills, India', from: 'scale(1.12) translate3d(1%, 0, 0)', to: 'scale(1.03) translate3d(-1%, .5%, 0)' },
-  { name: 'viewAfghanistan', screen: true, bn: 'বান্দ-ই-আমির হ্রদ, বামিয়ান, আফগানিস্তান', en: 'The Band-e-Amir lakes, Bamyan, Afghanistan', from: 'scale(1.04) translate3d(0, 0, 0)', to: 'scale(1.13) translate3d(-1.5%, -1%, 0)' },
+  { name: 'viewBhutan', screen: true, bn: 'পুনাখা জং, দুই নদীর মিলনে, ভুটান', en: 'Punakha Dzong where two rivers meet, Bhutan', from: 'scale(1.02) translate3d(1%, 0, 0)', to: 'scale(1.05) translate3d(-1.5%, -.5%, 0)' },
+  { name: 'viewPakistan', screen: true, bn: 'সাইফুল মুলুক হ্রদ, কাগান উপত্যকা, পাকিস্তান', en: 'Lake Saiful Muluk, Kaghan valley, Pakistan', from: 'scale(1.05) translate3d(-1%, -.5%, 0)', to: 'scale(1.02) translate3d(1%, .5%, 0)' },
+  { name: 'viewNepal', screen: true, bn: 'সূর্যাস্তে আমা দাবলাম, হিমালয়, নেপাল', en: 'Ama Dablam at sunset, Himalaya, Nepal', from: 'scale(1.01) translate3d(0, .5%, 0)', to: 'scale(1.05) translate3d(0, -1%, 0)' },
+  { name: 'viewIndia', screen: true, bn: 'মেঘে ঢাকা পাহাড়ে চা-বাগান, ভারত', en: 'Tea gardens on misty hills, India', from: 'scale(1.05) translate3d(1%, 0, 0)', to: 'scale(1.01) translate3d(-1%, .5%, 0)' },
+  { name: 'viewAfghanistan', screen: true, bn: 'বান্দ-ই-আমির হ্রদ, বামিয়ান, আফগানিস্তান', en: 'The Band-e-Amir lakes, Bamyan, Afghanistan', from: 'scale(1.02) translate3d(0, 0, 0)', to: 'scale(1.05) translate3d(-1.5%, -1%, 0)' },
   // From above: the plots, then the whole patchwork as the satellite sees it.
-  { name: 'landParcels', bn: 'আকাশ থেকে আপনার জমি', en: 'Your plots from above', from: 'scale(1.05) translate3d(1.5%, 0, 0)', to: 'scale(1.17) translate3d(-1.5%, -1%, 0)' },
-  { name: 'satellite', bn: 'উপগ্রহের চোখে মাঠ', en: 'The fields from orbit', from: 'scale(1.06) rotate(-.6deg)', to: 'scale(1.16) rotate(.6deg) translate3d(-1%, -1%, 0)' },
+  { name: 'landParcels', bn: 'আকাশ থেকে আপনার জমি', en: 'Your plots from above', from: 'scale(1.02) translate3d(1.5%, 0, 0)', to: 'scale(1.07) translate3d(-1.5%, -1%, 0)' },
+  { name: 'satellite', bn: 'উপগ্রহের চোখে মাঠ', en: 'The fields from orbit', from: 'scale(1.02) rotate(-.6deg)', to: 'scale(1.06) rotate(.6deg) translate3d(-1%, -1%, 0)' },
 ];
 // The photos fall into four chapters; the pill shows which one is on and how far through it the slideshow is.
 const CHAPTERS = [
@@ -397,7 +397,7 @@ function HeroBackdrop({ gallery }) {
     // Follows the smoothed scroll, so the photo glides in the same frame as the page.
     return onScroll((y0) => {
       const y = Math.min(y0, 900);
-      if (layer.current) layer.current.style.transform = `translate3d(0, ${(y * 0.28).toFixed(1)}px, 0) scale(${(1 + y * 0.00012).toFixed(4)})`;
+      if (layer.current) layer.current.style.transform = `translate3d(0, ${(y * 0.28).toFixed(1)}px, 0) scale(${(1 + y * 0.00005).toFixed(4)})`;
     });
   }, [gallery.reduce]);
   return (
@@ -418,10 +418,10 @@ function HeroBackdrop({ gallery }) {
         })}
       </div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_12%,rgba(255,206,120,.16),rgba(255,206,120,0)_55%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(243,246,240,.9)_0%,rgba(243,246,240,.84)_60%,rgba(243,246,240,.6)_100%)] sm:hidden" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(243,246,240,.82)_0%,rgba(243,246,240,.68)_58%,rgba(243,246,240,.38)_100%)] sm:hidden" />
       <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(243,246,240,.93)_0%,rgba(243,246,240,.84)_36%,rgba(243,246,240,.18)_58%,rgba(243,246,240,0)_72%)] sm:block" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_55%,rgba(13,38,20,.18)_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-canvas via-canvas/70 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-canvas via-canvas/40 to-transparent" />
     </div>
   );
 }

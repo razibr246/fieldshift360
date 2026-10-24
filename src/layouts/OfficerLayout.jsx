@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, ScrollProgress, useScrollOnNavigate } from '../components/Motion';
 import { BackToTop } from '../components/SectionNav';
-import { Bell, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
+import OfficerTour, { startOfficerTour } from '../components/OfficerTour';
+import { Bell, Compass, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton } from '../components/chrome';
 import { useStore } from '../store';
@@ -62,10 +63,10 @@ function Sidebar({ onNavigate }) {
     ] },
   ];
   return (
-    <div className="flex h-full flex-col overflow-y-auto overscroll-contain bg-[#163020] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,.08)]">
-      <div className="border-b border-white/10 p-5"><Link to="/" onClick={onNavigate}><BrandMark inverse /></Link></div>
+    <div className="officer-sidebar flex h-full flex-col overflow-y-auto overscroll-contain bg-[#163020] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,.08)]">
+      <div className="officer-sidebar-brand border-b border-white/10 p-5"><Link to="/" onClick={onNavigate}><BrandMark inverse /></Link></div>
       <div className="p-4">
-        <div className="rounded-2xl bg-white/[.07] p-4">
+        <div className="officer-context rounded-2xl bg-white/[.07] p-4">
           <div className="text-[12.5px] text-primary-200">{T('উপজেলা কৃষি অফিসার', 'Upazila agriculture officer')}</div>
           <div className="mt-0.5 text-[16px] font-bold">{L(upz.officer)}</div>
           <div className="mt-0.5 text-[13px] text-primary-200">{T(`${upz.name.bn} উপজেলা, ${upz.district.bn} জেলা, ${upz.division.bn} বিভাগ`, `${upz.name.en} upazila, ${upz.district.en} district, ${upz.division.en} division`)}</div>
@@ -84,7 +85,7 @@ function Sidebar({ onNavigate }) {
           <div className="mt-2 text-[12px] text-primary-300">{T('নমুনা অ্যাকাউন্ট', 'Sample account')}</div>
         </div>
       </div>
-      <nav ref={navRef} className="relative space-y-4 px-3 pb-4" aria-label={T('কর্মকর্তার পাতা', 'Officer pages')}>
+      <nav ref={navRef} className="officer-sidebar-nav relative space-y-4 px-3 pb-4" aria-label={T('কর্মকর্তার পাতা', 'Officer pages')}>
         {thumb && <span aria-hidden="true" className="nav-thumb pointer-events-none absolute inset-x-3 top-0 rounded-xl bg-white shadow-[inset_0_1px_0_#fff,0_6px_18px_-8px_rgba(0,0,0,.5)]" style={{ transform: `translateY(${thumb.top}px)`, height: thumb.h, transitionDuration: thumb.glide ? undefined : '0s' }} />}
         {groups.map((g) => (
           <div key={g.title} className="space-y-0.5">
@@ -142,30 +143,35 @@ export default function OfficerLayout() {
   const name = L(upz.officer);
   const search = (e) => { e.preventDefault(); navigate(`/officer/farmers?q=${encodeURIComponent(q.trim())}`); setShowSearch(false); };
   return (
-    <div className="min-h-screen lg:flex">
-      <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 lg:block"><Sidebar /></aside>
+    <div className="officer-experience min-h-screen lg:flex">
+      <aside className="officer-sidebar-rail sticky top-0 hidden h-screen w-[268px] shrink-0 lg:block"><Sidebar /></aside>
       {drawer && (
         <div className="fixed inset-0 z-[1500] lg:hidden" role="dialog" aria-modal="true" aria-label={T('মেনু', 'Menu')}>
           <div className="sheet-fade absolute inset-0 bg-primary-950/50 backdrop-blur-[2px]" onClick={() => setDrawer(false)} />
-          <div className="drawer-in absolute inset-y-0 left-0 w-[290px] max-w-[86vw] shadow-2xl">
+          <div className="officer-drawer drawer-in absolute inset-y-0 left-0 w-[290px] max-w-[86vw] shadow-2xl">
             <button type="button" onClick={() => setDrawer(false)} className="absolute right-3 top-5 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white" aria-label={T('বন্ধ করুন', 'Close')}><X size={18} /></button>
             <Sidebar onNavigate={() => setDrawer(false)} />
           </div>
         </div>
       )}
-      <div className="min-w-0 flex-1">
-        <header className="glass-bar sticky top-0 z-30">
+      <div className="officer-workspace min-w-0 flex-1">
+        <header className="officer-header glass-bar sticky top-0 z-30">
           <div className="flex h-[64px] items-center gap-2.5 px-4 sm:px-6">
-            <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink shadow-2xs hover:bg-primary-50 active:scale-95 lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')}><Menu size={19} /></button>
+            <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink shadow-2xs hover:bg-primary-50 active:scale-95 lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')} aria-expanded={drawer} aria-haspopup="dialog"><Menu size={19} /></button>
             <BackButton />
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">
               <Search size={17} className="text-muted transition-colors duration-200 group-focus-within:text-primary-600" />
-              <input ref={searchRef} type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-label={T('খুঁজুন', 'Search')} aria-keyshortcuts="/" />
+              <input ref={searchRef} type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-keyshortcuts="/" />
               <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted shadow-2xs lg:inline" aria-hidden="true">/</kbd>
             </form>
             <div className="ml-auto flex items-center gap-2">
-              <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')}>
+              <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')} aria-expanded={showSearch}>
                 <Search size={18} />
+              </button>
+              {/* The complete guide to the officer pages (components/OfficerTour.jsx). */}
+              <button type="button" onClick={() => startOfficerTour(0)} aria-label={T('পুরো অফিসার অংশের গাইড', 'Guide to the officer pages')}
+                className="officer-guide-trigger inline-flex h-10 items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-2.5 text-[14px] font-semibold text-primary-800 transition-all duration-200 hover:scale-105 hover:bg-primary-100 active:scale-95 sm:px-3">
+                <Compass size={17} /><span className="hidden sm:inline">{T('গাইড', 'Guide')}</span>
               </button>
               <button type="button" onClick={() => navigate('/officer/requests')}
                 className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xs ${open > 0 ? 'border-amber-200 text-amber-700 shadow-[0_0_12px_rgba(208,143,38,0.25)] hover:bg-amber-50/50' : 'border-border text-ink hover:bg-primary-50'}`}
@@ -193,9 +199,10 @@ export default function OfficerLayout() {
         </header>
         <PlaceholderBanner />
         {/* Switching union re-plays a soft fade, so the change of data reads as a change, not a flicker. */}
-        <main className="mx-auto max-w-[1280px] p-4 sm:p-6 lg:p-8"><div key={s.officerUnion} className="union-fade"><PageOutlet /></div></main>
+        <main className="officer-main mx-auto max-w-[1280px] p-4 sm:p-6 lg:p-8"><div key={s.officerUnion} className="union-fade"><PageOutlet /></div></main>
         <ScrollProgress />
-        <BackToTop />
+        <OfficerTour />
+      <BackToTop />
       </div>
     </div>
   );

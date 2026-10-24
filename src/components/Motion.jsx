@@ -142,7 +142,7 @@ export function MotionManager() {
       // Stagger children of grid groups, [data-reveal-children] and [data-stagger]
       document.querySelectorAll('[data-reveal-children], [data-stagger], .stagger-grid').forEach((g) => {
         [...g.children].forEach((c, k) => {
-          if (!c.style.getPropertyValue('--d')) c.style.setProperty('--d', `${(k % 6) * 45}ms`);
+          if (!c.style.getPropertyValue('--d')) c.style.setProperty('--d', `${(k % 5) * 30}ms`);
         });
       });
       document.querySelectorAll('[data-reveal]:not(.is-in)').forEach((el) => io.observe(el));
