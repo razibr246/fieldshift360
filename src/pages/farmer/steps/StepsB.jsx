@@ -171,6 +171,14 @@ export function StepDecision() {
       <StepHeader kicker={T('ধাপ ৫, পরামর্শ', 'Step 5, recommendation')} title={T('এই রবিতে কী করবেন', 'What to do this Rabi')}
         sub={T(`শুধু আপনার জমির জন্য: ${fieldName}, ${village}, ${num(farmer.area_dec, 'bn')} শতক। ${prio}`, `For your field only: ${fieldName}, ${village}, ${farmer.area_dec} decimal. ${prio}`)}
         tags={[ctx.clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', soilTag(), 'RULE']} />
+      {/* The farmer's own pick (from the list below, or the first year of Field Future's ten-year rotation) when it is not
+          this season's recommendation: both stay visible, and one tap goes back to the recommendation. */}
+      {(chosen.crop.id !== rec.crop.id || chosen.shift !== rec.shift) && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-primary-200 bg-primary-50/70 px-4 py-3">
+          <p className="text-[14.5px] leading-6"><CheckCircle2 size={16} className="mr-1.5 inline text-primary-700" />{T(`আপনার বাছাই: ${chosen.crop.name.bn}, ${L(chosen.crop.action)} ${fmtDate(chosen.t0, 'bn')}। নিচের পরামর্শ শুধু এই এক মৌসুমের হিসাবে; দুটোই নিচের তালিকায় পাশাপাশি আছে।`, `Your choice: ${chosen.crop.name.en.toLowerCase()}, ${L(chosen.crop.action).toLowerCase()} ${fmtDate(chosen.t0, 'en')}. The advice below weighs this one season only; both are side by side in the list.`)}</p>
+          <button type="button" onClick={() => dispatch({ type: 'set', patch: { pick: null } })} className="rounded-lg px-3 py-1.5 text-[13.5px] font-semibold text-primary-800 hover:bg-primary-100">{T('পরামর্শটাই নিন', 'Take the advice')}</button>
+        </div>
+      )}
       <div key={s.whatIf} className={`swap-in rounded-[20px] ${st.bg} p-5 text-white shadow-[var(--shadow-card)] sm:p-6`}>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">

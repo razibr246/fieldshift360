@@ -5,13 +5,15 @@ import { CloudRain, Droplets, Flame, Snowflake, Sprout, ShieldCheck, ExternalLin
 import { useStore } from '../../store';
 import { Card, Badge, Tags } from '../ui';
 import HAZ from '../../data/radar/aman_hazards.json';
+import { HAZARD_GROUPS, FIT, hazardGroups } from '../../radar/brief';
 import { fmtDate, num } from '../../engine/dates';
 
-const GROUPS = [
-  { key: 'drought', icon: Droplets, color: '#c98a4b', bn: 'খরা', en: 'Drought', keys: ['spi', 'seedRain', 'drySpell', 'lateRain', 'lateDry'] },
-  { key: 'flood', icon: CloudRain, color: '#2f8a8f', bn: 'বন্যা ও অতি বৃষ্টি', en: 'Flood and very heavy rain', keys: ['water', 'veryHeavy', 'rx5', 'heavy'] },
-  { key: 'heat', icon: Flame, color: '#b42318', bn: 'গরম', en: 'Heat', keys: ['heat'] },
-  { key: 'cold', icon: Snowflake, color: '#5b7fa3', bn: 'ঠান্ডা', en: 'Cold', keys: ['cold'] },
+const ICON = { drought: Droplets, flood: CloudRain, heat: Flame, cold: Snowflake };
+// How often a hazard comes here (hazardGroups' level), for the badges here and in the radar brief.
+export const LEVEL = [
+  { bn: 'এখানে সমস্যা নয়', en: 'Not a problem here', cls: 'bg-primary-50 text-primary-800' },
+  { bn: 'মাঝে মাঝে', en: 'Now and then', cls: 'bg-paddy-50 text-paddy-700' },
+  { bn: 'প্রায়ই', en: 'Often', cls: 'bg-clay-50 text-clay-700' },
 ];
 const IDX = Object.fromEntries(HAZ.indices.map((m) => [m.key, m]));
 const UNIT = { mm: { bn: 'মিমি', en: 'mm' }, days: { bn: 'দিন', en: 'days' }, '%': { bn: '%', en: '%' }, '': { bn: '', en: '' } };
@@ -67,29 +69,9 @@ export default function AmanHazards({ id }) {
   const latest = Math.max(...Object.keys(u.years).map(Number));
   const nYears = HAZ.refYears[1] - HAZ.refYears[0] + 1;
   const wins = windowsLine(id, u.transplantDoy, lang);
-  const groups = GROUPS.map((g) => {
-    const years = new Set(g.keys.flatMap((k) => u.stats[k]?.hazardYears ?? []));
-    const share = Math.round((years.size / nYears) * 100);
-    return { ...g, years: [...years].sort(), share, level: share === 0 ? 0 : share < 20 ? 1 : 2 };
-  });
-  const LEVEL = [
-    { bn: 'এখানে সমস্যা নয়', en: 'Not a problem here', cls: 'bg-primary-50 text-primary-800' },
-    { bn: 'মাঝে মাঝে', en: 'Now and then', cls: 'bg-paddy-50 text-paddy-700' },
-    { bn: 'প্রায়ই', en: 'Often', cls: 'bg-clay-50 text-clay-700' },
-  ];
-  const ranked = [...groups].sort((a, b) => b.share - a.share);
-  const fit = {
-    drought: {
-      bn: ['খরা-সহিষ্ণু, আগাম পাকা জাত ব্রি ধান৭১: বর্ষা চলে যাওয়ার আগেই দানা ভরে।', 'ফুল আর দানা গঠনের সময় পানি কমে গেলে একটি-দুটি সম্পূরক সেচ।', 'বীজতলায় সেচের ব্যবস্থা রাখা, যাতে কম বৃষ্টির বছরেও সময়মতো রোপণ করা যায়।'],
-      en: ['Drought-tolerant, early-maturing BRRI dhan71: the grain fills before the monsoon leaves.', 'One or two supplementary irrigations if water runs short at flowering and grain filling.', 'Irrigable seedbeds, so transplanting stays on time in a dry year.'],
-    },
-    flood: {
-      bn: ['জলমগ্নতা-সহিষ্ণু জাত: ব্রি ধান৭৯ (প্রায় তিন সপ্তাহ আকস্মিক বন্যা সহ্য করে), ব্রি ধান৫১, ব্রি ধান৫২।', 'উঁচু জমিতে বীজতলা, আর বন্যার পর আবার রোপণের জন্য কিছু বাড়তি চারা রাখা।', 'নালা ও পানি নামার পথ পরিষ্কার রাখা, যাতে ভারী বৃষ্টির পানি দ্রুত নেমে যায়।'],
-      en: ['Submergence-tolerant varieties: BRRI dhan79 (survives about three weeks of flash flooding), BRRI dhan51, BRRI dhan52.', 'Seedbeds on high ground, and spare seedlings to replant after a flood.', 'Clear drains and outlets so heavy rain runs off fast.'],
-    },
-    heat: { bn: ['ফুল আসার সময় টানা ৩৫°-এর বেশি গরম হলে জমিতে পানি রাখুন; রোপণের তারিখ এমন রাখুন যাতে ফুল সবচেয়ে গরম দিনগুলো এড়ায়।'], en: ['If it stays above 35 °C at flowering, keep water in the field; set transplanting so flowering misses the hottest days.'] },
-    cold: { bn: ['দেরিতে রোপণ এড়ান: সেপ্টেম্বরের শেষে রোপণ করলে ঠান্ডায় ফুলে চিটা বাড়ে।'], en: ['Avoid late transplanting: planted after late September, cold at flowering raises sterility.'] },
-  };
+  // most frequent first (src/radar/brief.js), and in the fixed order for the cards
+  const ranked = hazardGroups(id).map((g) => ({ ...g, icon: ICON[g.key] }));
+  const groups = HAZARD_GROUPS.map((g) => ranked.find((r) => r.key === g.key));
   const yr = (y) => num(y, lang).replace(/,/g, '');
 
   return (
@@ -176,9 +158,9 @@ export default function AmanHazards({ id }) {
                 <Badge tone={g.level === 2 ? 'red' : g.level === 1 ? 'amber' : 'green'}>{T(`${num(g.share, 'bn')}% বছর`, `${g.share}% of years`)}</Badge>
               </div>
               {g.level ? (
-                <ul className="mt-2 space-y-1.5 text-[14px] leading-6">{L(fit[g.key]).map((x) => <li key={x} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: g.color }} />{x}</li>)}</ul>
+                <ul className="mt-2 space-y-1.5 text-[14px] leading-6">{L(FIT[g.key]).map((x) => <li key={x} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: g.color }} />{x}</li>)}</ul>
               ) : (
-                <p className="mt-2 text-[13.5px] leading-6 text-muted">{T(`${yr(HAZ.refYears[0])}–${yr(HAZ.refYears[1])}-এ এখানে এ ঝুঁকি দেখা যায়নি। তবু নজর রাখুন: `, `Not seen here in ${HAZ.refYears[0]}–${HAZ.refYears[1]}. Still worth watching: `)}{L(fit[g.key])[0]}</p>
+                <p className="mt-2 text-[13.5px] leading-6 text-muted">{T(`${yr(HAZ.refYears[0])}–${yr(HAZ.refYears[1])}-এ এখানে এ ঝুঁকি দেখা যায়নি। তবু নজর রাখুন: `, `Not seen here in ${HAZ.refYears[0]}–${HAZ.refYears[1]}. Still worth watching: `)}{L(FIT[g.key])[0]}</p>
               )}
             </div>
           ))}

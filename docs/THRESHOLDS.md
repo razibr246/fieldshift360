@@ -33,7 +33,9 @@ Days are counted from planting or transplanting.
 
 ## Planting dates, duration and soil
 
-The usual date is tested, and so are two weeks earlier and two weeks later (the planting band).
+The usual date is tested, and so are two weeks earlier and two weeks later (the planting band). A sowing day that
+has already gone is not offered; when all three have gone for a crop, its latest stays in the list marked late and
+ranks after every crop that can still be sown on time.
 
 | Crop | Usual planting / transplanting | Days to harvest | Water need | Soil pH suited | Basis | Reviewed by |
 | --- | --- | --- | --- | --- | --- | --- |

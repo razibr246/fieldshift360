@@ -59,3 +59,24 @@ test('the onset rule agrees with BMD station-based onsets within a week (scripts
     assert.ok(Math.abs(r.diffOurs) <= 7, `${r.station}: this app's rule within a week of the BMD-based mean`);
   }
 });
+
+test('radar brief: hazards most frequent first, the next Aman around the radar day, a message with its dates', async () => {
+  const { hazardGroups, amanCalendar, farmerMessage, FIT } = await import('./brief.js');
+  const g = hazardGroups('godagari');
+  assert.equal(g.length, 4);
+  for (let i = 1; i < g.length; i++) assert.ok(g[i - 1].share >= g[i].share, 'sorted by how often');
+  assert.equal(hazardGroups('nowhere'), null);
+  const cal = amanCalendar(209, 2027, 7);
+  const doy = (t) => Math.round((t - Date.UTC(2027, 0, 1)) / 864e5) + 1;
+  assert.deepEqual(cal.seedbed.map(doy), [179, 184]);
+  assert.deepEqual(cal.transplant.map(doy), [202, 216]);
+  assert.ok(cal.harvest[0] > cal.flowering[1]);
+  assert.equal(amanCalendar(null, 2027), null);
+  const fmt = (t) => new Date(t).toISOString().slice(5, 10);
+  const m = farmerMessage({ cal, groups: g, place: { bn: 'গোদাগাড়ী', en: 'Godagari' }, fmt });
+  assert.ok(m.en.includes('06-28') && m.en.includes('07-21'), 'seedbed and transplant dates in the message');
+  const top = g.find((x) => x.level > 0);
+  if (top) assert.ok(m.en.includes(FIT[top.key].en[0]), 'the first fix for the most frequent hazard');
+  const { smsParts } = await import('../engine/text.js');
+  assert.ok(smsParts(m.bn).parts <= 3, `three Bangla SMS at most (${smsParts(m.bn).parts})`);
+});

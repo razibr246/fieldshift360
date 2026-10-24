@@ -231,9 +231,11 @@ export function StoreProvider({ children }) {
   const union = unions[farmer.union];
   const climW = useMemo(() => whatIf(fclim, s.whatIf), [fclim, s.whatIf]);
   const econ = useMemo(() => ({ prices: priceSeasons, costs: cropEconomics, srdiUnion, landform: soil.landform }), [srdiUnion, soil.landform]);
-  const decision = useMemo(() => decide({ clim: climW, soil, plot: farmer, union, priorities: s.priorities, econ }), [climW, farmer, soil, union, s.priorities, econ]);
+  // today's date, so a sowing day already gone is not offered (it changes once a day; the planner re-runs then)
+  const planToday = todayDhaka();
+  const decision = useMemo(() => decide({ clim: climW, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday }), [climW, farmer, soil, union, s.priorities, econ, planToday]);
   // The as-measured answer, kept alongside so a what-if can show what changed.
-  const decisionBase = useMemo(() => (climW === fclim ? decision : decide({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ })), [climW, fclim, decision, farmer, soil, union, s.priorities, econ]);
+  const decisionBase = useMemo(() => (climW === fclim ? decision : decide({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday })), [climW, fclim, decision, farmer, soil, union, s.priorities, econ, planToday]);
   const chosen = useMemo(() => {
     if (!s.pick) return decision.rec;
     return decision.all.find((r) => r.crop.id === s.pick.crop && r.shift === s.pick.shift) ?? decision.rec;

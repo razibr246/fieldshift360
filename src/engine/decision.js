@@ -65,7 +65,9 @@ export function rotationFit(crop, lastCropId) {
 
 // econ: { prices: price_seasons.json (FAOSTAT yields), costs: crop_economics.json, srdiUnion } for real profit per bigha. Without it the profit
 // part counts the same for every crop (nothing is made up to fill the gap).
-export function decide({ clim, soil, plot, union, priorities = [], econ = null }) {
+// today (UTC ms): a sowing day already gone is not offered; when every day of a crop has gone, its latest stays,
+// marked `late`, so the crop is still shown but never as an on-time choice.
+export function decide({ clim, soil, plot, union, priorities = [], econ = null, today = null }) {
   const weights = weightsFor(priorities);
   const raw = [];
   for (const crop of Object.values(RABI_CROPS)) {
@@ -96,15 +98,25 @@ export function decide({ clim, soil, plot, union, priorities = [], econ = null }
     r.comp.E = hMax > hMin ? 100 - (80 * (r.hw.start - hMin)) / (hMax - hMin) : 60;
     r.score = Object.entries(weights).reduce((a, [k, w]) => a + w * r.comp[k], 0);
   }
+  if (today != null) {
+    for (const id of Object.keys(RABI_CROPS)) {
+      const mine = raw.filter((r) => r.crop.id === id);
+      const open = mine.filter((r) => r.t0 >= today);
+      for (const r of mine) if (!open.includes(r) && (open.length || r !== mine[mine.length - 1])) r.gone = true;
+      if (!open.length) mine[mine.length - 1].late = true;
+    }
+    for (let i = raw.length - 1; i >= 0; i--) if (raw[i].gone) raw.splice(i, 1);
+  }
   const bestOf = (id) => raw.filter((r) => r.crop.id === id).sort((a, b) => b.score - a.score)[0];
   const cur = plot.last_crop;
-  const curNormal = raw.find((r) => r.crop.id === cur && r.shift === 0);
+  const curNormal = raw.find((r) => r.crop.id === cur && r.shift === 0) ?? bestOf(cur);
   const curBest = bestOf(cur);
-  const perCrop = Object.keys(RABI_CROPS).map(bestOf).sort((a, b) => b.score - a.score);
+  // a crop whose sowing days have all gone ranks after every crop that can still be sown on time
+  const perCrop = Object.keys(RABI_CROPS).map(bestOf).sort((a, b) => (a.late ? 1 : 0) - (b.late ? 1 : 0) || b.score - a.score);
   const otherBest = perCrop.find((r) => r.crop.id !== cur);
 
   let label, rec;
-  if (otherBest && otherBest.score >= curBest.score + 15) { label = 'SHIFT'; rec = otherBest; }
+  if (otherBest && (otherBest.score >= curBest.score + 15 || (curBest.late && !otherBest.late))) { label = 'SHIFT'; rec = otherBest; }
   else if (curBest.shift !== 0 && curBest.score >= curNormal.score + 10) { label = 'ADJUST'; rec = curBest; }
   else { label = 'KEEP'; rec = curNormal; }
   const caution = label === 'KEEP' && curNormal.score < 60;

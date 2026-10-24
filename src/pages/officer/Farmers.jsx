@@ -144,7 +144,7 @@ export function FarmDetail() {
   const lang = s.lang;
   const f = farmerOf(id);
   const u = f && unionsAll[f.union];
-  const d = useMemo(() => (f && u ? decide({ clim, soil: soilData.unions[f.union], plot: f, union: u, priorities: [], econ: { prices: priceSeasons, costs: cropEconomics, srdiUnion: srdiUnionOf(srdi, f.union) } }) : null), [clim, f, u]);
+  const d = useMemo(() => (f && u ? decide({ clim, soil: soilData.unions[f.union], plot: f, union: u, priorities: [], econ: { prices: priceSeasons, costs: cropEconomics, srdiUnion: srdiUnionOf(srdi, f.union) }, today: todayDhaka() }) : null), [clim, f, u]);
   // A farmer from another upazila's office (e.g. an old link) is not this officer's to open.
   if (f && !u) return <EmptyState title={T('এই কৃষক অন্য উপজেলার', 'This farmer belongs to another upazila')} action={<Button to="/officer/farmers">{T('কৃষকের তালিকায় ফিরুন', 'Back to farmers')}</Button>} />;
   if (!f) return <EmptyState title={T('এই কৃষককে পাওয়া যায়নি', 'Farmer not found')} action={<Button to="/officer/farmers">{T('কৃষকের তালিকায় ফিরুন', 'Back to farmers')}</Button>} />;

@@ -8,6 +8,7 @@ import { UnionLayer } from '../../components/map/UpazilaLayers';
 import AmanHazards from '../../components/charts/AmanHazards';
 import { SectionNav, LazyMount, Skeleton } from '../../components/SectionNav';
 import RadarStory from '../../components/charts/RadarStory';
+import RadarBrief from '../../components/charts/RadarBrief';
 import { SeasonChart, RadarTimelapse, YearsStrip, RainTrend, DistrictMap, ProgressChart, progressSeries, RainBuild, FieldCurve } from '../../components/charts/AmanCharts';
 import { AMAN, CAT, LATEST, SHIFT_DAYS, MIN_FIELDS, RAIN_FINAL_TO, THROUGH, catOf, districtOf, doyToMs, useAmanDetail } from '../../radar/aman';
 import { fmtDate, num } from '../../engine/dates';
@@ -77,6 +78,7 @@ function RadarPage() {
       )}
 
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
+        { id: 'rd-brief', label: T('এক নজরে', 'At a glance') },
         ...(onsetSummary(view, row) ? [{ id: 'rd-onset', label: T('বৃষ্টি শুরু', 'Rain onset') }] : []),
         { id: 'rd-season', label: T('এই মৌসুম', 'This season') },
         { id: 'rd-story', label: T('জেলার গল্প', 'District story') },
@@ -89,10 +91,11 @@ function RadarPage() {
         { id: 'rd-method', label: T('পদ্ধতি', 'Method') },
       ]} />
 
-      {/* When the rains set in (Godagari and Dhamrai), then the season at a glance */}
-      <OnsetCard upazila={view} name={row} />
+      {/* What to tell the farmers, then when the rains set in, then the season in full */}
+      <RadarBrief view={view} row={row} year={year} mine={mine} district={district} />
+      {onsetSummary(view, row) && <div className="mt-6"><OnsetCard upazila={view} name={row} /></div>}
 
-      <Card id="rd-season" className={`${onsetSummary(view, row) ? 'mt-6 ' : ''}p-5 sm:p-6`}>
+      <Card id="rd-season" className="mt-6 p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="flex flex-wrap items-center gap-1.5 text-[13.5px] font-semibold text-primary-700"><MapPin size={14} />{T(`${row.bn} উপজেলা, ${district.bn} জেলা, ${district.division.bn} বিভাগ`, `${row.en} upazila, ${district.en} district, ${district.division.en} division`)}{mine ? <Badge tone="amber" className="ml-1">{T('আপনার উপজেলা', 'Your upazila')}</Badge> : <button type="button" onClick={() => setView(home)} className="ml-1 text-[12.5px] font-semibold text-paddy-700 underline-offset-2 hover:underline">{T(`← আপনার উপজেলা (${officerUpazila.name.bn})`, `← Your upazila (${officerUpazila.name.en})`)}</button>}</p>

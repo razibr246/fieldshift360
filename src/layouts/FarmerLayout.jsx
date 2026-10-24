@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
 import { Bell, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
@@ -108,12 +108,24 @@ function MoreSheet({ items, onClose }) {
 }
 
 export default function FarmerLayout() {
-  const { T, unreadAdvisories } = useStore();
+  const { s, T, unreadAdvisories } = useStore();
   const nav = useFarmerNav();
   const loc = useLocation();
   const navigate = useNavigate();
   const [more, setMore] = useState(false);
   useScrollOnNavigate();
+  // The current page's tab sits on a glossy green pill that glides to the next tab on a spring (as on the home page).
+  const tabs = useRef(null);
+  const [pill, setPill] = useState(null);
+  useLayoutEffect(() => {
+    const place = () => {
+      const a = tabs.current?.querySelector('a[aria-current="page"]');
+      setPill((p) => (a ? { x: a.offsetLeft, y: a.offsetTop, w: a.offsetWidth, h: a.offsetHeight, glide: !!p?.on, on: true } : p && { ...p, on: false }));
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [loc.pathname, s.lang]);
   useEffect(() => { setMore(false); }, [loc.pathname]);
   const bottom = [nav[0], nav[2], nav[3], nav[4]];
   const rest = nav.filter((n) => !bottom.some((b) => b.to === n.to));
@@ -144,18 +156,20 @@ export default function FarmerLayout() {
           </div>
         </div>
         <nav className="hidden border-t border-border lg:block" aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
-          <div className="page-shell hide-scrollbar flex gap-1 overflow-x-auto py-1">
+          <div ref={tabs} className="page-shell hide-scrollbar relative flex gap-1 overflow-x-auto py-1">
+            {pill && (
+              <span aria-hidden="true" className="nav-pill pointer-events-none absolute left-0 top-0 rounded-xl"
+                style={{ transform: `translate(${pill.x}px, ${pill.y}px)`, width: pill.w, height: pill.h, opacity: pill.on ? 1 : 0, transitionProperty: pill.glide ? 'transform, width, height, opacity' : 'opacity' }} />
+            )}
             {nav.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end}
-                className={({ isActive }) => `group relative isolate flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[14px] font-semibold transition-[background-color,color,box-shadow,transform] duration-250 ease-[var(--ease-smooth)] active:scale-[.98] ${isActive ? 'bg-primary-50 text-primary-900 shadow-[inset_0_1px_0_rgba(255,255,255,.95),0_2px_8px_-4px_rgba(36,90,40,.3)] ring-1 ring-primary-200/80 font-bold' : 'text-ink/70 hover:bg-primary-50/65 hover:text-primary-800'}`}>
+                className={({ isActive }) => `group relative isolate flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-[14px] font-semibold transition-[background-color,color,box-shadow,transform] duration-250 ease-[var(--ease-smooth)] active:scale-[.98] ${isActive ? 'text-white' : 'text-ink/70 hover:bg-primary-50/65 hover:text-primary-800'}`}>
                 {({ isActive }) => (
                   <>
-                    {isActive && <span aria-hidden="true" className="tab-line absolute inset-0 -z-10 rounded-xl bg-gradient-to-b from-white/55 to-primary-50/40" />}
-                    <n.icon size={16} className={`transition-transform duration-300 ease-[var(--ease-spring)] ${isActive ? 'scale-110 text-primary-700' : 'group-hover:scale-110'}`} />
+                    <n.icon size={16} className={`transition-transform duration-300 ease-[var(--ease-spring)] ${isActive ? 'text-paddy-300' : 'group-hover:scale-110'}`} />
                     {/* ten pages in a 1200 px row: the short names on smaller laptops, the two longest shortened above */}
                     <span className="xl:hidden">{n.short ?? n.label}</span>
                     <span className="hidden xl:inline">{n.mid ?? n.label}</span>
-                    {isActive && <span aria-hidden="true" className="nav-active-dot ml-0.5 h-1.5 w-1.5 rounded-full bg-primary-600 shadow-[0_0_0_3px_rgba(67,134,58,.15)]" />}
                   </>
                 )}
               </NavLink>

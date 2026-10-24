@@ -1,6 +1,7 @@
 // Field Future: this field over the next ten years under its usual rotation, the best rotation found for it, and the
 // farmer's own, in today's weather and in NASA's projections for the 2040s. Engine: engine/soilfuture.js.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Clapperboard, Printer, Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
@@ -16,7 +17,7 @@ import SatWater from '../../components/charts/SatWater';
 import FieldStory from '../../components/story/FieldStory';
 import RotationPoster from '../../components/story/RotationPoster';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
-import { num, bnDigits } from '../../engine/dates';
+import { num, bnDigits, fmtDate } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
   climateChange, fieldContext, fieldFuture, cropOf, omPctOf, co2PerBigha, ureaSavedKgPerBigha, WATER_M3_PER_MM_BIGHA,
@@ -267,7 +268,60 @@ function BestCard({ ff, sumOf, rotName, onEdit, w }) {
         </div>
       </div>
       {w === 'fut' && <div className="border-t border-border px-5 py-2.5 text-[13px] text-muted">{T('দেখানো সংখ্যাগুলো ২০৪০-এর দশকের আবহাওয়ায়।', 'Figures shown are for the 2040s’ weather.')}</div>}
+      <FirstStep rot={ff.best.rot} />
     </Card>
+  );
+}
+
+// ───────── this season: the first year of the best rotation, with dates ─────────
+// The Rabi crop's best sowing day still ahead and its harvest come from the season planner's own run over the recent
+// NASA seasons (engine/decision.js, the same numbers as /farmer/plan); the Aman day from Sentinel-1 radar. One tap plans it.
+function FirstStep({ rot }) {
+  const { s, T, L, dispatch, decision, chosen, rotation } = useStore();
+  const navigate = useNavigate();
+  const lang = s.lang;
+  const y = rot.cycle[0];
+  const opt = decision.options.find((o) => o.crop.id === y.rabi) ?? null;
+  const day = (t) => fmtDate(t, lang);
+  const amanT = rotation.amanMeasured ? rotation.amanT : null;
+  const planned = opt && chosen.crop.id === opt.crop.id && chosen.shift === opt.shift;
+  const plan = () => { dispatch({ type: 'set', patch: { pick: { crop: opt.crop.id, shift: opt.shift }, step: 4 } }); navigate('/farmer/plan'); };
+  const steps = [
+    {
+      season: T('রবি', 'Rabi'), crop: cropOf(y.rabi),
+      when: !opt ? T('জমি পতিত রাখুন', 'Leave the field fallow') : opt.late ? T(`এ বছরের বোনার দিন পার হয়েছে (${day(opt.t0)})`, `This year’s sowing days have gone (${day(opt.t0)})`) : T(`বুনুন ${day(opt.t0)}`, `Sow ${day(opt.t0)}`),
+      note: opt?.late ? T('পরের বছর থেকে শুরু করুন, বা এ বছর মৌসুমের পরিকল্পনার পরামর্শ দেখুন', 'Start it next year, or see the season plan’s choice for this year') : opt && (opt.bt.now.n ? T(`সাম্প্রতিক ${num(opt.bt.now.n, 'bn')} মৌসুমের ${num(opt.bt.now.safe, 'bn')}টিতে এই দিনে লাগালে আবহাওয়া নিরাপদ ছিল; ফসল তোলা ${day(opt.hw.start)} – ${day(opt.hw.end)}`, `Safe from the weather in ${opt.bt.now.safe} of the last ${opt.bt.now.n} seasons sown on this day; harvest ${day(opt.hw.start)} – ${day(opt.hw.end)}`) : null),
+    },
+    {
+      season: T('খরিফ-১', 'Kharif-1'), crop: cropOf(y.k1),
+      when: y.k1 === 'fallow' ? T('জমি বিশ্রামে', 'The field rests') : opt ? T(`রবির পরে, ${day(opt.hw.end)} থেকে`, `After the Rabi, from ${day(opt.hw.end)}`) : T('রবির জায়গায়', 'In the Rabi’s place'),
+      note: amanT ? T(`আমন রোপণের আগে জমি খালি করতে হবে`, 'Off the field before the Aman is transplanted') : null,
+    },
+    {
+      season: T('খরিফ-২', 'Kharif-2'), crop: cropOf('aman'),
+      when: amanT ? T(`রোপণ ${day(amanT)}`, `Transplant ${day(amanT)}`) : T('বর্ষায় রোপণ', 'Transplant in the monsoon'),
+      note: amanT ? T('রাডারে মাপা এখানকার স্বাভাবিক রোপণের দিন', 'The usual day here, measured by radar') : null,
+    },
+  ];
+  return (
+    <div className="border-t border-border bg-primary-50/40 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-1.5 text-[16px] font-bold"><Sprout size={17} className="text-primary-700" />{T('এই মৌসুমে শুরু: প্রথম বছর', 'Start this season: year one')}</h3>
+        {opt && !opt.late && (planned
+          ? <Badge tone="green"><CheckCircle2 size={13} />{T('মৌসুমের পরিকল্পনায় এটাই আছে', 'This is in your season plan')}</Badge>
+          : <Button onClick={plan}><Sprout size={16} />{T(`${L(opt.crop.name)} দিয়ে এই রবির পরিকল্পনা`, `Plan this Rabi with ${L(opt.crop.name).toLowerCase()}`)}</Button>)}
+      </div>
+      <ol className="mt-3 grid gap-2 md:grid-cols-3">
+        {steps.map((x, i) => (
+          <li key={i} className="rounded-xl bg-white px-3.5 py-3 ring-1 ring-primary-100">
+            <div className="text-[12px] font-semibold text-primary-700">{num(i + 1, lang)}. {x.season}</div>
+            <div className="text-[16px] font-bold">{L(x.crop.name)}</div>
+            <div className="text-[14px] font-semibold tabular text-primary-900">{x.when}</div>
+            {x.note && <p className="mt-0.5 text-[12.5px] leading-5 text-muted">{x.note}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

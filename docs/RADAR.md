@@ -91,6 +91,17 @@ daily, `GPM_3IMERGDF` version 07, DOI 10.5067/GPM/IMERGDF/DAY/07):
 
 This has not been run yet (no Earthdata credentials in this environment).
 
+## The officer's brief and the next Aman calendar
+
+The top of the radar page (`src/components/charts/RadarBrief.jsx`, logic in `src/radar/brief.js`, tested in
+`src/radar/onset.test.js`) puts three things in one card: this season against the upazila's own usual transplanting
+day, the weather hazard that came most often in 2001–2025 (the same hazard years as the hazard section below), and
+when the rains usually set in, with their trend. It then lays out the next Aman around the usual transplanting day T
+measured by radar: seedbeds T − 30 to T − 25 days (25–30-day seedlings), transplanting T ± 7 days, flowering T + 55
+to T + 85, harvest T + 95 to T + 120 (by variety, as in the harvest outlook). The same dates and the first fix for the
+most frequent hazard become a message of at most three Bangla SMS parts, which the officer can send to the upazila's
+farmers; it reaches each farmer's app like any other officer message.
+
 ## The synthetic prototype
 
 `public/radar/` is the first Ropon Radar prototype for Rangpur district, built on seeded random data (mulberry32,

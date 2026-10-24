@@ -353,3 +353,17 @@ test('SEDAC and census: every upazila measured, shares between 0 and 1, and the 
   assert.ok(ids.every((id) => id === 'dacope' || dens(id) > dens('dacope')));
   assert.equal(Object.values(census.upazilas).reduce((a, b) => a + b, 0), 2509017);
 });
+
+test('decision with today: a sowing day already gone is never offered, and a crop with none left ranks last', () => {
+  const demo = buildDemo();
+  const plot = demo.farmers.find((f) => f.id === 'RAHIM');
+  const args = { clim, soil: soilJson.unions[plot.union], plot, union: makeUnion(clim, demo, plot.union), priorities: [] };
+  const free = decide(args);
+  const day = Math.min(...free.all.map((r) => r.t0)) + 20 * 864e5; // after the earliest sowing days
+  const d = decide({ ...args, today: day });
+  for (const r of d.all) assert.ok(r.t0 >= day || r.late, `${r.crop.id} ${r.shift}: gone but offered`);
+  assert.equal(d.options.length, 5, 'every crop still listed');
+  assert.ok(d.rec.t0 >= day || d.options.every((o) => o.late), 'the recommendation can still be sown');
+  const lateIdx = d.options.findIndex((o) => o.late);
+  if (lateIdx >= 0) assert.ok(d.options.slice(lateIdx).every((o) => o.late), 'late crops after the on-time ones');
+});
