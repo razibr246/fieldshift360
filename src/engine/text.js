@@ -1,9 +1,10 @@
 // Small Bangla grammar helpers so generated sentences read naturally.
 const VOWEL_END = /[া-ৌঅ-ঔ]$/; // ends in a vowel sign or vowel letter
-// Possessive: টমেটো → টমেটোর, ধান → ধানের
-export const bnOf = (w) => (VOWEL_END.test(w) ? `${w}র` : `${w}ের`);
-// Locative: টমেটো → টমেটোতে, ধান → ধানে
-export const bnIn = (w) => (VOWEL_END.test(w) ? `${w}তে` : `${w}ে`);
+const I_U_END = /[ইউ]$/; // ends in the letter ই or উ, which takes য়: ধামরাই → ধামরাইয়ের, বই → বইয়ে
+// Possessive: টমেটো → টমেটোর, ধান → ধানের, ধামরাই → ধামরাইয়ের
+export const bnOf = (w) => (I_U_END.test(w) ? `${w}য়ের` : VOWEL_END.test(w) ? `${w}র` : `${w}ের`);
+// Locative: টমেটো → টমেটোতে, ধান → ধানে, ধামরাই → ধামরাইয়ে
+export const bnIn = (w) => (I_U_END.test(w) ? `${w}য়ে` : VOWEL_END.test(w) ? `${w}তে` : `${w}ে`);
 
 // How a message travels as SMS. Plain English fits the GSM 7-bit alphabet: 160 characters, or 153 per part when
 // split. Any Bangla letter switches the whole message to UCS-2: only 70 characters, or 67 per part. Phones count

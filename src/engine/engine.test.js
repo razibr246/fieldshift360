@@ -367,3 +367,13 @@ test('decision with today: a sowing day already gone is never offered, and a cro
   const lateIdx = d.options.findIndex((o) => o.late);
   if (lateIdx >= 0) assert.ok(d.options.slice(lateIdx).every((o) => o.late), 'late crops after the on-time ones');
 });
+
+test('Bangla possessive and locative read naturally', async () => {
+  const { bnOf, bnIn } = await import('./text.js');
+  assert.equal(bnOf('রাজিব মিয়া'), 'রাজিব মিয়ার');
+  assert.equal(bnOf('ধামরাই'), 'ধামরাইয়ের');
+  assert.equal(bnOf('মোঃ ওমর ফারুক'), 'মোঃ ওমর ফারুকের');
+  assert.equal(bnOf('গোদাগাড়ী'), 'গোদাগাড়ীর');
+  assert.equal(bnIn('ধামরাই'), 'ধামরাইয়ে');
+  assert.equal(bnIn('ধান'), 'ধানে');
+});

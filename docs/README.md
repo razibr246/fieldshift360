@@ -7,3 +7,4 @@
 | [`MERGE.md`](MERGE.md) | How FieldShift 360, the Aman radar and the voice agent fit together in one repository |
 | [`VOICE.md`](VOICE.md) | The Bangla voice assistant for farmers and the upazila officer |
 | [`RADAR.md`](RADAR.md) | The Aman rain-onset radar module |
+| [`STORY_VOICE.md`](STORY_VOICE.md) | The field story's narration: script, voice direction, scene timings, a ready voice prompt (SSML) and a quality checklist |

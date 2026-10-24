@@ -35,7 +35,7 @@ field:
   weather and answered as KEEP, ADJUST or SHIFT, with today's field tasks, in Bangla, by voice or typing, on a
   phone.
 
-Farmers can watch a narrated 30-second story of their own field's ten years and save it as a video, print the
+Farmers can watch a one-minute narrated story of their own field's ten years and save it as a video, print the
 rotation as a picture poster, or ask by SMS from a feature phone. Upazila officers see what a switch by a share of
 Boro farmers would save across the upazila in water, greenhouse gas and soil carbon. Union officers receive
 farmers' problem reports and reply from the same numbers; upazila officers see Ropon Radar,
