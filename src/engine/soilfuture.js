@@ -439,6 +439,12 @@ const strawT = (id, tHa, residue) => {
   if (!c || !tHa) return 0;
   return tHa * c.dm * (1 / c.hi - 1) * c.keep[residue === 'retain' ? 1 : 0];
 };
+// Paddy methane, kg CH₄/ha a day while the field is flooded (IPCC 2019 Tier 1): the baseline emission factor scaled by
+// the water regime (Boro flooded, or AWD; Aman rainfed) and by the straw (t/ha) the field went in with.
+export const methaneRate = (id, strawTHa, { awd = false } = {}) => {
+  const sfw = id === 'aman' ? CH4.sfw.rainfed : awd ? CH4.sfw.awd : CH4.sfw.flooded;
+  return CH4.ef * sfw * CH4.sfp * (1 + strawTHa * CH4.cfoa) ** CH4.exp;
+};
 export function climateLedger(ctx, rot, rows, { awd = false } = {}) {
   if (!rows?.length) return null;
   const tOf = (y, id, slot) => (slot === 2 ? ctx.amanSlot.tHa : slot === 0 ? ctx.rabi[id]?.tHa : ctx.k1[y.rabi]?.[id]?.tHa) ?? 0;
@@ -451,10 +457,8 @@ export function climateLedger(ctx, rot, rows, { awd = false } = {}) {
       if (id === 'fallow') return;
       const t = tOf(y, id, slot);
       if (id === 'boro' || id === 'aman') {
-        const roa = strawT(prev.id, prev.t, rot.residue);
-        const sfw = id === 'aman' ? CH4.sfw.rainfed : awd ? CH4.sfw.awd : CH4.sfw.flooded;
         const days = id === 'aman' ? AMAN_DAYS : RABI_CROPS.boro.days;
-        kg += CH4.ef * sfw * CH4.sfp * (1 + roa * CH4.cfoa) ** CH4.exp * days;
+        kg += methaneRate(id, strawT(prev.id, prev.t, rot.residue), { awd }) * days;
       }
       prev = { id, t };
     });

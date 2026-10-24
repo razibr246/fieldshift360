@@ -7,7 +7,7 @@ import { Clapperboard, Printer, Play, Pause, RotateCcw, Telescope, Leaf, Droplet
 import { useStore } from '../../store';
 import { Card, PageHeader, Segmented, Note, Badge, Tags, ScoreRing, Button } from '../../components/ui';
 import { SectionNav, LazyMount } from '../../components/SectionNav';
-import SoilColumn, { SoilLegend } from '../../components/charts/SoilColumn';
+import SoilColumn, { SoilLegend, frameState } from '../../components/charts/SoilColumn';
 import CropPhoto from '../../components/CropPhoto';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import soilWetness from '../../data/water/soil_wetness.json';
@@ -208,9 +208,43 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
           );
         })}
       </div>
+      <SoilNow cols={cols} rowsOf={rowsOf} ctx={ctx} year={year} season={season} />
       <SoilLegend />
       {w === 'fut' && <Note tone="gold" className="mt-3">{T(`২০৪০-এর দশকের গরমে মাটির জৈব পদার্থ প্রায় ${num((ctx.temp.fut - 1) * 100, 'bn')}% দ্রুত পচে যায়, তাই একই চাষেও মাটি দুর্বল হয়। যে ফসলচক্র শিকড় আর খড় বেশি ফেরত দেয়, সেটাই এই ক্ষতি সামলায়।`, `In the warmer 2040s organic matter breaks down about ${num((ctx.temp.fut - 1) * 100, 'en')}% faster, so even the same farming wears the soil. Rotations that put more roots and straw back are the ones that hold up.`)}</Note>}
     </Card>
+  );
+}
+
+// What is going on in the soil in the frame on screen, in plain words, for the columns it applies to. Read from the
+// same frameState the columns draw from, so the words and the picture never disagree.
+function SoilNow({ cols, rowsOf, ctx, year, season }) {
+  const { T } = useStore();
+  const st = cols.map((c) => ({ c, f: frameState(rowsOf(c.e)[year], season, ctx.soil) }));
+  const who = (list) => {
+    if (list.length === cols.length) return T('তিন পথেই', 'In all three');
+    const q = list.map((x) => `“${x.c.title}”`);
+    return q.length > 1 ? `${q.slice(0, -1).join(', ')}${T(' ও ', ' and ')}${q[q.length - 1]}` : q[0];
+  };
+  const flooded = st.filter((x) => x.f.flooded), dry = st.filter((x) => !x.f.flooded && x.f.id !== 'fallow'), fallow = st.filter((x) => x.f.id === 'fallow');
+  const nod = dry.filter((x) => x.f.nodules), cracked = dry.filter((x) => x.f.cracks);
+  const lines = [
+    flooded.length && { tone: '#5f8a9c', text: T(
+      `${who(flooded)}: জমি পানিতে ডোবা। কয়েক দিনেই মাটির অক্সিজেন ফুরিয়ে মাটি ধূসর হয়, জীবাণু জৈব পদার্থ পচিয়ে মিথেন বানায়; সেটা বুদবুদ হয়ে আর ধানগাছের ভেতরের বাতাস-নালি দিয়ে বেরিয়ে যায়। ধানের শিকড় নিজে অক্সিজেন ছাড়ে, তাই শিকড়ের গায়ে মরচে রং। কেঁচো এ সময় থাকে না।`,
+      `${who(flooded)}: the field stands in water. Within days the soil runs out of oxygen and turns grey; microbes break organic matter down to methane, which bubbles up and escapes through the rice plants' own air channels. Rice roots leak oxygen, so they wear a rust-coloured coat. No earthworms while it is flooded.`) },
+    dry.length && { tone: '#8a6440', text: T(
+      `${who(dry)}: মাটিতে বাতাস ঢোকে। কেঁচো আর জীবাণু শিকড় আর খড় ভেঙে জৈব পদার্থ বানায়, কেঁচোর গর্ত দিয়ে পানি আর শিকড় নিচে যায়।${nod.length ? ` ${who(nod)}-এ ডালের শিকড়ের গোলাপি গুটিতে বাতাসের নাইট্রোজেন জমা হচ্ছে।` : ''}${cracked.length ? ` এঁটেল মাটি শুকিয়ে ফাটছে (${who(cracked)}): পরের সেচের পানি ফাটল দিয়ে শিকড়ের নিচে চলে যায়, তাই অল্প অল্প করে বারবার সেচ ভালো।` : ''}`,
+      `${who(dry)}: air gets into the soil. Earthworms and microbes break roots and straw down into organic matter, and their burrows carry water and roots deeper.${nod.length ? ` In ${who(nod)} the legume's pink root nodules are fixing nitrogen from the air.` : ''}${cracked.length ? ` The clay is cracking as it dries (${who(cracked)}): the next irrigation runs down the cracks below the roots, so small, frequent waterings work better.` : ''}`) },
+    fallow.length && { tone: '#a08f6a', text: T(
+      `${who(fallow)}: জমি পতিত, কোনো শিকড় নেই। মাটিতে নতুন কার্বন যায় না, কিন্তু পুরোনো জৈব পদার্থ পচতেই থাকে, তাই এ মৌসুমে মাটির জৈব পদার্থ শুধু কমে।`,
+      `${who(fallow)}: the field lies fallow, with no roots. No new carbon goes in while the old organic matter keeps decaying, so this season the soil only loses.`) },
+  ].filter(Boolean);
+  return (
+    <div key={`${year}-${season}`} className="swap-in mt-3 rounded-xl border border-border bg-white/80 p-3.5">
+      <div className="text-[13px] font-bold text-primary-800">{T('এই মুহূর্তে মাটিতে কী ঘটছে', 'What is happening in the soil right now')}</div>
+      <ul className="mt-1.5 space-y-1.5 text-[13.5px] leading-6">
+        {lines.map((x, i) => <li key={i} className="flex gap-2"><span className="mt-2.5 h-2 w-2 shrink-0 rounded-full" style={{ background: x.tone }} />{x.text}</li>)}
+      </ul>
+    </div>
   );
 }
 

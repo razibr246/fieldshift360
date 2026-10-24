@@ -8,18 +8,26 @@
 //              (SoilGrids WRB/drainage): the redoximorphic sign of soil that stands wet for months.
 //   Texture    sand grains from the field's sand share; crumbs (aggregates) from soil health, broken into slurry
 //              while a paddy is puddled.
-//   Roots      fibrous rice roots crowd the top 20 cm and turn along the pan; wheat's fibrous roots and the taproots
-//              of mustard, legumes, tomato, sesame and jute push through it. Legumes carry nitrogen nodules when
-//              the model credits them with fixed nitrogen.
-//   Life       earthworms follow the soil-health score, are fewer while the field is flooded (no air), and leave
-//              burrows (biopores) through the pan.
+//   Roots      fibrous rice roots crowd the top 10 cm and bend gently along the pan; wheat's fibrous roots and the
+//              taproots of mustard, legumes, tomato, sesame and jute push through it. Legumes carry nitrogen
+//              nodules when the model credits them with fixed nitrogen.
+//   Flooding   a puddled field runs out of oxygen within days: under a thin brown oxidised skin the tilled layer turns
+//              grey (reduced iron), rice roots leak oxygen and coat themselves in rust-orange iron plaque, and
+//              microbes break organic matter down to methane, which bubbles up through the water and escapes through
+//              the plants' own air channels. The bubbles follow the field's methane rate (methaneRate, the same IPCC
+//              2019 numbers as the climate account): Boro more than rainfed Aman, more again with straw kept.
+//   Drying     a clay-rich topsoil (35% clay or more, as on the Barind) cracks as it dries in the dry seasons, half as
+//              much under heavy irrigation.
+//   Life       earthworms follow the soil-health score and leave burrows (biopores) through the pan; none while the
+//              field is flooded (no air).
 //   Surface    standing water on a puddled crop, a straw layer when straw and stubble are kept, irrigation drops
 //              when the season needs water, and pests and root disease when a crop family follows itself.
+//   Growth     each season the crop grows from seedling to full size and its grain or fruit ripens from green.
 // With reduced motion the picture stands still at the same state.
 import { useId, useMemo } from 'react';
 import { useStore } from '../../store';
 import { num, bnDigits } from '../../engine/dates';
-import { cropOf, omPctOf, CARBON } from '../../engine/soilfuture';
+import { cropOf, omPctOf, CARBON, CH4, methaneRate } from '../../engine/soilfuture';
 
 export const SKY = 96; // the soil surface in the drawing's own units (Plant draws up from it)
 const W = 220, H = 320, DEPTH = 30;
@@ -41,8 +49,9 @@ export const LOOK = {
   sesame: { kind: 'sesame', n: 7, h: 66, leaf: '#62953d', top: '#f6eef0', root: 'tap', depth: 32 },
   jute: { kind: 'jute', n: 9, h: 86, leaf: '#2f7a2f', top: '#e9c43c', root: 'tap', depth: 32 },
 };
+// Blend two colours, given as #rrggbb or as rgb(r,g,b) (what mix itself returns, so blends can be blended again).
 const mix = (a, b, t) => {
-  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const p = (h) => (h.startsWith('rgb') ? h.match(/\d+/g).map(Number) : [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)));
   const [x, y] = [p(a), p(b)];
   const k = Math.max(0, Math.min(1, t));
   return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * k)).join(',')})`;
@@ -64,7 +73,7 @@ export function Plant({ x, look, k }) {
         const tx = x + t * 3.2 * 1.4, ty = b - h * 0.78;
         return <g key={`p${t}`}>
           <path d={`M${tx} ${ty} q${3 + t * 2} -6 ${6 + t * 3} 2 q2 5 1 11`} stroke={C} strokeWidth="1.3" {...stroke} />
-          {[0, 1, 2, 3].map((g) => <ellipse key={g} cx={tx + 6 + t * 3 + (g % 2 ? 1.2 : -0.6)} cy={ty + 1 + g * 2.6} rx="1.5" ry="0.9" fill={C} />)}
+          {[0, 1, 2, 3].map((g) => <ellipse key={g} className="soil-ripen" style={{ '--ripe': C }} cx={tx + 6 + t * 3 + (g % 2 ? 1.2 : -0.6)} cy={ty + 1 + g * 2.6} rx="1.5" ry="0.9" fill={C} />)}
         </g>;
       })}
     </>;
@@ -74,7 +83,7 @@ export function Plant({ x, look, k }) {
         const tx = x + t, ty = b - h * (0.88 + (t === 0 ? 0.08 : 0));
         return <g key={t}>
           <path d={`M${x} ${b} Q${x + t * 0.4} ${b - h * 0.5} ${tx} ${ty}`} stroke={L} strokeWidth="1.5" {...stroke} />
-          {[0, 1, 2, 3, 4].map((g) => <ellipse key={g} cx={tx + (g % 2 ? 1.1 : -1.1)} cy={ty - g * 2.6} rx="1.6" ry="1.4" fill={C} />)}
+          {[0, 1, 2, 3, 4].map((g) => <ellipse key={g} className="soil-ripen" style={{ '--ripe': C }} cx={tx + (g % 2 ? 1.1 : -1.1)} cy={ty - g * 2.6} rx="1.6" ry="1.4" fill={C} />)}
           {[0, 1, 2, 3, 4].map((g) => <path key={`a${g}`} d={`M${tx + (g % 2 ? 1.6 : -1.6)} ${ty - g * 2.6} l${g % 2 ? 3 : -3} -6`} stroke={C} strokeWidth=".5" />)}
         </g>;
       })}
@@ -152,10 +161,14 @@ export function Plant({ x, look, k }) {
 }
 
 // Roots for one plant. pan: { top, bottom } in cm or null; legume nodules when fixing nitrogen.
-function Roots({ x, look, k, pan, nodules, density, disease }) {
+function Roots({ x, look, k, pan, nodules, density, disease, flooded }) {
   const out = [];
   const end = (cm) => Math.min(ycm(cm), H + 8);
-  const root = (key, d, w, o = 0.85) => out.push(<path key={key} d={d} stroke="#f1e2c6" strokeWidth={w} fill="none" opacity={o} strokeLinecap="round" pathLength="1" />);
+  const plaque = flooded && look.kind === 'rice'; // rice roots leak oxygen into reduced soil: rust-orange iron plaque
+  const root = (key, d, w, o = 0.85) => {
+    if (plaque) out.push(<path key={`${key}-fe`} d={d} stroke="#c47a35" strokeWidth={w + 0.9} fill="none" opacity=".2" strokeLinecap="round" pathLength="1" />);
+    out.push(<path key={key} d={d} stroke="#f1e2c6" strokeWidth={w} fill="none" opacity={o} strokeLinecap="round" pathLength="1" />);
+  };
   if (look.root === 'fibrous') {
     // Rice and wheat: a mat of fine roots, most of them in the top 10 cm. Rice roots meet the pan and run along it;
     // wheat sends some through cracks and old root channels.
@@ -163,13 +176,22 @@ function Roots({ x, look, k, pan, nodules, density, disease }) {
     for (let i = 0; i < n; i++) {
       const a = (rnd(i, k) - 0.5) * 2;
       // Depth skewed to the surface (most rice root mass is in the top 10 cm); shallow roots spread wide, deep ones steep.
-      let stop = 2 + (look.depth - 2) * rnd(i, k + 4) ** 1.7;
+      let stop = 2 + (look.depth - 2) * rnd(i, k + 4) ** 2.1;
       const through = pan && stop > pan.top && rnd(i, k + 9) < deepShare;
-      if (pan && stop > pan.top && !through) stop = pan.top - 0.2;
+      // Roots stopped by the pan end at different depths above it; about a third creep along its top.
+      const blocked = pan && stop > pan.top - 1 && !through;
+      const bent = blocked && rnd(i, k + 13) < 0.35;
+      if (blocked) stop = bent ? pan.top - 0.3 : pan.top - 0.8 - 4 * rnd(i, k + 14);
       const steep = stop / look.depth, ex = x + a * (20 - 12 * steep), ey = end(stop);
-      const turn = pan && !through && stop >= pan.top - 0.3 ? ` q${a > 0 ? 4 : -4} 1.5 ${a > 0 ? 9 : -9} 1` : '';
-      root(`f${i}`, `M${x + a} ${SKY + 1} C${x + a * 7} ${SKY + (ey - SKY) * 0.25} ${ex - a * 2} ${SKY + (ey - SKY) * 0.7} ${ex} ${ey}${turn}`, 0.45 + 0.4 * steep, 0.6 + 0.25 * steep);
-      if (i % 3 === 0) root(`fb${i}`, `M${(x + ex) / 2} ${(SKY + ey) / 2} q${a * 3} 2 ${a * 5} 5`, 0.35, 0.55);
+      const mid = SKY + (ey - SKY) * 0.7;
+      // A root that meets the pan curves over smoothly and creeps along its top instead of turning a corner.
+      const d = bent
+        ? `M${x + a} ${SKY + 1} C${x + a * 7} ${SKY + (ey - SKY) * 0.25} ${ex - a * 1.5} ${mid} ${ex} ${ey - 2.2} S${ex + (a >= 0 ? 4 : -4)} ${ey} ${ex + (a >= 0 ? 6 + 6 * rnd(i, k + 5) : -6 - 6 * rnd(i, k + 5))} ${ey + 0.4}`
+        : `M${x + a} ${SKY + 1} C${x + a * 7} ${SKY + (ey - SKY) * 0.25} ${ex - a * 2} ${mid} ${ex} ${ey}`;
+      root(`f${i}`, d, 0.45 + 0.4 * steep, 0.6 + 0.25 * steep);
+      // Laterals off the upper half, and fine branches near the surface where most uptake happens.
+      if (i % 2 === 0) root(`fb${i}`, `M${(x + ex) / 2} ${(SKY + ey) / 2} q${a * 3} 2 ${a * 5} 5`, 0.3, 0.5);
+      if (i % 3 === 1 && stop > 4) root(`fh${i}`, `M${x + a * 3.5} ${SKY + (ey - SKY) * 0.18} q${a >= 0 ? 2.5 : -2.5} 0.6 ${a >= 0 ? 4 : -4} 2.4`, 0.25, 0.45);
     }
   } else {
     // A taproot that thins with depth and wanders a little, laterals that curve down and shorten with depth.
@@ -189,34 +211,52 @@ function Roots({ x, look, k, pan, nodules, density, disease }) {
   return <>{out}</>;
 }
 
+// What one column shows in one season: the crop, whether it stands flooded, whether the clay cracks, whether a
+// legume carries nodules, whether it is irrigated. The column draws from this and the caption below explains it.
+export function frameState(row, season, soil = {}) {
+  const id = season === 0 ? row.rabi : season === 1 ? row.k1 : 'aman';
+  const flooded = !!CARBON[id]?.puddle;
+  const slotWater = row.slotWater?.[season] ?? 0;
+  const clay = soil.clay ?? 0;
+  return {
+    id, flooded, slotWater,
+    irrigated: id !== 'fallow' && slotWater > 0 && !flooded,
+    // Shrink-swell clay cracks whenever it dries out between waterings in the dry seasons (Rabi, Kharif-1); heavy
+    // irrigation narrows the cracks but does not stop them.
+    cracks: !flooded && clay >= 35 && season !== 2 ? Math.round((3 + (clay - 35) / 3) * (slotWater > 300 ? 0.5 : 1)) : 0,
+    nodules: !!LOOK[id]?.legume && (row.nFix ?? 0) > 0,
+  };
+}
+
 // season: 0 Rabi, 1 Kharif-1, 2 Aman; row: that year's simulation row; soc0: carbon at the start.
 export default function SoilColumn({ row, season, soc0, soil = {}, health, title, tone = '#2f6e2f', badge, residue }) {
   const { s, T, L } = useStore();
   const lang = s.lang;
-  const id = season === 0 ? row.rabi : season === 1 ? row.k1 : 'aman';
+  const { id, flooded, slotWater, irrigated, cracks, nodules } = frameState(row, season, soil);
   const crop = cropOf(id);
   const look = LOOK[id];
   const om = omPctOf(row.soc, soil), om0 = omPctOf(soc0, soil), dOm = om - om0;
-  const flooded = !!CARBON[id]?.puddle; // puddled rice stands in water: no air for worms, crumbs turned to slurry
   const puddles = row.puddles ?? 1;
   const pan = puddles > 0 ? { top: 15, bottom: 15 + 2.5 + 1.5 * Math.min(2, puddles) } : null;
   const drainage = soil.drainage ?? 'imperfect';
   const mottleN = drainage === 'poor' ? 22 : drainage === 'imperfect' ? 12 : 3;
   const sand = soil.sand ?? 25;
-  const wormsAll = Math.max(0, Math.round(health / 18));
-  const worms = flooded ? Math.min(1, wormsAll) : wormsAll;
+  // No air in a flooded field: the worms leave or die back until it drains.
+  const worms = flooded ? 0 : Math.max(0, Math.round(health / 18));
   const burrows = Math.max(1, Math.round(health / 22));
   const crumbs = flooded ? 0 : Math.round(4 + health / 7);
-  const slotWater = row.slotWater?.[season] ?? 0;
-  const irrigated = id !== 'fallow' && slotWater > 0 && !flooded;
   const rep = row.rep?.[season] ?? 0;
   const pests = rep >= 1 ? 3 : rep > 0 ? 1 : 0;
-  const nodules = !!look?.legume && (row.nFix ?? 0) > 0;
   const density = Math.max(0, Math.min(1, (row.input ?? 4) / 8));
   const straw = residue === 'retain';
+  // Methane bubbles in proportion to the field's methane rate; straw a field goes in with is taken at a typical
+  // 5 t/ha of rice straw, three fifths of it kept when straw is retained and a quarter otherwise (CARBON keep).
+  const bubbles = flooded ? Math.round(6 * methaneRate(id, straw ? 3 : 1.25) / CH4.ef) : 0;
+
   const key = `${row.year}-${season}`;
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const top = topColour(om);
+  const gley = mix(top, '#727a70', 0.55); // the reduced, grey tilled layer of a flooded field
   const grains = useMemo(() => Array.from({ length: 70 }, (_, i) => ({ x: 4 + rnd(i, 2) * (W - 8), y: SKY + 3 + rnd(i, 3) * (H - SKY - 6), r: 0.6 + rnd(i, 4) * 0.9 })), []);
   const nGrains = Math.round(10 + sand * 0.9);
   const plantsN = look?.n ?? 0, gap = W / (plantsN + 1);
@@ -240,6 +280,14 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
               <stop offset={pan ? pan.top / DEPTH : 0.5} stopColor={mix('#b9946a', '#3b2a1b', ((om - 1) / 4) * 0.6)} />
               <stop offset="1" stopColor={drainage === 'poor' ? '#9a958a' : '#b0916b'} />
             </linearGradient>
+            {/* Flooded: a thin oxidised brown skin, then grey reduced soil down to the pan; the subsoil as usual. */}
+            <linearGradient id={`gley-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#8a6440" />
+              <stop offset={0.8 / DEPTH} stopColor="#8a6440" />
+              <stop offset={1.4 / DEPTH} stopColor={gley} />
+              <stop offset={pan ? pan.top / DEPTH : 0.5} stopColor={mix(gley, '#5d6359', 0.3)} />
+              <stop offset="1" stopColor={drainage === 'poor' ? '#9a958a' : '#b0916b'} />
+            </linearGradient>
             <linearGradient id={`water-${uid}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="#9cc7e0" stopOpacity=".55" /><stop offset="1" stopColor="#5f9cc4" stopOpacity=".8" />
             </linearGradient>
@@ -251,7 +299,7 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
           ))}
 
           {/* Soil: horizons, then what lives and grows in them. */}
-          <rect y={SKY} width={W} height={H - SKY} fill={`url(#soil-${uid})`} style={{ transition: 'fill 900ms' }} />
+          <rect y={SKY} width={W} height={H - SKY} fill={`url(#${flooded ? 'gley' : 'soil'}-${uid})`} />
           {pan && <>
             <rect y={ycm(pan.top)} width={W} height={(pan.bottom - pan.top) * PX} fill="#4e3d2d" opacity=".28" />
             {/* Platy structure: thin flattened lenses packed by the puddling. */}
@@ -265,6 +313,12 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
           {Array.from({ length: crumbs }, (_, i) => (
             <path key={`c${i}`} d={`M${8 + rnd(i, 7) * (W - 16)} ${ycm(1 + rnd(i, 8) * 11)} q2 -2.4 4.4 -.4 q1.4 2.6 -1.6 3.2 q-3.6 .2 -2.8 -2.8z`} fill={mix('#2a1c11', '#6a4b30', rnd(i, 9))} opacity=".55" />
           ))}
+          {Array.from({ length: cracks }, (_, i) => {
+            const cx = 14 + ((i * 47 + 23) % (W - 28)), dep = 4 + rnd(i, 51) * 5, w0 = 1.6 + rnd(i, 52) * 1.2;
+            const zig = [0.3, 0.6, 1].map((f, j) => `${cx + (j % 2 ? 1.6 : -1.4) * (1 - f / 2)} ${ycm(dep * f)}`).join(' L');
+            return <path key={`k${i}-${key}`} className="soil-crack" style={{ animationDelay: `${300 + i * 90}ms` }}
+              d={`M${cx - w0} ${SKY} L${zig} L${cx + w0} ${SKY} Z`} fill="#24180e" opacity=".7" />;
+          })}
           {flooded && [3, 6, 9].map((cm) => <path key={`sl${cm}`} d={`M0 ${ycm(cm)} Q${W / 4} ${ycm(cm) - 1.5} ${W / 2} ${ycm(cm)} T${W} ${ycm(cm)}`} stroke="#d9c7a8" strokeWidth=".5" opacity=".35" fill="none" />)}
           {Array.from({ length: mottleN }, (_, i) => {
             const cx = 6 + rnd(i, 11) * (W - 12), cy = ycm((pan ? pan.bottom : 16) + 1 + rnd(i, 12) * 11);
@@ -280,12 +334,20 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
           {straw && !flooded && Array.from({ length: 18 }, (_, i) => <path key={`st${i}`} d={`M${4 + i * 12 + rnd(i, 15) * 5} ${SKY - 1.2} l${7 + rnd(i, 16) * 5} ${-1 + rnd(i, 17) * 2}`} stroke="#d6b467" strokeWidth="1.3" strokeLinecap="round" />)}
           {straw && flooded && Array.from({ length: 14 }, (_, i) => <path key={`si${i}`} d={`M${8 + rnd(i, 18) * (W - 16)} ${ycm(1 + rnd(i, 19) * 6)} l4 1`} stroke="#c9a85c" strokeWidth="1" opacity=".8" />)}
           <g key={`r-${key}`} className="soil-roots">
-            {look && ps.map((x, i) => <Roots key={i} x={x} k={i} look={look} pan={pan} nodules={nodules} density={density} disease={pests > 0} />)}
+            {look && ps.map((x, i) => <Roots key={i} x={x} k={i} look={look} pan={pan} nodules={nodules} density={density} disease={pests > 0} flooded={flooded} />)}
           </g>
           {Array.from({ length: worms }, (_, i) => (
             <path key={`w${i}`} className="soil-worm" style={{ animationDelay: `${i * 0.7}s` }}
               d={`M${24 + ((i * 53) % 150)} ${ycm(flooded ? 22 : 3 + ((i * 37) % 11))} q5 -4 10 0 t10 0 t10 0`} stroke="#d58a7f" strokeWidth="3.4" strokeLinecap="round" fill="none" />
           ))}
+
+          {Array.from({ length: bubbles }, (_, i) => {
+            const fromStem = i % 3 === 2 && ps.length, bx = fromStem ? ps[i % ps.length] + 2 : 8 + rnd(i, 61) * (W - 16);
+            const by = fromStem ? SKY - 3 : ycm(1.5 + rnd(i, 62) * 7), rise = by - (SKY - 10);
+            return <circle key={`ch4${i}-${key}`} className="soil-bubble" cx={bx} cy={by} r={0.9 + rnd(i, 63) * 1.1}
+              style={{ '--rise': `${-rise}px`, animationDelay: `${(i * 0.37) % 2.4}s`, animationDuration: `${2.2 + rnd(i, 64) * 1.4}s` }}
+              fill="#eef6f2" stroke="#7d9a8c" strokeWidth=".4" />;
+          })}
 
           {/* Surface: water on a puddled crop, the crop, its pests. */}
           {flooded && <>
@@ -331,7 +393,11 @@ export function SoilLegend() {
     [<rect key="a" x="1" y="3" width="16" height="8" rx="1.5" fill="#4a3422" />, T('চাষের স্তর: যত কালো, তত জৈব পদার্থ', 'Tilled layer: darker = more organic matter')],
     [<g key="b"><rect x="1" y="4" width="16" height="6" fill="#5a4634" opacity=".6" /><path d="M2 7 H9 M11 5.5 H16" stroke="#2a1d12" strokeWidth=".7" /></g>, T('শক্ত তলা: ধানে কাদা করায় ১৫–২০ সেমিতে জমে', 'Plough pan: packed at 15–20 cm by puddling for rice')],
     [<g key="c"><ellipse cx="6" cy="7" rx="3" ry="2" fill="#c66a2a" opacity=".7" /><path d="M13 3 q2 4 0 8" stroke="#8e9a9c" strokeWidth="1.6" fill="none" /></g>, T('মরচে দাগ: পানি জমে থাকা মাটির চিহ্ন', 'Rust mottles: soil that stands wet')],
-    [<path key="d" d="M1 8 q4 -4 8 0 t8 0" stroke="#d58a7f" strokeWidth="3" strokeLinecap="round" fill="none" />, T('কেঁচো (পানিতে ডোবা ধানক্ষেতে কম)', 'Earthworms (few in a flooded paddy)')],
+    [<path key="d" d="M1 8 q4 -4 8 0 t8 0" stroke="#d58a7f" strokeWidth="3" strokeLinecap="round" fill="none" />, T('কেঁচো: ডোবানো ধানক্ষেতে থাকে না (অক্সিজেন নেই)', 'Earthworms: none while a paddy is flooded (no air)')],
+    [<g key="r"><rect x="1" y="2" width="16" height="2" fill="#8a6440" /><rect x="1" y="4" width="16" height="8" fill="#787d72" /></g>, T('ধূসর মাটি: ডোবানো জমিতে অক্সিজেন ফুরোলে, ওপরে পাতলা বাদামি স্তর', 'Grey soil: a flooded field out of oxygen, under a thin brown skin')],
+    [<g key="p"><path d="M9 1 V13" stroke="#c9772d" strokeWidth="3" opacity=".45" /><path d="M9 1 V13" stroke="#f1e2c6" strokeWidth="1.1" /></g>, T('মরচে রঙা শিকড়: ধানের শিকড় অক্সিজেন ছাড়ে, লোহা জমে', 'Rust-coated rice roots: they leak oxygen and iron settles on them')],
+    [<g key="m"><circle cx="5" cy="9" r="2" fill="#eef6f2" stroke="#7d9a8c" strokeWidth=".6" /><circle cx="11" cy="5" r="1.6" fill="#eef6f2" stroke="#7d9a8c" strokeWidth=".6" /></g>, T('মিথেনের বুদবুদ: ডোবানো মাটিতে পচন (খড় রাখলে বেশি)', 'Methane bubbles: decay in flooded soil (more with straw kept)')],
+    [<path key="k" d="M6 1 L8 7 L7 13 L10 7 L11 1 Z" fill="#24180e" opacity=".75" />, T('ফাটল: শুকনো মৌসুমে এঁটেল মাটি (৩৫%-এর বেশি কাদা)', 'Cracks: clay soil (over 35% clay) drying out')],
     [<g key="e"><path d="M9 1 V13 M9 5 q4 1 6 4" stroke="#d9c6a4" strokeWidth="1.2" fill="none" /><circle cx="14" cy="8" r="1.7" fill="#e0828a" /></g>, T('ডালের শিকড়ে গুটি: বাতাসের নাইট্রোজেন', 'Legume nodules: nitrogen from the air')],
     [<path key="f" d="M1 9 l6 -1 M6 10 l7 0 M11 8 l6 1" stroke="#d6b467" strokeWidth="1.6" strokeLinecap="round" />, T('খড়ের আবরণ: খড়-নাড়া রেখে দিলে', 'Straw cover: when straw is kept')],
     [<g key="g"><ellipse cx="9" cy="7" rx="4.2" ry="2.8" fill="#a3261d" /><circle cx="4.6" cy="7" r="1.7" fill="#3b0f0c" /></g>, T('পোকা ও শিকড়ের রোগ: একই গোত্রের ফসল পরপর', 'Pests and root disease: one crop family after itself')],
