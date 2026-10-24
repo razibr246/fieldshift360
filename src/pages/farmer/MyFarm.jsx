@@ -40,7 +40,7 @@ export default function MyFarm() {
 
   return (
     <div className="space-y-6">
-      <section className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
+      <section data-tour="farm-hero" className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
         <div className="absolute inset-0 -z-10"><Photo name="landParcels" fill sizes="(min-width: 1200px) 1200px, 100vw" priority /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,38,20,.9)_0%,rgba(13,38,20,.65)_50%,rgba(13,38,20,.2)_100%)]" /></div>
         <div className="max-w-2xl p-6 sm:p-8">
           <p className="text-[15px] text-white/80">{T('আমার জমি', 'My fields')}</p>
@@ -58,7 +58,7 @@ export default function MyFarm() {
 
       {myParcels.length > 0 ? (
         <>
-          <Card className="p-4 sm:p-5">
+          <Card className="p-4 sm:p-5" data-tour="farm-map">
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
               <FieldsMap parcels={myParcels} levels={levels} selectedId={selected?.id} focusAll={focusAll} onSelect={pick} onShowAll={() => setFocusAll(true)} height={440} upazila={upazila.id} />
               <div className="flex min-w-0 flex-col">
@@ -88,21 +88,21 @@ export default function MyFarm() {
                     );
                   })}
                 </ul>
-                <Button variant="secondary" onClick={() => openEditor('add')} className="mt-3"><Plus size={16} />{T('আরেকটি জমি যোগ করুন', 'Add another field')}</Button>
+                <Button variant="secondary" onClick={() => openEditor('add')} className="mt-3" data-tour="farm-add"><Plus size={16} />{T('আরেকটি জমি যোগ করুন', 'Add another field')}</Button>
                 <p className="mt-2 flex gap-1.5 text-[12.5px] leading-5 text-muted"><Satellite size={14} className="mt-0.5 shrink-0" />{T('জমির অবস্থান উপজেলা কৃষি অফিস দিয়েছে। কোনোটা ভুল হলে নিজে ঠিক করে দিন, অফিস যাচাই করবে।', 'The upazila agriculture office entered where each field is. If one is wrong, correct it and the office will check.')}</p>
               </div>
             </div>
           </Card>
 
           {selected && editing !== 'add' && (
-            <FieldSatellite key={selected.id} parcel={selected} index={selIndex} active={selected.id === activeParcel?.id}
-              onPlan={planThis} onEdit={() => openEditor('edit')} onReading={(id, r) => setLive((x) => (x[id] === r ? x : { ...x, [id]: r }))} />
+            <div data-tour="farm-sat"><FieldSatellite key={selected.id} parcel={selected} index={selIndex} active={selected.id === activeParcel?.id}
+              onPlan={planThis} onEdit={() => openEditor('edit')} onReading={(id, r) => setLive((x) => (x[id] === r ? x : { ...x, [id]: r }))} /></div>
           )}
         </>
       ) : null}
 
       {(editing || myParcels.length === 0) && (
-        <div ref={editRef} className="scroll-mt-24">
+        <div ref={editRef} className="scroll-mt-24" data-tour="farm-picker">
           <Card className="p-4 sm:p-5">
             {editing && (
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -115,7 +115,7 @@ export default function MyFarm() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2" data-tour="farm-cards">
         <Card className="p-5 sm:p-6">
           <div className="flex items-center justify-between gap-2"><h2 className="flex items-center gap-2 text-[20px] font-bold"><Sprout size={19} className="text-primary-600" />{T('এই মৌসুমের পরিকল্পনা', 'This season’s plan')}</h2>{confirmedPlan ? <Badge><CheckCircle2 size={13} />{T('পাকা', 'Confirmed')}</Badge> : <Badge tone="amber">{T('পাকা হয়নি', 'Not confirmed')}</Badge>}</div>
           {activeParcel && <p className="mt-1 text-[14px] text-muted">{T(`জমি: ${activeParcel.name.bn}`, `Field: ${activeParcel.name.en}`)}</p>}

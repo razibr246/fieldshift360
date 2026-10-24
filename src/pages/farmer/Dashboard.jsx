@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
+      <section data-tour="dash-hero" className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
         <div className="absolute inset-0 -z-10"><Photo name="seedlings" fill sizes="(min-width: 1200px) 1200px, 100vw" priority /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,38,20,.92)_0%,rgba(13,38,20,.75)_45%,rgba(13,38,20,.25)_100%)]" /></div>
         <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
           <div>
@@ -48,7 +48,7 @@ export default function Dashboard() {
             <p className="mt-3 max-w-xl text-[15.5px] leading-7 text-white/80">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
             <div className="mt-3"><Tags list={[climateTag(), 'RULE']} /></div>
           </div>
-          <div className="keep-solid glass rounded-[22px] !bg-white/85 p-4 text-ink">
+          <div data-tour="dash-next" className="keep-solid glass rounded-[22px] !bg-white/85 p-4 text-ink">
             <div className="flex items-start gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700"><next.icon size={20} /></span>
               <div className="min-w-0">
@@ -62,7 +62,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <Card className="p-5">
+      <Card className="p-5" data-tour="dash-year">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[20px] font-bold">{T('আপনার বছর, বাংলা মাসে', 'Your year, by Bangla month')}</h2>
           <div className="flex items-center gap-3"><ScoreRing value={chosen.score} size={40} /><Link to="/farmer/plan" onClick={() => goStep(4)} className="text-[14.5px] font-semibold text-primary-700 hover:underline">{T('পরামর্শ বদলে দেখুন', 'Explore other options')}</Link></div>
@@ -70,16 +70,16 @@ export default function Dashboard() {
         <SeasonRibbon />
       </Card>
 
-      <SeasonSoFar clim={clim} lat={farmer.lat} lon={farmer.lon} />
+      <div data-tour="dash-sofar"><SeasonSoFar clim={clim} lat={farmer.lat} lon={farmer.lon} /></div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-stagger>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-stagger data-tour="dash-stats">
         <StatCard icon={Droplets} tone={ws.tone === 'red' ? 'red' : ws.tone === 'amber' ? 'amber' : 'green'} label={T('আজ সেচ', 'Water today')} value={L(WATER_COLORS[water.color])} note={L(stage)} to="/farmer/today" />
         <StatCard icon={TrendingDown} tone={chosen.glut.level === 'High' ? 'red' : chosen.glut.level === 'Medium' ? 'amber' : 'green'} label={T('দাম পড়ার ঝুঁকি', 'Price-drop risk')} value={L(RISK_STYLE[chosen.glut.level])} note={T(`ইউনিয়নের ${num(chosen.glut.share * 100, 'bn')}% জমিতে ${chosen.crop.name.bn}`, `${num(chosen.glut.share * 100, 'en')}% of the union is ${chosen.crop.name.en.toLowerCase()}`)} to="/farmer/plan" />
         <StatCard icon={Wheat} tone="amber" label={T('ফসল তোলা', 'Harvest')} value={daysTo > 0 ? <><CountUp value={daysTo} /> {T('দিন বাকি', 'days left')}</> : T('এখন চলছে', 'under way')} note={fmtRange(chosen.hw.start, chosen.hw.end, lang)} to="/farmer/harvest" />
         <StatCard icon={LifeBuoy} tone="violet" label={T('সাহায্য', 'Help')} value={T(`${num(openReqs, 'bn')}টি অপেক্ষায়`, `${openReqs} waiting`)} note={unreadAdvisories ? T(`${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new message${unreadAdvisories > 1 ? 's' : ''}`) : T('নতুন বার্তা নেই', 'No new messages')} to="/farmer/help" />
       </div>
 
-      <Link to="/farmer/future" className="lift group flex items-center gap-4 overflow-hidden rounded-[20px] bg-gradient-to-r from-primary-900 to-sky-800 p-4 text-white shadow-[var(--shadow-lift)] ring-1 ring-white/10 sm:p-5">
+      <Link to="/farmer/future" data-tour="dash-future" className="lift group flex items-center gap-4 overflow-hidden rounded-[20px] bg-gradient-to-r from-primary-900 to-sky-800 p-4 text-white shadow-[var(--shadow-lift)] ring-1 ring-white/10 sm:p-5">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><Telescope size={24} /></span>
         <span className="min-w-0 flex-1">
           <span className="block text-[17px] font-bold">{T('জমির ভবিষ্যৎ: ১০ বছরের ফসলচক্র', 'Field future: ten years of rotation')}</span>
@@ -89,7 +89,7 @@ export default function Dashboard() {
       </Link>
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" data-tour="dash-week">
           <h2 className="text-[20px] font-bold">{T('এই সপ্তাহের কাজ', 'This week')}</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3" data-stagger>
             {[
@@ -111,7 +111,7 @@ export default function Dashboard() {
             ))}
           </div>
         </Card>
-        <Card className="p-5 sm:p-6">
+        <Card className="p-5 sm:p-6" data-tour="dash-alerts">
           <h2 className="text-[20px] font-bold">{T('খবর ও সতর্কতা', 'Alerts and messages')}</h2>
           <div className="mt-4 space-y-2.5">
             {alerts.length === 0 && <Note tone="ok">{T('এখন কোনো সতর্কতা নেই।', 'Nothing to worry about right now.')}</Note>}

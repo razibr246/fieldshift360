@@ -43,7 +43,7 @@ export default function Plan() {
           <div className="gold-fill progress-sheen h-full rounded-full" style={{ width: `${((i + 1) / steps.length) * 100}%` }} />
           <span key={i} className="gold-tip" style={{ left: `calc(${((i + 1) / steps.length) * 100}% - 7px)` }} />
         </div>
-        <ol className="hide-scrollbar -mx-1 mb-6 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" aria-label={T('ধাপগুলো', 'Steps')}>
+        <ol data-tour="plan-steps" className="hide-scrollbar -mx-1 mb-6 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1" aria-label={T('ধাপগুলো', 'Steps')}>
           {steps.map((st, k) => (
             <li key={k} className="shrink-0">
               <button type="button" onClick={() => go(k)} aria-current={k === i ? 'step' : undefined}
@@ -54,10 +54,10 @@ export default function Plan() {
           ))}
         </ol>
         <div className="mx-auto max-w-[740px]">
-          <div key={i} className="swap-in">
+          <div key={i} className="swap-in" data-tour="plan-body">
             <Step />
           </div>
-          <div className="sticky bottom-20 z-10 mt-8 flex gap-2.5 rounded-2xl border border-border bg-white/95 p-2.5 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+          <div data-tour="plan-nav" className="sticky bottom-20 z-10 mt-8 flex gap-2.5 rounded-2xl border border-border bg-white/95 p-2.5 shadow-[var(--shadow-card)] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
             <button type="button" className="btn-ghost shrink-0 whitespace-nowrap py-3 sm:flex-1" disabled={i === 0} onClick={() => go(i - 1)}><ArrowLeft size={16} />{T('আগের ধাপ', 'Back')}</button>
             {i < steps.length - 1
               ? <button type="button" className="btn-primary min-w-0 flex-[2] py-3 text-center text-[15px]" onClick={() => go(i + 1)}>{T(`পরের ধাপ: ${steps[i + 1].label}`, `Next: ${steps[i + 1].label}`)}<ArrowRight size={16} /></button>
@@ -87,7 +87,7 @@ function StoryRail({ current, go, steps }) {
     { to: '/farmer/harvest', icon: Wheat, label: T('ফসল তোলা ও বিক্রি', 'Harvest and sale'), out: `${fmtDate(chosen.hw.start, lang)} – ${fmtDate(chosen.hw.end, lang)}` },
   ];
   return (
-    <aside className="hidden lg:sticky lg:top-32 lg:block">
+    <aside className="hidden lg:sticky lg:top-32 lg:block" data-tour="plan-rail">
       <div className="surface-card spotlight-card lift rounded-[20px] p-5">
         <div className="font-display text-[18px] font-bold">{T('আপনার হিসাব এক নজরে', 'Your plan at a glance')}</div>
         <p className="mt-0.5 text-[13.5px] leading-5 text-muted">{T('যেকোনো ধাপে কিছু বদলালে বাকিগুলো নিজে থেকে নতুন করে হিসাব হয়।', 'Change anything and the rest is worked out again.')}</p>

@@ -75,7 +75,7 @@ export default function SmsMode() {
         subtitle={T('স্মার্টফোন বা ইন্টারনেট ছাড়াই: একটি শব্দ বা নিজের ভাষায় প্রশ্ন লিখে পাঠালে একই হিসাবের উত্তর আসে, বাংলায়, এসএমএসের মাপে।', 'No smartphone or internet needed: send a word, or a question in your own words, and the same working answers in Bangla, cut to SMS size.')} tags={['RULE']} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
         {/* The phone */}
-        <div className="mx-auto w-full max-w-[380px] rounded-[42px] bg-[#1c2420] p-3 shadow-2xl">
+        <div data-tour="sms-phone" className="mx-auto w-full max-w-[380px] rounded-[42px] bg-[#1c2420] p-3 shadow-2xl">
           <div className="rounded-[32px] bg-[#eef2ec] p-3">
             <div className="flex items-center gap-2 border-b border-black/10 pb-2 text-[13px] font-semibold"><MessageSquareText size={15} className="text-primary-700" />FS360 · {L(farmer.name)}</div>
             <div className="h-[420px] space-y-2 overflow-y-auto py-3 pr-1" aria-live="polite">
@@ -97,7 +97,7 @@ export default function SmsMode() {
         </div>
 
         <div className="space-y-4">
-          <Card className="p-5">
+          <Card data-tour="sms-keys" className="p-5">
             <h2 className="flex items-center gap-2 text-[18px] font-bold"><Smartphone size={18} className="text-primary-700" />{T('কী কী লেখা যায়', 'What you can send')}</h2>
             <ul className="mt-2 space-y-1.5 text-[14.5px] leading-6">
               <li><b>{T('পরিকল্পনা', 'PLAN')}</b>: {T('এই রবিতে কোন ফসল, কবে লাগাবেন', 'which crop this Rabi, and when')}</li>
@@ -113,7 +113,7 @@ export default function SmsMode() {
             <h2 className="flex items-center gap-2 text-[18px] font-bold"><Repeat size={18} className="text-primary-700" />{T('এই কথোপকথনে', 'In this conversation')}</h2>
             <p className="mt-1 text-[14.5px]">{T(`${num(replies, 'bn')}টি এসএমএস উত্তর। প্রতিটি বাংলা এসএমএস ৭০ অক্ষরের, লম্বা হলে ৬৭ অক্ষরের ভাগে।`, `${replies} SMS replies. A Bangla SMS holds 70 characters, or 67 a part when it runs longer.`)}</p>
           </Card>
-          <Card className="p-5">
+          <Card data-tour="sms-real" className="p-5">
             <h2 className="flex items-center gap-2 text-[18px] font-bold"><Server size={18} className="text-primary-700" />{T('আসল ব্যবস্থায়', 'In a real service')}</h2>
             <p className="mt-1 text-[14px] leading-6 text-muted">{T('একটি শর্টকোডে আসা এসএমএস একটি এসএমএস গেটওয়ে থেকে এই একই উত্তর-যন্ত্রে যায় (ভয়েস সহকারীর মতোই), কৃষকের নিবন্ধিত মোবাইল নম্বর দিয়ে তাঁর জমি চেনা যায়, আর উত্তর এসএমএসে ফেরে। এই পাতা সেই ফোনের অনুকরণ; এখানে কোনো এসএমএস পাঠানো হয় না।', 'An SMS to a short code goes through an SMS gateway into these same answer functions (as the voice assistant uses), the farmer’s registered mobile number finds their field, and the answer goes back by SMS. This page simulates that phone; no SMS is sent from here.')}</p>
           </Card>

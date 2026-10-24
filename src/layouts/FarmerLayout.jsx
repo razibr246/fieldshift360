@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
-import { Bell, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
+import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, ResetDemo, BackButton } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
@@ -9,6 +9,7 @@ import { useStore, demo } from '../store';
 import { IRRIGATION, cropName } from '../engine/crops';
 import { num, bnDigits } from '../engine/dates';
 import FarmerAvatar from '../components/brand/FarmerAvatar';
+import FarmerTour, { startFarmerTour } from '../components/FarmerTour';
 
 export function useFarmerNav() {
   const { T } = useStore();
@@ -52,7 +53,7 @@ function AccountMenu() {
     { to: '/farmer/help', icon: LifeBuoy, label: T('আমার অনুরোধ', 'My requests') },
   ];
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={ref} data-tour="account">
       <button type="button" onClick={() => setOpen(!open)} className="flex h-10 items-center gap-2 rounded-xl border border-border bg-white px-2 text-left hover:bg-primary-50" aria-haspopup="menu" aria-expanded={open} aria-label={T('আমার অ্যাকাউন্ট', 'My account')}>
         <FarmerAvatar id={farmer.id} size={28} rounded="rounded-lg" fallback={<span className="grid h-7 w-7 place-items-center rounded-lg bg-primary-100 text-[14px] font-bold text-primary-800">{L(farmer.name).slice(0, 1)}</span>} />
         <span className="hidden leading-tight md:block">
@@ -99,6 +100,7 @@ function MoreSheet({ items, onClose }) {
           {items.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} onClick={onClose} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl border px-3 py-3 text-[15px] font-semibold ${isActive ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-border'}`}><n.icon size={19} />{n.label}</NavLink>
           ))}
+          <button type="button" onClick={() => { onClose(); startFarmerTour(); }} className="col-span-2 flex items-center gap-2.5 rounded-xl border border-primary-200 bg-primary-50 px-3 py-3 text-[15px] font-semibold text-primary-900"><Compass size={19} />{T('অ্যাপের পুরো সফর', 'Tour of the whole app')}</button>
           <Link to="/farmer/profile" onClick={onClose} className="col-span-2 flex items-center gap-2.5 rounded-xl bg-primary-950 px-3 py-3 text-[15px] font-semibold text-white"><UserRound size={19} />{T('আমার প্রোফাইল', 'My profile')}</Link>
         </div>
         <div className="mt-3 flex justify-center"><ResetDemo /></div>
@@ -131,16 +133,22 @@ export default function FarmerLayout() {
   const rest = nav.filter((n) => !bottom.some((b) => b.to === n.to));
   const restActive = rest.some((n) => loc.pathname.startsWith(n.to));
   return (
-    <div className="min-h-screen">
+    <div className="farmer-experience min-h-screen">
       <MessagePopup />
-      <header className="glass-bar sticky top-0 z-40">
+      <FarmerTour />
+      <header className="farmer-header glass-bar sticky top-0 z-40">
         <div className="page-shell flex h-[64px] items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <BackButton />
             <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => navigate('/farmer/help')}
+            <button type="button" onClick={() => startFarmerTour()} data-tour="tour-btn"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-primary-50 hover:text-primary-800 active:scale-95"
+              aria-label={T('অ্যাপের পুরো সফর', 'Tour of the whole app')} title={T('অ্যাপের পুরো সফর', 'Tour of the whole app')}>
+              <Compass size={18} />
+            </button>
+            <button type="button" onClick={() => navigate('/farmer/help')} data-tour="bell"
               className={`relative grid h-10 w-10 place-items-center rounded-xl border bg-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-2xs ${unreadAdvisories > 0 ? 'border-red-200 text-red-600 shadow-[0_0_14px_rgba(220,38,38,0.25)] hover:bg-red-50/50' : 'border-border text-ink/75 hover:bg-primary-50'}`}
               aria-label={unreadAdvisories ? T(`কর্মকর্তার ${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new messages from your officer`) : T('কর্মকর্তার বার্তা', 'Messages from your officer')}>
               <Bell size={18} className={unreadAdvisories > 0 ? 'animate-[drift_3s_ease-in-out_infinite]' : ''} />
@@ -151,11 +159,11 @@ export default function FarmerLayout() {
               )}
             </button>
             <AccountMenu />
-            <LangToggle />
+            <div data-tour="lang"><LangToggle /></div>
             <NavLink to="/farmer/profile" className={({ isActive }) => `hidden h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lg:inline-flex ${isActive ? 'bg-primary-700 shadow-sm' : 'bg-primary-950 hover:bg-primary-900 shadow-2xs'}`}><UserRound size={16} />{T('আমার প্রোফাইল', 'My profile')}</NavLink>
           </div>
         </div>
-        <nav className="hidden border-t border-border lg:block" aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
+        <nav data-tour="nav" className="farmer-desktop-nav hidden border-t border-border lg:block" aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
           <div ref={tabs} className="page-shell hide-scrollbar relative flex gap-1 overflow-x-auto py-1">
             {pill && (
               <span aria-hidden="true" className="nav-pill pointer-events-none absolute left-0 top-0 rounded-xl"
@@ -185,7 +193,7 @@ export default function FarmerLayout() {
           <ResetDemo />
         </div>
       </footer>
-      <nav className="fixed inset-x-3 bottom-0 z-50 lg:hidden" style={{ paddingBottom: 'max(.75rem, env(safe-area-inset-bottom))' }} aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
+      <nav data-tour="nav" className="farmer-mobile-nav fixed inset-x-3 bottom-0 z-50 lg:hidden" style={{ paddingBottom: 'max(.75rem, env(safe-area-inset-bottom))' }} aria-label={T('কৃষকের পাতা', 'Farmer pages')}>
         <div className="glass mx-auto grid max-w-lg grid-cols-5 rounded-[28px] border border-white/70 px-1.5 py-1.5 shadow-[0_16px_40px_-10px_rgba(13,38,20,0.38)] backdrop-blur-xl">
           {bottom.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition-all duration-200 active:scale-95 ${isActive ? 'text-primary-950 font-bold' : 'text-ink/70 hover:text-ink'}`}>

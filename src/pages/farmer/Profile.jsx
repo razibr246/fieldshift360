@@ -81,7 +81,7 @@ function Profile() {
       <PageHeader eyebrow={T('আমার অ্যাকাউন্ট', 'My account')} title={T('আমার প্রোফাইল', 'My profile')}
         subtitle={T('আপনার নাম, যোগাযোগ, জমি আর কৃষি অফিসের সব তথ্য এক জায়গায়। নিজের তথ্য বদলে "সংরক্ষণ করুন" চাপুন।', 'Your name, contact, land and agriculture office in one place. Change your details and press "Save".')} />
 
-      <Card className="mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+      <Card data-tour="pf-top" className="mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
         <FarmerAvatar id={farmer.id} size={64} rounded="rounded-2xl" fallback={<span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-primary-100 text-[28px] font-bold text-primary-800">{L(farmer.name).slice(0, 1)}</span>} />
         <div className="min-w-0 flex-1">
           <h2 className="text-[24px] font-bold leading-tight">{L(farmer.name)}</h2>
@@ -96,7 +96,7 @@ function Profile() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
-        <Card className="p-5 sm:p-6">
+        <Card data-tour="pf-form" className="p-5 sm:p-6">
           <h2 className="flex items-center gap-2 text-[20px] font-bold"><UserRound size={19} className="text-primary-600" />{T('ব্যক্তিগত তথ্য', 'Personal details')}</h2>
           <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field id="pf-bn" label={T('নাম (বাংলায়)', 'Name (Bangla)')}><input id="pf-bn" value={form.nameBn} onChange={set('nameBn')} className={INPUT} autoComplete="name" /></Field>
@@ -138,7 +138,7 @@ function Profile() {
             ]} />
           </Card>
 
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="pf-land" className="p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-[20px] font-bold"><Sprout size={19} className="text-primary-600" />{T('জমি ও চাষ', 'Land and farming')}</h2>
             <Rows rows={[
               [T('জমির মাপ', 'Field size'), T(`${num(farmer.area_dec, 'bn')} শতক (${num(bigha, 'bn', { dp: 1 })} বিঘা)`, `${farmer.area_dec} decimal (${num(bigha, 'en', { dp: 1 })} bigha)`)],
@@ -149,7 +149,7 @@ function Profile() {
             ]} />
           </Card>
 
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="pf-office" className="p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-[20px] font-bold"><Building2 size={19} className="text-primary-600" />{T('আমার কৃষি অফিস', 'My agriculture office')}</h2>
             <Rows rows={[
               [T('উপজেলা কৃষি অফিসার', 'Upazila agriculture officer'), L(upazila.officer)],
@@ -158,7 +158,7 @@ function Profile() {
             ]} />
           </Card>
 
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="pf-reqs" className="p-5 sm:p-6">
             <div className="flex items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 text-[20px] font-bold"><LifeBuoy size={19} className="text-primary-600" />{T('আমার অনুরোধ ও বার্তা', 'My requests and messages')}</h2>
               <Button to="/farmer/help" variant="ghost" className="!h-9 !px-2 text-[13.5px]">{T('দেখুন', 'Open')}</Button>

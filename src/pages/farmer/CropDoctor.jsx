@@ -127,7 +127,7 @@ export default function CropDoctor() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">
-        <Card className="spotlight-card lift p-5 sm:p-6">
+        <Card data-tour="doc-photo" className="spotlight-card lift p-5 sm:p-6">
           <div className="mb-4">
             <span className="block text-[13.5px] font-semibold text-muted">{T('কোন ফসলের ছবি?', 'Which crop is this?')}</span>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -219,7 +219,7 @@ export default function CropDoctor() {
               <Sparkles size={15} className="text-primary-700" />
               <span>{T('ছবির সঙ্গে ডাক্তার যা যাচাই করবে', 'What the doctor also checks')}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div data-tour="doc-context" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <div className="rounded-xl border border-border/60 bg-white/70 p-2.5">
                 <span className="flex items-center gap-1 text-[11px] font-semibold text-muted"><Sprout size={13} className="text-primary-700" />{T('বয়স ও স্তর', 'Stage')}</span>
                 <span className="mt-1 block truncate font-bold text-ink">{crop !== chosen.crop.id ? '—' : daysAfter >= 0 ? T(`${bnDigits(daysAfter)} দিন`, `Day ${daysAfter}`) : T('লাগানো হয়নি', 'Not sown yet')}</span>
@@ -243,7 +243,7 @@ export default function CropDoctor() {
           </div>
         </Card>
 
-        <Card className="spotlight-card lift p-5 sm:p-6">
+        <Card data-tour="doc-result" className="spotlight-card lift p-5 sm:p-6">
           <div key={st.phase} className="swap-in">
             {st.phase === 'idle' && (
               <div className="grid h-full min-h-76 place-items-center text-center">

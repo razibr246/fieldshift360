@@ -101,7 +101,7 @@ export default function Help() {
       <PageHeader eyebrow={T('সাহায্য', 'Help')} title={T('কৃষি কর্মকর্তার কাছে জানান', 'Ask your agriculture officer')}
         subtitle={T(`সমস্যাটা বেছে নিন; আপনার জমি, ${bnOf(crop.name.bn)} অবস্থা, উপগ্রহের ছবি আর আবহাওয়া নিজে থেকেই সঙ্গে যাবে।`, `Pick the problem; your field, the state of your ${crop.name.en.toLowerCase()}, the satellite reading and the weather go with it.`)} />
       <div className="grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
-        <Card className="p-5 sm:p-6">
+        <Card data-tour="help-form" className="p-5 sm:p-6">
           <form onSubmit={submit} noValidate>
             {amanNow && (
               <fieldset className="mb-5">
@@ -184,12 +184,12 @@ export default function Help() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="help-officer" className="p-5 sm:p-6">
             <div className="flex items-center gap-3">
               <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary-50 text-primary-700"><UserRoundCheck size={23} /></div>
               <div><h2 className="text-[17px] font-bold">{L(upazila.officer)}</h2><p className="text-[13.5px] text-muted">{T(`উপজেলা কৃষি অফিসার, ${upazila.name.bn} উপজেলা কৃষি অফিস, ${upazila.district.bn}`, `Upazila agriculture officer, ${upazila.name.en} upazila agriculture office, ${upazila.district.en}`)}</p></div>
             </div>
-            <a href="tel:16123" className="mt-4 flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50/70 px-3.5 py-3 hover:bg-primary-100/70 transition active:scale-98">
+            <a data-tour="help-call" href="tel:16123" className="mt-4 flex items-center gap-3 rounded-xl border border-primary-200 bg-primary-50/70 px-3.5 py-3 hover:bg-primary-100/70 transition active:scale-98">
               <Phone size={18} className="shrink-0 text-primary-700" />
               <span className="min-w-0 text-[13.5px] leading-5"><b className="text-[15px] text-primary-900">{T('কৃষি কল সেন্টার ১৬১২৩', 'Krishi Call Centre 16123')}</b><span className="block text-muted">{T('জরুরি হলে এখনই ফোন করুন: কৃষি তথ্য সার্ভিসের বিশেষজ্ঞ, যেকোনো মোবাইল থেকে।', 'Urgent? Call now: Agriculture Information Service experts, from any mobile.')}</span></span>
             </a>
@@ -204,7 +204,7 @@ export default function Help() {
               ))}
             </div>
           </Card>
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="help-reqs" className="p-5 sm:p-6">
             <h3 className="text-[15px] font-bold">{T('আমার পাঠানো অনুরোধ', 'Requests I have sent')}</h3>
             {myReqs.length === 0 ? <div className="mt-3"><EmptyState icon={Clock} title={T('কোনো অনুরোধ পাঠাননি', 'No requests yet')} text={T('সমস্যা হলে পাশের ফর্ম থেকে পাঠান।', 'Use the form to send one when you need help.')} /></div> : (
               <ul className="mt-2 divide-y divide-border">

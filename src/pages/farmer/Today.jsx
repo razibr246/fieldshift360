@@ -181,7 +181,7 @@ export default function Today() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[.95fr_1.05fr]">
-        <section className={`spotlight-card lift relative overflow-hidden rounded-[22px] bg-gradient-to-br ${dToday < 0 ? 'from-primary-700 to-primary-900' : ws.grad} p-6 text-white shadow-[var(--shadow-card)] sm:p-8 lg:sticky lg:top-32 lg:self-start`} aria-live="polite">
+        <section data-tour="today-advice" className={`spotlight-card lift relative overflow-hidden rounded-[22px] bg-gradient-to-br ${dToday < 0 ? 'from-primary-700 to-primary-900' : ws.grad} p-6 text-white shadow-[var(--shadow-card)] sm:p-8 lg:sticky lg:top-32 lg:self-start`} aria-live="polite">
           <div className="flex items-center justify-between">
             <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20">{dToday < 0 ? <Sprout size={28} /> : <Droplets size={28} />}</div>
             {dToday >= 0 && <span className="chip bg-white/20 !text-[13px] text-white">{L(ws)}</span>}
@@ -236,7 +236,7 @@ export default function Today() {
         </section>
 
         <div className="space-y-6">
-          <Card className="spotlight-card lift p-5 sm:p-6">
+          <Card className="spotlight-card lift p-5 sm:p-6" data-tour="today-weather">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-[20px] font-bold">{T('আপনার জমির আবহাওয়া', 'Weather at your field')}</h2>
               {liveWeather ? <Tags list={['REAL']} /> : null}
@@ -278,11 +278,11 @@ export default function Today() {
             )}
           </Card>
 
-          {activeParcel ? <FieldNow parcel={activeParcel} crop={crop} dToday={dToday} /> : (
+          {activeParcel ? <div data-tour="today-field"><FieldNow parcel={activeParcel} crop={crop} dToday={dToday} /></div> : (
             <Note tone="gold">{T('আপনার জমি এখনো উপজেলা কৃষি অফিসে নিবন্ধিত নয়, তাই উপগ্রহের ছবি দেখানো যাচ্ছে না। "আমার জমি" পাতায় জমিটা মানচিত্রে চিহ্নিত করুন।', 'Your field is not registered with the upazila office yet, so there is no satellite picture. Mark it on the map in "My farm".')}</Note>
           )}
 
-          <Card className="p-5 sm:p-6">
+          <Card className="p-5 sm:p-6" data-tour="today-alerts">
             <h2 className="text-[20px] font-bold">{T('সতর্কতা', 'Alerts')}</h2>
             <div className="mt-3 space-y-2.5">
               {wx && alerts.length === 0 && <Note tone="ok">{T('আগামী সাত দিনের পূর্বাভাসে বিশেষ কোনো সতর্কতা নেই।', 'No warnings in the seven-day forecast.')}</Note>}

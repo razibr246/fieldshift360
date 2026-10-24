@@ -57,10 +57,10 @@ export default function Voice() {
     <div>
       <PageHeader eyebrow={T('কথা বলে জানুন', 'Ask by voice')} title={T('মাঠের সহকারী', 'Field assistant')}
         subtitle={T('ফোনের মতো কল করে কথা বলুন বা নম্বর চাপুন, অথবা চ্যাটে মাইক চেপে বা লিখে জিজ্ঞেস করুন। উত্তর আসে আপনার জমি আর ২৫ বছরের নাসা আবহাওয়ার হিসাব থেকে; কিছু পাঠানোর আগে আমি আপনার অনুমতি নিই।', 'Call it like a phone and talk or press keys, or use the chat with the mic or typing. Answers come from your field and 25 years of NASA weather; I always ask before sending anything.')} tags={['RULE']} />
-      <Segmented value={mode} onChange={setMode} className="mb-5 grid w-full max-w-md grid-cols-2"
-        options={[{ value: 'phone', icon: Phone, label: T('ফোনে কল', 'Phone call') }, { value: 'chat', icon: MessagesSquare, label: T('চ্যাট (ফোন ছাড়া)', 'Chat (no phone)') }]} />
+      <div data-tour="voice-mode" className="mb-5 w-full max-w-md"><Segmented value={mode} onChange={setMode} className="grid w-full grid-cols-2"
+        options={[{ value: 'phone', icon: Phone, label: T('ফোনে কল', 'Phone call') }, { value: 'chat', icon: MessagesSquare, label: T('চ্যাট (ফোন ছাড়া)', 'Chat (no phone)') }]} /></div>
       {mode === 'phone' ? (
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.05fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.05fr]" data-tour="voice-main">
           <PhoneCall v={v} />
           <div className="space-y-4">
             <CallSummary v={v} />
@@ -74,7 +74,7 @@ export default function Voice() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]" data-tour="voice-main">
           <VoiceChat v={v} />
           <div className="space-y-4">
             <Card className="p-5">

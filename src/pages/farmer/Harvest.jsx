@@ -88,7 +88,7 @@ export default function Harvest() {
       <PageHeader eyebrow={T(`ফসল তোলা ও বিক্রি · ${fmtBangla(today, 'bn')} (${fmtDate(today, 'bn')})`, `Harvest and sale · ${fmtDate(today, 'en')}`)} title={T(`${bnOf(crop.name.bn)} ফসল কবে উঠবে`, `When your ${crop.name.en.toLowerCase()} will be ready`)}
         subtitle={T(`${fieldName}, ${bnDigits(farmer.area_dec)} শতক। ${dPlant < 0 ? `${crop.action.bn} ${fmtDate(chosen.t0, 'bn')}; তারিখ এখন গড় আবহাওয়ায়, লাগানোর পর থেকে প্রতিদিনের আসল তাপে বদলাবে।` : `লাগানো হয়েছে ${fmtDate(chosen.t0, 'bn')}, ${bnDigits(dPlant)} দিন আগে; তারিখ প্রতিদিনের আসল তাপমাত্রায় হালনাগাদ হয়।`}`, `${fieldName}, ${farmer.area_dec} decimal. ${dPlant < 0 ? `${crop.action.en} on ${fmtDate(chosen.t0, 'en')}; the date uses average weather for now and follows the real daily warmth from planting on.` : `Planted ${fmtDate(chosen.t0, 'en')}, ${dPlant} days ago; the date updates with the real daily temperature.`}`)}
         tags={[clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', 'REAL', 'RULE']} action={<WhyButton payload={why} />} />
-      <Card className="overflow-hidden">
+      <Card data-tour="h-top" className="overflow-hidden">
         <div className="grid lg:grid-cols-[.75fr_1.25fr]">
           <div className="bg-paddy-50 p-7 text-center sm:p-9">
             <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-white text-paddy-500 shadow-sm"><Wheat size={38} /></div>
@@ -125,7 +125,7 @@ export default function Harvest() {
       </Card>
 
       {ripe && (
-        <Card className="mt-6 p-5 sm:p-6">
+        <Card data-tour="h-how" className="mt-6 p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="flex items-center gap-2 text-[20px] font-bold"><Sprout size={20} className="text-primary-600" />{T('কখন আর কীভাবে কাটবেন', 'When and how to harvest')}</h2><Tags list={['RULE']} /></div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <div className="rounded-xl bg-canvas p-4 text-[14.5px] leading-6"><b>{T('পাকার লক্ষণ', 'Ready when')}</b><p className="mt-1">{L(ripe.sign)}</p></div>
@@ -143,7 +143,7 @@ export default function Harvest() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
         <div className="space-y-6">
-          <Card className="p-5 sm:p-6">
+          <Card data-tour="h-market" className="p-5 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-[20px] font-bold">{T(`${union.meta.full.bnIn} কোন সপ্তাহে কত ফসল`, `How much ${union.meta.en} harvests each week`)}</h2><span className={`chip !text-[13px] ${RISK_STYLE[chosen.glut.level].cls}`}>{T('দাম পড়ার ঝুঁকি', 'Price-drop risk')}: {L(RISK_STYLE[chosen.glut.level])}</span></div>
             <div className="mt-3"><BoardStatus nReal={realPlans.length + (confirmedPlan ? 1 : 0)} nSample={samplePlans.length} /></div>
             <SupplyChart bins={bins} real={realBins.size || s.shared.status === 'live' ? realBins : undefined} mine={mine} normal={normalWeekly(union.area_dec, crop.id)} dip={PRICE_DIP[crop.id]} highlight={[...mine.keys()]} height={230} />
@@ -157,7 +157,7 @@ export default function Harvest() {
           </Card>
           <PriceHistory crop={crop} hw={hw} />
         </div>
-        <Card className="h-fit p-5 sm:p-6">
+        <Card data-tour="h-record" className="h-fit p-5 sm:p-6">
           <h2 className="flex items-center gap-2 text-[20px] font-bold"><ClipboardCheck size={20} className="text-primary-600" />{T('ফসল তোলার পর লিখে রাখুন', 'After harvest, write it down')}</h2>
           <p className="mt-1 text-[14px] text-muted">{T('কত পেলেন আর কত দামে বেচলেন: পরের মৌসুমে দেশের গড়ের বদলে আপনার জমির নিজের ফলন ধরা হবে।', 'How much you got and the price you sold at: next season your own field’s yield is used instead of the national average.')}</p>
           <form onSubmit={record} className="mt-4 space-y-3">
