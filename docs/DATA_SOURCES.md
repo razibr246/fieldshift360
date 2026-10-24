@@ -36,6 +36,9 @@ a tag: **NASA/real data**, **rule** (our calculation or threshold), **AI**, or *
 | `src/data/field_watch.json`: NDVI and water readings for each registered field | Real | Copernicus Sentinel-2 L2A, 10 m (Microsoft Planetary Computer) | https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a | 2026-10-19 | Field watch on farmer and officer pages |
 | `src/data/geo/*_boundary.json`, `*_places.json` | Real | geoBoundaries gbOpen BGD ADM3/ADM4 (BBS / OCHA ROAP 2020, CC BY 3.0 IGO); GeoNames (CC BY 4.0) | https://www.geoboundaries.org, https://download.geonames.org/export/dump/ | 2026-10-18/19 | All maps, union lists, demo farm placement |
 | `src/data/geo/*_landcover.json` and maps | Real | Esri / Impact Observatory / Microsoft Sentinel-2 10 m land cover (CC BY 4.0) | https://livingatlas.arcgis.com/landcover/ | 2026-10-19 | Upazila land-use panels, sample-field selection |
+| `src/data/sedac.json`: each upazila's population density class, share of land below 10 m, cropland share | Real | NASA SEDAC GPW v4.11 population density 2020, LECZ v3 urban and rural land below 10 m, Global Agricultural Lands croplands 2000 (Ramankutty et al. 2008), read through NASA GIBS WMS inside each BBS/OCHA upazila boundary (`scripts/fetch-sedac.mjs`) | https://sedac.ciesin.columbia.edu, https://nasa-gibs.github.io/gibs-api-docs/ | 2026-10-24 | Home "Who it is for" |
+| `src/data/census.json`: people per upazila; farm households in Bangladesh | Real | BBS Population and Housing Census 2022 (via City Population); BBS Agriculture Census 2019 final report (via The Financial Express) | https://www.citypopulation.de/en/bangladesh/admin/ | 2026-10-24 | Home "Who it is for", submission |
+| `src/data/nasa_images.json`, `src/assets/images/nasa/`: four photographs of Bangladesh with NASA's credits | Real | NASA Image and Video Library: sts066-92-013, iss070e005997, iss063e107090 (NASA JSC), PIA26282 (NASA/METI/AIST/Japan Space Systems, U.S./Japan ASTER Science Team) (`scripts/python/nasa_images.py`) | https://images.nasa.gov | 2026-10-24 | Home "Bangladesh through NASA's eyes" |
 | `src/data/geo/bangladesh_crops.json` | Real | BBS Yearbook of Agricultural Statistics 2023 (district rice), FAOSTAT 2024, geoBoundaries ADM2 | https://bbs.gov.bd, https://www.fao.org/faostat | 2026-10-19 | National crop map |
 | `public/radar/` (Ropon Radar prototype, Rangpur) | **Sample (synthetic)** | Seeded random data (mulberry32, seed 42) | — | — | Only behind the "synthetic demo" link in the radar page's method notes; not used for any number in the app |
 
@@ -75,5 +78,7 @@ a tag: **NASA/real data**, **rule** (our calculation or threshold), **AI**, or *
 - **Field soil tests**: SoilGrids is a 250 m model estimate. SRDI Upazila Nirdeshika or field test values per union would
   replace it; send the values (pH, OM %, texture, drainage class per union) and they go into `scripts/data/build_soil.py`.
 - **Crop thresholds** are starting values that an agriculture officer still has to review (`docs/THRESHOLDS.md`).
-- **Rain-onset rule** is our own stated rule, not yet checked against Bangladesh Meteorological Department onset dates.
+- **Rain-onset rule** is our own stated rule. It agrees with BMD station-based onsets (Han et al. 2024) within a week at
+  Rajshahi, Barishal and Dinajpur (`pipeline/onset/compare_bmd.mjs`); Sylhet and Chattogram are not yet checked.
+- **Giovanni rain check** (`scripts/fetch-giovanni.mjs`) is written but needs an Earthdata token to run.
 - **Farmers and requests** are sample people.

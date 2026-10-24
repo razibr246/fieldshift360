@@ -183,8 +183,9 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
         <button type="button" onClick={() => { setT(0); setPlaying(false); }} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-white hover:bg-primary-50" aria-label={T('শুরুতে', 'Back to the start')}><RotateCcw size={16} /></button>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="font-display text-[22px] font-bold tabular">{lang === 'bn' ? bnDigits(FIRST_YEAR + year) : FIRST_YEAR + year}</span>
-            <span className="text-[14px] font-semibold text-primary-800">{L(SEASON_NAMES[season])} {T('মৌসুম', 'season')} · {T(`${num(year + 1, 'bn')} নম্বর বছর`, `year ${year + 1}`)}</span>
+            <span className="shrink-0 font-display text-[22px] font-bold tabular">{lang === 'bn' ? bnDigits(FIRST_YEAR + year) : FIRST_YEAR + year}</span>
+            {/* One line, always: as the seasons play, a label that wrapped would move the whole page below it. */}
+            <span className="min-w-0 truncate whitespace-nowrap text-[13px] font-semibold text-primary-800 sm:text-[14px]">{L(SEASON_NAMES[season])} {T('মৌসুম', 'season')} · {T(`${num(year + 1, 'bn')} নম্বর বছর`, `year ${year + 1}`)}</span>
           </div>
           <input type="range" min="0" max={N - 1} value={t} onChange={(e) => { setT(Number(e.target.value)); setPlaying(false); }} className="w-full accent-primary-700" aria-label={T('বছর আর মৌসুম', 'Year and season')} />
         </div>

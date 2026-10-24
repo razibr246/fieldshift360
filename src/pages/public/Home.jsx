@@ -13,6 +13,8 @@ import RainCheck from '../../components/charts/RainCheck';
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
 // The ten-year rotation teaser runs the Field Future engine; it loads on its own too.
 const RotationTeaser = lazy(() => import('../../components/charts/RotationTeaser'));
+const ImpactReach = lazy(() => import('../../components/charts/ImpactReach'));
+const NasaEyes = lazy(() => import('../../components/NasaEyes'));
 import ClimateShift from '../../components/charts/ClimateShift';
 import { LazyMount } from '../../components/SectionNav';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
@@ -93,6 +95,8 @@ export default function Home() {
 
       <LazyMount height={640}><Suspense fallback={<section className="py-14"><div className="page-shell min-h-[600px]" /></section>}><RotationTeaser /></Suspense></LazyMount>
 
+      {/* Who it is for: census numbers and NASA SEDAC's measures of each upazila. */}
+      <LazyMount id="impact" height={760}><Suspense fallback={<section className="py-16"><div className="page-shell min-h-[700px]" /></section>}><ImpactReach /></Suspense></LazyMount>
       <Suspense fallback={<section className="py-16 sm:py-20"><div className="page-shell min-h-[760px]" /></section>}><CountryCrops /></Suspense>
 
       {/* Climate risk: the drought/flood split photo beside 25 seasons of NASA data for Godagari or Dhamrai. */}
@@ -191,6 +195,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Bangladesh in NASA's own photographs (NASA Image and Video Library). */}
+      <LazyMount id="nasa-eyes" height={620}><Suspense fallback={<section className="py-16"><div className="page-shell min-h-[560px]" /></section>}><NasaEyes /></Suspense></LazyMount>
+
       {/* Data sources over the satellite patchwork. */}
       <section id="data" className="relative isolate scroll-mt-20 overflow-hidden py-16 text-white sm:py-24">
         <div className="absolute inset-0 -z-10"><Photo name="satellite" fill sizes="100vw" decorative /><div className="absolute inset-0 bg-primary-950/85" /></div>
@@ -206,10 +213,17 @@ export default function Home() {
               <thead className="text-[13px] text-white/80"><tr><th className="px-4 py-3 font-semibold">{T('তথ্য', 'Dataset')}</th><th className="px-4 py-3 font-semibold">{T('কত বড় এলাকার', 'Scale')}</th><th className="px-4 py-3 font-semibold">{T('কী কাজে লাগে', 'Used for')}</th></tr></thead>
               <tbody className="divide-y divide-white/10">
                 {[
-                  [T('নাসা POWER', 'NASA POWER'), T('প্রায় ৫০ কিলোমিটার', 'about 50 km'), T('তাপমাত্রা, বৃষ্টি, ২৫ মৌসুমের হিসাব, ফসল তোলার সময়', 'Temperature, rain, the 25-season check, harvest timing')],
-                  [T('নাসা/জাক্সা GPM IMERG', 'NASA/JAXA GPM IMERG'), T('প্রায় ১১ কিলোমিটার', 'about 11 km'), T('উপগ্রহের বৃষ্টি দিয়ে নাসা POWER-এর বৃষ্টি মিলিয়ে দেখা (নিচের চার্ট)', 'Independent satellite rainfall that checks NASA POWER (chart below)')],
-                  [T('নাসা GIBS · HLS (ল্যান্ডস্যাট-সেন্টিনেল)', 'NASA GIBS · HLS (Landsat-Sentinel)'), T('৩০ মিটার', '30 m'), T('মানচিত্রে মৌসুমভর জমির উপগ্রহ ছবি', 'Satellite photos of the fields through the season, on the map')],
-                  [T('মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট', 'SRDI soil guide'), T('ইউনিয়ন', 'union'), T('মাটির pH, জৈব পদার্থ, নাইট্রোজেন-ফসফরাস-পটাশ', 'Soil pH, organic matter, NPK')],
+                  [T('নাসা POWER', 'NASA POWER'), T('প্রায় ৫০ কিলোমিটার', 'about 50 km'), T('২৫ মৌসুমের দৈনিক তাপ আর বৃষ্টি, মাটির আর্দ্রতা (GWETROOT): প্রতিটি পরিকল্পনা, ফসল তোলার সময়', 'Daily heat and rain for 25 seasons, root-zone soil wetness (GWETROOT): every plan, harvest timing')],
+                  [T('নাসা Earthdata · GPM IMERG', 'NASA Earthdata · GPM IMERG'), T('প্রায় ১১ কিলোমিটার', 'about 11 km'), T('উপগ্রহের বৃষ্টি: রোপণ রাডারের বর্ষা শুরুর তারিখ, POWER-এর বৃষ্টি মিলিয়ে দেখা', 'Satellite rain: the radar’s monsoon onset, and a check on POWER’s rain')],
+                  [T('নাসা Earthdata · NEX-GDDP-CMIP6', 'NASA Earthdata · NEX-GDDP-CMIP6'), T('প্রায় ২৫ কিলোমিটার', 'about 25 km'), T('৮টি জলবায়ু মডেলে ২০৪০-এর দশক: ১০ বছরের ফসলচক্র আর ৪০টি ভবিষ্যতের পরীক্ষা', 'The 2040s in 8 climate models: ten-year rotations and the 40-future test')],
+                  [T('নাসা Earthdata · SMAP, GRACE', 'NASA Earthdata · SMAP, GRACE'), T('৯ কিমি · প্রায় ৩০০ কিমি', '9 km · about 300 km'), T('এই মাসে মাটির পানি; ২০০২ থেকে মাটির নিচের পানির ভান্ডার', 'Soil water this month; the water stored underground since 2002')],
+                  [T('নাসা Worldview · GIBS (HLS)', 'NASA Worldview · GIBS (HLS)'), T('৩০ মিটার', '30 m'), T('মানচিত্রে মৌসুমভর জমির উপগ্রহ ছবি; SMAP, GRACE আর SEDAC-এর স্তরও এখান থেকে পড়া', 'Satellite photos of the fields through the season; SMAP, GRACE and SEDAC layers are read from here too')],
+                  [T('নাসা FIRMS', 'NASA FIRMS'), T('৩৭৫ মিটার', '375 m'), T('খড়-নাড়া পোড়ানো আর আগুন, প্রতিবেশী দেশের পাতায়', 'Straw burning and fires, on the neighbouring-country pages')],
+                  [T('নাসা SEDAC', 'NASA SEDAC'), T('প্রায় ১ কিলোমিটার', 'about 1 km'), T('উপজেলার জনঘনত্ব, ১০ মিটারের নিচের নিচু জমি, ফসলি জমির ভাগ (ওপরে)', 'Each upazila’s population density, low land below 10 m, cropland share (above)')],
+                  [T('নাসার ছবির ভান্ডার', 'NASA Images'), '—', T('মহাকাশ থেকে ব-দ্বীপ, সুন্দরবন আর রূপগঞ্জ (ওপরে)', 'The delta, the Sundarbans and Rupganj from space (above)')],
+                  [T('কোপার্নিকাস সেন্টিনেল-১ ও ২', 'Copernicus Sentinel-1 and 2'), T('১০ মিটার', '10 m'), T('আমন রোপণের তারিখ (রাডার); প্রতিটি জমির সবুজ, আর্দ্রতা আর আসল ফসলচক্র', 'Aman transplanting dates (radar); each field’s green cover, moisture and actual rotation')],
+                  [T('ISRIC SoilGrids, মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট', 'ISRIC SoilGrids, SRDI soil guide'), T('২৫০ মিটার · ইউনিয়ন', '250 m · union'), T('জমির মাটির কার্বন, pH, বুনট; ইউনিয়নের সার সুপারিশ', 'The field’s soil carbon, pH and texture; the union’s fertiliser doses')],
+                  [T('আবহাওয়া অধিদপ্তর, বিবিএস, FAOSTAT, কৃষি বিপণন অধিদপ্তর', 'BMD, BBS, FAOSTAT, DAM'), T('স্টেশন · জেলা · দেশ', 'station · district · country'), T('তাপ সংশোধন আর বর্ষা শুরুর যাচাই; জমি, ফলন, দাম, জনসংখ্যা', 'Temperature correction and the onset check; areas, yields, prices, population')],
                   ['Open-Meteo', T('প্রায় ১০ কিলোমিটার', 'about 10 km'), T('লাইভ আবহাওয়া, ৮ দিনের পূর্বাভাস আর আজকের সেচের পরামর্শ (ইন্টারনেট থাকলে)', 'Live weather, the 8-day forecast and today’s irrigation advice (when online)')],
                   [T('নমুনা কৃষক ও পরিকল্পনা', 'Sample farmers and plans'), '—', T('দাম পড়ার সতর্কতা, কর্মকর্তার কাজ দেখানো', 'Price-drop warning and the officer workflow')],
                 ].map((r2) => <tr key={r2[0]}>{r2.map((c, i) => <td key={i} className={`px-4 py-3 ${i === 0 ? 'font-semibold' : 'text-white/75'}`}>{c}</td>)}</tr>)}

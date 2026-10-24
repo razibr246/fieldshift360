@@ -48,6 +48,43 @@ Everything is honest about its data: every number is tagged real, rule, AI or sa
 prices and yields are real; the farmers are sample people; crop thresholds are stated starting values for an
 agriculture officer to review.
 
+## Who it is for, and how many (impact)
+
+- **16.88 million farm households** in Bangladesh (BBS Agriculture Census 2019) choose what to plant every season;
+  FieldShift 360 is built for them, their union officers (SAAO) and upazila officers (UAO).
+- **4.85 million ha of Boro rice** (BBS 2022-23), the country's thirstiest crop and the biggest chance to save
+  groundwater; GRACE shows the water under the Barind falling 8.9 cm a decade.
+- **2.51 million people** live in the seven upazilas, one per division, where the full engine runs today (BBS
+  Census 2022): Dhamrai 517,135, Godagari 376,386, Bakerganj 356,022, Sitakunda 457,396, Dacope 159,369,
+  Gangachara 286,730, Gowainghat 355,979.
+- **The land itself, from NASA SEDAC:** more than half of Dhamrai, Bakerganj, Sitakunda and Dacope lies below 10 m
+  in the low zone joined to the sea (LECZ v3), where floods drain slowly and, near the coast, salt comes in; cropland
+  covers 31% (Sitakunda's hills) to 86% (Gangachara) of each upazila.
+- **It scales by re-running scripts, not rewriting code:** NASA POWER, IMERG, NEX-GDDP-CMIP6, SMAP, GRACE, SEDAC and
+  SoilGrids are global, so a new upazila or country is a data run. Five neighbouring countries already run on them.
+
+## How we know it works (validity)
+
+- **A working prototype:** every page runs in the browser on committed data; 108 automated tests cover the engine,
+  the voice assistant, the game and the rain-onset rule; every page is checked on phone and desktop with no errors.
+- **Satellites checked against each other:** IMERG against POWER rain, r = 0.81 in Rabi seasons and 0.76 in the
+  monsoon over 25 seasons; SMAP against POWER root-zone wetness, r = 0.89–0.96.
+- **Checked against the ground:** the rain-onset rule agrees with Bangladesh Meteorological Department station-based
+  onsets (Han et al. 2024) within a week at Rajshahi, Barishal and Dinajpur; POWER temperatures are corrected to the
+  nearest BMD station's 1991–2020 normals.
+- **Published science, named:** ICBM soil carbon (Andrén & Kätterer 1997), FAO-56 crop water, the NRCS soil-health
+  principles, IPCC 2019 Tier 1 paddy methane, robust decision making over 8 CMIP6 models × 5 FAOSTAT yield years.
+- **Honest about the rest:** crop thresholds are starting values awaiting an agriculture officer's review
+  (THRESHOLDS.md); the farmers are sample people, labelled so on every screen.
+
+## Team and roles
+
+Fill in before submitting (Teamwork is scored on roles):
+
+| Name | Role | What they did |
+| --- | --- | --- |
+| Razib Miah | [role] | [what they did] |
+
 ## Datasets used
 
 ### NASA
@@ -62,6 +99,8 @@ agriculture officer to review.
 | NASA NEX-GDDP-CMIP6 v2.0 | The 2040s for every rotation; each of the 8 models on its own for the robustness test | https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6 |
 | NASA GIBS, HLS (Harmonized Landsat Sentinel-2) | Satellite photos of the fields through the season | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA FIRMS (neighbouring-country pages) | Fire detections | https://firms.modaps.eosdis.nasa.gov |
+| NASA SEDAC via NASA GIBS: GPW v4.11 population density 2020, LECZ v3 (land below 10 m), Global Agricultural Lands croplands 2000 | Each upazila's population density, low-lying land and cropland share, measured inside its boundary (home page "Who it is for") | https://sedac.ciesin.columbia.edu |
+| NASA Image and Video Library | The delta, the Sundarbans and Rupganj photographed from the Space Shuttle, the ISS and ASTER (home page) | https://images.nasa.gov |
 
 ### Partners and others
 
@@ -77,6 +116,7 @@ agriculture officer to review.
 | geoBoundaries (BBS / OCHA) and GeoNames | Boundaries, unions, villages | https://www.geoboundaries.org · https://www.geonames.org |
 | NOAA NCEI / WMO climate normals 1991–2020 (BMD stations) | Station correction of POWER temperatures | https://www.ncei.noaa.gov/products/wmo-climate-normals |
 | ERA5 (Copernicus C3S, via Open-Meteo) | Neighbouring-country weather | https://open-meteo.com |
+| BBS Population and Housing Census 2022; BBS Agriculture Census 2019 | People in each upazila; farm households in Bangladesh | https://www.citypopulation.de/en/bangladesh/admin/ · https://bbs.gov.bd |
 
 Full list with dates and where each is used: [DATA_SOURCES.md](DATA_SOURCES.md).
 
@@ -86,15 +126,15 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
 
 | Time | Screen | Say (subtitle) |
 | --- | --- | --- |
-| 0:00–0:15 | Home: the drought/flood photo and 25 seasons of NASA weather | "The weather has moved, and the crop calendar our parents trusted no longer fits. NASA POWER shows how much in 25 seasons." |
-| 0:15–0:40 | Step 2: Field Future, the satellite-seen rotation and the soil time machine (Rahim, Godagari) | "Sentinel-2 saw mustard then Boro on Rahim's field. From there, one field, three rotations, ten years, from its own soil: the plough pan, the roots, the carbon." |
-| 0:40–1:00 | Step 3: the best rotation, then pick "less water" | "Several hundred rotations, ten years each: soil health, water, profit, weather risk and pests. The farmer's priorities change the ranking." |
-| 1:00–1:15 | Step 4: the climate account, Boro to AWD; then "My field's ten years" story | "Paddy methane against soil carbon; AWD cuts it again. And the farmer gets a narrated story of their own field to share." |
-| 1:15–1:35 | Step 5: the 40-future test | "Eight NASA climate models times five real yield years: forty futures. The robust choice keeps the soil in nearly all of them." |
-| 1:35–1:55 | Step 6: Razib's season plan (Dhamrai) | "This year's step, tested on 25 seasons of NASA weather. Flood-prone Dhamrai gets its own answer." |
-| 1:55–2:10 | Step 7: voice, then the SMS screen | "By voice, by typing, or by SMS from a basic phone, in Bangla: the same working answers." |
-| 2:10–2:35 | Step 8: Ropon Radar | "When do the rains set in, and when was rice planted? NASA IMERG rain, checked against BMD, and Sentinel-1 radar, for every upazila." |
-| 2:35–3:00 | Step 9: the upazila impact | "If a third of Godagari's Boro farmers switched: millions of cubic metres of water a year, while GRACE shows the water underground falling. Real data; sample farmers; open rules." |
+| 0:00–0:15 | Steps 1–2, Home: the drought/flood photo and 25 seasons of NASA weather, then "Who it is for" | "The weather has moved, and the crop calendar our parents trusted no longer fits. NASA POWER shows how much in 25 seasons. Nearly 17 million farm households make this choice every season." |
+| 0:15–0:40 | Step 3: Field Future, the satellite-seen rotation and the soil time machine (Rahim, Godagari) | "Sentinel-2 saw mustard then Boro on Rahim's field. From there, one field, three rotations, ten years, from its own soil: the plough pan, the roots, the carbon." |
+| 0:40–1:00 | Step 4: the best rotation, then pick "less water" | "Several hundred rotations, ten years each: soil health, water, profit, weather risk and pests. The farmer's priorities change the ranking." |
+| 1:00–1:15 | Step 5: the climate account, Boro to AWD; then "My field's ten years" story | "Paddy methane against soil carbon; AWD cuts it again. And the farmer gets a narrated story of their own field to share." |
+| 1:15–1:35 | Step 6: the 40-future test | "Eight NASA climate models times five real yield years: forty futures. The robust choice keeps the soil in nearly all of them." |
+| 1:35–1:55 | Step 7: Razib's season plan (Dhamrai) | "This year's step, tested on 25 seasons of NASA weather. Flood-prone Dhamrai gets its own answer." |
+| 1:55–2:10 | Step 8: voice, then the SMS screen | "By voice, by typing, or by SMS from a basic phone, in Bangla: the same working answers." |
+| 2:10–2:35 | Step 9: Ropon Radar | "When do the rains set in, and when was rice planted? NASA IMERG rain, checked against BMD, and Sentinel-1 radar, for every upazila." |
+| 2:35–3:00 | Step 10: the upazila impact | "If a third of Godagari's Boro farmers switched: millions of cubic metres of water a year, while GRACE shows the water underground falling. Real data; sample farmers; open rules." |
 
 ## Slide notes (short deck)
 
@@ -102,7 +142,9 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
    Bangladesh's smallholders. Team, challenge name.
 2. **The problem.** Shifting heat, changing rain, water shortages, extreme weather and tired soil; advice that
    stops at one season. Photo: cracked earth beside a flooded field.
-3. **Who it is for.** Farmer (Bangla, voice, phone), union officer (SAAO), upazila officer (UAO).
+3. **Who it is for.** 16.88 million farm households (Agriculture Census 2019) and 4.85 million ha of Boro; the farmer
+   (Bangla, voice, phone, SMS), union officer (SAAO), upazila officer (UAO). 2.51 million people in the seven
+   upazilas today; SEDAC shows which of them lie below 10 m.
 4. **How it decides.** Field soil (SoilGrids) + 25 seasons of NASA POWER + crop characteristics + the farmer's
    priorities → every rotation run for ten years → soil carbon, NRCS soil health, water, profit, risk, pests.
 5. **The soil time machine.** One field, three rotations, a living soil profile season by season.

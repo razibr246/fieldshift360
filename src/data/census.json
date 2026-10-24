@@ -1,0 +1,20 @@
+{
+ "provenance": {
+  "status": "REAL",
+  "population": "Bangladesh Bureau of Statistics (BBS), Population and Housing Census 2022 (census day 14 June 2022), upazila totals as tabulated by City Population",
+  "populationUrl": "https://www.citypopulation.de/en/bangladesh/admin/",
+  "farmHouseholds": "BBS Agriculture (Crop, Fisheries and Livestock) Census 2019, final report (released December 2022): 16.88 million farm households, as reported by The Financial Express; the October 2019 preliminary report gave 16.5 million",
+  "farmHouseholdsUrl": "https://thefinancialexpress.com.bd/home/bd-losing-farm-land-by-019pc-a-year-1672196259",
+  "retrieved": "2026-10-24"
+ },
+ "bangladesh": { "population": 165158616, "farmHouseholds": 16880000 },
+ "upazilas": {
+  "dhamrai": 517135,
+  "godagari": 376386,
+  "bakerganj": 356022,
+  "sitakunda": 457396,
+  "dacope": 159369,
+  "gangachara": 286730,
+  "gowainghat": 355979
+ }
+}

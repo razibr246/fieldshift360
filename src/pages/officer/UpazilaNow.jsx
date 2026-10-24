@@ -11,6 +11,8 @@ import { AMAN, CAT, LATEST, SHIFT_DAYS, catOf, districtOf, doyToMs } from '../..
 import { UPAZILA_FACTS } from '../../data/upazila_facts';
 import MARKET from '../../data/market_dhaka.json';
 import CROPS from '../../data/geo/bangladesh_crops.json';
+import SEDAC from '../../data/sedac.json';
+import CENSUS from '../../data/census.json';
 import { fmtDate, num, todayDhaka } from '../../engine/dates';
 import { HARVEST_AFTER } from '../../engine/outlook';
 
@@ -129,6 +131,22 @@ function UpazilaNowPage() {
               <Src>{T('উপগ্রহ: সেন্টিনেল-২ ১০ মিটার ভূমি-ব্যবহার (এসরি, ইমপ্যাক্ট অবজারভেটরি, মাইক্রোসফট), পুরো উপজেলা, ২০১৭ ও ২০২৫', 'Satellite: Sentinel-2 10 m land cover (Esri, Impact Observatory, Microsoft), whole upazila, 2017 and 2025')}</Src>
             </>
           ) : <p className="mt-3 text-muted">{T('ভূমি-ব্যবহারের তথ্য নেই।', 'No land-cover data.')}</p>}
+          {/* The upazila's people and land in NASA SEDAC's own measures (scripts/fetch-sedac.mjs), and the census. */}
+          {SEDAC.upazilas[upz.id] && (() => {
+            const sd = SEDAC.upazilas[upz.id], [lo, hi] = sd.density.medianClass, share = (x) => `${num(Math.round(x * 100), lang)}%`;
+            return (
+              <div className="mt-4 rounded-xl border border-border bg-canvas/70 p-3">
+                <div className="flex items-center gap-1.5 text-[13px] font-semibold"><Satellite size={14} className="text-primary-700" />{T('নাসা SEDAC আর জনশুমারি', 'NASA SEDAC and the census')}</div>
+                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2 text-[12.5px] sm:grid-cols-4">
+                  <div><dt className="text-muted">{T('মানুষ (২০২২)', 'People (2022)')}</dt><dd className="font-bold tabular">{num(CENSUS.upazilas[upz.id], lang)}</dd></div>
+                  <div><dt className="text-muted">{T('প্রতি বর্গকিমিতে', 'Per km²')}</dt><dd className="font-bold tabular">{lo >= 1000 ? T(`${num(1000, 'bn')}+`, '1,000+') : `${num(lo, lang)}–${num(hi, lang)}`}</dd></div>
+                  <div><dt className="text-muted">{T('১০ মিটারের নিচে নিচু জমি', 'Low land below 10 m')}</dt><dd className="font-bold tabular">{share(sd.leczShare)}</dd></div>
+                  <div><dt className="text-muted">{T('ফসলি জমি (২০০০)', 'Cropland (2000)')}</dt><dd className="font-bold tabular">{share(sd.croplandShare)}</dd></div>
+                </dl>
+                <Src url="https://sedac.ciesin.columbia.edu">{T('নাসা SEDAC: GPW v4.11 (২০২০), LECZ v3, Global Agricultural Lands, নাসা GIBS থেকে উপজেলার সীমানার ভেতরে পড়া; মানুষ: বিবিএস জনশুমারি ২০২২', 'NASA SEDAC: GPW v4.11 (2020), LECZ v3, Global Agricultural Lands, read through NASA GIBS inside the upazila boundary; people: BBS Census 2022')}</Src>
+              </div>
+            );
+          })()}
         </Card>
       </div>
 

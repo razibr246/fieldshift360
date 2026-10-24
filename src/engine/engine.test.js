@@ -333,3 +333,23 @@ test('robustness ensemble: every climate model with every FAOSTAT yield year, ch
   const habit = mt.list.find((x) => JSON.stringify(x.rot) === JSON.stringify(ff.habit.rot));
   assert.equal(habit.pBeat, 0, 'the usual rotation never beats itself');
 });
+
+test('SEDAC and census: every upazila measured, shares between 0 and 1, and the coast where the map says', () => {
+  const sedac = JSON.parse(readFileSync(new URL('../data/sedac.json', import.meta.url)));
+  const census = JSON.parse(readFileSync(new URL('../data/census.json', import.meta.url)));
+  const ids = ['dhamrai', 'godagari', 'bakerganj', 'sitakunda', 'dacope', 'gangachara', 'gowainghat'];
+  for (const id of ids) {
+    const u = sedac.upazilas[id];
+    assert.ok(u && u.cells > 500, `${id}: measured over its boundary`);
+    for (const x of [u.leczShare, u.croplandShare, u.density.share1000Plus]) assert.ok(x >= 0 && x <= 1, `${id}: a share`);
+    assert.ok(census.upazilas[id] > 100000, `${id}: census population`);
+  }
+  // The Barind and the Teesta plain stand above 10 m; Barishal and the Khulna coast lie below it.
+  assert.equal(sedac.upazilas.godagari.leczShare, 0);
+  assert.equal(sedac.upazilas.gangachara.leczShare, 0);
+  assert.ok(sedac.upazilas.bakerganj.leczShare > 0.9 && sedac.upazilas.dacope.leczShare > 0.8);
+  // Dacope, half rivers and shrimp ponds by the Sundarbans, is the least crowded.
+  const dens = (id) => sedac.upazilas[id].density.medianClass[0];
+  assert.ok(ids.every((id) => id === 'dacope' || dens(id) > dens('dacope')));
+  assert.equal(Object.values(census.upazilas).reduce((a, b) => a + b, 0), 2509017);
+});

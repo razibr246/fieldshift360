@@ -23,7 +23,10 @@
     "fetch:cmip6": "node scripts/fetch-cmip6.mjs",
     "fetch:stories": "node scripts/fetch-stories.mjs",
     "fetch:neighbours": "python3 scripts/data/build_neighbours.py",
-    "photos:abroad": ".cache/venv-sr/bin/python scripts/python/abroad_photos.py"
+    "photos:abroad": ".cache/venv-sr/bin/python scripts/python/abroad_photos.py",
+    "fetch:sedac": "node scripts/fetch-sedac.mjs",
+    "fetch:giovanni": "node scripts/fetch-giovanni.mjs",
+    "photos:nasa": ".cache/venv-sr/bin/python scripts/python/nasa_images.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

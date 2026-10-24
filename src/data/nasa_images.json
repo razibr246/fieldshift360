@@ -1,0 +1,58 @@
+{
+ "provenance": {
+  "status": "REAL",
+  "source": "NASA Image and Video Library",
+  "api": "https://images-api.nasa.gov",
+  "guidelines": "https://www.nasa.gov/nasa-brand-center/images-and-media/"
+ },
+ "images": [
+  {
+   "id": "sts066-92-013",
+   "role": "delta",
+   "title": "Ganges River Delta, Bangladesh, India",
+   "date": "1994-11-14",
+   "center": "JSC",
+   "credit": "NASA (JSC)",
+   "description": "The Ganges River Delta is the largest inter-tidal delta in the world. With its extensive mangrove mud flats, swamp vegetation and sand dunes, it is characteristic of many tropical and subtropical coasts. As seen in this photograph, the tributaries and distributaries of the Ganges and Brahmaputra Rivers deposit huge amounts of silt and clay that create a shifting maze of waterways and islands in the Bay of Bengal.",
+   "width": 1920,
+   "height": 1917,
+   "url": "https://images.nasa.gov/details/sts066-92-013"
+  },
+  {
+   "id": "iss070e005997",
+   "role": "sundarbans",
+   "title": "iss070e005997",
+   "date": "2023-10-19",
+   "center": "JSC",
+   "credit": "NASA (JSC)",
+   "description": "iss070e005997 (Oct. 19, 2023) --- India and Bangladesh border along the Sundarban National Park, a tiger reserve and mangrove forest, in this photograph from the International Space Station as it orbited 257 miles above the Bay of Bengal.",
+   "width": 1920,
+   "height": 1280,
+   "url": "https://images.nasa.gov/details/iss070e005997"
+  },
+  {
+   "id": "PIA26282",
+   "role": "rupganj",
+   "title": "Rupganj, Bangladesh",
+   "date": "2024-01-29",
+   "center": "JPL",
+   "credit": "NASA/METI/AIST/Japan Space Systems, and U.S./Japan ASTER Science Team",
+   "description": "Rupganj, Bangladesh was one of the top 3 fastest growing cities in the world between 2000 and 2020. The population increased from 76,000 to 482,000. The ASTER images were acquired November 10, 2000, during a period of flooding; and April 24, 2023. They cover an area of 40.5 by 52.5 km, and are located at 23.7 degrees north, 90.4 degrees east. https://photojournal.jpl.nasa.gov/catalog/PIA26282",
+   "width": 2700,
+   "height": 3500,
+   "url": "https://images.nasa.gov/details/PIA26282"
+  },
+  {
+   "id": "iss063e107090",
+   "role": "coast",
+   "title": "Earth Observations taken by EHDC6",
+   "date": "2020-10-12",
+   "center": "JSC",
+   "credit": "NASA (JSC)",
+   "description": "iss063e107090 (Oct. 12, 2020) --- The International Space Station was orbiting above the southern coast of Bangladesh, near the vast mangrove forest and wildlife habitat of India's Sundarban National Park, when this photograph was taken.",
+   "width": 1920,
+   "height": 1078,
+   "url": "https://images.nasa.gov/details/iss063e107090"
+  }
+ ]
+}

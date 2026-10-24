@@ -20,7 +20,8 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 - **NASA data.** NASA POWER daily weather (25 seasons per upazila) and monthly root-zone soil wetness (MERRA-2);
   GRACE/GRACE-FO water storage and SMAP root-zone soil moisture (through NASA GIBS); NASA/JAXA GPM IMERG rain for
   rain onset (checked against BMD station-based onsets) and as a cross-check; NASA NEX-GDDP-CMIP6 (8 models) for the 2040s; NASA
-  GIBS HLS satellite photos; NASA FIRMS fires. Partner data: Copernicus Sentinel-1 radar (Aman transplanting) and
+  GIBS HLS satellite photos; NASA FIRMS fires; NASA SEDAC population density, low coastal land and cropland
+  (through GIBS); Bangladesh from space in the NASA Image and Video Library. Partner data: Copernicus Sentinel-1 radar (Aman transplanting) and
   Sentinel-2, ISRIC SoilGrids, SRDI fertilizer recommendations, DAM prices, FAOSTAT yields, BBS boundaries.
 - **Real vs sample.** All climate, rain, radar, soil, price and yield data is real (sources in
   [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)). The farmers, their requests and the land registry details are
@@ -30,7 +31,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 - **Run it.** `npm install`, then `npm run dev`; `npm test` runs the engine, voice, radar and game tests; `npm run
   build` makes the static site. Data needs no network: every file is committed. The AI crop doctor needs
   `ANTHROPIC_API_KEY` on the server (see `.env.example`); without it the app says so and photos go to the officer.
-- **Guided demo.** "3-minute demo story" on the home page walks through it in eight steps, rotation first.
+- **Guided demo.** "3-minute demo story" on the home page walks through it in ten steps: the changed weather and who it is for, then rotations.
 
 ## The challenge, line by line
 
@@ -50,6 +51,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 | **Adapt to changing conditions** | The 2040s from NEX-GDDP-CMIP6 (two pathways); every top rotation re-run in each of the eight models on its own, counting the futures it keeps the soil and adds no risk in (robust decision making) | Field Future "Eight-model test" |
 | **Long-term resilience** | Ten-year runs; an ensemble of 8 climate models × 5 real FAOSTAT yield years giving each rotation's chance of keeping the soil; the worst model's result; a climate account (IPCC 2019 Tier 1 paddy methane against soil carbon) | Field Future |
 | **Arts & Multimedia** | A season-by-season soil profile animation; "My field's ten years", a narrated story of the farmer's own numbers saved as a video to share; a printable picture poster of the rotation by Bangla season; Bangla voice | Field Future |
+| **Who benefits, and how many** | 16.88 million farm households (Agriculture Census 2019); 4.85 million ha of Boro; 2.51 million people in the seven upazilas (Census 2022), each measured with NASA SEDAC: population density, land below 10 m (LECZ), cropland share | Home "Who it is for" |
 | Reaching every farmer | Bangla voice and typing; an SMS mode for feature phones (keywords or everyday Bangla, answered by the same engine in 70-character parts) | `/farmer/voice`, `/farmer/sms` |
 | Farmers **around the world** | Full engine for seven upazilas, one in each division of Bangladesh. Sample farms in India, Pakistan, Nepal, Bhutan and Myanmar with the season plan, risks, the 2040s, GRACE and SMAP water, and ten-year rotation options on the farm's own SoilGrids soil and the country's FAOSTAT yields (the same soil-carbon, nitrogen and methane model). Every input is global | `/abroad/*/future` |
 
@@ -102,6 +104,11 @@ shared plan board (`api/plans.js`, see below), so every farmer's confirmed plan 
 | **NASA/JAXA GPM IMERG** daily (`IMERG_PRECTOT` through POWER, UTC days) | Independent satellite check of POWER rain: Rabi seasons r = 0.81, monsoon r = 0.76 over 25 seasons | Same script, second request |
 | **NASA NEX-GDDP-CMIP6 v2.0** (NCCS, 0.25°, bias-corrected, 8 models, SSP2-4.5 and SSP5-8.5) | Field Future's 2040s: each model's monthly change in Tmax, Tmin and rain at the upazila's cell, added to its own NASA POWER days | `npm run fetch:cmip6` (no login; NASA THREDDS point subsets, cached and resumable), saved as `src/data/cmip6_deltas.json` |
 | **NASA GIBS · HLS** (Harmonized Landsat 8/9 and Sentinel-2, 30 m) | "NASA satellite" map type with cloud-free dates from Agrahayan to Aman, chosen per upazila (each checked over the whole upazila: full coverage, nearly no cloud; Godagari's dates are blank over Dhamrai) | WMTS tiles from gibs.earthdata.nasa.gov |
+| **NASA GRACE / GRACE-FO** (JPL mascons, CRI) and **NASA SMAP** L4 root-zone soil moisture, through NASA GIBS (Worldview's imagery service) | Field Future "Soil water": the water stored under each upazila since 2002 (falling 8.9 cm a decade under Godagari), this month's root-zone moisture against normal | `node scripts/fetch-gibs-water.mjs` (no login), saved as `src/data/water_sat.json` |
+| **NASA FIRMS** (VIIRS fires) | Fires and straw burning on the neighbouring-country pages | Saved in `src/data/abroad/*.json` (`npm run fetch:neighbours`) |
+| **NASA SEDAC** (through NASA GIBS): GPW v4.11 population density 2020, LECZ v3 land below 10 m, Global Agricultural Lands croplands 2000 | Home "Who it is for": each upazila's density, low-lying land and cropland share, measured inside its own boundary | `npm run fetch:sedac` (no login), saved as `src/data/sedac.json` |
+| **NASA Image and Video Library** | Home "Bangladesh through NASA's eyes": the delta from the Space Shuttle, the Sundarbans and the coast from the ISS, Rupganj by ASTER, each credited and linked | `npm run photos:nasa` (no key), saved in `src/assets/images/nasa/` and `src/data/nasa_images.json` |
+| **NASA Giovanni** (GES DISC), GPM IMERG V07 monthly | Ready: an independent check of the POWER rain behind every plan, at each upazila | `npm run fetch:giovanni` (needs a free Earthdata token in `.env.local`) |
 
 Copernicus **Sentinel-2 L2A** (ESA, 10 m) through Microsoft Planetary Computer (no key) watches every registered field:
 green cover (NDVI), moisture (NDMI) and standing water on each clear pass since June 2025, a true-colour and green-cover

@@ -5,9 +5,24 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { onScroll, pageTop, scrollToEl, scrollToTop } from './Motion';
 
-const HEADER = 64; // the app header the bar docks under
+// The bar docks right under the layout's sticky header, whatever its height (the farmer header has a second row of
+// tabs and is taller than the officer one; on phones it changes again). The height is measured and kept in the CSS
+// variable --app-header, which the bar's `top` reads, so it never slides under the header.
+let HEADER = 64;
+function useHeaderHeight() {
+  useLayoutEffect(() => {
+    const el = [...document.querySelectorAll('header')].find((h) => { const cs = getComputedStyle(h); return (cs.position === 'sticky' || cs.position === 'fixed') && parseFloat(cs.top) === 0; });
+    if (!el) return undefined;
+    const set = () => { HEADER = Math.round(el.getBoundingClientRect().height); document.documentElement.style.setProperty('--app-header', `${HEADER}px`); };
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+}
 
 export function SectionNav({ sections, label }) {
+  useHeaderHeight();
   const [active, setActive] = useState(sections[0]?.id);
   const nav = useRef(null);
   const bar = useRef(null);
@@ -99,7 +114,7 @@ export function SectionNav({ sections, label }) {
     if (left < box.scrollLeft || right > box.scrollLeft + box.clientWidth) box.scrollTo({ left: left - box.clientWidth / 3, behavior: 'smooth' });
   }, [active]);
   return (
-    <nav ref={nav} aria-label={label} data-stuck={stuck || undefined} className="section-nav sticky top-[64px] z-[25] -mt-2.5 mb-3.5 py-2.5">
+    <nav ref={nav} aria-label={label} data-stuck={stuck || undefined} className="section-nav sticky top-[var(--app-header,64px)] z-[25] -mt-2.5 mb-3.5 py-2.5">
       <div ref={bar} className="section-nav-glass hide-scrollbar flex gap-1 overflow-x-auto rounded-2xl p-1.5">
         {thumb && <span aria-hidden="true" className="section-nav-thumb absolute top-1.5 bottom-1.5 rounded-xl" style={{ left: thumb.x, width: thumb.w, transition: thumb.glide ? 'left .35s var(--ease-spring), width .35s var(--ease-spring)' : 'none' }} />}
         {sections.map((s) => (
