@@ -94,23 +94,23 @@ function SelectScreen({ who, setWho, onGo }) {
                   const r = REGIONS[id], on = id === who, n = FARMER_IDS.indexOf(id);
                   return (
                     <button key={id} type="button" onClick={() => { setWho(id); play('tap'); }} aria-pressed={on} style={{ '--n': n }}
-                      className={`tool-card tool-deal glass flat group flex items-center gap-2.5 rounded-[18px] p-2 pr-3 text-left transition ${on ? 'ring-2 ring-primary-600 !bg-white/85' : ''}`}>
-                      <span className="relative grid h-[60px] w-[52px] shrink-0 place-items-end overflow-hidden rounded-[13px]" style={{ background: stage(r.country) }}>
-                        {pics ? <img src={pics[n]} alt="" className="h-full w-full object-cover object-top" /> : <span className="m-auto text-[24px]">{r.flag}</span>}
+                      className={`surface-card lift group flex items-center gap-2.5 rounded-[20px] p-2.5 pr-3 text-left transition-all duration-200 active:scale-[0.97] ${on ? 'ring-2 ring-primary-600 !bg-white shadow-md' : 'border border-border/70 bg-white/75 hover:bg-white hover:border-primary-300 hover:shadow-xs'}`}>
+                      <span className="relative grid h-[60px] w-[52px] shrink-0 place-items-end overflow-hidden rounded-[14px] shadow-2xs" style={{ background: stage(r.country) }}>
+                        {pics ? <img src={pics[n]} alt="" className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" /> : <span className="m-auto text-[24px]">{r.flag}</span>}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1 truncate text-[11.5px] font-semibold text-muted"><span>{r.flag}</span>{r.division ? L(r.division) : L(r.place)}</span>
-                        <span className="font-display block truncate text-[16px] font-semibold leading-tight">{L(r.farmer)}</span>
-                        <span className="block truncate text-[12px] text-primary-700">{L(r.storm)}</span>
+                        <span className="font-display block truncate text-[16px] font-bold leading-tight text-ink group-hover:text-primary-900 transition-colors">{L(r.farmer)}</span>
+                        <span className="block truncate text-[12px] font-medium text-primary-700">{L(r.storm)}</span>
                       </span>
-                      {on && <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-600 text-white"><Check size={14} /></span>}
+                      {on && <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-600 text-white shadow-2xs"><Check size={14} /></span>}
                     </button>
                   );
                 })}
               </div>
             </div>
           ))}
-          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-2 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white">{T(`${F.bn}-এর মাঠে চলুন`, `To ${F.en}’s field`)}<ArrowRight size={19} /></button>
+          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-2 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/20 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200">{T(`${F.bn}-এর মাঠে চলুন`, `To ${F.en}’s field`)}<ArrowRight size={19} /></button>
           <p className="text-center text-[12.5px] text-muted">{T('এঁরা নমুনা মানুষ; জায়গা, ফসল আর বিপদের তথ্য সত্যি।', 'These are sample people; the places, crops and dangers are real.')}</p>
         </div>
       </div>

@@ -16,11 +16,11 @@ export function CountUp({ value, duration, className = '' }) {
 }
 
 // Focus: a 2 px ring in the button's own strong colour, 2 px off its edge, so keyboard focus is plain on any surface.
-const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-all duration-250 ease-[cubic-bezier(.16,1,.3,1)] active:scale-[.96] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 will-change-transform select-none';
+const BTN_BASE = 'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[15px] font-semibold transition-all duration-200 ease-[var(--ease-spring)] active:scale-[.96] disabled:pointer-events-none disabled:opacity-45 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 will-change-transform select-none cursor-pointer';
 const BTN = {
   // Glossy green: the same lit gradient and light sweep as the header CTAs, so every primary action reads as one.
-  primary: 'btn-gloss text-white focus-visible:ring-primary-500',
-  secondary: 'border border-border bg-white text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-500',
+  primary: 'btn-gloss text-white focus-visible:ring-primary-500 shadow-sm hover:shadow-md',
+  secondary: 'border border-border/80 bg-white/95 text-ink hover:border-primary-300 hover:bg-primary-50/80 hover:shadow-sm hover:-translate-y-0.5 focus-visible:ring-primary-500 backdrop-blur-xs',
   outline: 'border-2 border-primary-600 bg-transparent text-primary-800 hover:bg-primary-50 active:bg-primary-100 focus-visible:ring-primary-500',
   ghost: 'text-ink hover:bg-primary-50/80 hover:text-primary-800 focus-visible:ring-primary-500 active:bg-primary-100',
   danger: 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md hover:-translate-y-0.5 focus-visible:ring-red-500',
@@ -40,17 +40,17 @@ export function Button({ to, variant = 'primary', loading = false, disabled = fa
 }
 
 const BADGE = {
-  green: 'border-primary-200 bg-primary-50 text-primary-800 hover:border-primary-300',
-  amber: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300',
-  red: 'border-red-200 bg-red-50 text-red-700 hover:border-red-300',
-  blue: 'border-sky-200 bg-sky-50 text-sky-800 hover:border-sky-300',
-  violet: 'border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300',
-  slate: 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300',
-  dark: 'border-primary-700 bg-primary-700 text-white',
+  green: 'border-primary-200/90 bg-primary-50/90 text-primary-800 hover:border-primary-300 shadow-2xs',
+  amber: 'border-amber-200/90 bg-amber-50/90 text-amber-800 hover:border-amber-300 shadow-2xs',
+  red: 'border-red-200/90 bg-red-50/90 text-red-700 hover:border-red-300 shadow-2xs',
+  blue: 'border-sky-200/90 bg-sky-50/90 text-sky-800 hover:border-sky-300 shadow-2xs',
+  violet: 'border-violet-200/90 bg-violet-50/90 text-violet-700 hover:border-violet-300 shadow-2xs',
+  slate: 'border-slate-200/90 bg-slate-50/90 text-slate-700 hover:border-slate-300 shadow-2xs',
+  dark: 'border-primary-700 bg-primary-800 text-white shadow-2xs',
 };
 export function Badge({ tone = 'green', dot = false, children, className = '' }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold transition-all duration-200 hover:scale-[1.03] shadow-2xs ${BADGE[tone]} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[12.5px] font-semibold transition-all duration-200 hover:scale-[1.03] ${BADGE[tone]} ${className}`}>
       {dot && <span className="live-dot shrink-0" />}
       {children}
     </span>
@@ -62,8 +62,8 @@ export function PageHeader({ eyebrow, title, subtitle, action, tags }) {
   return (
     <div className="page-header mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
       <div className="min-w-0">
-        {eyebrow && <p className="page-header-eyebrow mb-1 text-[13px] font-semibold text-primary-700">{eyebrow}</p>}
-        <h1 className="page-header-title text-[28px] font-bold text-ink sm:text-[34px]">{title}</h1>
+        {eyebrow && <p className="page-header-eyebrow mb-1.5 text-[13px] font-semibold text-primary-700">{eyebrow}</p>}
+        <h1 className="page-header-title text-[28px] font-bold tracking-tight text-ink sm:text-[34px]">{title}</h1>
         {subtitle && <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">{subtitle}</p>}
         {tags && <div className="mt-3"><Tags list={tags} /></div>}
       </div>
@@ -74,40 +74,47 @@ export function PageHeader({ eyebrow, title, subtitle, action, tags }) {
 
 export function ProgressBar({ value, className = '', color = 'bg-primary-500' }) {
   return (
-    <div className={`h-2 overflow-hidden rounded-full bg-black/[.06] ${className}`}>
-      <div className={`progress-sheen h-full rounded-full ${color} transition-[width] duration-500 ease-[cubic-bezier(.22,1,.36,1)]`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
+    <div className={`h-2 overflow-hidden rounded-full bg-black/[.06] shadow-inner ${className}`}>
+      <div className={`progress-sheen h-full rounded-full ${color} transition-[width] duration-600 ease-[var(--ease-spring)]`} style={{ width: `${Math.max(2, Math.min(100, value))}%` }} />
     </div>
   );
 }
 
-const STAT_TONE = { green: 'bg-primary-50 text-primary-700', blue: 'bg-sky-50 text-sky-700', amber: 'bg-amber-50 text-amber-700', red: 'bg-red-50 text-red-700', violet: 'bg-violet-50 text-violet-700', clay: 'bg-clay-50 text-clay-700' };
+const STAT_TONE = {
+  green: 'bg-primary-100/80 text-primary-800 ring-1 ring-primary-300/40',
+  blue: 'bg-sky-100/80 text-sky-800 ring-1 ring-sky-300/40',
+  amber: 'bg-amber-100/80 text-amber-800 ring-1 ring-amber-300/40',
+  red: 'bg-red-100/80 text-red-700 ring-1 ring-red-300/40',
+  violet: 'bg-violet-100/80 text-violet-700 ring-1 ring-violet-300/40',
+  clay: 'bg-clay-100/80 text-clay-700 ring-1 ring-clay-300/40',
+};
 const STAT_GLOW = {
-  green: 'hover:border-primary-300 hover:shadow-[0_16px_36px_-12px_rgba(67,134,58,0.25)]',
-  blue: 'hover:border-sky-300 hover:shadow-[0_16px_36px_-12px_rgba(47,138,143,0.25)]',
-  amber: 'hover:border-amber-300 hover:shadow-[0_16px_36px_-12px_rgba(208,143,38,0.25)]',
-  red: 'hover:border-red-300 hover:shadow-[0_16px_36px_-12px_rgba(220,38,38,0.25)]',
-  violet: 'hover:border-violet-300 hover:shadow-[0_16px_36px_-12px_rgba(139,92,246,0.25)]',
-  clay: 'hover:border-clay-300 hover:shadow-[0_16px_36px_-12px_rgba(168,85,42,0.25)]',
+  green: 'hover:border-primary-300 hover:shadow-[0_18px_38px_-12px_rgba(67,134,58,0.28)] hover:-translate-y-1',
+  blue: 'hover:border-sky-300 hover:shadow-[0_18px_38px_-12px_rgba(47,138,143,0.28)] hover:-translate-y-1',
+  amber: 'hover:border-amber-300 hover:shadow-[0_18px_38px_-12px_rgba(208,143,38,0.28)] hover:-translate-y-1',
+  red: 'hover:border-red-300 hover:shadow-[0_18px_38px_-12px_rgba(220,38,38,0.28)] hover:-translate-y-1',
+  violet: 'hover:border-violet-300 hover:shadow-[0_18px_38px_-12px_rgba(139,92,246,0.28)] hover:-translate-y-1',
+  clay: 'hover:border-clay-300 hover:shadow-[0_18px_38px_-12px_rgba(168,85,42,0.28)] hover:-translate-y-1',
 };
 export function StatCard({ icon: Icon, label, value, note, tone = 'green', tag, to }) {
   const body = (
     <>
       <div className="flex items-start justify-between gap-2">
-        <span className="text-[13.5px] font-semibold text-muted">{label}</span>
-        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg transition-transform duration-300 group-hover:scale-110 ${STAT_TONE[tone]}`}>{Icon && <Icon size={18} />}</span>
+        <span className="text-[13.5px] font-semibold text-muted tracking-tight">{label}</span>
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl shadow-2xs transition-all duration-300 ease-[var(--ease-spring)] group-hover:scale-110 group-hover:rotate-3 ${STAT_TONE[tone]}`}>{Icon && <Icon size={18} />}</span>
       </div>
-      <p className="font-display mt-1 min-w-0 pr-4 text-[24px] font-bold leading-tight text-ink tabular">{value}</p>
-      {note && <p className="mt-1 text-[13px] leading-5 text-muted">{note}</p>}
+      <p className="font-display mt-1 min-w-0 pr-4 text-[24px] font-bold leading-tight text-ink tabular tracking-tight">{value}</p>
+      {note && <p className="mt-1 text-[13px] leading-5 text-muted truncate">{note}</p>}
       {tag && <div className="mt-2"><Tags list={[tag]} /></div>}
-      {to && <ChevronRight aria-hidden="true" size={17} className="stat-card-arrow absolute bottom-3 right-3 text-muted/60" />}
+      {to && <ChevronRight aria-hidden="true" size={17} className="stat-card-arrow absolute bottom-3.5 right-3.5 text-muted/60 transition-all duration-250 group-hover:translate-x-1 group-hover:text-primary-700" />}
     </>
   );
-  const cls = `stat-card surface-card group relative block rounded-2xl p-4 ${to ? 'pb-8' : ''} transition-all duration-300 ${STAT_GLOW[tone] || ''}`;
+  const cls = `stat-card surface-card group relative block rounded-2xl p-4 transition-all duration-300 ease-[var(--ease-smooth)] ${to ? 'pb-8' : ''} ${STAT_GLOW[tone] || ''}`;
   return to ? <Link to={to} className={`${cls} lift`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 export function Card({ className = '', children, ...p }) {
-  return <section className={`surface-card rounded-[20px] ${className}`} {...p}>{children}</section>;
+  return <section className={`surface-card rounded-[22px] ${className}`} {...p}>{children}</section>;
 }
 
 // ---- data provenance tags ----
@@ -191,14 +198,14 @@ export function WhyButton({ payload, small, className = '', inverse = false }) {
 
 export function Note({ children, tone = 'info', className = '' }) {
   const map = {
-    info: ['border-l-4 border-l-sky-500 border-sky-100 bg-sky-50/75 text-sky-950 shadow-2xs', Info, 'text-sky-600'],
-    gold: ['border-l-4 border-l-amber-500 border-amber-200 bg-amber-50/80 text-amber-950 shadow-2xs', Info, 'text-amber-600'],
-    warn: ['border-l-4 border-l-red-500 border-red-200 bg-red-50/80 text-red-950 shadow-2xs', AlertTriangle, 'text-red-600'],
-    ok: ['border-l-4 border-l-emerald-600 border-primary-200 bg-primary-50/80 text-primary-950 shadow-2xs', CheckCircle2, 'text-emerald-600'],
+    info: ['border-l-4 border-l-sky-500 border-sky-100/90 bg-sky-50/80 text-sky-950 shadow-2xs', Info, 'text-sky-600'],
+    gold: ['border-l-4 border-l-amber-500 border-amber-200/90 bg-amber-50/85 text-amber-950 shadow-2xs', Info, 'text-amber-600'],
+    warn: ['border-l-4 border-l-red-500 border-red-200/90 bg-red-50/85 text-red-950 shadow-2xs', AlertTriangle, 'text-red-600'],
+    ok: ['border-l-4 border-l-emerald-600 border-primary-200/90 bg-primary-50/85 text-primary-950 shadow-2xs', CheckCircle2, 'text-emerald-600'],
   };
   const [cls, Icon, iconCls] = map[tone] || map.info;
   return (
-    <div className={`status-note flex gap-2.5 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 transition-all duration-200 ${cls} ${className}`}>
+    <div className={`status-note flex gap-2.5 rounded-xl border px-3.5 py-2.5 text-[14px] leading-6 transition-all duration-200 backdrop-blur-xs ${cls} ${className}`}>
       <Icon size={18} className={`mt-0.5 shrink-0 ${iconCls}`} />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
@@ -208,7 +215,7 @@ export function Note({ children, tone = 'info', className = '' }) {
 export function Input({ className = '', ...props }) {
   return (
     <input
-      className={`h-11 w-full rounded-xl border border-border bg-white px-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted ${className}`}
+      className={`h-11 w-full rounded-xl border border-border/90 bg-white/95 px-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/12 shadow-2xs disabled:bg-black/[.03] disabled:text-muted ${className}`}
       {...props}
     />
   );
@@ -218,7 +225,7 @@ export function Textarea({ className = '', rows = 3, ...props }) {
   return (
     <textarea
       rows={rows}
-      className={`w-full rounded-xl border border-border bg-white p-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted ${className}`}
+      className={`w-full rounded-xl border border-border/90 bg-white/95 p-3.5 text-[15px] text-ink outline-none transition-all duration-200 placeholder:text-muted/60 hover:border-primary-300 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/12 shadow-2xs disabled:bg-black/[.03] disabled:text-muted ${className}`}
       {...props}
     />
   );
@@ -227,7 +234,7 @@ export function Textarea({ className = '', rows = 3, ...props }) {
 export function Select({ className = '', children, ...props }) {
   return (
     <select
-      className={`h-11 w-full rounded-xl border border-border bg-white px-3.5 text-[15px] font-medium text-ink outline-none transition-all duration-200 hover:border-primary-300 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 disabled:bg-black/[.03] disabled:text-muted cursor-pointer ${className}`}
+      className={`h-11 w-full rounded-xl border border-border/90 bg-white/95 px-3.5 text-[15px] font-medium text-ink outline-none transition-all duration-200 hover:border-primary-300 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/12 shadow-2xs disabled:bg-black/[.03] disabled:text-muted cursor-pointer ${className}`}
       {...props}
     >
       {children}

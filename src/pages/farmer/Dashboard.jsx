@@ -23,6 +23,8 @@ export default function Dashboard() {
   const daysTo = daysBetween(today, chosen.hw.start);
   const openReqs = s.requests.filter((q) => q.farmerId === farmer.id && q.status === 'open').length;
   const goStep = (n) => dispatch({ type: 'set', patch: { step: n } });
+  const planStep = confirmedPlan ? 7 : landConfirmed ? Math.min(s.step + 1, 7) : 0;
+  const planProgress = confirmedPlan ? 100 : (planStep / 7) * 100;
 
   // One clear next step, in the order a farmer would naturally do things.
   const next = !landConfirmed
@@ -48,23 +50,36 @@ export default function Dashboard() {
             <p className="mt-3 max-w-xl text-[15.5px] leading-7 text-white/80">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
             <div className="mt-3"><Tags list={[climateTag(), 'RULE']} /></div>
           </div>
-          <div data-tour="dash-next" className="keep-solid glass rounded-[22px] !bg-white/85 p-4 text-ink">
-            <div className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700"><next.icon size={20} /></span>
+          <div data-tour="dash-next" className="keep-solid glass rounded-[24px] !bg-white/92 p-5 text-ink shadow-lg border border-white/80 backdrop-blur-md">
+            <div className="flex items-start gap-3.5">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-100/80 text-primary-800 shadow-2xs transition-transform duration-300 group-hover:scale-110"><next.icon size={22} /></span>
               <div className="min-w-0">
-                <div className="text-[13px] font-semibold text-primary-700">{T('এখন যা করবেন', 'Your next step')}</div>
-                <div className="font-display text-[19px] font-bold leading-tight">{next.title}</div>
+                <div className="text-[13px] font-semibold text-primary-700 tracking-tight">{T('এখন যা করবেন', 'Your next step')}</div>
+                <div className="font-display text-[20px] font-bold leading-tight">{next.title}</div>
                 <p className="mt-1 text-[14px] leading-6 text-muted">{next.text}</p>
               </div>
             </div>
-            <Button to={next.to} className="mt-3 w-full">{next.cta}<ChevronRight size={17} /></Button>
+            <div className="mt-4" data-tour="plan-progress">
+              <div className="mb-1.5 flex items-center justify-between gap-2 text-[12px] font-semibold">
+                <span className="text-muted">{!landConfirmed
+                  ? T('পরিকল্পনার শুরু', 'Plan progress')
+                  : confirmedPlan ? T('পরিকল্পনা পাকা', 'Plan confirmed') : T(`ধাপ ${num(planStep, 'bn')} / ৭`, `Step ${planStep} of 7`)}</span>
+                <span className="text-primary-800 font-bold">{num(planProgress, lang)}%</span>
+              </div>
+              <div role="progressbar" aria-label={T('পরিকল্পনার অগ্রগতি', 'Plan progress')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(planProgress)}
+                className="h-2.5 overflow-hidden rounded-full bg-primary-100 shadow-inner">
+                <div className="plan-progress-fill h-full rounded-full bg-gradient-to-r from-primary-500 via-primary-600 to-paddy-500 shadow-sm" style={{ width: `${planProgress}%` }} />
+              </div>
+              {!landConfirmed && <p className="mt-1 text-[11.5px] text-muted">{T('জমি বাছাই করলেই পরিকল্পনার ধাপ শুরু হবে।', 'Choose your field to begin the plan steps.')}</p>}
+            </div>
+            <Button to={next.to} className="mt-3.5 w-full shadow-sm">{next.cta}<ChevronRight size={17} /></Button>
           </div>
         </div>
       </section>
 
       <Card className="p-5" data-tour="dash-year">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-[20px] font-bold">{T('আপনার বছর, বাংলা মাসে', 'Your year, by Bangla month')}</h2>
+          <h2 className="text-[20px] font-bold tracking-tight">{T('আপনার বছর, বাংলা মাসে', 'Your year, by Bangla month')}</h2>
           <div className="flex items-center gap-3"><ScoreRing value={chosen.score} size={40} /><Link to="/farmer/plan" onClick={() => goStep(4)} className="text-[14.5px] font-semibold text-primary-700 hover:underline">{T('পরামর্শ বদলে দেখুন', 'Explore other options')}</Link></div>
         </div>
         <SeasonRibbon />
@@ -79,18 +94,18 @@ export default function Dashboard() {
         <StatCard icon={LifeBuoy} tone="violet" label={T('সাহায্য', 'Help')} value={T(`${num(openReqs, 'bn')}টি অপেক্ষায়`, `${openReqs} waiting`)} note={unreadAdvisories ? T(`${num(unreadAdvisories, 'bn')}টি নতুন বার্তা`, `${unreadAdvisories} new message${unreadAdvisories > 1 ? 's' : ''}`) : T('নতুন বার্তা নেই', 'No new messages')} to="/farmer/help" />
       </div>
 
-      <Link to="/farmer/future" data-tour="dash-future" className="lift group flex items-center gap-4 overflow-hidden rounded-[20px] bg-gradient-to-r from-primary-900 to-sky-800 p-4 text-white shadow-[var(--shadow-lift)] ring-1 ring-white/10 sm:p-5">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15"><Telescope size={24} /></span>
+      <Link to="/farmer/future" data-tour="dash-future" className="lift group flex items-center gap-4 overflow-hidden rounded-[22px] bg-gradient-to-r from-primary-950 via-primary-900 to-sky-900 p-5 text-white shadow-[var(--shadow-lift)] ring-1 ring-white/15 transition-all duration-300 hover:shadow-2xl">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"><Telescope size={24} /></span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[17px] font-bold">{T('জমির ভবিষ্যৎ: ১০ বছরের ফসলচক্র', 'Field future: ten years of rotation')}</span>
+          <span className="block text-[17px] font-bold tracking-tight">{T('জমির ভবিষ্যৎ: ১০ বছরের ফসলচক্র', 'Field future: ten years of rotation')}</span>
           <span className="block text-[13.5px] leading-6 text-white/80">{T('কোন ফসলচক্রে আপনার মাটি ভালো থাকে, পানি বাঁচে, আয় বাড়ে, আজ আর নাসার ২০৪০-এর দশকের আবহাওয়ায়', 'Which rotation keeps your soil good, saves water and pays, today and in NASA’s 2040s')}</span>
         </span>
-        <ChevronRight size={20} className="shrink-0 transition group-hover:translate-x-1" />
+        <ChevronRight size={20} className="shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
       </Link>
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_.75fr]">
         <Card className="p-5 sm:p-6" data-tour="dash-week">
-          <h2 className="text-[20px] font-bold">{T('এই সপ্তাহের কাজ', 'This week')}</h2>
+          <h2 className="text-[20px] font-bold tracking-tight">{T('এই সপ্তাহের কাজ', 'This week')}</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-3" data-stagger>
             {[
               [Droplets, L(WATER_COLORS[water.color]), water.reasons[0] ? L(water.reasons[0]) : '', '/farmer/today'],
@@ -99,8 +114,8 @@ export default function Dashboard() {
                 ? [Sprout, T('পরের ফসলের কথা ভাবুন', 'Think about the next crop'), r.best ? T(`তোলার পর ${r.best.crop.name.bn}`, `${r.best.crop.name.en} after harvest`) : T('সরাসরি রোপা আমন', 'Straight to Aman'), '/farmer/plan', 5]
                 : [CheckCircle2, T('পরিকল্পনা পাকা করুন', 'Confirm your plan'), T('তাহলে কৃষি কর্মকর্তা দেখতে পাবেন', 'So your officer can see it'), '/farmer/plan', 6],
             ].map(([Icon, t, dsc, to, step]) => (
-              <Link key={t} to={to} onClick={() => step != null && goStep(step)} className="group flex items-start gap-3 rounded-2xl border border-border bg-white/70 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 hover:bg-primary-50/70 hover:shadow-sm active:scale-[0.98]">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary-100">
+              <Link key={t} to={to} onClick={() => step != null && goStep(step)} className="group flex items-start gap-3.5 rounded-2xl border border-border/80 bg-white/85 p-4 transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 hover:bg-primary-50/70 hover:shadow-md active:scale-[0.98] shadow-2xs">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-100/80 text-primary-800 transition-transform duration-300 group-hover:scale-110 group-hover:bg-primary-200/80">
                   <Icon size={20} />
                 </span>
                 <span className="min-w-0">

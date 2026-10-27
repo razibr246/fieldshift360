@@ -6,13 +6,16 @@ Read [AGENTS.md](../AGENTS.md) at the repository root: it is the one guide for e
 
 - Install dependencies: `npm install`
 - Run the project tests: `npm test`
-- Run a single Node test file: `node --test src/engine/engine.test.js`
+- Run a single test file: `node --test src/engine/engine.test.js` (or any `*.test.js` file directly)
 - Run a single test by name: `node --test --test-name-pattern="weights" src/engine/engine.test.js`
-- Build the production bundle: `npm run build`
+- Run the voice suite: `node --test src/voice/voice.test.js`
+- Build the production bundle: `npm run build`; preview it with `npm run preview`
 - Build the single-file export: `npm run build:single`
 - Start the Vite dev server: `npm run dev`
+- After changing `src/voice/brain.js`, sync the phone-agent copy with `npm run sync:voice`.
+- Data fetch/build commands are documented in [scripts/README.md](../scripts/README.md).
 
-There is no linter or formatter in this repo. The validation path is `npm test` plus `npm run build`.
+There is no linter or formatter script. The validation path is `npm test` plus `npm run build`. Tests use Node's built-in runner and cannot import `.jsx`; keep logic that needs direct tests in `src/engine/` or another plain JavaScript module.
 
 ## High-level architecture
 
@@ -20,7 +23,7 @@ There is no linter or formatter in this repo. The validation path is `npm test` 
 - `src/App.jsx` is the route shell; it lazy-loads page modules so the landing page stays light and the rest of the app loads on demand.
 - `src/store.jsx` is the app-wide state container. It holds the selected farmer, field, priorities, requests, officer context, and derived season/rotation decisions. It also lazily loads upazila climate data and normalizes it against BMD station files before the rest of the app consumes it.
 - `src/engine/` is the core calculation layer. This is where crop/soil/water/climate logic lives, and it is intentionally pure and testable with Node's runner. Keep numeric calculations here instead of embedding them in pages/components.
-- `src/data/` contains committed datasets grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `market/`, `geo/`, etc.). These files are generated artifacts, not hand-edited source.
+- `src/data/` contains committed datasets grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `market/`, `geo/`, etc.) alongside maintained JavaScript data modules such as `demo.js` and `upazilas.js`. Regenerate generated datasets through their scripts rather than hand-editing their outputs.
 - `scripts/` owns the generation pipeline for the data and photos that feed the app. The scripts in `scripts/fetch/`, `scripts/build/`, and `scripts/onset/` write to `src/data/`, `public/`, and other committed outputs. If a dataset changes, update the script that generates it rather than editing generated JSON by hand.
 - `api/` contains the Vercel serverless endpoints (`plans`, `messages`, `abroad`, `doctor`). In local dev, Vite serves in-memory stand-ins, so the app can still render without a live backend.
 - `src/voice/` and `services/voice-agent/` share the same logic for voice/SMS flows; keep changes consistent across both when needed.

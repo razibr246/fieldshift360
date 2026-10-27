@@ -1,6 +1,6 @@
 // The games hub: two ways to learn FieldShift by playing.
 import { Link } from 'react-router-dom';
-import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned } from 'lucide-react';
+import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy } from 'lucide-react';
 import Photo from '../../components/Photo';
 import { useStore } from '../../store';
 
@@ -24,20 +24,35 @@ export default function Games() {
         </h1>
         <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-ink/70">{T('তিনটি খেলা, একটাই শিক্ষা: বিপদ আসার আগে জানলে ফসল বাঁচে। খেলে দেখুন FieldShift কোন সমস্যায় কীভাবে পাশে থাকে।', 'Three games, one lesson: know before trouble arrives and the crop survives. Play and see how FieldShift helps with each problem.')}</p>
       </div>
-      <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <ol className="mt-7 grid gap-2 sm:grid-cols-3" aria-label={T('খেলার ধাপ', 'How the games work')}>
+        {[
+          T('একটি গল্প বাছুন', 'Choose a story'),
+          T('নিজের সিদ্ধান্ত নিন', 'Make your choices'),
+          T('ফসলের ফল দেখুন', 'See the season outcome'),
+        ].map((step, i) => (
+          <li key={step} className="game-path-step relative flex items-center gap-3 rounded-2xl border border-primary-100 bg-white/75 px-4 py-3 shadow-sm" style={{ '--step': i }}>
+            <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${i === 2 ? 'bg-paddy-100 text-paddy-700' : 'bg-primary-100 text-primary-800'}`}>
+              {i === 2 ? <Trophy size={16} /> : i === 1 ? <Check size={16} /> : <MapPinned size={16} />}
+            </span>
+            <span className="text-[14px] font-semibold text-ink">{step}</span>
+            {i < 2 && <ArrowRight size={15} className="ml-auto hidden text-primary-500 sm:block" aria-hidden="true" />}
+          </li>
+        ))}
+      </ol>
+      <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {games.map((g, n) => (
-          <Link key={g.to} to={g.to} style={{ '--n': n }} className="tool-card tool-deal glass flat group overflow-hidden rounded-[30px]">
+          <Link key={g.to} to={g.to} style={{ '--n': n }} className="tool-card tool-deal glass flat group overflow-hidden rounded-[28px] border border-white/80 shadow-md hover:shadow-2xl hover:border-primary-400/60 transition-all duration-300 bg-white/80 backdrop-blur-md">
             <div className="relative aspect-[16/9] overflow-hidden">
-              <div className="absolute inset-0 transition-transform duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-110"><Photo name={g.photo} fill sizes="(min-width: 768px) 600px, 100vw" decorative /></div>
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,26,14,0)_40%,rgba(8,26,14,.7)_100%)]" />
-              <span className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-white/20 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4)] backdrop-blur-xl transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110"><g.icon size={26} /></span>
-              {g.badge && <span className="absolute right-4 top-4 rounded-full bg-paddy-300 px-3 py-1 text-[13px] font-bold text-primary-950 shadow">{g.badge}</span>}
+              <div className="absolute inset-0 transition-transform duration-[1.2s] ease-[var(--ease-smooth)] group-hover:scale-110"><Photo name={g.photo} fill sizes="(min-width: 768px) 600px, 100vw" decorative /></div>
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,26,14,0)_30%,rgba(8,26,14,.8)_100%)]" />
+              <span className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-white/25 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_8px_20px_rgba(0,0,0,.3)] backdrop-blur-xl transition-all duration-500 group-hover:-rotate-6 group-hover:scale-110 group-hover:bg-primary-600/70"><g.icon size={26} /></span>
+              {g.badge && <span className="absolute right-4 top-4 rounded-full bg-paddy-300 px-3 py-1 text-[13px] font-bold text-primary-950 shadow-md ring-1 ring-white/50">{g.badge}</span>}
             </div>
             <div className="p-6">
-              <p className="text-[13px] font-semibold text-primary-700">{g.kind}</p>
-              <p className="font-display mt-1 text-[28px] font-semibold tracking-[-0.025em]">{g.title}</p>
-              <p className="mt-2 text-[15.5px] leading-7 text-ink/70">{g.text}</p>
-              <span className="mt-4 inline-flex items-center gap-2 font-semibold text-primary-700">{T('খেলুন', 'Play')}<ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" /></span>
+              <p className="text-[13px] font-semibold text-primary-700 tracking-tight">{g.kind}</p>
+              <p className="font-display mt-1 text-[26px] font-bold tracking-tight text-ink group-hover:text-primary-800 transition-colors">{g.title}</p>
+              <p className="mt-2 text-[15px] leading-7 text-ink/75">{g.text}</p>
+              <span className="mt-4 inline-flex items-center gap-2 font-semibold text-primary-700 transition-colors group-hover:text-primary-800">{T('খেলুন', 'Play')}<ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1.5" /></span>
             </div>
           </Link>
         ))}

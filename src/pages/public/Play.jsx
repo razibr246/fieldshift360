@@ -153,17 +153,19 @@ function Meters({ m, delta }) {
     { k: 'water', icon: Droplets, label: T('পানি', 'Water'), value: num(water, lang), bar: water, color: 'bg-sky-500' },
   ];
   return (
-    <div className="grid grid-cols-3 gap-2 sm:flex">
+    <div className="grid grid-cols-3 gap-2.5 sm:flex">
       {items.map((it) => {
         const d = delta?.[it.k];
         return (
-          <div key={it.k} className="glass relative flex min-w-0 items-center gap-2.5 rounded-2xl px-3 py-2 sm:min-w-[150px]">
-            <it.icon size={18} className="shrink-0 text-primary-700" />
+          <div key={it.k} className="glass relative flex min-w-0 items-center gap-3 rounded-2xl px-3.5 py-2.5 sm:min-w-[155px] border border-white/80 shadow-xs">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary-100/80 text-primary-800 shadow-2xs">
+              <it.icon size={18} />
+            </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-2"><span className="text-[12px] font-semibold text-muted">{it.label}</span><span className={`font-display text-[16px] font-semibold tabular ${it.tone ?? ''}`}>{it.value}</span></div>
-              {it.bar !== undefined && <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/[.07]"><div className={`h-full rounded-full ${it.color} transition-[width] duration-700`} style={{ width: `${it.bar}%` }} /></div>}
+              <div className="flex items-baseline justify-between gap-2"><span className="text-[12px] font-semibold text-muted">{it.label}</span><span className={`font-display text-[16px] font-bold tabular ${it.tone ?? ''}`}>{it.value}</span></div>
+              {it.bar !== undefined && <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/[.07]"><div className={`progress-sheen h-full rounded-full ${it.color} transition-[width] duration-700 ease-[var(--ease-spring)]`} style={{ width: `${it.bar}%` }} /></div>}
             </div>
-            {d ? <span key={delta.k} className={`delta-float absolute -top-2 right-2 rounded-full px-1.5 text-[12px] font-bold text-white ${d > 0 ? 'bg-primary-600' : 'bg-red-600'}`}>{d > 0 ? '+' : '−'}{it.k === 'money' ? '৳' : ''}{num(Math.abs(d), lang)}</span> : null}
+            {d ? <span key={delta.k} className={`delta-float absolute -top-2 right-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shadow-sm ${d > 0 ? 'bg-primary-600' : 'bg-red-600'}`}>{d > 0 ? '+' : '−'}{it.k === 'money' ? '৳' : ''}{num(Math.abs(d), lang)}</span> : null}
           </div>
         );
       })}
@@ -174,11 +176,11 @@ function Meters({ m, delta }) {
 function MonthTrail({ i, tries }) {
   const { L } = useStore();
   return (
-    <ol className="glass flex items-center gap-1 overflow-x-auto rounded-full p-1.5 hide-scrollbar">
+    <ol className="glass flex items-center gap-1.5 overflow-x-auto rounded-full p-2 hide-scrollbar border border-white/70 shadow-xs">
       {SCENES.map((sc, k) => {
         const r = tries[k];
         return (
-          <li key={sc.id} className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold transition-all duration-500 ${k === i ? 'bg-primary-700 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.3)]' : r ? 'text-ink/80' : 'text-ink/40'}`}>
+          <li key={sc.id} className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-all duration-300 ${k === i ? 'bg-primary-700 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.3)] scale-105' : r ? 'text-ink/80 hover:bg-white/40' : 'text-ink/40'}`}>
             {r && k !== i && (r === 'habit' ? <X size={13} className="text-red-600" /> : <Check size={13} className="text-primary-600" />)}
             {L(sc.month)}
           </li>
@@ -193,9 +195,9 @@ function ToolCard({ id, tool, n, shaking, onPick }) {
   const Icon = TOOL_ICON[id];
   return (
     <button key={shaking ?? id} type="button" onClick={onPick} style={{ '--n': n }}
-      className={`tool-card glass flat group flex flex-col items-start gap-2 rounded-[22px] p-4 text-left transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-95 ${shaking ? 'tool-shake' : 'tool-deal'}`}>
-      <span className={`grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br ${TOOL_TINT[id]} text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_8px_18px_-8px_rgba(0,0,0,.45)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}><Icon size={21} /></span>
-      <span className="text-[16px] font-semibold leading-snug">{L(tool)}</span>
+      className={`tool-card glass flat group flex flex-col items-start gap-2.5 rounded-[22px] p-4 text-left transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl active:scale-95 border border-white/80 bg-white/85 hover:border-primary-300 cursor-pointer ${shaking ? 'tool-shake' : 'tool-deal'}`}>
+      <span className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br ${TOOL_TINT[id]} text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_8px_18px_-8px_rgba(0,0,0,.45)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}><Icon size={22} /></span>
+      <span className="font-display text-[16.5px] font-bold leading-snug text-ink group-hover:text-primary-800 transition-colors">{L(tool)}</span>
       <span className="text-[13px] leading-5 text-muted">{L(tool.note)}</span>
     </button>
   );

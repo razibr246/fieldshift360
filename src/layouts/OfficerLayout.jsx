@@ -156,7 +156,7 @@ export default function OfficerLayout() {
       )}
       <div className="officer-workspace min-w-0 flex-1">
         <header className="officer-header glass-bar sticky top-0 z-30">
-          <div className="flex h-[64px] items-center gap-2.5 px-4 sm:px-6">
+          <div className="flex h-[64px] items-center gap-1.5 px-2.5 sm:gap-2.5 sm:px-6">
             <button type="button" onClick={() => setDrawer(true)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink shadow-2xs hover:bg-primary-50 active:scale-95 lg:hidden" aria-label={T('মেনু খুলুন', 'Open menu')} aria-expanded={drawer} aria-haspopup="dialog"><Menu size={19} /></button>
             <BackButton />
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">

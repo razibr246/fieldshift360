@@ -67,26 +67,31 @@ export default function Home() {
 
           <LiveWeather className="mt-12 lg:mt-16" />
 
-          <div className="glass lite mt-5 rounded-[26px] !bg-white/75 p-5 sm:p-6" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
+          <div className="surface-card lift mt-5 rounded-[28px] border border-primary-200/70 bg-white/90 p-5 sm:p-7 shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-xl" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center"><ScoreRing value={d.rec.score} size={58} /><span className="mt-0.5 whitespace-nowrap text-[11px] text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span></div>
+                <div className="flex flex-col items-center">
+                  <div className="rounded-2xl p-1 shadow-2xs">
+                    <ScoreRing value={d.rec.score} size={58} />
+                  </div>
+                  <span className="mt-1 whitespace-nowrap text-[11px] font-semibold text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span>
+                </div>
                 <div>
                   <p className="font-display text-[22px] font-bold leading-tight sm:text-[26px]"><span className={st.text}>{L(st)}</span>: {L(d.rec.crop.name)}</p>
                   <p className="mt-1 text-[15px] font-semibold text-ink/85">{(() => {
                     const left = daysBetween(today, d.rec.t0), y = banglaDate(d.rec.t0).year;
                     const when = T(`লাগানোর দিন ${fmtBangla(d.rec.t0, 'bn')} ${bnDigits(y)} (${fmtDate(d.rec.t0, 'bn')})`, `Plant on ${fmtDate(d.rec.t0, 'en')} (${fmtBangla(d.rec.t0, 'en')} ${y})`);
                     const cd = left > 0 ? T(`আর ${num(left, 'bn')} দিন`, `${left} days to go`) : left === 0 ? T('আজই', 'today') : T(`${num(-left, 'bn')} দিন আগে পেরিয়েছে`, `${-left} days ago`);
-                    return <>{when} · <span className={left < 0 ? 'text-clay-700' : 'text-paddy-700'}>{cd}</span></>;
+                    return <>{when} · <span className={`font-bold tabular ${left < 0 ? 'text-clay-700' : 'text-paddy-700'}`}>{cd}</span></>;
                   })()}</p>
-                  <p className="mt-1 text-[13.5px] text-muted">{(() => {
+                  <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{(() => {
                     const r = (a) => `${a[0]}–${a[a.length - 1]}`, { then, now } = d.rec.bt;
                     return T(`এই দিনে লাগালে আবহাওয়া ঠিক ছিল: এখন (${bnDigits(r(NOW))}) ${num(now.n, 'bn')} মৌসুমের ${num(now.safe, 'bn')}টিতে, আগে (${bnDigits(r(THEN))}) ${num(then.n, 'bn')}টির ${num(then.safe, 'bn')}টিতে`,
                       `Planted on this day, the weather was fine in ${now.safe} of ${now.n} seasons now (${r(NOW)}) and ${then.safe} of ${then.n} before (${r(THEN)})`);
                   })()}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2"><Tags list={[climateTag(), 'RULE']} /><Link to="/farmer/plan" className="text-[14.5px] font-semibold text-primary-700 underline-offset-4 hover:underline">{T('পুরো হিসাব দেখুন', 'See the full working')}</Link></div>
+              <div className="flex items-center gap-2.5"><Tags list={[climateTag(), 'RULE']} /><Link to="/farmer/plan" className="inline-flex items-center gap-1 text-[14.5px] font-semibold text-primary-700 underline-offset-4 hover:underline transition-colors hover:text-paddy-700">{T('পুরো হিসাব দেখুন', 'See the full working')}<ChevronRight size={15} /></Link></div>
             </div>
             <div className="mt-5"><SeasonRibbon /></div>
           </div>
@@ -112,9 +117,9 @@ export default function Home() {
           </div>
           <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {steps.map(([Icon, t, d2], i) => (
-              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="lift glass flat spotlight-card group relative rounded-[24px] p-6 pr-16 transition-all hover:border-primary-300">
+              <li key={t} data-reveal style={{ '--d': `${(i % 3) * 110}ms` }} className="surface-card lift lift-green spotlight-card group relative rounded-[24px] border border-border/80 bg-white/85 p-6 pr-16 transition-all duration-300 hover:border-primary-400 hover:shadow-xl">
                 <span className="btn-gloss font-display absolute right-5 top-5 grid h-8 min-w-8 place-items-center rounded-full px-2 text-[14px] font-bold text-white shadow-md transition-transform duration-300 group-hover:scale-110">{num(i + 1, lang)}</span>
-                <div className="flex items-center gap-2"><Icon size={19} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary-700" /><h3 className="text-[19px] font-bold">{t}</h3></div>
+                <div className="flex items-center gap-2"><Icon size={19} className="text-primary-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-primary-700" /><h3 className="text-[19px] font-bold text-ink">{t}</h3></div>
                 <p className="mt-1.5 text-[15px] leading-7 text-muted">{d2}</p>
               </li>
             ))}
@@ -283,7 +288,7 @@ export default function Home() {
           <div className="space-y-2 text-[14px] leading-6 text-primary-200 sm:text-right">
             <p>{L(PROJECT_EVENT)}</p>
             <p>{T('এটি সিদ্ধান্ত নিতে সাহায্যের একটি নমুনা প্রকল্প, কোনো নিশ্চয়তা নয়। ফসলের হিসাবের সীমাগুলো কৃষিবিদ দিয়ে যাচাই করে নিতে হবে।', 'A decision-support prototype, not a guarantee. Crop thresholds still need checking by an agronomist.')}</p>
-            <p className="text-primary-300">© {new Date().getFullYear()} {PROJECT_NAME} by {PROJECT_TEAM}</p>
+            <p className="text-primary-300">© {new Date().getFullYear()} {PROJECT_NAME} by <a href="https://www.linkedin.com/in/razibr246" target="_blank" rel="noopener noreferrer" className="rounded-sm font-semibold text-[#a9cc83] decoration-[#d5b56a] decoration-2 underline-offset-4 transition-colors hover:text-[#e6cd8e] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d5b56a]">{PROJECT_TEAM}</a></p>
           </div>
         </div>
         <div className="page-shell mt-8 flex flex-wrap gap-x-6 gap-y-2.5 text-[14px]">

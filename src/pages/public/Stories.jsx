@@ -59,22 +59,27 @@ export default function Stories() {
         <ol className="space-y-4">
           {LEVELS.map((l) => (
             <li key={l.id}>
-              <Link to={`/stories/${l.id}`} className="tool-card glass flat group grid overflow-hidden rounded-[24px] sm:grid-cols-[180px_1fr] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-primary-400/50">
-                <div className="relative min-h-[150px] overflow-hidden"><div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-105"><CropPhoto crop={l.crops[0]} width={500} sizes="200px" linkCredit={false} /></div></div>
+              <Link to={`/stories/${l.id}`} className="surface-card lift lift-green group grid overflow-hidden rounded-[26px] border border-border/80 bg-white/90 sm:grid-cols-[200px_1fr] shadow-[var(--shadow-card)] transition-all duration-300 hover:border-primary-400 hover:shadow-2xl">
+                <div className="relative min-h-[160px] overflow-hidden bg-primary-950/5">
+                  <div className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-108">
+                    <CropPhoto crop={l.crops[0]} width={500} sizes="200px" linkCredit={false} />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent sm:hidden" />
+                </div>
                 <div className="p-4 sm:p-5">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="grid h-7 min-w-7 place-items-center rounded-full px-2 text-[13px] font-bold text-white shadow-xs" style={{ background: l.tone }}>{T(`স্তর ${bnDigits(l.n)}`, `Level ${l.n}`)}</span>
+                    <span className="grid h-7 min-w-7 place-items-center rounded-full px-2 text-[13px] font-bold text-white shadow-2xs" style={{ background: l.tone }}>{T(`স্তর ${bnDigits(l.n)}`, `Level ${l.n}`)}</span>
                     <span className="text-[13px] font-semibold text-muted">{L(l.division)} · {L(l.upazila)}</span>
-                    <span className="rounded-full bg-primary-700 px-2 py-0.5 text-[11.5px] font-bold text-white shadow-xs">{T('নমুনা খামার', 'Sample farm')}</span>
-                    {l.woman && <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[11.5px] font-bold text-violet-800"><HeartHandshake size={12} />{T('নারী কৃষক', 'Woman farmer')}</span>}
+                    <span className="rounded-full bg-primary-700 px-2 py-0.5 text-[11.5px] font-bold text-white shadow-2xs">{T('নমুনা খামার', 'Sample farm')}</span>
+                    {l.woman && <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-[11.5px] font-bold text-violet-800 shadow-2xs"><HeartHandshake size={12} />{T('নারী কৃষক', 'Woman farmer')}</span>}
                   </div>
-                  <div className="font-display mt-1 text-[22px] font-semibold text-ink group-hover:text-primary-800 transition-colors">{L(l.farmer)}</div>
-                  <div className="mt-2 grid gap-1.5 text-[13.5px] leading-5 sm:grid-cols-2">
-                    <span className="flex gap-1.5"><Swords size={15} className="mt-0.5 shrink-0 text-red-700" /><span><b>{T('পরিবেশের দানব', 'Environmental boss')}:</b> {L(l.hazard)}</span></span>
-                    <span className="flex gap-1.5"><Bug size={15} className="mt-0.5 shrink-0 text-paddy-700" /><span><b>{T('রোগ-পোকার দানব', 'Biological boss')}:</b> {L(l.bio)}</span></span>
+                  <div className="font-display mt-1 text-[23px] font-bold text-ink group-hover:text-primary-800 transition-colors">{L(l.farmer)}</div>
+                  <div className="mt-2.5 grid gap-2 text-[13.5px] leading-5 sm:grid-cols-2">
+                    <span className="flex items-start gap-1.5 rounded-lg border border-red-200/60 bg-red-50/50 px-2.5 py-1.5"><Swords size={15} className="mt-0.5 shrink-0 text-red-700" /><span><b className="text-red-950">{T('পরিবেশের দানব', 'Environmental boss')}:</b> {L(l.hazard)}</span></span>
+                    <span className="flex items-start gap-1.5 rounded-lg border border-paddy-200/60 bg-paddy-50/50 px-2.5 py-1.5"><Bug size={15} className="mt-0.5 shrink-0 text-paddy-700" /><span><b className="text-paddy-950">{T('রোগ-পোকার দানব', 'Biological boss')}:</b> {L(l.bio)}</span></span>
                   </div>
-                  <div className="mt-2 flex gap-1.5 text-[13.5px] leading-5 text-primary-800"><Sparkles size={15} className="mt-0.5 shrink-0 text-amber-500" /><span><b>{T('পাওয়ার-আপ', 'Power-up')}:</b> {L(l.power)}</span></div>
-                  <span className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-700 group-hover:text-primary-800">{l.mission ? T('গল্প পড়ুন, খেলুন, খামারে ঢুকুন', 'Read, play, enter the farm') : T('খামারে ঢুকুন', 'Enter the farm')}<ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" /></span>
+                  <div className="mt-2 flex items-center gap-1.5 text-[13.5px] font-semibold text-primary-900"><Sparkles size={15} className="shrink-0 text-amber-500" /><span><b>{T('পাওয়ার-আপ', 'Power-up')}:</b> {L(l.power)}</span></div>
+                  <span className="mt-3.5 inline-flex items-center gap-1.5 text-[14px] font-bold text-primary-700 transition-colors group-hover:text-primary-800">{l.mission ? T('গল্প পড়ুন, খেলুন, খামারে ঢুকুন', 'Read, play, enter the farm') : T('খামারে ঢুকুন', 'Enter the farm')}<ArrowRight size={16} className="transition-transform duration-200 group-hover:translate-x-1.5" /></span>
                 </div>
               </Link>
             </li>
@@ -83,22 +88,22 @@ export default function Stories() {
       </div>
 
       <section className="mt-12 grid gap-5 lg:grid-cols-2">
-        <div className="glass flat rounded-[24px] p-5">
-          <h2 className="text-[22px] font-bold">{T('FieldShift স্কোর', 'The FieldShift Score')}</h2>
+        <div className="surface-card rounded-[26px] border border-border/80 bg-white/90 p-6 shadow-[var(--shadow-card)]">
+          <h2 className="text-[22px] font-bold text-ink">{T('FieldShift স্কোর', 'The FieldShift Score')}</h2>
           <p className="mt-1 text-[14.5px] leading-6 text-muted">{T('প্রতিটি সিদ্ধান্ত পাঁচ দিক থেকে মাপা; মোট ১০০, সঙ্গে বোনাস।', 'Every decision is weighed on five pillars: 100 points, plus a bonus.')}</p>
-          <div className="mt-3 rounded-xl bg-primary-950 px-4 py-3 text-center font-mono text-[14px] text-primary-50">{T('স্কোর', 'Score')} = 0.25·Y + 0.20·E + 0.20·C + 0.20·B + 0.15·M</div>
-          <ul className="mt-3 space-y-1.5 text-[14px] leading-6">
+          <div className="mt-3.5 rounded-xl border border-primary-900/40 bg-primary-950 px-4 py-3 text-center font-mono text-[14px] font-bold text-primary-50 shadow-inner">{T('স্কোর', 'Score')} = 0.25·Y + 0.20·E + 0.20·C + 0.20·B + 0.15·M</div>
+          <ul className="mt-4 space-y-2 text-[14px] leading-6">
             {[['Y', T('ফলন: জাতের সম্ভাব্য ফলনের কত ভাগ', 'Yield: share of the variety’s potential')], ['E', T('মাটি ও পরিবেশ: চুন, সুষম সার, লবণ, পানি', 'Soil and earth: lime, balanced fertiliser, salt, water')], ['C', T('জলবায়ু সহনশীলতা: জাত, সময়, সতর্কতায় সাড়া', 'Climate resilience: variety, timing, acting on alerts')], ['B', T('আইপিএম: ফাঁদ, পাখির ডাল, সময়মতো ওষুধ; অন্ধ স্প্রেতে −১৫', 'IPM: traps, perches, timely treatment; −15 for blind spraying')], ['M', T('বাজার: শুকানো, সংরক্ষণ, দালাল এড়িয়ে বিক্রি', 'Market: drying, storage, selling past the middlemen')]].map(([k, v]) => (
-              <li key={k} className="flex gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary-100 text-[12px] font-bold text-primary-800">{k}</span><span>{v} <span className="text-muted">({lang === 'bn' ? bnDigits(Math.round(WEIGHTS[k] * 100)) : Math.round(WEIGHTS[k] * 100)})</span></span></li>
+              <li key={k} className="flex items-center gap-2.5"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary-100 text-[12px] font-bold text-primary-800 shadow-2xs">{k}</span><span className="text-ink">{v} <span className="tabular font-semibold text-muted">({lang === 'bn' ? bnDigits(Math.round(WEIGHTS[k] * 100)) : Math.round(WEIGHTS[k] * 100)})</span></span></li>
             ))}
           </ul>
-          <p className="mt-2 text-[13px] text-muted">{T('FieldShift-এর সতর্কতা মেনে কাজ করলে ×১.১ বোনাস।', 'Acting on a FieldShift alert earns a ×1.1 bonus.')}</p>
+          <p className="mt-3 text-[13px] font-semibold text-primary-800">{T('FieldShift-এর সতর্কতা মেনে কাজ করলে ×১.১ বোনাস।', 'Acting on a FieldShift alert earns a ×1.1 bonus.')}</p>
         </div>
-        <div className="glass flat rounded-[24px] p-5">
-          <h2 className="text-[22px] font-bold">{T('বিপদের শেষ: খেলা যেখানে থামে', 'Danger Ends: where the game stops')}</h2>
-          <ul className="mt-3 space-y-3">
+        <div className="surface-card rounded-[26px] border border-border/80 bg-white/90 p-6 shadow-[var(--shadow-card)]">
+          <h2 className="text-[22px] font-bold text-ink">{T('বিপদের শেষ: খেলা যেখানে থামে', 'Danger Ends: where the game stops')}</h2>
+          <ul className="mt-4 space-y-3.5">
             {Object.entries(DANGERS).map(([k, d]) => { const Icon = DANGER_ICON[k]; return (
-              <li key={k} className="flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-50 text-red-700"><Icon size={19} /></span><span><span className="block text-[15px] font-bold">{L(d.title)}</span><span className="block text-[13.5px] leading-5 text-muted">{L(d.text)}</span></span></li>
+              <li key={k} className="lift flex items-start gap-3 rounded-xl border border-red-200/60 bg-red-50/40 p-3 transition-all hover:bg-red-50/80"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-100 text-red-700 shadow-2xs"><Icon size={19} /></span><span><span className="block text-[15px] font-bold text-red-950">{L(d.title)}</span><span className="block text-[13.5px] leading-5 text-red-900/80">{L(d.text)}</span></span></li>
             ); })}
           </ul>
         </div>

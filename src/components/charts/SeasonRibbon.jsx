@@ -3,11 +3,13 @@
 // Layout: a fixed label column on the left, the timeline on the right. "Today" sits in its own lane above the months
 // with the current month tinted down the whole chart; key dates are spelled out as chips underneath. A bar opens a
 // small card with its dates on hover, focus or tap (so it works by touch too), and the chips light up their own bar.
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Sprout, Wheat, ArrowRight, CloudRain } from 'lucide-react';
 import { useStore } from '../../store';
 import { BN_MONTHS, BN_MONTHS_EN, banglaMonthStart, banglaDate, fmtDate, fmtBangla, addDays, daysBetween, num, bnDigits } from '../../engine/dates';
 import { PLAN_SEASON } from '../../engine/climate';
+import TomatoHarvestScene from './TomatoHarvestScene';
+import CropActivityScene from './CropActivityScene';
 
 const Y0 = PLAN_SEASON - 1; // Bangla year that starts on 14 April 2026
 const MONTHS = [
@@ -27,11 +29,21 @@ const pct = (t) => Math.max(0, Math.min(100, ((t - START) / (END - START)) * 100
 
 export default function SeasonRibbon({ dark = false, compact = false, showToday = true }) {
   const { s, T, L, chosen, rotation: r, today } = useStore();
+  const [animatedDates, setAnimatedDates] = useState({});
   const lang = s.lang;
+  const syncTomatoDate = useCallback((date) => setAnimatedDates((dates) => ({ ...dates, rabi: date })), []);
+  const syncMungbeanDate = useCallback((date) => setAnimatedDates((dates) => ({ ...dates, next: date })), []);
+  const syncAmanDate = useCallback((date) => setAnimatedDates((dates) => ({ ...dates, aman: date })), []);
+  useEffect(() => setAnimatedDates({}), [chosen.crop.id, chosen.t0, chosen.hw.start, chosen.hw.end]);
   const day = (t) => (lang === 'bn' ? fmtBangla(t, 'bn') : fmtDate(t, 'en'));
   const nextStart = r.best ? r.sowT : null;
   const nextEnd = r.best ? addDays(r.sowT, r.best.crop.days) : null;
   const amanStart = r.amanT; // the upazila's usual transplanting day (Sentinel-1 radar), or mid-July without it
+  const tomatoExpanded = !compact && chosen.crop.id === 'tomato';
+  const mungbeanExpanded = !compact && r.best?.crop.id === 'mungbean';
+  const amanExpanded = !compact;
+  const activityExpanded = (key) => key === 'rabi' ? tomatoExpanded : key === 'next' ? mungbeanExpanded : key === 'aman' && amanExpanded;
+  const activityHeight = (key) => activityExpanded(key) ? 'h-[380px]' : 'h-10';
   const rows = [
     { key: 'rabi', label: T('রবি', 'Rabi'), sub: T(`এবার · ${num(daysBetween(chosen.t0, chosen.hw.end), 'bn')} দিন`, `this crop · ${daysBetween(chosen.t0, chosen.hw.end)} days`),
       name: L(chosen.crop.name), from: chosen.t0, to: chosen.hw.end, harvestFrom: chosen.hw.start, icon: Sprout, dot: '#3f7f39',
@@ -68,7 +80,7 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
           <div className={`${head} border-b ${grid}`} />
           <div className="space-y-2.5 pt-3">
             {rows.map((row) => (
-              <div key={row.key} className="flex h-10 flex-col justify-center leading-tight">
+              <div key={row.key} className={`flex ${activityExpanded(row.key) ? 'h-[380px] items-start pt-2' : 'h-10 flex-col justify-center'} leading-tight`}>
                 <span className={`inline-flex items-center gap-1.5 text-[13px] font-semibold ${ink}`}><i className="h-2 w-2 shrink-0 rounded-full" style={{ background: row.dot }} />{row.label}</span>
                 {!compact && <span className={`text-[11.5px] ${quiet}`}>{row.sub}</span>}
               </div>
@@ -116,7 +128,7 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
               const roomy = width >= (compact ? 30 : 24);
               const hw = row.harvestFrom ? ((row.to - row.harvestFrom) / (row.to - row.from)) * 100 : 0;
               return (
-                <div key={row.key} className="relative h-10">
+                <div key={row.key} className={`relative ${activityHeight(row.key)}`}>
                   {row.gapFrom && (
                     <span className={`absolute top-1/2 h-0 border-t-2 border-dotted ${dark ? 'border-white/40' : 'border-black/25'}`} style={{ left: `${pct(row.gapFrom)}%`, width: `${Math.max(0, left - pct(row.gapFrom))}%` }}
                       title={T(`ফসল তোলার পর ${num(daysBetween(row.gapFrom, row.from), 'bn')} দিন জমি তৈরি`, `${daysBetween(row.gapFrom, row.from)} days to prepare the land after harvest`)} />
@@ -138,6 +150,15 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
                       </span>
                     )}
                   </div>
+                  {activityExpanded(row.key) && (
+                    <div className="absolute top-[48px] z-[2]" style={{ left: `${Math.min(left, 44)}%`, width: 'clamp(300px, 38vw, 400px)' }}>
+                      {row.key === 'rabi' && <TomatoHarvestScene from={chosen.hw.start} to={chosen.hw.end} lang={lang} T={T} onDateChange={syncTomatoDate} />}
+                      {row.key === 'next' && nextStart != null && (
+                        <CropActivityScene kind="mungbean" from={nextStart} to={nextStart} lang={lang} T={T} onDateChange={syncMungbeanDate} />
+                      )}
+                      {row.key === 'aman' && <CropActivityScene kind="aman" from={amanStart} to={amanStart} lang={lang} T={T} onDateChange={syncAmanDate} />}
+                    </div>
+                  )}
                   {hover === row.key && (
                     <div role="tooltip" className={`glass swap-in pointer-events-none absolute z-20 w-max max-w-[260px] rounded-2xl px-3.5 py-2.5 text-left ${ri === 0 ? 'top-full mt-2' : 'bottom-full mb-2'}`}
                       style={{ left: `${Math.min(78, Math.max(0, left + width / 2 - 10))}%` }}>
@@ -151,11 +172,22 @@ export default function SeasonRibbon({ dark = false, compact = false, showToday 
                   {!roomy && !compact && (
                     <span className={`absolute top-1/2 -translate-y-1/2 whitespace-nowrap text-[11.5px] ${quiet}`} style={left + width > 72 ? { right: `${100 - left + 1}%` } : { left: `${left + width + 1}%` }}>{dates}</span>
                   )}
+                  {activityExpanded(row.key) && animatedDates[row.key] != null && animatedDates[row.key] >= row.from && animatedDates[row.key] <= row.to && (
+                    <>
+                      <span aria-hidden="true" className="pointer-events-none absolute top-0 z-[4] h-10 border-l-2 border-sky-700" style={{ left: `${pct(animatedDates[row.key])}%` }} />
+                      <span aria-hidden="true" className="pointer-events-none absolute top-[153px] z-[4] border-l-2 border-sky-700" style={{ left: `${pct(animatedDates[row.key])}%`, height: 'clamp(89px, 11.3vw, 123px)' }} />
+                    </>
+                  )}
                 </div>
               );
             })}
             {/* Today's line runs through the crops only, so the month names above stay clear. */}
-            {inRange && <div className={`pointer-events-none absolute top-0 bottom-0 border-l-2 border-dashed ${dark ? 'border-paddy-300' : 'border-paddy-500'}`} style={{ left: `${tp}%` }} />}
+            {inRange && tomatoExpanded ? (
+              <>
+                <div className={`pointer-events-none absolute top-3 z-[1] h-10 border-l-2 border-dashed ${dark ? 'border-paddy-300' : 'border-paddy-500'}`} style={{ left: `${tp}%` }} />
+                <div className={`pointer-events-none absolute bottom-0 z-[1] h-[100px] border-l-2 border-dashed ${dark ? 'border-paddy-300' : 'border-paddy-500'}`} style={{ left: `${tp}%` }} />
+              </>
+            ) : inRange && <div className={`pointer-events-none absolute top-0 bottom-0 z-[1] border-l-2 border-dashed ${dark ? 'border-paddy-300' : 'border-paddy-500'}`} style={{ left: `${tp}%` }} />}
           </div>
         </div>
       </div>

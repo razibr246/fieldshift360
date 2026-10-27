@@ -214,30 +214,30 @@ export default function CropDoctor() {
 
           {err && <Note tone="warn" className="mt-3">{L(err)}</Note>}
 
-          <div className="mt-5 rounded-2xl border border-border/80 bg-canvas/70 p-4 text-[13px] leading-5 text-ink/80">
-            <div className="mb-2 flex items-center gap-1.5 font-bold text-ink">
+          <div className="mt-5 rounded-2xl border border-border/80 bg-canvas/70 p-4 text-[13px] leading-5 text-ink/80 shadow-2xs">
+            <div className="mb-2.5 flex items-center gap-1.5 font-bold text-ink">
               <Sparkles size={15} className="text-primary-700" />
               <span>{T('ছবির সঙ্গে ডাক্তার যা যাচাই করবে', 'What the doctor also checks')}</span>
             </div>
-            <div data-tour="doc-context" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <div className="rounded-xl border border-border/60 bg-white/70 p-2.5">
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-muted"><Sprout size={13} className="text-primary-700" />{T('বয়স ও স্তর', 'Stage')}</span>
-                <span className="mt-1 block truncate font-bold text-ink">{crop !== chosen.crop.id ? '—' : daysAfter >= 0 ? T(`${bnDigits(daysAfter)} দিন`, `Day ${daysAfter}`) : T('লাগানো হয়নি', 'Not sown yet')}</span>
+            <div data-tour="doc-context" className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <div className="lift rounded-xl border border-border/70 bg-white/85 p-2.5 shadow-2xs transition-all hover:border-primary-300">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted"><Sprout size={13} className="text-primary-700" />{T('বয়স ও স্তর', 'Stage')}</span>
+                <span className="mt-1 block truncate font-display font-bold tabular text-ink">{crop !== chosen.crop.id ? '—' : daysAfter >= 0 ? T(`${bnDigits(daysAfter)} দিন`, `Day ${daysAfter}`) : T('লাগানো হয়নি', 'Not sown yet')}</span>
               </div>
-              <div className="rounded-xl border border-border/60 bg-white/70 p-2.5">
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-muted"><CloudSun size={13} className="text-amber-600" />{T('৭ দিনের বৃষ্টি', 'Rain, 7 days')}</span>
-                <span className="mt-1 block truncate font-bold text-ink">{w ? T(`${num(Math.round(w.rain7), 'bn')} মিমি`, `${Math.round(w.rain7)} mm`) : T('পাওয়া যায়নি', 'Not available')}</span>
+              <div className="lift rounded-xl border border-border/70 bg-white/85 p-2.5 shadow-2xs transition-all hover:border-amber-300">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted"><CloudSun size={13} className="text-amber-600" />{T('৭ দিনের বৃষ্টি', 'Rain, 7 days')}</span>
+                <span className="mt-1 block truncate font-display font-bold tabular text-ink">{w ? T(`${num(Math.round(w.rain7), 'bn')} মিমি`, `${Math.round(w.rain7)} mm`) : T('পাওয়া যায়নি', 'Not available')}</span>
               </div>
-              <div className="rounded-xl border border-border/60 bg-white/70 p-2.5">
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-muted"><Satellite size={13} className="text-sky-700" />{T('উপগ্রহে সবুজ', 'Satellite green')}</span>
-                <span className="mt-1 block truncate font-bold text-ink">{sat ? num(sat.last.ndvi, lang, { dp: 2 }) : T('পাওয়া যায়নি', 'Not available')}</span>
+              <div className="lift rounded-xl border border-border/70 bg-white/85 p-2.5 shadow-2xs transition-all hover:border-sky-300">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted"><Satellite size={13} className="text-sky-700" />{T('উপগ্রহে সবুজ', 'Satellite green')}</span>
+                <span className="mt-1 block truncate font-display font-bold tabular text-ink">{sat ? num(sat.last.ndvi, lang, { dp: 2 }) : T('পাওয়া যায়নি', 'Not available')}</span>
               </div>
-              <div className="rounded-xl border border-border/60 bg-white/70 p-2.5">
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-muted"><Layers size={13} className="text-clay-500" />{T('মাটি pH', 'Soil pH')}</span>
-                <span className="mt-1 block truncate font-bold text-ink">{context.soil ? num(soil.ph, lang, { dp: 1 }) : T('পাওয়া যায়নি', 'Not available')}</span>
+              <div className="lift rounded-xl border border-border/70 bg-white/85 p-2.5 shadow-2xs transition-all hover:border-clay-300">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted"><Layers size={13} className="text-clay-500" />{T('মাটি pH', 'Soil pH')}</span>
+                <span className="mt-1 block truncate font-display font-bold tabular text-ink">{context.soil ? num(soil.ph, lang, { dp: 1 }) : T('পাওয়া যায়নি', 'Not available')}</span>
               </div>
             </div>
-            <p className="mt-2 text-[12px] text-muted">
+            <p className="mt-2.5 text-[12px] leading-relaxed text-muted">
               {T('ছবি ছোট করে পাঠানো হয়, ছবির ভেতরের জায়গার তথ্য (জিপিএস) মুছে যায়। AI-কে আপনার নাম পাঠানো হয় না।', 'The photo is made smaller before it is sent, which also removes its location (GPS) data. Your name is not sent to the AI.')}
             </p>
           </div>
@@ -329,15 +329,15 @@ export default function CropDoctor() {
                       const pct = Math.round(f.likelihood * 100);
                       const barGrad = pct >= 80 ? 'bg-gradient-to-r from-emerald-500 to-primary-600' : pct >= 50 ? 'bg-gradient-to-r from-violet-500 to-purple-600' : 'bg-gradient-to-r from-amber-400 to-orange-500';
                       return (
-                        <div key={`${f.key}-${i}`} className="rounded-xl border border-border/70 bg-canvas/40 p-3">
+                        <div key={`${f.key}-${i}`} className="surface-card rounded-xl border border-border/80 bg-white/80 p-3.5 shadow-2xs transition-all duration-200 hover:border-primary-300 hover:shadow-sm">
                           <div className="flex justify-between gap-3 text-[14.5px]">
                             <span className={i === 0 ? 'font-bold text-ink' : 'font-medium text-ink/80'}>{lang === 'bn' ? f.name_bn : f.name_en}</span>
-                            <b className="tabular text-primary-950 font-bold">{num(pct, lang)}%</b>
+                            <b className="font-display tabular text-primary-950 font-bold">{num(pct, lang)}%</b>
                           </div>
-                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/[.08]">
-                            <div className={`h-full rounded-full transition-all duration-700 ease-out ${barGrad}`} style={{ width: `${pct}%` }} />
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[.06] shadow-inner">
+                            <div className={`progress-sheen h-full rounded-full transition-all duration-700 ease-[var(--ease-spring)] ${barGrad}`} style={{ width: `${pct}%` }} />
                           </div>
-                          <p className="mt-1.5 text-[13px] leading-5 text-muted">{f.evidence}</p>
+                          <p className="mt-2 text-[13px] leading-5 text-muted">{f.evidence}</p>
                         </div>
                       );
                     })}

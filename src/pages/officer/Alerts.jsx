@@ -56,24 +56,24 @@ function WeatherCard({ w, union, sign }) {
   return (
     <Card className={`lift border-l-4 ${k.bar} p-5 transition-all duration-200 hover:shadow-md`}>
       <div className="flex flex-wrap items-start gap-3">
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${k.chip}`}><k.icon size={19} /></span>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl shadow-2xs ${k.chip}`}><k.icon size={19} /></span>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2"><h2 className="text-[17px] font-bold">{L(w.title)}</h2><span className={`chip ${LEVEL[w.level].cls}`}>{L(LEVEL[w.level])}</span><Tags list={['REAL', 'RULE']} /></div>
-          <p className="mt-0.5 text-[14px]">{when}{ahead > 0 ? T(` (আর ${bnDigits(ahead)} দিন পর)`, ` (in ${ahead} days)`) : T(' (আজ থেকে)', ' (from today)')} · {value}{w.crop ? ` · ${cropName(w.crop, lang)}` : ''}</p>
+          <div className="flex flex-wrap items-center gap-2"><h2 className="text-[17px] font-bold text-ink">{L(w.title)}</h2><span className={`chip ${LEVEL[w.level].cls}`}>{L(LEVEL[w.level])}</span><Tags list={['REAL', 'RULE']} /></div>
+          <p className="mt-0.5 text-[14px] leading-6">{when}{ahead > 0 ? T(` (আর ${bnDigits(ahead)} দিন পর)`, ` (in ${ahead} days)`) : T(' (আজ থেকে)', ' (from today)')} · <span className="font-semibold">{value}</span>{w.crop ? ` · ${cropName(w.crop, lang)}` : ''}</p>
           <p className="mt-0.5 text-[12.5px] text-muted">{T('নিয়ম: ', 'Rule: ')}{L(w.rule)} · {T('পূর্বাভাস: Open-Meteo, ইউনিয়নের মাঝখানে', 'Forecast: Open-Meteo at the union centre')}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-2.5 py-1.5 text-[13px] font-semibold text-ink/80"><Users size={14} className="text-primary-700" />{T(`${num(to.length, 'bn')} জন কৃষক`, `${to.length} farmers`)}</span>
+        <span className="inline-flex items-center gap-1.5 rounded-lg border border-border/80 bg-canvas/80 px-2.5 py-1.5 text-[13px] font-semibold text-ink/80 shadow-2xs"><Users size={14} className="text-primary-700" />{T(`${num(to.length, 'bn')} জন কৃষক`, `${to.length} farmers`)}</span>
       </div>
       {!open && !sent && <button type="button" onClick={() => setOpen(true)} className="mt-3 inline-flex min-h-9 items-center gap-1 text-[14px] font-semibold text-primary-700 hover:text-primary-800 hover:underline">{T('কৃষকদের সতর্কবার্তা পাঠান', 'Warn the farmers')}<ChevronRight size={16} /></button>}
       {(open || sent) && (
         <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto]">
           <label className="block" htmlFor={advId}>
             <span className="mb-1 block text-[13.5px] font-semibold text-muted">{T('সতর্কবার্তার খসড়া — দরকারমতো বদলে নিন', 'Draft warning — edit as needed')}</span>
-            <textarea id={advId} value={draft} onChange={(e) => setText(e.target.value)} rows={4} disabled={sent} className="w-full rounded-xl border border-border p-3 text-[15px] leading-7 outline-none transition-all focus:border-primary-500 focus:ring-4 focus:ring-primary-100 disabled:bg-canvas" />
+            <textarea id={advId} value={draft} onChange={(e) => setText(e.target.value)} rows={4} disabled={sent} className="w-full rounded-xl border border-border bg-white p-3 text-[15px] leading-7 shadow-2xs outline-none transition-all duration-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/15 disabled:bg-canvas" />
             <SmsMeter text={draft} className="mt-1" />
           </label>
           <div className="flex flex-col gap-2 md:w-60">
-            <Button disabled={sent || !to.length} onClick={send} className="py-3 shadow-sm">{sent ? <><CheckCircle2 size={16} />{T('পাঠানো হয়েছে', 'Sent')}</> : <><Send size={16} />{T(`${num(to.length, 'bn')} জনকে পাঠান`, `Send to ${to.length}`)}</>}</Button>
+            <Button disabled={sent || !to.length} onClick={send} className="btn-gloss py-3 shadow-sm">{sent ? <><CheckCircle2 size={16} />{T('পাঠানো হয়েছে', 'Sent')}</> : <><Send size={16} />{T(`${num(to.length, 'bn')} জনকে পাঠান`, `Send to ${to.length}`)}</>}</Button>
             <p className="text-[12.5px] leading-5 text-muted">{w.crop ? T(`কারা পাবেন: এই দিনগুলোতে যাঁদের ${cropName(w.crop, 'bn')} বীজতলায় বা জমিতে থাকবে।`, `Who gets it: everyone whose ${cropName(w.crop, 'en').toLowerCase()} is in the seedbed or field on these days.`) : T('কারা পাবেন: এই ইউনিয়নের পরিকল্পনা করা সব কৃষক।', 'Who gets it: every farmer with a plan in this union.')}</p>
           </div>
         </div>
@@ -122,11 +122,11 @@ export default function Alerts() {
     <div>
       <PageHeader eyebrow={T(`আগাম সতর্কতা · ${L(union.meta)} ইউনিয়ন · ${fmtDate(todayDhaka(), lang)}`, `Early warnings · ${L(union.meta)} union · ${fmtDate(todayDhaka(), lang)}`)} title={T('এলাকার সতর্কতা', 'Area alerts')}
         subtitle={T('আগামী ৮ দিনের আবহাওয়া আর রোগের ঝুঁকি, উপগ্রহে দুর্বল দেখানো জমি, কাছাকাছি একই সমস্যা, খুব শুকনো জমি আর দাম পড়ার ঝুঁকি — সবচেয়ে জরুরিটা আগে।', 'Weather and disease risk for the next 8 days, fields that look weak from space, the same problem nearby, badly dry fields and price-drop risk — most urgent first.')} tags={['REAL', 'AI', 'RULE', 'DEMO']} />
-      <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6" data-stagger>
+      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6" data-stagger>
         {counts.map(([Icon, label, n]) => (
-          <div key={label} className={`group rounded-xl border p-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${n ? 'border-amber-200 bg-amber-50/70' : 'border-border bg-white'}`}>
-            <div className="flex items-center gap-1.5 text-[12.5px] text-muted"><Icon size={14} className={n ? 'text-amber-700' : 'text-muted'} />{label}</div>
-            <div className={`font-display mt-1 text-[22px] font-bold tabular ${n ? 'text-amber-950' : 'text-ink'}`}>{num(n, lang)}</div>
+          <div key={label} className={`lift group rounded-xl border p-3.5 transition-all duration-200 hover:shadow-md ${n ? 'border-amber-200 bg-amber-50/70 shadow-2xs hover:border-amber-300' : 'border-border bg-white shadow-2xs hover:border-primary-300'}`}>
+            <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-muted"><Icon size={15} className={`transition-transform duration-200 group-hover:scale-110 ${n ? 'text-amber-700' : 'text-primary-700'}`} />{label}</div>
+            <div className={`font-display mt-1 text-[24px] font-bold tabular tracking-tight ${n ? 'text-amber-950' : 'text-ink'}`}>{num(n, lang)}</div>
           </div>
         ))}
       </div>

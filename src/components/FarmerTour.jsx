@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight, ChevronDown, Compass, HeartHandshake, MousePoint
 import { useStore } from '../store';
 import { num } from '../engine/dates';
 import { FARMER_TOUR as STEPS, FARMER_CHAPTERS as CHAPTERS } from '../data/farmer_tour';
+import { TourModePicker, TourPlayback, QUICK_TOUR_STEP_SECONDS, TOUR_STEP_SECONDS } from './TourPlayback';
 
 const KEY = 'fs-farmer-tour';
 const SEEN = 'fs-farmer-tour-seen';
@@ -23,6 +24,7 @@ function findTarget(at) {
 }
 const chapterOf = (k) => CHAPTERS.findIndex((c) => c.key === STEPS[k].chapter);
 const firstOf = (key) => STEPS.findIndex((x) => x.chapter === key);
+const QUICK_STEPS = ['home', 'farm', 'plan', 'today', 'harvest'].map((chapter) => STEPS.findIndex((step) => step.chapter === chapter));
 
 export default function FarmerTour() {
   const { s, T, L, dispatch, farmer } = useStore();
@@ -32,6 +34,12 @@ export default function FarmerTour() {
   const [rect, setRect] = useState(null);
   const [menu, setMenu] = useState(false);
   const [invite, setInvite] = useState(() => { try { return !localStorage.getItem(SEEN); } catch { return false; } });
+  const [chooser, setChooser] = useState(false);
+  const [autoMode, setAutoMode] = useState(false);
+  const [quickMode, setQuickMode] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const target = useRef(null);
   const panel = useRef(null);
 
@@ -40,10 +48,46 @@ export default function FarmerTour() {
     try { if (n == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, String(n)); localStorage.setItem(SEEN, '1'); } catch { /* storage blocked */ }
   }, []);
   useEffect(() => {
-    const on = (e) => set(Math.max(0, Math.min(STEPS.length - 1, Number(e.detail) || 0)));
+    const on = () => {
+      set(null);
+      setChooser(true);
+    };
     window.addEventListener('fs-farmer-tour', on);
     return () => window.removeEventListener('fs-farmer-tour', on);
   }, [set]);
+  const startTour = (mode) => {
+    setChooser(false);
+    setAutoMode(mode !== 'manual');
+    setQuickMode(mode === 'quick');
+    setPaused(false);
+    setCompleted(false);
+    setElapsed(0);
+    set(mode === 'quick' ? QUICK_STEPS[0] : 0);
+  };
+  const closeTour = () => {
+    setChooser(false);
+    setAutoMode(false);
+    setQuickMode(false);
+    setPaused(false);
+    setCompleted(false);
+    set(null);
+  };
+
+  useEffect(() => {
+    if (k == null || !autoMode || paused || completed) return undefined;
+    const steps = quickMode ? QUICK_STEPS : STEPS.map((_, index) => index);
+    const position = steps.indexOf(k);
+    const timer = setTimeout(() => {
+      if (position >= steps.length - 1) setCompleted(true);
+      else set(steps[position + 1]);
+    }, (quickMode ? QUICK_TOUR_STEP_SECONDS : TOUR_STEP_SECONDS) * 1000);
+    return () => clearTimeout(timer);
+  }, [k, autoMode, quickMode, paused, completed, set]);
+  useEffect(() => {
+    if (k == null || !autoMode || paused || completed) return undefined;
+    const timer = setInterval(() => setElapsed((n) => n + 1), 1000);
+    return () => clearInterval(timer);
+  }, [k, autoMode, paused, completed]);
 
   const step = k == null ? null : STEPS[k];
 
@@ -96,32 +140,32 @@ export default function FarmerTour() {
     if (!step) return undefined;
     const on = (e) => {
       if (e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
-      if (e.key === 'Escape') { if (menu) setMenu(false); else set(null); }
-      else if (e.key === 'ArrowRight' && k < STEPS.length - 1) set(k + 1);
-      else if (e.key === 'ArrowLeft' && k > 0) set(k - 1);
+      if (e.key === 'Escape') { if (menu) setMenu(false); else closeTour(); }
+      else if (e.key === 'ArrowRight') changeStep(1);
+      else if (e.key === 'ArrowLeft') changeStep(-1);
     };
     window.addEventListener('keydown', on);
     return () => window.removeEventListener('keydown', on);
   }, [step, k, menu, set]);
 
   const home = pathname === '/farmer';
+  const sequence = quickMode ? QUICK_STEPS : STEPS.map((_, index) => index);
+  const sequencePosition = Math.max(0, sequence.indexOf(k));
+  const changeStep = (direction) => {
+    const nextPosition = sequencePosition + direction;
+    if (nextPosition < 0) return;
+    if (nextPosition >= sequence.length) { setCompleted(true); return; }
+    set(sequence[nextPosition]);
+  };
+  const selectChapter = (chapter) => {
+    setQuickMode(false);
+    setAutoMode(false);
+    set(firstOf(chapter));
+  };
   if (!step) {
-    if (!invite || !home) return null;
-    return (
-      <aside role="dialog" aria-label={T('অ্যাপের সফর', 'App tour')} className="fixed inset-x-3 bottom-[92px] z-[60] mx-auto max-w-[460px] rounded-[22px] border border-black/10 bg-white/95 p-4 shadow-[0_18px_44px_-14px_rgba(0,0,0,.45)] backdrop-blur lg:bottom-6">
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-700 text-white"><Compass size={20} /></span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[15.5px] font-bold leading-snug">{T(`${farmer.name.bn}, নতুন? পুরো অ্যাপটা ঘুরে দেখুন`, `${farmer.name.en}, new here? Take the full tour`)}</p>
-            <p className="mt-1 text-[13.5px] leading-6 text-ink/75">{T(`${num(CHAPTERS.length, 'bn')}টি অধ্যায়ে প্রতিটি পাতা আর প্রতিটি সুবিধা: কী, আপনার কী কাজে লাগে, কোথায় চাপবেন।`, `Every page and every feature in ${CHAPTERS.length} chapters: what it is, how it helps you, where to tap.`)}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => set(0)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800"><Compass size={16} />{T('সফর শুরু করুন', 'Start the tour')}</button>
-              <button type="button" onClick={() => { setInvite(false); try { localStorage.setItem(SEEN, '1'); } catch { /* storage blocked */ } }} className="inline-flex h-10 items-center rounded-full px-4 text-[14px] font-semibold text-ink/70 hover:bg-black/5">{T('পরে', 'Later')}</button>
-            </div>
-          </div>
-        </div>
-      </aside>
-    );
+    if (!chooser && (!invite || !home)) return null;
+    return <TourModePicker T={T} title={T(`${farmer.name.bn}, কৃষক অংশের গাইড`, `${farmer.name.en}, farmer section guide`)}
+      steps={STEPS.length} quickSteps={QUICK_STEPS.length} onStart={startTour} onClose={closeTour} />;
   }
 
   const ch = chapterOf(k);
@@ -145,7 +189,7 @@ export default function FarmerTour() {
             {menu && (
               <ol role="menu" className="menu-pop absolute bottom-full left-0 z-10 mb-2 max-h-[50vh] w-[270px] overflow-y-auto rounded-2xl border border-border bg-white p-1.5 shadow-[var(--shadow-lift)]">
                 {CHAPTERS.map((c, i) => (
-                  <li key={c.key}><button type="button" role="menuitem" onClick={() => set(firstOf(c.key))}
+                  <li key={c.key}><button type="button" role="menuitem" onClick={() => selectChapter(c.key)}
                     className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[14px] font-semibold ${i === ch ? 'bg-primary-50 text-primary-800' : 'text-ink/80 hover:bg-black/5'}`}>
                     <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11.5px] font-bold ${i < ch ? 'bg-primary-600 text-white' : i === ch ? 'bg-primary-800 text-white' : 'bg-black/[.06] text-ink/60'}`}>{n(i + 1)}</span>{L(c)}
                   </button></li>
@@ -153,10 +197,11 @@ export default function FarmerTour() {
               </ol>
             )}
           </div>
-          <span className="shrink-0 text-[12px] font-semibold tabular text-muted">{n(k + 1)}/{n(STEPS.length)}</span>
-          <button type="button" onClick={() => set(null)} aria-label={T('সফর বন্ধ করুন', 'Close the tour')} className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-black/5"><X size={17} /></button>
+          <span className="shrink-0 text-[12px] font-semibold tabular text-muted">{n(sequencePosition + 1)}/{n(sequence.length)}</span>
+          <button type="button" onClick={closeTour} aria-label={T('সফর বন্ধ করুন', 'Close the tour')} className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-black/5"><X size={17} /></button>
         </div>
-        <div className="h-1 bg-black/[.05]" aria-hidden="true"><div className="h-full bg-gradient-to-r from-primary-500 to-paddy-400 transition-[width] duration-500" style={{ width: `${((k + 1) / STEPS.length) * 100}%` }} /></div>
+        {autoMode && <TourPlayback T={T} lang={s.lang} mode={quickMode ? 'quick' : 'auto'} step={sequencePosition + 1} total={sequence.length} elapsed={elapsed} paused={paused} complete={completed} onToggle={() => setPaused((value) => !value)} />}
+        <div className="h-1 bg-black/[.05]" aria-hidden="true"><div className="h-full bg-gradient-to-r from-primary-500 to-paddy-400 transition-[width] duration-500" style={{ width: `${((sequencePosition + 1) / sequence.length) * 100}%` }} /></div>
 
         <div key={k} className="swap-in min-h-0 overflow-y-auto px-4 py-3">
           <p className="text-[17px] font-bold leading-snug">{L(step.title)}</p>
@@ -166,11 +211,11 @@ export default function FarmerTour() {
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-black/[.06] px-3 py-2.5">
-          <button type="button" disabled={k === 0} onClick={() => set(k - 1)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold text-ink/70 hover:bg-black/5 disabled:opacity-40"><ArrowLeft size={16} />{T('আগে', 'Back')}</button>
+          <button type="button" disabled={sequencePosition === 0} onClick={() => changeStep(-1)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold text-ink/70 hover:bg-black/5 disabled:opacity-40"><ArrowLeft size={16} />{T('আগে', 'Back')}</button>
           <div className="flex gap-1" aria-hidden="true">{inCh.map((_, i) => <i key={i} className={`h-1.5 rounded-full transition-all ${i === at ? 'w-4 bg-primary-700' : 'w-1.5 bg-black/15'}`} />)}</div>
-          {k < STEPS.length - 1
-            ? <button type="button" onClick={() => set(k + 1)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('পরের ধাপ', 'Next')}<ArrowRight size={16} /></button>
-            : <button type="button" onClick={() => set(null)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('শেষ', 'Done')}</button>}
+          {sequencePosition < sequence.length - 1
+            ? <button type="button" onClick={() => changeStep(1)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('পরের ধাপ', 'Next')}<ArrowRight size={16} /></button>
+            : <button type="button" onClick={closeTour} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('শেষ', 'Done')}</button>}
         </div>
       </aside>
     </>

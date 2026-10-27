@@ -178,70 +178,105 @@ html { zoom: var(--ui-zoom); }
 .g3 { zoom: calc(1 / var(--ui-zoom)); }
 .surface-card {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, .72);
-  /* Cards sit on the still, smooth colour field, so blurring it would look the same but cost the graphics chip on every
-     scroll frame. A translucent gradient gives the same frosted look for free. */
-  background: linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(255, 255, 255, .7));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 0 0 .5px rgba(255, 255, 255, .5), 0 1px 0 rgba(19, 38, 27, .03), 0 14px 34px -18px rgba(13, 38, 20, .28);
-  transition: border-color .22s var(--ease-smooth), box-shadow .28s var(--ease-smooth);
+  border: 1px solid rgba(255, 255, 255, .78);
+  /* Cards sit on the still, smooth colour field with a translucent frosted gradient */
+  background: linear-gradient(180deg, rgba(255, 255, 255, .9) 0%, rgba(255, 255, 255, .72) 100%);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, .98),
+    inset 0 0 0 .5px rgba(255, 255, 255, .6),
+    0 2px 8px -2px rgba(19, 38, 27, .04),
+    0 12px 30px -16px rgba(13, 38, 20, .22);
+  transition: border-color .24s var(--ease-smooth), box-shadow .3s var(--ease-smooth), transform .3s var(--ease-spring);
   /* GPU-composited layer */
   transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 @media (hover: hover) {
   .surface-card.lift:hover {
-    border-color: rgba(141, 190, 120, .76);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 20px 42px -24px rgba(13, 38, 20, .4), 0 0 0 1px rgba(67, 134, 58, .1);
+    transform: translate3d(0, -3.5px, 0);
+    border-color: rgba(141, 190, 120, .85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 22px 46px -20px rgba(13, 38, 20, .32),
+      0 0 0 1px rgba(67, 134, 58, .16);
   }
 }
 .surface-card.lift:focus-within {
-  border-color: rgba(141, 190, 120, .76);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 20px 42px -24px rgba(13, 38, 20, .4), 0 0 0 1px rgba(67, 134, 58, .1);
+  transform: translate3d(0, -3.5px, 0);
+  border-color: rgba(141, 190, 120, .85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 22px 46px -20px rgba(13, 38, 20, .32),
+    0 0 0 1px rgba(67, 134, 58, .16);
 }
+.surface-card.lift:active {
+  transform: translate3d(0, -1px, 0) scale(.992);
+  transition-duration: .12s;
+}
+
 .page-header-eyebrow {
   width: fit-content;
   max-width: 100%;
-  border: 1px solid rgba(141, 190, 120, .32);
+  border: 1px solid rgba(141, 190, 120, .36);
   border-radius: 9999px;
-  background: linear-gradient(120deg, rgba(240, 246, 236, .96), rgba(238, 246, 246, .75));
-  padding: .2rem .65rem;
-  line-height: 1.55;
+  background: linear-gradient(120deg, rgba(240, 246, 236, .98), rgba(238, 246, 246, .85));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 2px 6px -2px rgba(19, 38, 27, .06);
+  padding: .24rem .75rem;
+  line-height: 1.5;
+  transition: transform .2s var(--ease-spring), border-color .2s;
 }
-.page-header-title { text-wrap: balance; }
+.page-header-eyebrow:hover {
+  transform: scale(1.02);
+  border-color: rgba(141, 190, 120, .6);
+}
+.page-header-title {
+  text-wrap: balance;
+  letter-spacing: -0.024em;
+}
 .stat-card-arrow {
-  transition: color .18s var(--ease-smooth), opacity .18s var(--ease-smooth), transform .24s var(--ease-spring);
-  opacity: .68;
+  transition: color .2s var(--ease-smooth), opacity .2s var(--ease-smooth), transform .26s var(--ease-spring);
+  opacity: .65;
 }
 .stat-card:hover .stat-card-arrow,
 .stat-card:focus-visible .stat-card-arrow,
 .stat-card:focus-within .stat-card-arrow {
   color: #2f6e2f;
   opacity: 1;
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
-.status-note { animation: status-note-in .24s var(--ease-smooth) both; }
+.status-note { animation: status-note-in .26s var(--ease-smooth) both; }
 @keyframes status-note-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
 .empty-state {
-  background: linear-gradient(145deg, rgba(255, 255, 255, .62), rgba(240, 246, 236, .36));
+  background: linear-gradient(145deg, rgba(255, 255, 255, .75), rgba(240, 246, 236, .45));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 8px 24px -14px rgba(13, 38, 20, .14);
 }
 .empty-state-icon {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 6px 18px -12px rgba(36, 90, 40, .65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 8px 22px -10px rgba(36, 90, 40, .5);
+  transition: transform .35s var(--ease-spring);
+}
+.empty-state:hover .empty-state-icon {
+  transform: scale(1.08) rotate(4deg);
 }
 @media (prefers-reduced-motion: reduce) {
   .stat-card-arrow { transition: none; }
   .status-note { animation: none; }
+  .empty-state-icon { transition: none; }
 }
-/* White boxes and tiles inside pages turn to frosted glass too (form fields and buttons stay solid for clarity). */
-main .bg-white.border:not(input, select, textarea, button, a, .keep-solid), main .bg-white.rounded-2xl:not(input, select, textarea, button, a, .keep-solid) {
-  background: linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(255, 255, 255, .68));
-  border-color: rgba(255, 255, 255, .72);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 10px 28px -18px rgba(13, 38, 20, .28);
+/* White boxes and tiles inside pages turn to frosted glass too */
+main .bg-white.border:not(input, select, textarea, button, a, .keep-solid),
+main .bg-white.rounded-2xl:not(input, select, textarea, button, a, .keep-solid) {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(255, 255, 255, .72));
+  border-color: rgba(255, 255, 255, .78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 10px 28px -18px rgba(13, 38, 20, .22);
   transform: translateZ(0);
 }
-main .bg-canvas { background-color: rgba(236, 242, 232, .55); }
+main .bg-canvas { background-color: rgba(236, 242, 232, .6); }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar { scrollbar-width: none; }
 .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
 .scroll-thin::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, .15); border-radius: 3px; }
@@ -353,14 +388,15 @@ a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   position: relative;
   isolation: isolate;
   --mx: 50%; --my: -40%; --glow: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .38) 0%, rgba(255, 255, 255, .16) 52%, rgba(255, 255, 255, .26) 100%);
+  background: linear-gradient(180deg, rgba(243, 250, 238, .76) 0%, rgba(232, 243, 225, .58) 58%, rgba(248, 239, 211, .48) 100%);
   -webkit-backdrop-filter: blur(10px) saturate(185%) brightness(1.07) contrast(1.04);
   backdrop-filter: blur(10px) saturate(185%) brightness(1.07) contrast(1.04);
-  border: 1px solid rgba(255, 255, 255, .58);
+  border: 1px solid rgba(222, 218, 178, .58);
   box-shadow:
     inset 0 1.5px 0 rgba(255, 255, 255, .95),
     inset 0 -1px 0 rgba(255, 255, 255, .4),
     inset 0 0 0 .5px rgba(255, 255, 255, .3),
+    inset 0 -2px 0 rgba(208, 165, 75, .14),
     inset 0 16px 22px -20px rgba(255, 255, 255, .9),
     inset 0 -16px 24px -20px rgba(255, 255, 255, .6),
     0 18px 44px -20px rgba(13, 38, 20, .38),
@@ -372,7 +408,7 @@ a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
 /* the reflection band: a bright edge on the left, a second faint streak further along, like light on curved glass */
 .lg-bar::before {
   background: linear-gradient(105deg, rgba(255, 255, 255, .62) 0%, rgba(255, 255, 255, .08) 20%, rgba(255, 255, 255, 0) 52%,
-    rgba(255, 255, 255, .22) 66%, rgba(255, 255, 255, 0) 80%, rgba(255, 255, 255, .14) 100%);
+    rgba(242, 224, 164, .2) 66%, rgba(255, 255, 255, 0) 80%, rgba(255, 255, 255, .14) 100%);
   opacity: .8;
 }
 /* the moving highlight under the pointer */
@@ -382,10 +418,10 @@ a, button, [role="button"] { -webkit-tap-highlight-color: transparent; }
   transition: opacity .5s var(--ease-smooth);
 }
 /* the frosted state once the page scrolls, so menu text stays readable over dark sections */
-.lg-bar.is-solid { background-color: rgba(255, 255, 255, .58); transform: translate3d(0, -6px, 0); }
+.lg-bar.is-solid { background-color: rgba(236, 245, 229, .78); transform: translate3d(0, -6px, 0); }
 .lg-bar.is-solid::before { opacity: .55; }
 .lg-bar nav button, .lg-bar nav a { text-shadow: 0 1px 0 rgba(255, 255, 255, .55); }
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .lg-bar { background: rgba(255, 255, 255, .92); } }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .lg-bar { background: rgba(239, 246, 230, .96); } }
 @media (prefers-reduced-motion: reduce) { .lg-bar, .lg-bar::after { transition: none; } }
 
 /* Small glass controls: language switch, icon buttons, chips. */
@@ -637,22 +673,45 @@ img.fade-img.is-loaded { opacity: 1; transform: none; }
 @keyframes menu-pop { from { opacity: 0; transform: translateY(-5px) scale(.98); } to { opacity: 1; transform: none; } }
 /* Cards that open something lift a little under the pointer with ambient illumination. */
 .lift {
-  transition: transform .45s var(--ease-spring), box-shadow .35s var(--ease-smooth), border-color .25s var(--ease-smooth);
+  transition: transform .38s var(--ease-spring), box-shadow .35s var(--ease-smooth), border-color .25s var(--ease-smooth);
   will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 @media (hover: hover) {
   .lift:hover {
     transform: translate3d(0, -4px, 0);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 22px 44px -20px rgba(13, 38, 20, .36), 0 0 0 1px rgba(67, 134, 58, .12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 24px 48px -20px rgba(13, 38, 20, .32), 0 0 0 1px rgba(67, 134, 58, .16);
   }
 }
 .lift:focus-within {
   transform: translate3d(0, -4px, 0);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 22px 44px -20px rgba(13, 38, 20, .36), 0 0 0 1px rgba(67, 134, 58, .12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 24px 48px -20px rgba(13, 38, 20, .32), 0 0 0 1px rgba(67, 134, 58, .16);
 }
 .lift:active {
   transform: translate3d(0, -1px, 0) scale(.985);
-  transition-duration: .12s;
+  transition-duration: .1s;
+}
+
+/* Tone-specific card elevation glows for stats, highlights and gamification tiles */
+.lift-green:hover { box-shadow: inset 0 1px 0 #fff, 0 20px 42px -16px rgba(47, 110, 47, .35), 0 0 0 1px rgba(67, 134, 58, .22) !important; border-color: rgba(141, 190, 120, .85) !important; }
+.lift-amber:hover { box-shadow: inset 0 1px 0 #fff, 0 20px 42px -16px rgba(208, 143, 38, .35), 0 0 0 1px rgba(208, 143, 38, .22) !important; border-color: rgba(237, 192, 103, .85) !important; }
+.lift-sky:hover { box-shadow: inset 0 1px 0 #fff, 0 20px 42px -16px rgba(47, 138, 143, .35), 0 0 0 1px rgba(47, 138, 143, .22) !important; border-color: rgba(120, 184, 185, .85) !important; }
+.lift-violet:hover { box-shadow: inset 0 1px 0 #fff, 0 20px 42px -16px rgba(139, 92, 246, .35), 0 0 0 1px rgba(139, 92, 246, .22) !important; border-color: rgba(196, 181, 253, .85) !important; }
+.lift-red:hover { box-shadow: inset 0 1px 0 #fff, 0 20px 42px -16px rgba(220, 38, 38, .35), 0 0 0 1px rgba(220, 38, 38, .22) !important; border-color: rgba(254, 202, 202, .85) !important; }
+
+/* Micro-animations and aesthetic tokens */
+.text-shine-emerald {
+  background: linear-gradient(105deg, #1c4722 0%, #2f6e2f 35%, #62a04f 55%, #237479 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.icon-spring {
+  transition: transform .35s var(--ease-spring), color .2s;
+}
+.group:hover .icon-spring {
+  transform: scale(1.12) rotate(4deg);
 }
 
 
@@ -704,6 +763,14 @@ img.fade-img.is-loaded { opacity: 1; transform: none; }
 @keyframes tool-deal { from { opacity: 0; transform: translateY(26px) rotate(-3deg) scale(.94); } to { opacity: 1; transform: none; } }
 .tool-shake { animation: tool-shake .5s cubic-bezier(.36, .07, .19, .97) both; box-shadow: inset 0 0 0 2px rgba(220, 38, 38, .45), 0 10px 24px -14px rgba(220, 38, 38, .5) !important; }
 @keyframes tool-shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-7px); } 40%, 60% { transform: translateX(7px); } }
+.game-path-step { animation: milestone-in .55s var(--ease-spring) both; animation-delay: calc(var(--step, 0) * 90ms + 100ms); transition: transform .25s var(--ease-spring), border-color .25s var(--ease-smooth), box-shadow .25s var(--ease-smooth); }
+@media (hover: hover) {
+  .game-path-step:hover { transform: translateY(-2px); border-color: rgba(141, 190, 120, .8); box-shadow: 0 10px 22px -16px rgba(13, 38, 20, .4); }
+}
+@keyframes milestone-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+.plan-progress-fill { position: relative; overflow: hidden; transition: width .7s var(--ease-spring); }
+.plan-progress-fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 25%, rgba(255, 255, 255, .42) 50%, transparent 75%); animation: progress-sheen 2.8s ease-in-out infinite; }
+@keyframes progress-sheen { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
 /* A win glows and throws confetti. */
 .win-glow { box-shadow: inset 0 1px 0 #fff, 0 0 0 2px rgba(67, 134, 58, .35), 0 24px 60px -24px rgba(67, 134, 58, .7) !important; }
 .pop-in { animation: pop-in .7s cubic-bezier(.34, 1.56, .64, 1) both; }

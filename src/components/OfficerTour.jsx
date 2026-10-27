@@ -6,9 +6,10 @@
 //   first-visit invitation.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Compass, ListOrdered, Sparkles, X, Lightbulb, MousePointerClick } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass, ListOrdered, X, Lightbulb, MousePointerClick } from 'lucide-react';
 import { useStore, demo } from '../store';
 import { STORAGE_PREFIX } from '../config/brand';
+import { TourModePicker, TourPlayback, QUICK_TOUR_STEP_SECONDS, TOUR_STEP_SECONDS } from './TourPlayback';
 
 const KEY = `${STORAGE_PREFIX}.officerTour`;
 const SEEN = `${STORAGE_PREFIX}.officerTourSeen`;
@@ -38,7 +39,7 @@ const STEPS = [
   { ch: 0, path: '/officer', title: t('স্বাগতম, {officer}', 'Welcome, {officer}'),
     say: t('এটা {upz} উপজেলা কৃষি অফিসের ডিজিটাল কাজের ঘর। কৃষকের অনুরোধ, এলাকার সতর্কতা, কে কী লাগাচ্ছেন, উপগ্রহে মাঠের অবস্থা আর বাজারদর — সব এক জায়গায়।', 'This is the digital desk of the {upz} upazila agriculture office. Farmers’ requests, area alerts, who is planting what, the fields from satellites and market prices — all in one place.'),
     help: t('খাতা, ফোনের তালিকা আর আলাদা আলাদা সরকারি প্রতিবেদন ঘাঁটার সময় বাঁচে; কোন কাজটা আগে করবেন, পাতাগুলোই সাজিয়ে দেয়।', 'It saves the time spent on registers, call lists and separate government reports, and puts the most urgent work first.'),
-    act: t('পুরো গাইড প্রায় ১০ মিনিটের। যেকোনো সময় "অধ্যায়" থেকে যেকোনো অংশে লাফ দিতে পারেন।', 'The whole guide takes about 10 minutes. Jump to any part from “Chapters” at any time.') },
+    act: t('গাইডে সব পাতা ঘুরে দেখুন। "অধ্যায়" থেকে যেকোনো অংশে লাফ দিতে পারেন।', 'Explore every page in the guide. Jump to any part from “Chapters” at any time.') },
   { ch: 0, path: '/officer', text: t('কোন ইউনিয়ন বা পৌরসভা দেখবেন', 'Union or municipality to look at'), up: 'div.rounded-2xl',
     title: t('আপনার পরিচয় আর ইউনিয়ন বাছাই', 'Who you are, and which union'),
     say: t('বাঁ পাশে আপনার নাম, উপজেলা, জেলা আর বিভাগ। নিচের তালিকা থেকে যে ইউনিয়ন বা পৌরসভা দেখবেন সেটা বাছুন — এখন দেখছেন {union}।', 'On the left: your name, upazila, district and division. Pick the union or municipality to look at from the list below — now {union}.'),
@@ -249,6 +250,8 @@ const STEPS = [
     act: t('গাইড আবার দেখতে চাইলে ওপরের "গাইড" বোতাম চাপুন।', 'To see the guide again, press “Guide” at the top.') },
 ];
 
+const QUICK_STEPS = [1, 3, 5, 6, 9].map((chapter) => STEPS.findIndex((step) => step.ch === chapter));
+
 // Fill the {placeholders} from the signed-in context.
 const fill = (s, c) => s.replace(/\{(\w+)\}/g, (_, k) => c[k] ?? '');
 
@@ -277,6 +280,12 @@ export default function OfficerTour() {
   const [rect, setRect] = useState(null);
   const [menu, setMenu] = useState(false);
   const [invite, setInvite] = useState(() => { try { return !localStorage.getItem(SEEN); } catch { return false; } });
+  const [chooser, setChooser] = useState(false);
+  const [autoMode, setAutoMode] = useState(false);
+  const [quickMode, setQuickMode] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [completed, setCompleted] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const target = useRef(null);
 
   const unionName = demo.unions.find((u) => u.id === s.officerUnion)?.full;
@@ -292,10 +301,46 @@ export default function OfficerTour() {
     setInvite(false);
   }, []);
   useEffect(() => {
-    const on = (e) => set(Number(e.detail) || 0);
+    const on = () => {
+      set(null);
+      setChooser(true);
+    };
     window.addEventListener('fs-officer-tour', on);
     return () => window.removeEventListener('fs-officer-tour', on);
   }, [set]);
+  const startTour = (mode) => {
+    setChooser(false);
+    setAutoMode(mode !== 'manual');
+    setQuickMode(mode === 'quick');
+    setPaused(false);
+    setCompleted(false);
+    setElapsed(0);
+    set(mode === 'quick' ? QUICK_STEPS[0] : 0);
+  };
+  const closeTour = () => {
+    setChooser(false);
+    setAutoMode(false);
+    setQuickMode(false);
+    setPaused(false);
+    setCompleted(false);
+    set(null);
+  };
+
+  useEffect(() => {
+    if (k == null || !autoMode || paused || completed) return undefined;
+    const steps = quickMode ? QUICK_STEPS : STEPS.map((_, index) => index);
+    const position = steps.indexOf(k);
+    const timer = setTimeout(() => {
+      if (position >= steps.length - 1) setCompleted(true);
+      else set(steps[position + 1]);
+    }, (quickMode ? QUICK_TOUR_STEP_SECONDS : TOUR_STEP_SECONDS) * 1000);
+    return () => clearTimeout(timer);
+  }, [k, autoMode, quickMode, paused, completed, set]);
+  useEffect(() => {
+    if (k == null || !autoMode || paused || completed) return undefined;
+    const timer = setInterval(() => setElapsed((n) => n + 1), 1000);
+    return () => clearInterval(timer);
+  }, [k, autoMode, paused, completed]);
 
   const step = k == null ? null : STEPS[Math.min(k, STEPS.length - 1)];
   const path = step ? (typeof step.path === 'function' ? step.path(ctx) : step.path) : null;
@@ -337,31 +382,32 @@ export default function OfficerTour() {
     if (k == null) return undefined;
     const key = (e) => {
       if (e.target.closest?.('input, textarea, select')) return;
-      if (e.key === 'Escape') set(null);
-      if (e.key === 'ArrowRight' && k < STEPS.length - 1) set(k + 1);
-      if (e.key === 'ArrowLeft' && k > 0) set(k - 1);
+      if (e.key === 'Escape') closeTour();
+      if (e.key === 'ArrowRight') changeStep(1);
+      if (e.key === 'ArrowLeft') changeStep(-1);
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [k, set]);
 
+  const sequence = quickMode ? QUICK_STEPS : STEPS.map((_, index) => index);
+  const sequencePosition = Math.max(0, sequence.indexOf(k));
+  const changeStep = (direction) => {
+    const nextPosition = sequencePosition + direction;
+    if (nextPosition < 0) return;
+    if (nextPosition >= sequence.length) { setCompleted(true); return; }
+    set(sequence[nextPosition]);
+  };
+  const selectChapter = (chapter) => {
+    setQuickMode(false);
+    setAutoMode(false);
+    set(STEPS.findIndex((step) => step.ch === chapter));
+  };
+
   if (k == null) {
-    if (!invite) return null;
-    return (
-      <aside role="dialog" aria-label={T('গাইড', 'Guide')} className="sheet-up fixed inset-x-3 bottom-4 z-[70] mx-auto max-w-[460px] rounded-[22px] border border-white/70 bg-white/95 p-4 shadow-[0_22px_50px_-16px_rgba(13,38,20,.55)] backdrop-blur lg:left-auto lg:right-6 lg:mx-0">
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-[0_6px_16px_-6px_rgba(36,90,40,.8)]"><Compass size={20} /></span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[15.5px] font-bold leading-snug">{T(`${ctx.officer}, নতুন? পুরো অফিসার অংশ ঘুরে দেখুন`, `${ctx.officer}, new here? Take the full tour`)}</p>
-            <p className="mt-1 text-[13.5px] leading-6 text-ink/75">{T('প্রতিটা পাতা আর প্রতিটা অংশ, আপনার কাজে কীভাবে লাগে — প্রায় ১০ মিনিট।', 'Every page and every part, and how each helps your work — about 10 minutes.')}</p>
-          </div>
-        </div>
-        <div className="mt-3 flex justify-end gap-2">
-          <button type="button" onClick={() => { setInvite(false); try { localStorage.setItem(SEEN, '1'); } catch { /* blocked */ } }} className="h-10 rounded-full px-4 text-[14px] font-semibold text-ink/70 hover:bg-black/5">{T('পরে', 'Later')}</button>
-          <button type="button" onClick={() => set(0)} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-[14px] font-semibold text-white"><Sparkles size={15} />{T('গাইড শুরু করুন', 'Start the guide')}</button>
-        </div>
-      </aside>
-    );
+    if (!chooser && !invite) return null;
+    return <TourModePicker T={T} title={T(`${ctx.officer}, অফিসার অংশের গাইড`, `${ctx.officer}, officer section guide`)}
+      steps={STEPS.length} quickSteps={QUICK_STEPS.length} onStart={startTour} onClose={closeTour} />;
   }
 
   const ch = step.ch;
@@ -381,10 +427,10 @@ export default function OfficerTour() {
           <div className="flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 text-white"><Compass size={18} /></span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11.5px] font-bold uppercase tracking-[.12em] text-primary-700">{T(`অধ্যায় ${(ch + 1).toLocaleString('bn-BD')}: ${CHAPTERS[ch].bn} · ${pos.toLocaleString('bn-BD')}/${inChapter.length.toLocaleString('bn-BD')}`, `Chapter ${ch + 1}: ${CHAPTERS[ch].en} · ${pos}/${inChapter.length}`)}</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[.12em] text-primary-700">{T(`অধ্যায় ${(ch + 1).toLocaleString('bn-BD')}: ${CHAPTERS[ch].bn} · ${quickMode ? `${(sequencePosition + 1).toLocaleString('bn-BD')}/${sequence.length.toLocaleString('bn-BD')}` : `${pos.toLocaleString('bn-BD')}/${inChapter.length.toLocaleString('bn-BD')}`}`, `Chapter ${ch + 1}: ${CHAPTERS[ch].en} · ${quickMode ? `${sequencePosition + 1}/${sequence.length}` : `${pos}/${inChapter.length}`}`)}</p>
               <p className="mt-0.5 text-[16.5px] font-bold leading-snug">{fill(L(step.title), ctx)}</p>
             </div>
-            <button type="button" onClick={() => set(null)} aria-label={T('গাইড বন্ধ করুন', 'Close the guide')} className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-black/5"><X size={17} /></button>
+            <button type="button" onClick={closeTour} aria-label={T('গাইড বন্ধ করুন', 'Close the guide')} className="grid h-8 w-8 shrink-0 place-items-center rounded-full hover:bg-black/5"><X size={17} /></button>
           </div>
           <div className="mt-2 max-h-[38vh] space-y-2 overflow-y-auto pr-1 lg:max-h-[46vh]">
             <p className="text-[14px] leading-6 text-ink/85">{fill(L(step.say), ctx)}</p>
@@ -392,20 +438,21 @@ export default function OfficerTour() {
             {step.act && <p className="flex gap-2 text-[13px] leading-5 text-muted"><MousePointerClick size={15} className="mt-0.5 shrink-0" />{fill(L(step.act), ctx)}</p>}
           </div>
         </div>
+        {autoMode && <TourPlayback T={T} lang={s.lang} mode={quickMode ? 'quick' : 'auto'} step={sequencePosition + 1} total={sequence.length} elapsed={elapsed} paused={paused} complete={completed} onToggle={() => setPaused((value) => !value)} />}
         {menu && (
           <ol className="mt-3 grid max-h-[30vh] grid-cols-1 gap-1 overflow-y-auto rounded-xl bg-black/[.03] p-1.5 sm:grid-cols-2">
             {CHAPTERS.map((c, i) => (
-              <li key={c.en}><button type="button" onClick={() => set(STEPS.findIndex((x) => x.ch === i))} className={`w-full rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition ${i === ch ? 'bg-primary-700 text-white' : 'hover:bg-white'}`}>{T(`${(i + 1).toLocaleString('bn-BD')}. ${c.bn}`, `${i + 1}. ${c.en}`)}</button></li>
+              <li key={c.en}><button type="button" onClick={() => selectChapter(i)} className={`w-full rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition ${i === ch ? 'bg-primary-700 text-white' : 'hover:bg-white'}`}>{T(`${(i + 1).toLocaleString('bn-BD')}. ${c.bn}`, `${i + 1}. ${c.en}`)}</button></li>
             ))}
           </ol>
         )}
-        <div className="mt-3 h-1 overflow-hidden rounded-full bg-black/[.06]"><div className="gold-fill h-full rounded-full" style={{ width: `${((k + 1) / STEPS.length) * 100}%` }} /></div>
+        <div className="mt-3 h-1 overflow-hidden rounded-full bg-black/[.06]"><div className="gold-fill h-full rounded-full" style={{ width: `${((sequencePosition + 1) / sequence.length) * 100}%` }} /></div>
         <div className="mt-3 flex items-center justify-between gap-2">
-          <button type="button" disabled={k === 0} onClick={() => set(k - 1)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold text-ink/70 hover:bg-black/5 disabled:opacity-40"><ArrowLeft size={16} />{T('আগে', 'Back')}</button>
+          <button type="button" disabled={sequencePosition === 0} onClick={() => changeStep(-1)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-semibold text-ink/70 hover:bg-black/5 disabled:opacity-40"><ArrowLeft size={16} />{T('আগে', 'Back')}</button>
           <button type="button" onClick={() => setMenu((m) => !m)} aria-expanded={menu} className="inline-flex h-10 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-semibold text-primary-800 ring-1 ring-primary-200 hover:bg-primary-50"><ListOrdered size={15} />{T('অধ্যায়', 'Chapters')}</button>
-          {k < STEPS.length - 1
-            ? <button type="button" onClick={() => set(k + 1)} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-[14px] font-semibold text-white">{T('পরে', 'Next')}<ArrowRight size={16} /></button>
-            : <button type="button" onClick={() => set(null)} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-[14px] font-semibold text-white">{T('শেষ', 'Finish')}</button>}
+          {sequencePosition < sequence.length - 1
+            ? <button type="button" onClick={() => changeStep(1)} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-[14px] font-semibold text-white">{T('পরে', 'Next')}<ArrowRight size={16} /></button>
+            : <button type="button" onClick={closeTour} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-[14px] font-semibold text-white">{T('শেষ', 'Finish')}</button>}
         </div>
       </aside>
     </>

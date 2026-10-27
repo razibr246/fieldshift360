@@ -562,17 +562,17 @@ export function StepGlut() {
       </Card>
       <PriceHistory crop={crop} hw={chosen.hw} />
       <h3 className="mt-6 text-[17px] font-bold">{T('লাগানোর তারিখ বদলে দেখুন', 'Try another planting date')}</h3>
-      <div className="mt-2 grid grid-cols-3 gap-2">
+      <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {alts.map((o) => {
           const on = o.shift === chosen.shift;
           return (
             <button key={o.shift} type="button" onClick={() => dispatch({ type: 'set', patch: { pick: { crop: o.crop.id, shift: o.shift } } })} aria-pressed={on}
-              className={`rounded-xl border p-3 text-left transition ${on ? 'border-primary-700 bg-primary-50 ring-2 ring-primary-200' : 'border-border bg-white hover:border-primary-300'}`}>
-              <div className="text-[12.5px] text-muted">{shiftLabel(o.shift, T)}</div>
-              <div className="font-display text-[17px] font-bold">{fmtDate(o.t0, lang)}</div>
-              <div className="text-[12.5px] text-muted">{fmtBangla(o.t0, lang)}</div>
+              className={`rounded-2xl border p-3.5 text-left transition-all duration-200 active:scale-95 cursor-pointer ${on ? 'border-primary-700 bg-primary-50 ring-2 ring-primary-300 shadow-md scale-[1.02]' : 'border-border/80 bg-white/95 hover:border-primary-300 hover:bg-primary-50/60 shadow-2xs'}`}>
+              <div className="text-[12.5px] font-semibold text-muted">{shiftLabel(o.shift, T)}</div>
+              <div className="font-display text-[17px] font-bold text-ink">{fmtDate(o.t0, lang)}</div>
+              <div className="text-[12px] text-muted">{fmtBangla(o.t0, lang)}</div>
               <div className="mt-1 text-[12px] text-muted">{T(`তোলা ${fmtDate(o.hw.start, 'bn')} থেকে`, `harvest from ${fmtDate(o.hw.start, 'en')}`)}</div>
-              <span className={`chip mt-1.5 ${RISK_STYLE[o.glut.level].cls}`}>{T('ঝুঁকি', 'Risk')} {L(RISK_STYLE[o.glut.level])}</span>
+              <span className={`chip mt-2 ${RISK_STYLE[o.glut.level].cls}`}>{T('ঝুঁকি', 'Risk')} {L(RISK_STYLE[o.glut.level])}</span>
             </button>
           );
         })}
@@ -593,10 +593,10 @@ export function StepGlut() {
         </Card>
       )}
       {g.level === 'High' && <Note tone="warn" className="mt-4">{T('ঝুঁকি বেশি। অন্য তারিখ বেছে নিন, অথবা জমির অর্ধেকে মসুর বা সরিষার মতো অন্য ফসল দিন।', 'High risk. Pick another date, or put half the field under another crop such as lentil or mustard.')}</Note>}
-      <div className="mt-5 rounded-2xl border border-primary-200 bg-primary-50 p-4">
-        <div className="text-[15px] font-semibold text-primary-900">{same ? T('আপনার পরিকল্পনা পাকা করা আছে', 'Your plan is confirmed') : T('ঠিক করলে পরিকল্পনা পাকা করুন', 'Happy with it? Confirm your plan')}</div>
-        <p className="mt-1 text-[14px] leading-6 text-primary-900/80">{T('পাকা করলে আপনার ইউনিয়নের কৃষি কর্মকর্তা পরিকল্পনাটা দেখতে পাবেন, আর ইউনিয়নের ফসলের হিসাবে আপনার জমিও যোগ হবে।', 'Once confirmed, your union’s officer can see it and your field is counted in the union’s harvest totals.')}</p>
-        <Button onClick={confirm} disabled={same} className="mt-3 w-full py-3">
+      <div className="mt-5 rounded-2xl border border-primary-200/90 bg-gradient-to-br from-primary-50 to-primary-100/60 p-5 shadow-sm">
+        <div className="text-[16px] font-bold text-primary-950">{same ? T('আপনার পরিকল্পনা পাকা করা আছে', 'Your plan is confirmed') : T('ঠিক করলে পরিকল্পনা পাকা করুন', 'Happy with it? Confirm your plan')}</div>
+        <p className="mt-1 text-[14px] leading-6 text-primary-900/85">{T('পাকা করলে আপনার ইউনিয়নের কৃষি কর্মকর্তা পরিকল্পনাটা দেখতে পাবেন, আর ইউনিয়নের ফসলের হিসাবে আপনার জমিও যোগ হবে।', 'Once confirmed, your union’s officer can see it and your field is counted in the union’s harvest totals.')}</p>
+        <Button onClick={confirm} disabled={same} className="mt-3.5 w-full py-3.5 shadow-md">
           {same ? <><CheckCircle2 size={18} />{T('পাকা করা হয়েছে', 'Confirmed')}</> : T(`পাকা করুন: ${crop.name.bn}, ${fmtDate(chosen.t0, 'bn')}`, `Confirm: ${crop.name.en}, ${fmtDate(chosen.t0, 'en')}`)}
         </Button>
       </div>
