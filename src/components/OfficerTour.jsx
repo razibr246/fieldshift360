@@ -40,37 +40,39 @@ const STEPS = [
     say: t('এটা {upz} উপজেলা কৃষি অফিসের ডিজিটাল কাজের ঘর। কৃষকের অনুরোধ, এলাকার সতর্কতা, কে কী লাগাচ্ছেন, উপগ্রহে মাঠের অবস্থা আর বাজারদর — সব এক জায়গায়।', 'This is the digital desk of the {upz} upazila agriculture office. Farmers’ requests, area alerts, who is planting what, the fields from satellites and market prices — all in one place.'),
     help: t('খাতা, ফোনের তালিকা আর আলাদা আলাদা সরকারি প্রতিবেদন ঘাঁটার সময় বাঁচে; কোন কাজটা আগে করবেন, পাতাগুলোই সাজিয়ে দেয়।', 'It saves the time spent on registers, call lists and separate government reports, and puts the most urgent work first.'),
     act: t('গাইডে সব পাতা ঘুরে দেখুন। "অধ্যায়" থেকে যেকোনো অংশে লাফ দিতে পারেন।', 'Explore every page in the guide. Jump to any part from “Chapters” at any time.') },
-  { ch: 0, path: '/officer', text: t('কোন ইউনিয়ন বা পৌরসভা দেখবেন', 'Union or municipality to look at'), up: 'div.rounded-2xl',
+  { ch: 0, path: '/officer', text: t('কোন ইউনিয়ন বা পৌরসভা দেখবেন', 'Union or municipality to look at'), up: 'div.rounded-2xl', alt: 'button[aria-label="মেনু খুলুন"], button[aria-label="Open menu"]',
     title: t('আপনার পরিচয় আর ইউনিয়ন বাছাই', 'Who you are, and which union'),
     say: t('বাঁ পাশে আপনার নাম, উপজেলা, জেলা আর বিভাগ। নিচের তালিকা থেকে যে ইউনিয়ন বা পৌরসভা দেখবেন সেটা বাছুন — এখন দেখছেন {union}।', 'On the left: your name, upazila, district and division. Pick the union or municipality to look at from the list below — now {union}.'),
     help: t('সকালে যে ইউনিয়নে মাঠ পরিদর্শনে যাবেন, সেটা বেছে নিলে সতর্কতা, অনুরোধ আর মানচিত্র সব সেই ইউনিয়নের হয়ে যায়।', 'Choose the union you are visiting today and the alerts, requests and map all switch to it.'),
-    act: t('তালিকাটা খুলে আরেকটা ইউনিয়ন বেছে দেখুন।', 'Open the list and try another union.') },
-  { ch: 0, path: '/officer', sel: 'nav[aria-label="কর্মকর্তার পাতা"], nav[aria-label="Officer pages"]',
+    act: t('তালিকাটা খুলে আরেকটা ইউনিয়ন বেছে দেখুন (ফোনে এটা ☰ মেনুর ভেতরে)।', 'Open the list and try another union (on a phone it is inside the ☰ menu).') },
+  { ch: 0, path: '/officer', sel: 'nav[aria-label="কর্মকর্তার পাতা"], nav[aria-label="Officer pages"]', alt: 'button[aria-label="মেনু খুলুন"], button[aria-label="Open menu"]',
     title: t('মেনু সাজানো আপনার দিনের ক্রমে', 'The menu follows your day'),
     say: t('আজকের কাজ (চিত্র, সতর্কতা, অনুরোধ) → আমার এলাকা (কৃষক, মানচিত্র) → মৌসুমের পরিকল্পনা (রাডার, লাগানোর সময়, ফসল তোলা) → পুরো উপজেলা → সহায়তা। লাল বা কমলা সংখ্যা মানে খোলা কাজ।', 'Today’s work (overview, alerts, requests) → my area (farmers, map) → season planning (radar, planting, harvest) → whole upazila → help. A red or amber number means work waiting.'),
-    help: t('সংখ্যাগুলো দেখেই বোঝা যায় আজ কোথায় হাত দিতে হবে; কিছু খুঁজতে হয় না।', 'The badges tell you where today’s work is without searching.') },
-  { ch: 0, path: '/officer', sel: 'input[placeholder*="খুঁজুন"], input[placeholder*="Search"]',
+    help: t('সংখ্যাগুলো দেখেই বোঝা যায় আজ কোথায় হাত দিতে হবে; কিছু খুঁজতে হয় না।', 'The badges tell you where today’s work is without searching.'),
+    act: t('ফোনে মেনু খোলে ওপরের বাঁয়ের ☰ বোতামে।', 'On a phone, the ☰ button at the top left opens the menu.') },
+  { ch: 0, path: '/officer', sel: 'input[placeholder*="খুঁজুন"], input[placeholder*="Search"]', alt: 'button[aria-label="খুঁজুন"], button[aria-label="Search"]',
     title: t('কৃষক বা গ্রাম খুঁজুন', 'Find a farmer or a village'),
     say: t('যেকোনো কৃষক বা গ্রামের নাম লিখলেই তাঁর জমি আর অনুরোধ খুলে যায়। কিবোর্ডে "/" চাপলে সরাসরি এখানে আসে।', 'Type any farmer’s or village’s name to open their fields and requests. Press “/” on the keyboard to jump here.'),
     help: t('কেউ ফোন করলে নাম বলামাত্র তাঁর পুরো তথ্য সামনে চলে আসে।', 'When a farmer phones, their whole record is up as soon as they say their name.'),
-    act: t('একটা গ্রামের নাম লিখে দেখুন।', 'Try typing a village name.') },
+    act: t('একটা গ্রামের নাম লিখে দেখুন (ফোনে আগে ওপরের খোঁজার বোতাম চাপুন)।', 'Try typing a village name (on a phone, tap the search button at the top first).') },
   { ch: 0, path: '/officer', sel: 'button[aria-label*="খোলা অনুরোধ"], button[aria-label*="open requests"]',
     title: t('ঘণ্টা আর ভাষা', 'The bell and the language'),
     say: t('ঘণ্টার গায়ের সংখ্যা মানে উত্তরের অপেক্ষায় থাকা অনুরোধ, চাপ দিলে তালিকা খোলে। পাশের বোতামে বাংলা আর ইংরেজি বদলানো যায়; বাঁয়ে "ফিরে যান" আগের পাতায় নেয়।', 'The number on the bell is requests waiting for a reply; tap it for the list. The next button switches Bangla and English, and “Back” on the left returns to the previous page.'),
     help: t('যেকোনো পাতা থেকে এক চাপে অপেক্ষমাণ কৃষকদের কাছে পৌঁছানো যায়।', 'From any page, waiting farmers are one tap away.') },
-  { ch: 0, path: '/officer', text: t('কৃষকের পাতায় যান', 'Go to the farmer view'), up: 'div',
+  { ch: 0, path: '/officer', text: t('কৃষকের পাতায় যান', 'Go to the farmer view'), up: 'div', alt: 'button[aria-label="মেনু খুলুন"], button[aria-label="Open menu"]',
     title: t('কৃষকের চোখে দেখা, তথ্যের অবস্থা', 'See it as a farmer; data status'),
     say: t('"কৃষকের পাতায় যান" চাপলে কৃষক যা দেখেন সেটাই দেখবেন। নিচের চিপগুলো বলে আবহাওয়া আর মাটির তথ্য আসল (নাসা, SoilGrids) কি না; "নমুনা আবার শুরু করুন" সব নমুনা কাজ প্রথম অবস্থায় ফেরায়।', '“Go to the farmer view” shows exactly what farmers see. The chips below say whether the weather and soil data are real (NASA, SoilGrids); “Restart the sample” resets all sample work.'),
-    help: t('কৃষককে ফোনে কিছু বোঝানোর আগে নিজে সেই পাতাটা দেখে নিতে পারেন।', 'Before explaining something to a farmer on the phone, you can look at their screen yourself.') },
+    help: t('কৃষককে ফোনে কিছু বোঝানোর আগে নিজে সেই পাতাটা দেখে নিতে পারেন।', 'Before explaining something to a farmer on the phone, you can look at their screen yourself.'),
+    act: t('ফোনে এগুলো ☰ মেনুর নিচের দিকে।', 'On a phone these sit at the bottom of the ☰ menu.') },
 
   // ---- 1. Overview
   { ch: 1, path: '/officer', text: t('খোলা অনুরোধ', 'Open requests'), up: '.grid',
     title: t('এক নজরে আজকের অবস্থা', 'Today at a glance'),
     say: t('পাঁচটা ঘর: খোলা অনুরোধ, এলাকার সতর্কতা, কাছাকাছি কয়েক জমিতে একই সমস্যা, পরিকল্পনা করা জমির ভাগ আর দাম পড়ার ঝুঁকি। প্রতিটায় চাপ দিলে তার পুরো পাতা খোলে।', 'Five tiles: open requests, area alerts, the same problem on nearby fields, the share of fields with a plan, and the price-drop risk. Tap any tile for its full page.'),
     help: t('অফিসে ঢুকে প্রথম দশ সেকেন্ডেই বোঝা যায় আজ কোনদিকে নজর দেবেন।', 'Within ten seconds of sitting down you know where today needs you.') },
-  { ch: 1, path: '/officer', text: t('সবাইকে পরামর্শ পাঠান', 'Advise everyone in the area'), up: 'section, .surface-card, [class*="rounded-"]',
+  { ch: 1, path: '/officer', text: t('সবাইকে পরামর্শ পাঠান', 'Advise them all'), up: 'section, .surface-card, [class*="rounded-"]',
     title: t('একই সমস্যা কয়েক জমিতে: আগাম সতর্কতা', 'One problem on several fields: an early warning'),
-    say: t('কাছাকাছি কয়েকটা জমি থেকে এক সপ্তাহে একই লক্ষণের অনুরোধ এলে অ্যাপ সেগুলো একটা গুচ্ছ ধরে দেখায়। "সবাইকে পরামর্শ পাঠান" চাপলে লেখা খসড়া পাবেন; বদলে নিয়ে একবারে ওই এলাকার সব কৃষককে পাঠান।', 'When several nearby fields report the same symptom within a week, the app groups them. “Advise everyone in the area” gives you a draft to edit and send to every farmer there at once.'),
+    say: t('কাছাকাছি কয়েকটা জমি থেকে এক সপ্তাহে একই লক্ষণের অনুরোধ এলে অ্যাপ সেগুলো একটা গুচ্ছ ধরে দেখায়। "সবাইকে পরামর্শ পাঠান" চাপলে লেখা খসড়া পাবেন; বদলে নিয়ে একবারে ওই এলাকার সব কৃষককে পাঠান।', 'When several nearby fields report the same symptom within a week, the app groups them. “Advise them all” gives you a draft to edit and send to every farmer there at once.'),
     help: t('রোগ বা পোকা ছড়ানোর আগেই পুরো এলাকাকে জানানো যায় — একজন একজন করে ফোন করতে হয় না।', 'You warn the whole area before a disease or pest spreads, without phoning farmers one by one.'),
     act: t('কোনো গুচ্ছ না থাকলে এই অংশটা দেখা যায় না — তখন বুঝবেন এলাকায় ছড়ানো সমস্যা নেই।', 'If there is no cluster this part is hidden — which means nothing is spreading.') },
   { ch: 1, path: '/officer', text: t('এলাকার মানচিত্র', 'Area map'), up: 'section, .surface-card',
@@ -92,11 +94,11 @@ const STEPS = [
     title: t('এলাকার সব সতর্কতা এক পাতায়', 'Every alert for the area on one page'),
     say: t('ছয় রকম সতর্কতা আসে: আগামী ৮ দিনের আবহাওয়া, রোগের উপযোগী আবহাওয়া, উপগ্রহে দুর্বল দেখানো জমি, কাছাকাছি একই সমস্যার গুচ্ছ, খুব শুকনো জমি (FAO-56 পানির হিসাব) আর দাম পড়ার ঝুঁকি। সবচেয়ে জরুরিটা সবার ওপরে।', 'Six kinds arrive: the next 8 days’ weather, weather that suits disease, fields that look weak from the satellite, clusters of the same problem, very dry fields (FAO-56 water balance) and price-drop risk. The most urgent sits on top.'),
     help: t('মাঠে কিছু ঘটার আগেই জানতে পারেন, আর কৃষকও আগে থেকে প্রস্তুত থাকেন।', 'You hear of trouble before it happens in the field, and farmers get time to prepare.') },
-  { ch: 2, path: '/officer/alerts', text: t('কৃষকদের সতর্কবার্তা পাঠান', 'Warn the farmers'), up: 'section, .surface-card, div.rounded-2xl', alt: 'main h1',
+  { ch: 2, path: '/officer/alerts', text: t('কৃষকদের সতর্কবার্তা পাঠান', 'Warn the farmers'), up: 'section, .surface-card, div.rounded-2xl', alt: ['main textarea', 'main h1'],
     title: t('এক চাপে সতর্কবার্তা', 'A warning in one tap'),
     say: t('আবহাওয়ার সতর্কতায় একটা লেখা খসড়া থাকে (যেমন "দুই দিন ভারী বৃষ্টি, এখন ওষুধ দেবেন না")। বদলে নিয়ে পাঠালে ইউনিয়নের পরিকল্পনা করা সব কৃষক পান।', 'A weather alert comes with a drafted message (e.g. “two days of heavy rain, do not spray now”). Edit it and send, and every farmer in the union with a plan gets it.'),
     help: t('ঝড় বা ভারী বৃষ্টির আগে মিনিটের মধ্যে পুরো ইউনিয়নকে জানানো যায়।', 'Before a storm or a downpour, the whole union hears from you within minutes.'),
-    act: t('এই মুহূর্তে আবহাওয়ার সতর্কতা না থাকলে এই বোতামটা দেখা যাবে না।', 'With no weather alert right now, this button is not shown.') },
+    act: t('জরুরি সতর্কতার খসড়া আগে থেকেই খোলা থাকে: লেখা বদলে "পাঠান" চাপুন। কোনো সতর্কতা না থাকলে এই অংশ দেখা যাবে না।', 'An urgent alert opens with its draft ready: edit it and press “Send”. With no alert at all, this part is not shown.') },
 
   // ---- 3. Farmer requests
   { ch: 3, path: '/officer/requests', sel: 'main h1',
@@ -287,6 +289,8 @@ export default function OfficerTour() {
   const [completed, setCompleted] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const target = useRef(null);
+  const card = useRef(null);
+  const [place, setPlace] = useState('right');
 
   const unionName = demo.unions.find((u) => u.id === s.officerUnion)?.full;
   const ctx = useMemo(() => {
@@ -367,8 +371,8 @@ export default function OfficerTour() {
       if (off && n < 4) timer = setTimeout(() => aim(el, n + 1), 900);
     };
     const look = () => {
-      // A part that shows only sometimes (a warning button with no warning today) falls back to `alt`.
-      const el = findTarget(step) ?? (tries >= 3 && step.alt ? findTarget({ sel: step.alt }) : null);
+      // A part that shows only sometimes (a warning button with no warning today) falls back to `alt` (one selector, or several in order of preference).
+      const el = findTarget(step) ?? (tries >= 3 && step.alt ? [].concat(step.alt).map((sel) => findTarget({ sel })).find(Boolean) : null);
       if (!el) { if (++tries < 16) timer = setTimeout(look, 300); return; }
       target.current = el;
       track();
@@ -389,6 +393,21 @@ export default function OfficerTour() {
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
   }, [k, set]);
+
+  // On a wide screen the card takes whichever corner hides least of the lit part: bottom right, bottom left, or top
+  // right when the part fills the bottom. It decides once the page stops gliding, so it does not hop mid-scroll.
+  useEffect(() => {
+    if (!rect || window.innerWidth < 1024) { setPlace('right'); return undefined; }
+    const timer = setTimeout(() => {
+      const W = window.innerWidth, H = window.innerHeight, w = 464, h = (card.current?.offsetHeight ?? 320) + 12;
+      const hdr = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-header')) || 64;
+      const x0 = rect.left - 8, x1 = rect.left + rect.width + 8, y0 = rect.top - 8, y1 = rect.top + rect.height + 8;
+      const hide = (l, r, t, b) => Math.max(0, Math.min(x1, r) - Math.max(x0, l)) * Math.max(0, Math.min(y1, b) - Math.max(y0, t));
+      const spots = [['right', hide(W - w, W - 24, H - h, H - 12)], ['left', hide(24, w, H - h, H - 12)], ['top', hide(W - w, W - 24, hdr + 12, hdr + 12 + h)]];
+      setPlace(spots.reduce((best, x) => (x[1] < best[1] ? x : best))[0]);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [rect]);
 
   const sequence = quickMode ? QUICK_STEPS : STEPS.map((_, index) => index);
   const sequencePosition = Math.max(0, sequence.indexOf(k));
@@ -421,8 +440,8 @@ export default function OfficerTour() {
         <div aria-hidden="true" className="tour-spot pointer-events-none fixed z-[65] rounded-[18px]"
           style={{ top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} />
       ) : <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[65] bg-[rgba(13,38,20,.28)] transition-opacity duration-300" />}
-      <aside role="dialog" aria-label={T('অফিসার অংশের গাইড', 'Officer guide')} aria-live="polite"
-        className="fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-[560px] rounded-[22px] border border-white/70 bg-white/97 p-4 shadow-[0_24px_56px_-16px_rgba(13,38,20,.6)] backdrop-blur lg:left-auto lg:right-6 lg:mx-0 lg:w-[440px]">
+      <aside ref={card} role="dialog" aria-label={T('অফিসার অংশের গাইড', 'Officer guide')} aria-live="polite"
+        className={`fixed inset-x-3 bottom-3 z-[70] mx-auto max-w-[560px] rounded-[22px] border border-white/70 bg-white/97 p-4 shadow-[0_24px_56px_-16px_rgba(13,38,20,.6)] backdrop-blur lg:mx-0 lg:w-[440px] ${place === 'left' ? 'lg:left-6 lg:right-auto' : 'lg:left-auto lg:right-6'} ${place === 'top' ? 'lg:bottom-auto lg:top-[calc(var(--app-header,64px)+12px)]' : ''}`}>
         <div key={k} className="swap-in">
           <div className="flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary-600 to-primary-800 text-white"><Compass size={18} /></span>
