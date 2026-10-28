@@ -350,14 +350,18 @@ export function evaluate(ctx, rot, cal) {
       waterMm: sum(rows, 'water') / YEARS, money: sum(rows, 'money') / YEARS,
       risk: mean(rows.map((r) => r.risk)), pest: (sum(rows, 'repeats') / Math.max(1, sum(rows, 'slots'))) * 100,
       nFix: sum(rows, 'nFix') / YEARS, unpriced: [...new Set(rows.flatMap((r) => r.unpriced))],
+      // fodder: crops a year that leave straw or haulm for cattle (a third as much when the straw is ploughed in);
+      // cover: days a year the field has a crop on it, against the bare days that let rain wash the soil away
+      fodder: mean(rows.map((r) => [r.rabi, r.k1, 'aman'].filter((id) => FODDER[id]).length)) * (rot.residue === 'retain' ? 0.33 : 1),
+      cover: mean(rows.map((r) => r.coverDays)),
     };
   };
   return { rot, now, fut, sNow: summary(now), sFut: summary(fut) };
 }
 
 // How much each part counts, before and after the farmer's priorities (the same priorities as the season plan).
-const BASE_W = { soil: 0.30, water: 0.20, money: 0.20, risk: 0.15, pest: 0.15 };
-const PRIO_W = { water: (w) => { w.water *= 2.5; }, soil: (w) => { w.soil *= 2; w.pest *= 1.5; }, risk: (w) => { w.risk *= 1.8; }, income: (w) => { w.money *= 2; }, early: () => {} };
+const BASE_W = { soil: 0.30, water: 0.20, money: 0.20, risk: 0.15, pest: 0.15, fodder: 0, cover: 0 };
+const PRIO_W = { water: (w) => { w.water *= 2.5; }, soil: (w) => { w.soil *= 2; w.pest *= 1.5; }, risk: (w) => { w.risk *= 1.8; }, income: (w) => { w.money *= 2; }, early: () => {}, fodder: (w) => { w.fodder += 0.3; }, cover: (w) => { w.cover += 0.3; } };
 export function futureWeights(priorities = []) {
   const w = { ...BASE_W };
   priorities.forEach((p) => PRIO_W[p]?.(w));
@@ -373,6 +377,7 @@ export function rank(evals, priorities, fixed = null) {
   const metric = {
     soil: (e) => (e.sNow.health.score + (e.sFut?.health.score ?? e.sNow.health.score)) / 2,
     water: (e) => -m(e, 'waterMm'), money: (e) => m(e, 'money'), risk: (e) => -m(e, 'risk'), pest: (e) => -m(e, 'pest'),
+    fodder: (e) => e.sNow.fodder, cover: (e) => e.sNow.cover,
   };
   const range = fixed ?? Object.fromEntries(Object.entries(metric).map(([k, f]) => { const v = evals.map(f); return [k, [Math.min(...v), Math.max(...v)]]; }));
   for (const e of evals) {
@@ -399,7 +404,8 @@ export function allRotations(ctx) {
 const m2 = (e) => e.sNow.money;
 
 // The three rotations the page compares: the field's usual one, this season's plan kept every year, and the best of all.
-export function fieldFuture({ ctx, lastCrop, plan, priorities }) {
+// exclude: crops the farmer cannot grow; the best is chosen from rotations without them (the usual one is kept as it is).
+export function fieldFuture({ ctx, lastCrop, plan, priorities, exclude = [] }) {
   const habitYear = { rabi: RABI_OPTS.includes(lastCrop) ? lastCrop : 'boro', k1: 'fallow' };
   const habit = { cycle: [habitYear], residue: 'habit' };
   const cal = calibrate(ctx, habit);
@@ -410,8 +416,9 @@ export function fieldFuture({ ctx, lastCrop, plan, priorities }) {
   const planRot = plan && feasible(ctx, plan) ? { cycle: [plan], residue: 'habit' } : null;
   // The best is the highest-scoring rotation that does not run the soil down: it keeps or builds the field's carbon
   // over ten years of today's weather. Richer rotations that spend soil are still on the chart, with their cost shown.
-  const keeps = evals.filter((e) => e.sNow.dSoc >= 0);
-  const pool = keeps.length ? keeps : evals;
+  const can = (e) => !e.rot.cycle.some((y) => exclude.includes(y.rabi) || exclude.includes(y.k1));
+  const keeps = evals.filter((e) => e.sNow.dSoc >= 0 && can(e));
+  const pool = keeps.length ? keeps : evals.filter(can).length ? evals.filter(can) : evals;
   return {
     cal, weights, range, count: evals.length, all: evals, guard: keeps.length > 0,
     habit: find(habit), plan: planRot ? find(planRot) : null, best: pool[0], top: pool.slice(0, 5),
@@ -421,6 +428,8 @@ export function fieldFuture({ ctx, lastCrop, plan, priorities }) {
 }
 
 export const WATER_M3_PER_MM_BIGHA = BIGHA_HA * 10; // 1 mm on a bigha = 1.336 m³
+// What each crop leaves for cattle after harvest (dry fodder is scarce in the Rabi and the early monsoon).
+export const FODDER = { boro: 'straw', aus: 'straw', aman: 'straw', wheat: 'straw', lentil: 'haulm', mungbean: 'haulm' };
 export const ureaSavedKgPerBigha = (nKgHa) => (nKgHa / 0.46) * BIGHA_HA;
 export const co2PerBigha = (dStockTHa) => dStockTHa * (44 / 12) * BIGHA_HA;
 export { WATER_CLASS };

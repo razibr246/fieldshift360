@@ -23,8 +23,8 @@ export default function RotationTeaser() {
   const change = useMemo(() => climateChange(deltas, upazila.id, 'ssp245'), [upazila.id]);
   const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
     [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
-  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: chosen.crop.id, k1: rotation.best?.crop.id ?? 'fallow' }, priorities: s.priorities }),
-    [ctx, lastCrop, chosen.crop.id, rotation.best, s.priorities]);
+  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: chosen.crop.id, k1: rotation.best?.crop.id ?? 'fallow' }, priorities: s.priorities, exclude: s.exclude ?? [] }),
+    [ctx, lastCrop, chosen.crop.id, rotation.best, s.priorities, s.exclude]);
   const name = (rot) => rot.cycle.map((y) => [y.rabi, y.k1].filter((id) => id !== 'fallow').map((id) => L(cropOf(id).name)).concat(L(cropOf('aman').name)).join(' → ')).join(' | ');
   const cols = [
     { e: ff.habit, title: seen?.usable ? T('এখনকার মতো (উপগ্রহে দেখা)', 'As now (seen from space)') : T('এখনকার মতো', 'As now'), tone: '#6b7a72' },

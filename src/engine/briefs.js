@@ -3,7 +3,7 @@
 // farmer's or an officer's local review. Built only from the strategy's own ten-year numbers against farming as now,
 // the crops' published traits, and the field's NASA SRTM terrain where the field is registered. Pure. [RULE]
 import { num } from './dates.js';
-import { cropOf, WATER_M3_PER_MM_BIGHA, ureaSavedKgPerBigha } from './soilfuture.js';
+import { cropOf, WATER_M3_PER_MM_BIGHA, ureaSavedKgPerBigha, FODDER } from './soilfuture.js';
 import TERRAIN from '../data/land/field_terrain.json' with { type: 'json' };
 
 export const TERRAIN_SOURCE = TERRAIN.provenance;
@@ -15,8 +15,7 @@ const n = (v, dp = 0) => ({ bn: num(v, 'bn', { dp }), en: num(v, 'en', { dp }) }
 const name = (id, lang) => cropOf(id)?.name?.[lang] ?? id;
 const list = (ids, lang) => ids.map((id) => name(id, lang)).join(lang === 'bn' ? ', ' : ', ');
 
-// What each crop leaves for cattle after harvest (dry fodder is scarce in the Rabi and the early monsoon).
-export const FODDER = { boro: 'straw', aus: 'straw', aman: 'straw', wheat: 'straw', lentil: 'haulm', mungbean: 'haulm' };
+export { FODDER };
 // Crops with a deep taproot that opens the subsoil below the paddy plough pan.
 export const DEEP_ROOT = ['mustard', 'sesame', 'jute'];
 const cropsOf = (rot) => [...new Set(rot.cycle.flatMap((y) => [y.rabi, y.k1]).filter((id) => id && id !== 'fallow'))];

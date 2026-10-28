@@ -62,8 +62,8 @@ export default function FieldFuture() {
   const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
     [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
-  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities }),
-    [ctx, lastCrop, planRabi, planK1, s.priorities]);
+  const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities, exclude: s.exclude ?? [] }),
+    [ctx, lastCrop, planRabi, planK1, s.priorities, s.exclude]);
   const ownRot = own ?? ff.plan?.rot ?? ff.best.rot;
   const ownE = useMemo(() => ff.evaluateOwn(ownRot), [ff, ownRot]);
   const w = world === 'fut' && ctx.climF ? 'fut' : 'now';

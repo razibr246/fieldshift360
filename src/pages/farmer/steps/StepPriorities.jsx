@@ -2,7 +2,7 @@
 // put first; below, every crop's real numbers side by side (water from FAO-56 on local weather, value from FAOSTAT
 // yields and DAM prices, fertiliser from SRDI, weather safety from 25 NASA seasons), re-ordered live as the weights change.
 import { useLayoutEffect, useRef } from 'react';
-import { Droplets, Coins, Shield, Sprout, Timer, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Droplets, Coins, Shield, Sprout, Timer, ExternalLink, CheckCircle2, Beef, Layers, Ban } from 'lucide-react';
 import { useStore } from '../../../store';
 import { StepHeader, Card, MiniBar, ScoreRing, Tags, RISK_STYLE } from '../../../components/ui';
 import { PRIORITIES, weightsFor } from '../../../engine/decision.js';
@@ -12,7 +12,7 @@ import { num, fmtDate } from '../../../engine/dates.js';
 import { cropName } from '../../../engine/crops.js';
 import cropEconomics from '../../../data/market/crop_economics.json';
 
-const ICONS = { droplets: Droplets, coins: Coins, shield: Shield, sprout: Sprout, timer: Timer };
+const ICONS = { droplets: Droplets, coins: Coins, shield: Shield, sprout: Sprout, timer: Timer, cow: Beef, layers: Layers };
 export const W_LABEL = { C: { bn: 'আবহাওয়ার ঝুঁকি', en: 'Weather safety' }, W: { bn: 'সেচের পানি', en: 'Water' }, S: { bn: 'মাটির সঙ্গে মিল', en: 'Soil match' }, P: { bn: 'ফসলের দাম', en: 'Harvest value' }, R: { bn: 'ফসলচক্র', en: 'Rotation' }, G: { bn: 'দাম পড়ার ঝুঁকি', en: 'Price-drop risk' }, E: { bn: 'আগাম ফসল', en: 'Early harvest' } };
 // Which measures each choice leans on (highlighted in the comparison).
 const LEANS = { water: ['water'], income: ['value', 'fert'], risk: ['safe', 'glut'], soil: ['soil'], early: ['harvest'] };
@@ -84,6 +84,23 @@ export default function StepPriorities() {
             </button>
           );
         })}
+      </div>
+
+      {/* The farmer's constraints: crops they cannot grow, whatever the numbers say. */}
+      <div className="mt-4 rounded-2xl border border-border bg-white p-4">
+        <h3 className="flex items-center gap-2 text-[15.5px] font-bold"><Ban size={17} className="text-red-700" />{T('যে ফসল আপনার পক্ষে সম্ভব নয়', 'Crops you cannot grow')}</h3>
+        <p className="mt-0.5 text-[13px] leading-5 text-muted">{T('কাছে বাজার নেই, যন্ত্র নেই, বীজ পাওয়া যায় না বা শ্রমিক নেই: চেপে বাদ দিন। এই মৌসুমের পরামর্শ আর জমির ভবিষ্যতের সেরা ফসলচক্র এগুলো ছাড়াই বাছবে।', 'No market nearby, no machine, no seed or no labour: tap to leave them out. This season’s advice and Field Future’s best rotation will be chosen without them.')}</p>
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          {['boro', 'wheat', 'lentil', 'mustard', 'tomato', 'mungbean', 'sesame', 'jute', 'aus'].map((id) => {
+            const off = (s.exclude ?? []).includes(id);
+            return (
+              <button key={id} type="button" onClick={() => dispatch({ type: 'toggleExclude', id })} aria-pressed={off}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[14px] font-semibold transition ${off ? 'border-red-300 bg-red-50 text-red-800 line-through decoration-2' : 'border-border bg-canvas text-ink/80 hover:border-primary-300'}`}>
+                {off && <Ban size={14} />}{cropName(id, lang)}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <Card className="mt-4 p-4 sm:p-5">

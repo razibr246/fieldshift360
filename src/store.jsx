@@ -63,7 +63,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 
@@ -76,6 +76,7 @@ const fresh = () => ({
   activeParcel: {}, // farmerId -> the parcel the season plan is for (default: the registry's main field)
   profiles: {}, // farmerId -> what the farmer saved on their profile page (see pages/farmer/Profile.jsx)
   priorities: [],
+  exclude: [], // crops this farmer cannot grow (no market, machine or seed): left out of the plan and Field Future
   pick: null, // {crop, shift} chosen by the farmer; null = follow the recommendation
   confirmed: [], // plans confirmed by demo farmers -> added to union supply
   harvests: {}, // farmerId -> { qty, price }
@@ -119,6 +120,7 @@ function initial() {
 function reducer(s, a) {
   switch (a.type) {
     case 'set': return { ...s, ...a.patch };
+    case 'toggleExclude': return { ...s, exclude: (s.exclude ?? []).includes(a.id) ? s.exclude.filter((x) => x !== a.id) : [...(s.exclude ?? []), a.id] };
     case 'togglePriority': {
       const has = s.priorities.includes(a.id);
       let p = has ? s.priorities.filter((x) => x !== a.id) : [...s.priorities, a.id];
@@ -233,9 +235,9 @@ export function StoreProvider({ children }) {
   const econ = useMemo(() => ({ prices: priceSeasons, costs: cropEconomics, srdiUnion, landform: soil.landform }), [srdiUnion, soil.landform]);
   // today's date, so a sowing day already gone is not offered (it changes once a day; the planner re-runs then)
   const planToday = todayDhaka();
-  const decision = useMemo(() => decide({ clim: climW, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday }), [climW, farmer, soil, union, s.priorities, econ, planToday]);
+  const decision = useMemo(() => decide({ clim: climW, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday, exclude: s.exclude }), [climW, farmer, soil, union, s.priorities, econ, planToday, s.exclude]);
   // The as-measured answer, kept alongside so a what-if can show what changed.
-  const decisionBase = useMemo(() => (climW === fclim ? decision : decide({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday })), [climW, fclim, decision, farmer, soil, union, s.priorities, econ, planToday]);
+  const decisionBase = useMemo(() => (climW === fclim ? decision : decide({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday, exclude: s.exclude })), [s.exclude, climW, fclim, decision, farmer, soil, union, s.priorities, econ, planToday]);
   const chosen = useMemo(() => {
     if (!s.pick) return decision.rec;
     return decision.all.find((r) => r.crop.id === s.pick.crop && r.shift === s.pick.shift) ?? decision.rec;

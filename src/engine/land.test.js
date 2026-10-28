@@ -41,3 +41,31 @@ test('a strategy brief always says why, what evidence, what is unknown and what 
   assert.ok(b.risks.some((x) => /waterlogging/.test(x.en)), 'low coastal land and a crop that hates waterlogging');
   assert.ok(b.gaps.some((x) => /Mungbean/.test(x.en)), 'unpriced crop named');
 });
+
+test('asking for fodder or for covered soil changes which rotation comes first', async () => {
+  const { rank } = await import('./soilfuture.js');
+  const mk = (id, o) => ({ id, sNow: { health: { score: 60 }, waterMm: 400, money: 8000, risk: 0.2, pest: 30, fodder: 1, cover: 250, ...o } });
+  const evals = () => [mk('grazing', { fodder: 3, cover: 240, money: 7900 }), mk('covered', { fodder: 1, cover: 330, money: 7900 }), mk('cash', { money: 9000 })];
+  assert.equal(rank(evals(), []).evals[0].id, 'cash');
+  assert.equal(rank(evals(), ['fodder']).evals[0].id, 'grazing');
+  assert.equal(rank(evals(), ['cover']).evals[0].id, 'covered');
+});
+
+test('a crop the farmer cannot grow is left out of the season advice', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { makeClimate } = await import('./climate.js');
+  const { decide } = await import('./decision.js');
+  const { buildDemo } = await import('../data/demo.js');
+  const { makeUnion } = await import('./world.js');
+  const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url)));
+  const clim = makeClimate(read('../data/climate/climate_godagari.json'));
+  const demo = buildDemo(), plot = demo.farmers.find((f) => f.id === 'RAHIM');
+  const args = { clim, soil: read('../data/soil/soil_godagari.json').unions[plot.union], plot, union: makeUnion(clim, demo, plot.union) };
+  const free = decide(args);
+  const without = decide({ ...args, exclude: [free.rec.crop.id] });
+  assert.notEqual(without.rec.crop.id, free.rec.crop.id);
+  assert.ok(without.options.every((o) => o.crop.id !== free.rec.crop.id));
+  const noHabit = decide({ ...args, exclude: [plot.last_crop] });
+  assert.notEqual(noHabit.rec.crop.id, plot.last_crop, 'the crop grown now is not advised once ruled out');
+  assert.equal(noHabit.label, 'SHIFT');
+});
