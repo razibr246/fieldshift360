@@ -13,6 +13,11 @@ import { TourModePicker, TourPlayback, QUICK_TOUR_STEP_SECONDS, TOUR_STEP_SECOND
 
 const KEY = `${STORAGE_PREFIX}.officerTour`;
 const SEEN = `${STORAGE_PREFIX}.officerTourSeen`;
+// The guide style and the time played, so an auto or quick tour keeps playing if the guide mounts again (a reload, or
+// a hot update while developing) instead of quietly turning into a manual one.
+const MODE = `${STORAGE_PREFIX}.officerTourMode`;
+const readMode = () => { try { return JSON.parse(sessionStorage.getItem(MODE)) ?? {}; } catch { return {}; } };
+const saveMode = (m) => { try { if (m) sessionStorage.setItem(MODE, JSON.stringify(m)); else sessionStorage.removeItem(MODE); } catch { /* storage blocked */ } };
 export const startOfficerTour = (at = 0) => window.dispatchEvent(new CustomEvent('fs-officer-tour', { detail: at }));
 
 const CHAPTERS = [
@@ -283,11 +288,12 @@ export default function OfficerTour() {
   const [menu, setMenu] = useState(false);
   const [invite, setInvite] = useState(() => { try { return !localStorage.getItem(SEEN); } catch { return false; } });
   const [chooser, setChooser] = useState(false);
-  const [autoMode, setAutoMode] = useState(false);
-  const [quickMode, setQuickMode] = useState(false);
+  const [autoMode, setAutoMode] = useState(() => !!readMode().auto);
+  const [quickMode, setQuickMode] = useState(() => !!readMode().quick);
   const [paused, setPaused] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(() => readMode().elapsed ?? 0);
+  useEffect(() => { if (autoMode) saveMode({ auto: true, quick: quickMode, elapsed }); }, [autoMode, quickMode, elapsed]);
   const target = useRef(null);
   const card = useRef(null);
   const [place, setPlace] = useState('right');
@@ -319,6 +325,7 @@ export default function OfficerTour() {
     setPaused(false);
     setCompleted(false);
     setElapsed(0);
+    saveMode(mode === 'manual' ? null : { auto: true, quick: mode === 'quick', elapsed: 0 });
     set(mode === 'quick' ? QUICK_STEPS[0] : 0);
   };
   const closeTour = () => {
@@ -327,6 +334,7 @@ export default function OfficerTour() {
     setQuickMode(false);
     setPaused(false);
     setCompleted(false);
+    saveMode(null);
     set(null);
   };
 
@@ -420,6 +428,7 @@ export default function OfficerTour() {
   const selectChapter = (chapter) => {
     setQuickMode(false);
     setAutoMode(false);
+    saveMode(null);
     set(STEPS.findIndex((step) => step.ch === chapter));
   };
 

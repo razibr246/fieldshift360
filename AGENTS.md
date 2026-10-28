@@ -28,7 +28,9 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   `/stories`, games), `/farmer/*`, `/officer/*`, `/abroad/:cc/*` (India, Pakistan, Nepal, Bhutan, Myanmar).
 - `src/store.jsx`: one context holds the selected farmer, field, priorities, requests and officer context, and derives
   the season decision (`engine/decision.js`), rotation (`engine/rotation.js`), field water and hotspots. NASA POWER
-  climate per upazila loads lazily (`loadClimate(id)`) and is corrected to BMD station normals. Bilingual text goes
+  climate per upazila loads lazily (`loadClimate(id)`) and is corrected to BMD station normals. The exported `clim` and
+  `tm` stay `null` until `bootClimate()` finishes, so code that runs at import time must not read them; use
+  `useStore().clim` or `loadClimate(id)`. Bilingual text goes
   through `T(bn, en)` and `L({ bn, en })`; numbers through `num()` / `bnDigits()` (`engine/dates.js`). Bangla first.
 - `src/engine/`: pure functions, no React. `soilfuture.js` is Field Future: `fieldContext` → `fieldFuture` runs every
   feasible rotation for ten years (ICBM soil carbon, FAO-56 water, NRCS soil health), `rank()` re-weights by the
@@ -36,6 +38,8 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 - `src/data/`: grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `fields/`, `market/`, `region/`, `media/`,
   `abroad/`, `geo/`) plus the data modules (`upazilas.js`, `demo.js`, `stories.js` ...); see `src/data/README.md`.
   Seven upazilas, one per division (`UPAZILAS`); `stories.js` `LEVELS` fixes their order everywhere.
+  The build keeps only the series listed in `CLIMATE_IN_APP` (`vite.config.js`) from each `climate_*.json`; a new
+  series reaches the app only once it is added there too.
 - `scripts/`: `fetch/`, `build/`, `onset/` (the rain-onset rule, also imported by `src/radar/onset.test.js`),
   `photos/`, `lib/`; index in `scripts/README.md`. Do not hand-edit generated data: change the script and re-run it.
   Moving a script changes its depth, so check its `ROOT` path and relative imports.
@@ -55,3 +59,5 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   match indentation and quotes. Keep calculations in `src/engine/`, not in pages.
 - Commits: short sentence-style subjects naming the user-visible change; call out generated data or config changes.
 - Secrets live in `.env.local` (see `.env.example`), never in the repo.
+- Several agents edit this repo at the same time. Before editing a file, check `git status` / `git diff` for another
+  agent's unfinished work, and change only the lines you need; never write a whole file back from an older copy.
