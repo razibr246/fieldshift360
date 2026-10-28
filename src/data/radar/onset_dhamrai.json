@@ -39,14 +39,14 @@
    "power": {
     "dataset": "NASA POWER PRECTOTCORR daily (MERRA-2 bias-corrected), for comparison",
     "key": "prec",
-    "thresholdMm": 1286.8,
+    "thresholdMm": 53.6,
     "trend": {
      "n": 25,
-     "perDecade": -3,
-     "S": -102,
-     "z": -2.38,
-     "p": 0.0173,
-     "significant": true
+     "perDecade": -2.2,
+     "S": -68,
+     "z": -1.575,
+     "p": 0.1152,
+     "significant": false
     }
    }
   },
@@ -54,7 +54,7 @@
   "lat": 23.93,
   "lon": 90.14,
   "rainThrough": "2026-10-15",
-  "generated": "2026-10-22"
+  "generated": "2026-10-28"
  },
  "years": [
   {
@@ -357,10 +357,9 @@
     "complete": true
    },
    "power": {
-    "date": "2023-05-15",
-    "doy": 135,
-    "complete": true,
-    "atStart": true
+    "date": "2023-06-08",
+    "doy": 159,
+    "complete": true
    }
   },
   {

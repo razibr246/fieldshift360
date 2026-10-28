@@ -15,21 +15,21 @@ Bangla (the app's default). "…" marks a held pause.
 
 1. এটা রাজিব মিয়ার জমি, ধামরাইয়ের চৌহাট। … নাসার পঁচিশ বছরের আবহাওয়া আর জমির নিজের মাটি দিয়ে দেখি, আগামী দশ বছরে এর মাটির কী হয়।
 2. আগে দেখি এখনকার চাষ: বোরো ধান আর রোপা আমন। এভাবে চললে, দশ বছরে মাটির জৈব পদার্থ প্রায় একই থাকে।
-3. এবার সেরা ফসলচক্র: টমেটো, পাট আর রোপা আমন; পরের বছর টমেটো, আউশ ধান আর রোপা আমন; আর খড় জমিতেই মিশিয়ে দেওয়া। এতে দশ বছরে জৈব পদার্থ ০.৬ শতাংশ বাড়ে… মানে মাটি ধীরে ধীরে আরও উর্বর হয়।
-4. শুধু মাটি নয়, পানিও বাঁচে। প্রতি বিঘায় বছরে প্রায় ১৯৮ ঘনমিটার কম সেচ লাগে। আর জমি থেকে নিট গ্রিনহাউস গ্যাস কমে ৬২ শতাংশ।
-5. আবহাওয়া আরও গরম হলে কী হবে? নাসার জলবায়ু মডেলে, দুই হাজার চল্লিশের দশকে… সেরা ফসলচক্রে মাটির জৈব পদার্থ ০.৪ শতাংশ কমে, আর এখনকার চাষে ০.৮ শতাংশ কমে।
+3. এবার সেরা ফসলচক্র: সরিষা, পাট আর রোপা আমন; পরের বছর টমেটো, মুগ ডাল আর রোপা আমন; আর খড় জমিতেই মিশিয়ে দেওয়া। এতে দশ বছরে জৈব পদার্থ ০.৩ শতাংশ বাড়ে… মানে মাটি ধীরে ধীরে আরও উর্বর হয়।
+4. শুধু মাটি নয়, পানিও বাঁচে। প্রতি বিঘায় বছরে প্রায় ২৭৯ ঘনমিটার কম সেচ লাগে। আর জমি থেকে নিট গ্রিনহাউস গ্যাস কমে ৬২ শতাংশ।
+5. আবহাওয়া আরও গরম হলে কী হবে? নাসার জলবায়ু মডেলে, দুই হাজার চল্লিশের দশকে… সেরা ফসলচক্রে মাটির জৈব পদার্থ ০.৮ শতাংশ কমে, আর এখনকার চাষেও ০.৮ শতাংশ কমে।
 6. সিদ্ধান্ত অবশ্যই আপনার। … শুরু করার আগে একবার উপজেলা কৃষি অফিসার মোঃ ওমর ফারুকের সঙ্গে কথা বলে নিন।
 
 English:
 
 1. This is Razib Miah's field, in Chauhat, Dhamrai. … With twenty-five years of NASA weather and the field's own soil, let's see what happens to it over the next ten years.
 2. First, farming as now: Boro rice and T. Aman. Carry on like this, and in ten years the soil's organic matter stays about the same.
-3. Now the best rotation: Tomato, Jute and T. Aman; the next year, Tomato, Aus rice and T. Aman, with the straw ploughed back in. With this, in ten years organic matter rises by 0.6 per cent… so the soil slowly grows richer.
-4. It saves water as well as soil: about 198 cubic metres less irrigation per bigha, every year. And the field's net greenhouse gas falls by 62 per cent.
-5. And if it gets hotter? In NASA's climate models, in the twenty-forties… with the best rotation, the soil's organic matter falls by 0.4 per cent; farming as now, it falls by 0.8 per cent.
+3. Now the best rotation: Mustard, Jute and T. Aman; the next year, Tomato, Mung bean and T. Aman, with the straw ploughed back in. With this, in ten years organic matter rises by 0.3 per cent… so the soil slowly grows richer.
+4. It saves water as well as soil: about 279 cubic metres less irrigation per bigha, every year. And the field's net greenhouse gas falls by 62 per cent.
+5. And if it gets hotter? In NASA's climate models, in the twenty-forties… with the best rotation, the soil's organic matter falls by 0.8 per cent; farming as now, it falls by 0.8 per cent too.
 6. The decision is, of course, yours. … Before you start, have a word with your upazila agriculture officer, Md. Omar Faruk.
 
-The numbers are the engine's (Field Future, today's weather; the 2040s from NEX-GDDP-CMIP6, middle pathway). Keep
+The numbers are the engine's (Field Future, today's weather; the 2040s from NEX-GDDP-CMIP6, middle pathway), copied from the app on 28 Oct 2026, after Dhamrai's rainfall was re-fetched. Keep
 them exactly as written; if the field or the farmer's priorities change, copy the script again.
 
 ## B. Voice direction
@@ -38,7 +38,7 @@ them exactly as written; if the field or the farmer's priorities change, copy th
 - **Pace:** unhurried, about 130–140 words a minute (Bangla neural voices: rate about −8%).
 - **Pitch and energy:** mid pitch, warm, steady; a little lift on questions (line 5).
 - **Pauses:** about 0.4 s after each sentence, 0.7 s at each "…".
-- **Emphasis:** the result in each line: "প্রায় একই থাকে", "০.৬ শতাংশ বাড়ে", "পানিও বাঁচে", "১৯৮ ঘনমিটার", "৬২ শতাংশ", and
+- **Emphasis:** the result in each line: "প্রায় একই থাকে", "০.৩ শতাংশ বাড়ে", "পানিও বাঁচে", "২৭৯ ঘনমিটার", "৬২ শতাংশ", and
   "সিদ্ধান্ত অবশ্যই আপনার".
 - **Avoid:** drama, a sales tone, rushing the numbers, reading "+" or "%" as symbols.
 
@@ -67,9 +67,9 @@ voices are `bn-BD-NabanitaNeural` (female) and `bn-BD-PradeepNeural` (male); thi
     <prosody rate="-8%">
       এটা রাজিব মিয়ার জমি, ধামরাইয়ের চৌহাট। <break time="700ms"/> নাসার পঁচিশ বছরের আবহাওয়া আর জমির নিজের মাটি দিয়ে দেখি, আগামী দশ বছরে এর মাটির কী হয়। <break time="900ms"/>
       আগে দেখি এখনকার চাষ: বোরো ধান আর রোপা আমন। <break time="400ms"/> এভাবে চললে, দশ বছরে মাটির জৈব পদার্থ <emphasis level="moderate">প্রায় একই থাকে</emphasis>। <break time="900ms"/>
-      এবার সেরা ফসলচক্র: টমেটো, পাট আর রোপা আমন; পরের বছর টমেটো, আউশ ধান আর রোপা আমন; আর খড় জমিতেই মিশিয়ে দেওয়া। <break time="400ms"/> এতে দশ বছরে জৈব পদার্থ <emphasis level="moderate">০.৬ শতাংশ বাড়ে</emphasis>। <break time="700ms"/> মানে মাটি ধীরে ধীরে আরও উর্বর হয়। <break time="900ms"/>
-      শুধু মাটি নয়, <emphasis level="moderate">পানিও বাঁচে</emphasis>। <break time="400ms"/> প্রতি বিঘায় বছরে প্রায় ১৯৮ ঘনমিটার কম সেচ লাগে। <break time="400ms"/> আর জমি থেকে নিট গ্রিনহাউস গ্যাস কমে ৬২ শতাংশ। <break time="900ms"/>
-      আবহাওয়া আরও গরম হলে কী হবে? <break time="400ms"/> নাসার জলবায়ু মডেলে, দুই হাজার চল্লিশের দশকে <break time="700ms"/> সেরা ফসলচক্রে মাটির জৈব পদার্থ ০.৪ শতাংশ কমে, আর এখনকার চাষে ০.৮ শতাংশ কমে। <break time="900ms"/>
+      এবার সেরা ফসলচক্র: সরিষা, পাট আর রোপা আমন; পরের বছর টমেটো, মুগ ডাল আর রোপা আমন; আর খড় জমিতেই মিশিয়ে দেওয়া। <break time="400ms"/> এতে দশ বছরে জৈব পদার্থ <emphasis level="moderate">০.৩ শতাংশ বাড়ে</emphasis>। <break time="700ms"/> মানে মাটি ধীরে ধীরে আরও উর্বর হয়। <break time="900ms"/>
+      শুধু মাটি নয়, <emphasis level="moderate">পানিও বাঁচে</emphasis>। <break time="400ms"/> প্রতি বিঘায় বছরে প্রায় ২৭৯ ঘনমিটার কম সেচ লাগে। <break time="400ms"/> আর জমি থেকে নিট গ্রিনহাউস গ্যাস কমে ৬২ শতাংশ। <break time="900ms"/>
+      আবহাওয়া আরও গরম হলে কী হবে? <break time="400ms"/> নাসার জলবায়ু মডেলে, দুই হাজার চল্লিশের দশকে <break time="700ms"/> সেরা ফসলচক্রে মাটির জৈব পদার্থ ০.৮ শতাংশ কমে, আর এখনকার চাষেও ০.৮ শতাংশ কমে। <break time="900ms"/>
       <emphasis level="moderate">সিদ্ধান্ত অবশ্যই আপনার</emphasis>। <break time="700ms"/> শুরু করার আগে একবার উপজেলা কৃষি অফিসার মোঃ ওমর ফারুকের সঙ্গে কথা বলে নিন।
     </prosody>
   </voice>
@@ -81,7 +81,7 @@ For a tool that takes plain instructions instead of SSML:
 > Read this Bangla script as a calm, friendly agriculture extension worker speaking to one farmer in standard
 > Bangladeshi Bangla. Unhurried pace (about 130–140 words a minute), mid pitch, warm and steady. Pause about 0.4
 > seconds after each sentence and 0.7 seconds at each "…". Stress the result in each line (প্রায় একই থাকে,
-> ০.৬ শতাংশ বাড়ে, পানিও বাঁচে, ১৯৮ ঘনমিটার, ৬২ শতাংশ). No dramatic or sales tone. Say every number in full, in Bangla.
+> ০.৩ শতাংশ বাড়ে, পানিও বাঁচে, ২৭৯ ঘনমিটার, ৬২ শতাংশ). No dramatic or sales tone. Say every number in full, in Bangla.
 
 Joining the voice to the saved video (the file "ভিডিও নামান" downloads):
 
@@ -92,8 +92,8 @@ ffmpeg -i fieldshift-razib-10-years.webm -i narration.mp3 -c:v libx264 -pix_fmt 
 ## E. Quality checklist
 
 - [ ] Every number and name matches script A (copy it again from the app if the field or priorities changed).
-- [ ] Place names are said correctly: ধামরাই, চৌহাট, রোপা আমন, আউশ; "দুই হাজার চল্লিশের দশক" is said in words.
-- [ ] "০.৬", "১৯৮", "৬২" are read as numbers, not digit by digit; "শতাংশ" is said, not "percent sign".
+- [ ] Place names are said correctly: ধামরাই, চৌহাট, রোপা আমন, মুগ ডাল; "দুই হাজার চল্লিশের দশক" is said in words.
+- [ ] "০.৩", "২৭৯", "৬২" are read as numbers, not digit by digit; "শতাংশ" is said, not "percent sign".
 - [ ] Pauses fall at the sentence ends and the "…"; nothing is rushed or clipped.
 - [ ] Each line starts as its scene appears (table C); the last line ends before the video does.
 - [ ] Audio is clean: no clipping, no background hiss, even loudness from line to line.
