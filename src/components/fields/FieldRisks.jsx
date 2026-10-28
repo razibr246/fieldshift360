@@ -15,9 +15,11 @@ const LEVEL = [
   { bn: 'বেশি', en: 'High', cls: 'bg-red-50 text-red-800 ring-red-200', bar: '#b42318' },
 ];
 
-export default function FieldRisks({ parcel }) {
-  const { T, L, tm, upazila } = useStore();
-  const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(parcel?.id), tm, land: landSummary(upazila.id) }), [parcel?.id, tm, upazila.id]);
+// tm and upazilaId default to the signed-in farmer's; the officer's farmer page passes the officer's upazila.
+export default function FieldRisks({ parcel, tm: tmIn, upazilaId }) {
+  const { T, L, tm: tmMine, upazila } = useStore();
+  const tm = tmIn ?? tmMine, upz = upazilaId ?? upazila.id;
+  const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(parcel?.id), tm, land: landSummary(upz) }), [parcel?.id, tm, upz]);
   if (!risks.length) return null;
   const high = risks.filter((r) => r.level === 2);
   return (

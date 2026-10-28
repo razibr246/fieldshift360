@@ -30,7 +30,7 @@ export default function LandFromSpace({ upazila, place }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="max-w-3xl">
           <h2 className="text-[20px] font-bold">{T(`মহাকাশ থেকে ${L(place)}, ${yr(d.years[0])}–${yr(d.years[1])}`, `${L(place)} from space, ${d.years[0]}–${d.years[1]}`)}</h2>
-          <p className="mt-0.5 text-[13.5px] leading-6 text-muted">{T('নাসার MODIS উপগ্রহে প্রতি মাসে এলাকা কতটা সবুজ আর মাটির উপরিতল কতটা গরম, আর নাসার MERRA-2-এ জমি থেকে কতটা পানি বাতাসে যায়। উপজেলার মাঝখানের প্রায় ৫ কিলোমিটার: আপনার এলাকার জমিগুলো, একটা জমি নয়।', 'How green the area is each month and how hot its ground surface, from NASA’s MODIS satellites, and how much water the land gives back to the air, from NASA’s MERRA-2. About 5 km round the upazila centre: your area’s fields, not one field.')}</p>
+          <p className="mt-0.5 text-[13.5px] leading-6 text-muted">{T('নাসার MODIS উপগ্রহে প্রতি মাসে এলাকা কতটা সবুজ আর মাটির উপরিতল কতটা গরম, আর নাসার MERRA-2-এ জমি থেকে কতটা পানি বাতাসে যায়। এই জায়গার চারপাশের প্রায় ৫ কিলোমিটার: এলাকার জমিগুলো, একটা জমি নয়।', 'How green the area is each month and how hot its ground surface, from NASA’s MODIS satellites, and how much water the land gives back to the air, from NASA’s MERRA-2. About 5 km round this place: the area’s fields, not one field.')}</p>
         </div>
         <Tags list={['REAL']} />
       </div>
@@ -63,7 +63,7 @@ export default function LandFromSpace({ upazila, place }) {
               return (
                 <g key={r.y}>
                   <rect x={x} y={r.z >= 0 ? 70 - h : 70} width={Math.max(3, w - 3)} height={h} rx={2} fill={r.stress ? RED : r.z >= 0 ? GREEN : '#a9b8a6'}><title>{`${r.y}: NDVI ${n(r.v, 2)}`}</title></rect>
-                  {(i % 4 === 0 || r.stress) && <text x={x + w / 2} y={r.z >= 0 || r.stress ? 146 : 146} textAnchor="middle" fontSize="8.5" fill={r.stress ? RED : MUTED}>{yr(r.y)}</text>}
+                  {(r.stress || (i % 4 === 0 && !rabi.slice(Math.max(0, i - 1), i + 2).some((q) => q.stress))) && <text x={x + w / 2} y={r.z >= 0 || r.stress ? 146 : 146} textAnchor="middle" fontSize="8.5" fill={r.stress ? RED : MUTED}>{yr(r.y)}</text>}
                 </g>
               );
             })}

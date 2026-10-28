@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CloudSun, CalendarDays, Satellite, BookOpen, Flame, Telescope, Scale, MapPin, Droplets, Sprout, CheckCircle2, PauseCircle, AlertTriangle, Building2, Info, ArrowRight, Send, Phone, MessageSquareReply, Clock, Waves } from 'lucide-react';
+import LandFromSpace from '../../components/future/LandFromSpace';
 import { useStore } from '../../store';
 import { num, bnDigits } from '../../engine/dates';
 import { weatherOf } from '../../engine/forecast';
@@ -291,6 +292,7 @@ export function Future() {
       <Section icon={Waves} title={T('মাটির নিচের পানি আর শিকড়ের মাটি', 'Water underground and in the root zone')} sub={T('নাসার GRACE ও SMAP উপগ্রহ, এই খামারের অঞ্চলে', 'NASA’s GRACE and SMAP satellites, over this farm’s region')} tag={<SourceTag>NASA GRACE · SMAP</SourceTag>}>
         <SatWater id={c.id} />
       </Section>
+      <LandFromSpace upazila={c.id} place={c.name} />
       <Section icon={Scale} title={T('তথ্য যাচাই: বৃষ্টির তিন হিসাব', 'Data check: three records of the same rain')} sub={T('একটি উৎসকে চোখ বুজে বিশ্বাস না করে, তিনটি পাশাপাশি রাখা হয়েছে', 'Rather than trust one source blindly, three are set side by side')} tag={<SourceTag tone="amber">{T('মান যাচাই', 'Quality check')}</SourceTag>}>
         <RecordCheck point={data.points.farm} />
       </Section>

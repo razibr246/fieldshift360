@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Search, UsersRound, ArrowLeft, ChevronRight, Sprout, Droplets, Layers, MapPin, LifeBuoy, CheckCircle2 } from 'lucide-react';
-import { useStore, soilData, srdi } from '../../store';
+import FieldRisks from '../../components/fields/FieldRisks';
+import { tms, useStore, soilData, srdi } from '../../store';
 import { srdiUnionOf } from '../../engine/soil';
 import priceSeasons from '../../data/market/price_seasons.json';
 import cropEconomics from '../../data/market/crop_economics.json';
@@ -140,7 +141,7 @@ function FarmerFields({ f }) {
 
 export function FarmDetail() {
   const { id } = useParams();
-  const { s, T, L, unionsAll, farmerOf, officerClim: clim } = useStore();
+  const { s, T, L, unionsAll, farmerOf, officerClim: clim, parcels, officerUpazila } = useStore();
   const lang = s.lang;
   const f = farmerOf(id);
   const u = f && unionsAll[f.union];
@@ -167,6 +168,7 @@ export function FarmDetail() {
         </Card>
         <div className="space-y-6">
           <FarmerFields f={f} />
+          <FieldRisks parcel={parcels.find((p) => p.owner === f.id && p.main) ?? parcels.find((p) => p.owner === f.id) ?? null} tm={tms[officerUpazila.id]} upazilaId={officerUpazila.id} />
           <Card className="p-5">
             <div className="flex items-center justify-between gap-2"><h2 className="text-[19px] font-bold">{T('এই জমির জন্য পরামর্শ', 'Recommendation for this field')}</h2><Tags list={['RULE']} /></div>
             <div className="mt-3 flex items-center gap-3">
