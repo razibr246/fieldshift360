@@ -371,7 +371,8 @@ export default function OfficerTour() {
     const aim = (el, n) => {
       if (stop) return;
       const fixed = !!el.closest('header, aside, nav[aria-label="কর্মকর্তার পাতা"], nav[aria-label="Officer pages"]') && !el.closest('main');
-      if (fixed) return;
+      // in the sidebar or header: the page does not move, but a sidebar that scrolls on its own brings the part into view
+      if (fixed) { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
       const r = el.getBoundingClientRect();
       const room = window.innerHeight - (window.innerWidth >= 1024 ? 40 : 300);
       const off = r.top < header() + 4 || (r.top > header() + 24 && r.bottom > room);
