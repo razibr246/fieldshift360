@@ -6,7 +6,9 @@
 // in the questions is what each country's agriculture research and extension services give farmers there.
 // Everything is plain data, read by the simulation (sim.js) and the 3D world (three/*.js).
 
-export const DAY = 60; // seconds of play per in-game day
+// Seconds of play per in-game day: 8 minutes (6 of daylight, 2 of night), near the 10-20 minute days of farming and
+// survival games, so a season of about 10 minutes sees an evening or two rather than a flicker of days.
+export const DAY = 480;
 
 // The field: 6 × 3 plots around the origin; x runs east, z south (metres).
 export const PLOT = 3.4, GAP = 0.6, FCOLS = 6, FROWS = 3;

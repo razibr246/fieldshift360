@@ -4,7 +4,7 @@
 // warnings on the phone. The 3D world lives in src/game/three; the rules in src/game/sim.js.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Music, Gauge, Coins, Droplets, ShoppingBasket, Satellite, Smartphone, Volume2, VolumeX, Hand, Sun, Moon, CloudLightning, Bug, TrendingDown, Star, RotateCcw, Users, Sprout, Check, X, ArrowRight, Sparkles, Info, Pause, Play, LogOut, MapPin, ShieldAlert, Footprints, Keyboard, Globe2 } from 'lucide-react';
+import { Music, Gauge, Coins, Droplets, ShoppingBasket, Satellite, Smartphone, Volume2, VolumeX, Hand, Sun, Moon, CloudLightning, Bug, TrendingDown, Star, RotateCcw, Users, Sprout, Check, X, ArrowRight, Sparkles, Info, Pause, Play, LogOut, MapPin, ShieldAlert, Footprints, Keyboard, Globe2, Glasses, View } from 'lucide-react';
 import { useStore } from '../../store';
 import { scrollToTop } from '../../components/Motion';
 import { num } from '../../engine/dates';
@@ -12,7 +12,7 @@ import { bnOf } from '../../engine/text';
 import { REGIONS, FARMER_IDS, BD_IDS, ABROAD_IDS, QUESTS, NDVI_LEGEND } from '../../game/regions';
 import { PLACES } from '../../game/places';
 import { createGame, buy, answerQuiz, priceOf, dayOf, isNight, clock, quizOf, canMax, target, ripeAt } from '../../game/sim';
-import { createStage, createPreview, portraits, QUALITY_KEY } from '../../game/three/stage';
+import { createStage, createPreview, portraits, xrModes, QUALITY_KEY } from '../../game/three/stage';
 import { play, setMuted, startAmbience, stopAmbience, setScene, setMusic } from '../../game/sound';
 
 const MUTE_KEY = 'fs360.game.muted';
@@ -206,7 +206,7 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
   const { T, L, s } = useStore();
   const lang = s.lang;
   const R = REGIONS[who];
-  const cv = useRef(null), overlay = useRef(null), mapRef = useRef(null), compassRef = useRef(null);
+  const cv = useRef(null), overlay = useRef(null), mapRef = useRef(null), compassRef = useRef(null), rootRef = useRef(null);
   const gRef = useRef(null), st = useRef(null);
   if (!gRef.current) gRef.current = createGame(who, mods);
   const g = gRef.current;
@@ -222,6 +222,8 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
   const [sat, setSat] = useState(false);
   const [running, setRunning] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [modes, setModes] = useState([]); // AR and VR this device can play
+  const [xr, setXr] = useState(null);
   const [muted, setMute] = useState(() => { try { return localStorage.getItem(MUTE_KEY) === '1'; } catch { return false; } });
   const [music, setMusicOn] = useState(() => { try { return localStorage.getItem(MUSIC_KEY) !== '0'; } catch { return true; } });
   useEffect(() => { setMusic(music); try { localStorage.setItem(MUSIC_KEY, music ? '1' : '0'); } catch { /* storage unavailable */ } }, [music]);
@@ -244,6 +246,7 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
           else if (e.type === 'alert') { const id = Math.random(); setAlerts((a) => [{ ...e, id }, ...a].slice(0, 4)); setTimeout(() => setAlerts((a) => a.filter((x) => x.id !== id)), 9000); }
           else if (e.type === 'open') { setPanel(e.panel); g.paused = true; }
           else if (e.type === 'introDone') setIntro(false);
+          else if (e.type === 'xr') setXr(e.mode);
           else if (e.type === 'quest') setBanner({ kind: 'quest', i: e.index, k: Math.random() });
           else if (e.type === 'questDone') setBanner({ kind: 'done', i: e.index, k: Math.random() });
           else if (e.type === 'hurt') setBanner({ kind: 'hurt', fine: e.fine, k: Math.random() });
@@ -264,6 +267,9 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
     return () => { clearInterval(iv); stage.dispose(); stopAmbience(); };
   }, [g]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { st.current?.setLang(lang); }, [lang]);
+  useEffect(() => { let on = true; xrModes().then((m) => on && setModes(m)); return () => { on = false; }; }, []);
+  const goXR = (mode) => st.current?.enterXR(mode, rootRef.current).catch(() => setToast({ text: { bn: 'এই যন্ত্রে AR/VR চালু করা গেল না', en: 'AR/VR could not start on this device' }, k: Math.random() }));
+  const xrBtns = (size) => modes.map((m) => <RoundBtn key={m} onClick={() => goXR(m)} label={m === 'ar' ? T('AR: ঘরের মেঝেতে বা টেবিলে খামার', 'AR: the farm on your table') : T('VR: হেডসেটে নিজের মাঠে দাঁড়ান', 'VR: stand in the field in a headset')}>{m === 'ar' ? <View size={size} /> : <Glasses size={size} />}</RoundBtn>);
   useEffect(() => { st.current?.setPaused(paused || !!panel); g.paused = paused || !!panel; }, [paused, panel, g]);
   useEffect(() => { if (!toast) return undefined; const t = setTimeout(() => setToast(null), 2600); return () => clearTimeout(t); }, [toast]);
   useEffect(() => { if (!placeCard) return undefined; const t = setTimeout(() => setPlaceCard(null), 4600); return () => clearTimeout(t); }, [placeCard]);
@@ -302,8 +308,9 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
   );
 
   return (
-    <div className="g3 fixed inset-0 z-[3000] select-none overflow-hidden bg-[#0d1a12] text-white">
-      <canvas ref={cv} className="absolute inset-0 h-full w-full touch-none" aria-label={T(`${R.farmer.bn}-এর মাঠ — ত্রিমাত্রিক খেলা`, `${R.farmer.en}’s field — 3D game`)} />
+    <div ref={rootRef} className={`g3 fixed inset-0 z-[3000] select-none overflow-hidden text-white ${xr === 'ar' ? 'bg-transparent' : 'bg-[#0d1a12]'}`}>
+      {/* in AR this whole layer is the dom-overlay over the camera; the canvas's last flat frame must not cover it */}
+      <canvas ref={cv} className={`absolute inset-0 h-full w-full touch-none ${xr === 'ar' ? 'invisible' : ''}`} aria-label={T(`${R.farmer.bn}-এর মাঠ — ত্রিমাত্রিক খেলা`, `${R.farmer.en}’s field — 3D game`)} />
       <div ref={overlay} className="pointer-events-none absolute inset-0 overflow-hidden" />
       {/* vignettes for heat, storm and being caught out */}
       <div className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${hud.ev.heat > 0 ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(255,120,30,.35))' }} />
@@ -421,6 +428,7 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
       {touch && !intro && <TouchControls stage={st} prompt={prompt} running={running} setRunning={setRunning} />}
 
       <div className={`absolute bottom-3 right-3 hidden flex-col gap-1.5 sm:flex ${intro ? 'opacity-0' : ''} ${touch ? '!hidden' : ''}`}>
+        {xrBtns(18)}
         <RoundBtn onClick={() => setSat(st.current?.toggleSat() ?? false)} on={sat} label={T('উপগ্রহের চোখ (N)', 'Satellite view (N)')}><Satellite size={18} /></RoundBtn>
         <RoundBtn onClick={() => { setPanel('kiosk'); g.paused = true; }} label="FieldShift"><Smartphone size={18} /></RoundBtn>
         <RoundBtn onClick={() => setMute(!muted)} label={muted ? T('শব্দ চালু', 'Sound on') : T('শব্দ বন্ধ', 'Sound off')}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</RoundBtn>
@@ -432,6 +440,7 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
           <RoundBtn onClick={() => setPaused(true)} label={T('বিরতি', 'Pause')}><Pause size={17} /></RoundBtn>
           <RoundBtn onClick={() => setSat(st.current?.toggleSat() ?? false)} on={sat} label={T('উপগ্রহ', 'Satellite')}><Satellite size={17} /></RoundBtn>
           <RoundBtn onClick={() => { setPanel('kiosk'); g.paused = true; }} label="FieldShift"><Smartphone size={17} /></RoundBtn>
+          {xrBtns(17)}
         </div>
       )}
       {sat && !intro && (

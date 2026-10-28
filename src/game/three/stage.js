@@ -2,7 +2,8 @@
 // from satellite height, the game loop that steps the simulation, particles, and the HTML overlay that follows the
 // 3D world (station names, speech bubble, floating numbers, the quest marker's distance tag), and the village's
 // neighbours and signboards (life.js). It also draws the
-// minimap and turns the compass. React owns the HUD and talks to the stage through the object returned here.
+// minimap and turns the compass, and plays in AR and VR through WebXR (see "AR and VR" below). React owns the HUD and
+// talks to the stage through the object returned here.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -12,7 +13,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { createWorld } from './world';
 import { createField } from './field';
-import { buildFarmer, animate } from './people';
+import { buildFarmer, animate, personLight } from './people';
 import { createLife } from './life';
 import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS } from '../sim';
 import { QUESTS, FIELD_W, FIELD_D, WORLD_R } from '../regions';
@@ -58,11 +59,13 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const touch = isTouch();
   // 'light' graphics (chosen on the farmer picker, for weaker phones and laptops): no post effects, fewer pixels
   const light = (() => { try { return localStorage.getItem(QUALITY_KEY) === 'light'; } catch { return false; } })();
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch && !light, powerPreference: 'high-performance' });
+  // smooth edges everywhere except 'light' graphics: the world is low-poly, so a phone can afford them
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !light, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, light ? 1 : touch ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
   renderer.shadowMap.enabled = !light; renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.xr.enabled = true;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(touch ? 60 : 52, 1, 0.1, 900);
   // on computers: ambient occlusion (contact shadows where things meet), a soft glow on bright light, the grade
@@ -84,6 +87,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const P = buildFarmer(g.F.look);
   P.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   scene.add(P.root);
+  // a soft fill from the camera's side, as a game keeps on its characters: faces and fronts stay readable in shade
+  const fill = new THREE.DirectionalLight('#fff3e2', 0.5); scene.add(fill); scene.add(fill.target);
   const L = g.L;
 
   // ---- particles: water, soil, sparks, coins ----
@@ -118,7 +123,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
   // ---- camera and input ----
   // over the shoulder: close, low, and a little to the side so the farmer stands left of centre
-  const cam = { yaw: -2.4, pitch: 0.32, dist: 6.2, look: 0, sat: false, intro: 1, introT: 0, side: 0 };
+  const cam = { yaw: -2.4, pitch: 0.32, dist: touch ? 5 : 5.4, look: 0, sat: false, intro: 1, introT: 0, side: 0 };
   const keys = new Set();
   const joy = { x: 0, y: 0 };
   let runHeld = false, runToggle = false;
@@ -154,7 +159,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
   const resize = () => {
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (!w || !h) return;
+    if (!w || !h || renderer.xr.isPresenting) return;
     renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
     if (composer) { const pr = renderer.getPixelRatio(); composer.setPixelRatio(pr); composer.setSize(w, h); }
   };
@@ -233,10 +238,87 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   }
   paintMap();
 
+  // ---- AR and VR (WebXR) ----
+  // AR on a phone: the farm stands in the room as a tabletop model (one world metre to 2.5 cm) and the page's HUD stays
+  // on top (dom-overlay), so the joystick, the act button and every panel work as they do on screen.
+  // VR on a headset: life size, standing behind the farmer. Left stick walks, right stick turns in steps, trigger (or A/X)
+  // acts, grip runs, and a sign over the farmer carries what they say, the mission and the alerts. A headset's AR
+  // (passthrough, no dom-overlay) plays the tabletop with the same controllers and sign. A panel (a question, the
+  // shop) is part of the page, so it ends the session; the player answers it and comes back in with the same button.
+  const AR_SCALE = 40, UP = new THREE.Vector3(0, 1, 0), fov0 = camera.fov;
+  const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
+  const xr = { mode: null, pads: false, run: false, yaw: 0, turnHeld: false, actHeld: false, eye: new THREE.Vector3(), dir: new THREE.Vector3(), at: new THREE.Vector3() };
+  const signC = document.createElement('canvas'); signC.width = 1024; signC.height = 320;
+  const signTex = new THREE.CanvasTexture(signC); signTex.colorSpace = THREE.SRGBColorSpace;
+  const sign = new THREE.Sprite(new THREE.SpriteMaterial({ map: signTex, transparent: true, depthTest: false, fog: false }));
+  sign.renderOrder = 10; sign.visible = false; scene.add(sign);
+  let signT = 0;
+  function showSign(title, body) {
+    const x = signC.getContext('2d'), font = getComputedStyle(document.body).fontFamily;
+    x.clearRect(0, 0, 1024, 320); x.fillStyle = 'rgba(13,26,18,.85)'; x.beginPath(); x.roundRect(8, 8, 1008, 304, 48); x.fill();
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    const lines = title ? [[title, `700 54px ${font}`, '#ffd24a']] : [], bodyFont = `500 46px ${font}`;
+    x.font = bodyFont; let line = '';
+    for (const w of body.split(' ')) { const s = line ? `${line} ${w}` : w; if (line && x.measureText(s).width > 940) { lines.push([line, bodyFont, '#ffffff']); line = w; } else line = s; }
+    if (line) lines.push([line, bodyFont, '#ffffff']);
+    const shown = lines.slice(0, 4);
+    shown.forEach(([s, f, c], k) => { x.font = f; x.fillStyle = c; x.fillText(s, 512, 160 + (k - (shown.length - 1) / 2) * 68); });
+    signTex.needsUpdate = true; sign.visible = true; signT = 6;
+  }
+  // VR: stand 4.5 m behind the farmer, the floor a little above theirs, following at walking pace
+  function placeVR(k, gy) {
+    rig.rotation.y = xr.yaw;
+    const x = g.me.x + Math.sin(xr.yaw) * 4.5, z = g.me.z + Math.cos(xr.yaw) * 4.5;
+    xr.at.set(x, Math.max(gy, L.ground(x, z)) + 0.6, z);
+    rig.position.lerp(xr.at, k);
+  }
+  function pollPads() {
+    const session = renderer.xr.getSession(); if (!session) return;
+    let lx = 0, ly = 0, rx = 0, act = false, run = false;
+    for (const src of session.inputSources) {
+      const gp = src.gamepad; if (!gp) continue;
+      const ax = gp.axes[2] ?? gp.axes[0] ?? 0, ay = gp.axes[3] ?? gp.axes[1] ?? 0;
+      if (src.handedness === 'right') rx = ax; else { lx = ax; ly = ay; }
+      act ||= !!(gp.buttons[0]?.pressed || gp.buttons[4]?.pressed);
+      run ||= !!gp.buttons[1]?.pressed;
+    }
+    const dead = (v) => (Math.abs(v) < 0.15 ? 0 : v);
+    joy.x = dead(lx); joy.y = -dead(ly); xr.run = run;
+    if (xr.mode === 'vr') {
+      if (Math.abs(rx) > 0.7 && !xr.turnHeld) { xr.yaw -= Math.sign(rx) * Math.PI / 6; xr.turnHeld = true; placeVR(1, L.ground(g.me.x, g.me.z)); }
+      else if (Math.abs(rx) < 0.3) xr.turnHeld = false;
+    }
+    if (act && !xr.actHeld && cam.intro === 0 && !paused) simAct(g);
+    xr.actHeld = act;
+  }
+  async function enterXR(mode, root) {
+    if (renderer.xr.isPresenting) return;
+    const ar = mode === 'ar';
+    const session = await navigator.xr.requestSession(ar ? 'immersive-ar' : 'immersive-vr', ar ? { optionalFeatures: ['dom-overlay'], domOverlay: { root } } : { optionalFeatures: ['local-floor'] });
+    renderer.xr.setReferenceSpaceType(ar ? 'local' : 'local-floor');
+    await renderer.xr.setSession(session);
+    xr.mode = mode; xr.pads = !ar || !session.domOverlayState;
+    if (cam.intro) { cam.intro = 0; onEvent({ type: 'introDone' }); }
+    world.sky.visible = !ar;
+    if (ar) {
+      // the field's middle half a metre below the eyes and 0.9 m ahead, seen from where the camera was looking
+      const v = new THREE.Vector3(0, -0.45, -0.9).multiplyScalar(AR_SCALE).applyAxisAngle(UP, cam.yaw);
+      rig.scale.setScalar(AR_SCALE); rig.rotation.y = cam.yaw; rig.position.set(-v.x, L.ground(0, 0) - v.y, -v.z);
+      sign.scale.set(12.8, 4, 1);
+    } else { xr.yaw = cam.yaw; placeVR(1, L.ground(g.me.x, g.me.z)); sign.scale.set(3.2, 1, 1); }
+    session.addEventListener('end', () => {
+      xr.mode = null; xr.pads = false; xr.run = false; joy.x = joy.y = 0;
+      rig.position.set(0, 0, 0); rig.rotation.set(0, 0, 0); rig.scale.setScalar(1);
+      world.sky.visible = true; sign.visible = false; camera.fov = fov0; resize();
+      onEvent({ type: 'xr', mode: null });
+    });
+    onEvent({ type: 'xr', mode });
+  }
+
   // ---- the loop ----
   const tmpV = new THREE.Vector3(), focus = new THREE.Vector3(), camPos = new THREE.Vector3();
-  let raf = 0, last = performance.now(), mapT = 0, paused = false, alive = true;
-  const project = (x, y, z) => { tmpV.set(x, y, z).project(camera); return [(tmpV.x * 0.5 + 0.5) * canvas.clientWidth, (-tmpV.y * 0.5 + 0.5) * canvas.clientHeight, tmpV.z < 1]; };
+  let last = performance.now(), mapT = 0, paused = false, alive = true;
+  const project = (x, y, z) => { tmpV.set(x, y, z).project(renderer.xr.isPresenting ? renderer.xr.getCamera() : camera); return [(tmpV.x * 0.5 + 0.5) * canvas.clientWidth, (-tmpV.y * 0.5 + 0.5) * canvas.clientHeight, tmpV.z < 1]; };
 
   function inputVector() {
     let fx = 0, fz = 0;
@@ -248,14 +330,20 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const l = Math.hypot(fx, fz); if (l > 1) { fx /= l; fz /= l; }
     const s = Math.sin(cam.yaw), c = Math.cos(cam.yaw);
     // forward is from the camera towards the farmer; right is forward × up
-    return { mx: -s * fz + c * fx, mz: -c * fz - s * fx, run: runHeld || runToggle || Math.hypot(joy.x, joy.y) > 0.95 };
+    return { mx: -s * fz + c * fx, mz: -c * fz - s * fx, run: runHeld || runToggle || xr.run || Math.hypot(joy.x, joy.y) > 0.95 };
   }
 
   function frame(now) {
     if (!alive) return;
-    raf = requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     const t = now / 1000;
+    // in AR and VR the head is the camera: walking is relative to where the player looks
+    const xrOn = renderer.xr.isPresenting;
+    if (xrOn) {
+      const xc = renderer.xr.getCamera(); xc.getWorldPosition(xr.eye); xc.getWorldDirection(xr.dir);
+      if (Math.hypot(xr.dir.x, xr.dir.z) > 0.1) cam.yaw = Math.atan2(-xr.dir.x, -xr.dir.z);
+      if (xr.pads) pollPads();
+    }
     const inp = inputVector();
     if (cam.intro > 0) { cam.introT += dt; if (cam.introT > 5.2) { cam.intro = 0; onEvent({ type: 'introDone' }); } }
     if (gradPass) gradPass.uniforms.uTime.value = t;
@@ -264,6 +352,12 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       step(g, dt, inp);
     }
     for (const e of g.out.splice(0)) {
+      if (xr.pads) {
+        if (e.type === 'say' || e.type === 'toast') showSign('', T(e.text));
+        else if (e.type === 'alert') showSign(T(e.title), T(e.body));
+        else if (e.type === 'quest') showSign(lang === 'bn' ? `মিশন ${String(e.index + 1).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])}` : `Mission ${e.index + 1}`, T(QUESTS[e.index]));
+        else if (e.type === 'open' || e.type === 'broke') renderer.xr.getSession()?.end();
+      }
       if (e.type === 'fx') burst(e.kind, e.x, e.z);
       else if (e.type === 'flash') world.flash();
       else if (e.type === 'say') { bubble.textContent = T(e.text); bubble.style.display = ''; bubble.classList.remove('g3-pop'); void bubble.offsetWidth; bubble.classList.add('g3-pop'); bubbleT = e.long ? 6.5 : 3.4; }
@@ -285,7 +379,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const rx = Math.cos(cam.yaw) * cam.side, rz = -Math.sin(cam.yaw) * cam.side;
     focus.x += rx; focus.z += rz;
     camPos.set(focus.x + Math.sin(cam.yaw) * Math.cos(pitch) * dist, gy + 1.45 + Math.sin(pitch) * dist, focus.z + Math.cos(cam.yaw) * Math.cos(pitch) * dist);
-    if (cam.intro > 0) {
+    if (xrOn) { if (xr.mode === 'vr') placeVR(Math.min(1, dt * 2.5), gy); }
+    else if (cam.intro > 0) {
       const k = ease((cam.introT - 0.8) / 4.0);
       const top = tmpV.set(0, 200, 50);
       camera.position.copy(top).lerp(camPos, k);
@@ -298,14 +393,21 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const goalPos = cam.intro ? null : goal();
     const onIt = goalPos && Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z) < 1.8;
     world.marker(onIt ? null : goalPos);
-    const { wind } = world.update(t, dt, dayPhase(g), g.ev, camera.position, focus);
+    const eye = xrOn ? xr.eye : camera.position;
+    const ph = dayPhase(g), sunUp = ph < 0.75 ? Math.sin((ph / 0.75) * Math.PI) : 0;
+    personLight.value = 0.35 + 0.65 * Math.min(1, sunUp * 2.5);
+    fill.intensity = 0.15 + 0.4 * Math.min(1, sunUp * 2.5);
+    fill.position.copy(eye).add(tmpV.set(0, 2, 0)); fill.target.position.copy(focus);
+    const { wind } = world.update(t, dt, ph, g.ev, eye, focus);
+    if (xr.mode === 'ar') { scene.fog.near = 1e4; scene.fog.far = 2e4; } // the room is the horizon
     field.update(t, wind, g.ndvi || cam.sat, g.F.scanner);
-    life.update(t, paused || cam.intro ? 0 : dt, project, camera.position);
+    life.update(t, paused || cam.intro ? 0 : dt, project, eye);
+    if (sign.visible) { signT -= dt; sign.position.set(me.x, gy + (xr.mode === 'ar' ? 8 : 3.3), me.z); if (signT <= 0 || !xrOn) sign.visible = false; }
     // particles
     for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vy -= 9 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.life <= 0 || p.y < -1) parts.splice(i, 1); }
     for (let i = 0; i < MAXP; i++) { const p = parts[i]; if (p) { pPos[i * 3] = p.x; pPos[i * 3 + 1] = p.y; pPos[i * 3 + 2] = p.z; pCol[i * 3] = p.c.r; pCol[i * 3 + 1] = p.c.g; pCol[i * 3 + 2] = p.c.b; } else pPos[i * 3 + 1] = -999; }
     pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
-    if (composer) composer.render(dt); else renderer.render(scene, camera);
+    if (composer && !xrOn) composer.render(dt); else renderer.render(scene, camera);
     // overlay
     for (const l of labels) {
       const s = g.S[l.id], d = Math.hypot(s.x - me.x, s.z - me.z);
@@ -340,7 +442,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     if (compass) compass.style.setProperty('--heading', String((((-cam.yaw * 180) / Math.PI) % 360 + 540) % 360 - 180));
     mapT -= dt; if (mapT <= 0) { mapT = 0.08; drawMap(t, goalPos); }
   }
-  raf = requestAnimationFrame(frame);
+  renderer.setAnimationLoop(frame); // not requestAnimationFrame: an XR session drives its own frames
 
   return {
     setJoy(x, y) { joy.x = x; joy.y = y; },
@@ -353,14 +455,26 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     setLang(l) { lang = l; setNames(); life.setLang(l); },
     target: () => target(g),
     onPlot: () => plotAt(g.me.x, g.me.z) !== null,
+    enterXR,
+    get xr() { return xr.mode; },
     dispose() {
-      alive = false; cancelAnimationFrame(raf); ro.disconnect(); life.dispose(); composer?.dispose(); gtao?.dispose?.(); gradPass?.dispose?.();
+      alive = false; renderer.xr.getSession()?.end().catch(() => {}); renderer.setAnimationLoop(null); ro.disconnect(); signTex.dispose(); life.dispose(); composer?.dispose(); gtao?.dispose?.(); gradPass?.dispose?.();
       window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
       overlay.replaceChildren();
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
       renderer.dispose();
     },
   };
+}
+
+// The immersive modes this browser and device can play: a phone with ARCore gives 'ar', a headset 'vr' (and often
+// 'ar' as passthrough). WebXR needs a secure page (https, or localhost while developing).
+export async function xrModes() {
+  const x = typeof navigator !== 'undefined' ? navigator.xr : null;
+  if (!x) return [];
+  const ok = async (m) => { try { return await x.isSessionSupported(m); } catch { return false; } };
+  const [ar, vr] = await Promise.all([ok('immersive-ar'), ok('immersive-vr')]);
+  return [ar && 'ar', vr && 'vr'].filter(Boolean);
 }
 
 // Small renders of each farmer for the choosing screen, and a turning preview of the chosen one.

@@ -46,7 +46,11 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 - `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `ANTHROPIC_API_KEY`); `vite.config.js`
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
 - `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
-  project with its own guide. `public/radar/` is the original Ropon Radar prototype (Apache-2.0).
+  project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in
+  `services/voice-agent/lib/agent/field/shared/` are generated, never edit them. `public/radar/` is the original Ropon
+  Radar prototype (Apache-2.0); `src/radar/` is the in-app radar and onset logic.
+- `src/game/`: "মাঠের মানুষ", the 3D farm game (three.js in `game/three/`). Its simulation (`sim.js`) and story
+  campaign (`saga.js`) are pure and tested like the engine; keep rendering out of them.
 
 ## Rules of this project
 

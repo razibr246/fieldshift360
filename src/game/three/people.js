@@ -200,6 +200,14 @@ function ribbon(edgeA, edgeB, n = 28) {
   g.computeVertexNormals(); return g;
 }
 
+// Hair as it grows: a crown over the top, then the back and sides down to the nape, open at the front so the
+// hairline sits on the forehead and never over the eyes or face.
+function hair(head, color, r = 0.123, nape = 0.68) {
+  const m = mat(color, { rough: 0.75, sheen: 0.35, sheenRough: 0.6 });
+  mesh(geo.sphere(r, 22, 8, 0, Math.PI * 2, 0, Math.PI * 0.3), m, head, [0, 0.008, -0.006], [0, 0, 0], [0.97, 1.06, 1]);
+  mesh(geo.sphere(r, 22, 10, Math.PI / 2 + 1.1, Math.PI * 2 - 2.2, Math.PI * 0.29, Math.PI * (nape - 0.29)), m, head, [0, 0.008, -0.006], [0, 0, 0], [0.97, 1.06, 1]);
+}
+
 // ---- the figure ----
 export function buildFarmer(look) {
   const b = look.build ?? 1;
@@ -214,6 +222,7 @@ export function buildFarmer(look) {
   const skirted = lower === 'ghagra' || lower === 'kira' || lower === 'longyi' || lower === 'sari';
   const kneeSkirt = lower === 'lungi' || lower === 'dhoti';
   const longTop = look.top === 'kurta' || look.top === 'kameez';
+  const coversWaist = longTop || look.top === 'fotua'; // a top whose hem hangs over the waistband
 
   // legs: cloth for trousers (wide for the shalwar), skin under a skirt
   const legM = lower === 'pyjama' || lower === 'shalwar' || lower === 'cargo' ? cloth(look.lowA, { rough: 0.95 }) : skin;
@@ -233,20 +242,21 @@ export function buildFarmer(look) {
     }
     const foot = group(knee, [0, -0.44, 0.03]);
     const fm = mat(look.feetA);
+    const shoeG = capsule(0.05, 0.12);
     if (look.feet === 'jutti') {
-      mesh(geo.box(0.1, 0.07, 0.22), fm, foot, [0, 0.0, 0.03]);
+      mesh(shoeG, fm, foot, [0, 0.0, 0.03], [Math.PI / 2, 0, 0], [1, 1, 0.72]);
       mesh(geo.cyl(0.0, 0.045, 0.1, 6), fm, foot, [0, 0.01, 0.17], [Math.PI / 2, 0, 0]);
       mesh(geo.box(0.08, 0.012, 0.12), mat('#d9a83a', { metal: 0.5, rough: 0.4 }), foot, [0, 0.038, 0.07]);
     } else if (look.feet === 'shoe') {
-      mesh(geo.box(0.1, 0.075, 0.23), fm, foot, [0, 0.0, 0.03]);
+      mesh(shoeG, fm, foot, [0, 0.0, 0.03], [Math.PI / 2, 0, 0], [1, 1, 0.75]);
     } else if (look.feet === 'sneaker') {
-      mesh(geo.box(0.1, 0.075, 0.23), fm, foot, [0, 0.005, 0.03]);
-      mesh(geo.box(0.108, 0.03, 0.245), mat('#f4f2ec'), foot, [0, -0.035, 0.035]);
+      mesh(shoeG, fm, foot, [0, 0.008, 0.03], [Math.PI / 2, 0, 0], [1, 1, 0.75]);
+      mesh(geo.cyl(0.056, 0.056, 0.03, 16), mat('#f4f2ec'), foot, [0, -0.03, 0.035], [0, 0, 0], [1, 1, 2.25]);
       for (const s of [-1, 1]) mesh(geo.box(0.004, 0.025, 0.1), mat(look.feetB ?? '#7b4a2e'), foot, [s * 0.051, 0.01, 0.03], [0, 0, 0]);
     } else {
-      mesh(geo.box(0.085, 0.05, 0.2), skin, foot, [0, 0.01, 0.03]);
-      mesh(geo.box(0.1, 0.02, 0.23), fm, foot, [0, -0.03, 0.03]);
-      mesh(geo.box(0.09, 0.012, 0.03), fm, foot, [0, 0.04, 0.06]);
+      mesh(capsule(0.042, 0.11), skin, foot, [0, 0.0, 0.035], [Math.PI / 2, 0, 0], [1, 1, 0.62]); // the bare foot
+      mesh(geo.cyl(0.05, 0.05, 0.018, 16), fm, foot, [0, -0.03, 0.035], [0, 0, 0], [1.05, 1, 2.3]); // the sandal's sole
+      mesh(geo.torus(0.04, 0.007, 5, 12, Math.PI), fm, foot, [0, -0.02, 0.07], [0, 0, 0], [1.1, 0.9, 1]); // and its strap
     }
     legs.push({ thigh, knee, foot });
   }
@@ -261,12 +271,14 @@ export function buildFarmer(look) {
     mesh(geo.cyl(0.18, 0.24, 0.88, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, true) }), hips, [0, -0.42, 0]);
   } else if (lower === 'lungi') {
     // folded up to the knee for field work, with the tuck at the waist
-    mesh(geo.cyl(0.17, 0.235, 0.52, 16), cloth('#fff', { map: check(look.lowA, look.lowB) }), hips, [0, -0.25, 0]);
-    mesh(geo.cyl(0.175, 0.175, 0.07, 16), cloth(look.lowA), hips, [0, 0.0, 0]);
-    mesh(geo.box(0.08, 0.1, 0.04), cloth(look.lowA), hips, [0.03, -0.02, 0.17]);
+    mesh(geo.cyl(0.17, 0.235, 0.52, 20), cloth('#fff', { map: check(look.lowA, look.lowB) }), hips, [0, -0.25, 0], [0, 0, 0], [1, 1, 0.86]);
+    if (!coversWaist) {
+      mesh(geo.cyl(0.175, 0.175, 0.07, 16), cloth(look.lowA), hips, [0, 0.0, 0]);
+      mesh(geo.sphere(0.045, 10, 8), cloth(look.lowA), hips, [0.03, -0.02, 0.165], [0, 0, 0], [1.1, 1, 0.6]);
+    }
   } else if (lower === 'dhoti') {
     mesh(geo.cyl(0.17, 0.24, 0.6, 16), cloth(look.lowA), hips, [0, -0.29, 0]);
-    mesh(geo.box(0.07, 0.56, 0.03), cloth(look.lowB), hips, [0, -0.28, 0.2], [0.1, 0, 0]); // the front pleats
+    mesh(geo.box(0.07, coversWaist ? 0.46 : 0.56, 0.03), cloth(look.lowB), hips, [0, coversWaist ? -0.34 : -0.28, 0.2], [0.1, 0, 0]); // the front pleats
   } else if (lower === 'sari') {
     mesh(geo.cyl(0.17, 0.27, 0.9, 18), cloth('#fff', { map: bandTex(look.lowA, [look.lowB, look.gold ?? '#e2b84a'], false) }), hips, [0, -0.43, 0]);
     // the front pleats, lying on the skirt's flare
@@ -278,7 +290,7 @@ export function buildFarmer(look) {
     mesh(geo.sphere(0.05, 10, 8), cloth(look.lowA), hips, [0.0, -0.02, 0.18], [0, 0, 0], [1, 1.2, 0.8]); // the paso knot
   }
   const topM = look.top === 'polo' ? cloth('#fff', { map: poloTex(look.topA, look.topB, look.topC, look.topD) }) : look.top === 'sweater' ? cloth('#fff', { map: canvasTex(`knit${look.topA}`, 32, 32, (c, w, h) => { c.fillStyle = look.topA; c.fillRect(0, 0, w, h); c.strokeStyle = look.topB; c.lineWidth = 2; for (let x = 0; x < w; x += 4) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } }, [6, 3]) }) : look.top === 'shirt' ? cloth('#fff', { map: check(look.topA, look.topB, 10, [3, 2]) }) : cloth(look.topA);
-  if (longTop) mesh(geo.cyl(0.2, 0.26, 0.5, 16), topM, hips, [0, -0.24, 0], [0, 0, 0], [1, 1, 0.86]);
+  if (longTop) mesh(geo.cyl(0.18, 0.27, 0.52, 28, true), topM, hips, [0, -0.24, 0], [0, 0, 0], [1, 1, 0.9]);
 
   // upper body
   mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.78]);
@@ -289,7 +301,7 @@ export function buildFarmer(look) {
     for (let k = 0; k < 3; k++) mesh(geo.sphere(0.009, 6, 4), mat('#cfc6b4'), torso, [0.012, 0.5 - k * 0.045, fz(0.5 - k * 0.045, 0.012) + 0.008]);
   }
   if (look.top === 'fotua' || look.top === 'shirt') {
-    if (look.top === 'fotua') mesh(geo.cyl(0.19, 0.215, 0.18, 14), topM, torso, [0, -0.04, 0], [0, 0, 0], [1, 1, 0.82]);
+    if (look.top === 'fotua') mesh(geo.cyl(0.168, 0.205, 0.22, 24, true), topM, torso, [0, -0.1, 0], [0, 0, 0], [1, 1, 0.86]);
     mesh(geo.box(0.02, 0.16, 0.01), mat(look.topB), torso, [0, 0.45, fz(0.45) + 0.004]);
     if (look.top === 'shirt') for (const sd of [-1, 1]) mesh(geo.box(0.09, 0.03, 0.05), topM, torso, [sd * 0.05, 0.54, fz(0.54, 0.05) + 0.012], [0.4, 0, sd * 0.5]);
   }
@@ -342,7 +354,7 @@ export function buildFarmer(look) {
   // head
   const neck = group(torso, [0, 0.55, 0]);
   mesh(geo.cyl(0.047, 0.056, 0.12, 14), skin, neck, [0, 0.045, 0]);
-  const head = group(neck, [0, 0.18, 0]); head.scale.setScalar(0.94);
+  const head = group(neck, [0, 0.18, 0]); head.scale.setScalar(1);
   P.neck = neck; P.head = head;
   mesh(geo.sphere(0.118, 18, 14), skin, head, [0, 0, 0], [0, 0, 0], [0.95, 1.08, 1]);
   mesh(geo.sphere(0.02, 6, 4), skin, head, [-0.115, 0, 0]); mesh(geo.sphere(0.02, 6, 4), skin, head, [0.115, 0, 0]);
@@ -378,50 +390,49 @@ export function buildFarmer(look) {
   const hA = look.headA, hB = look.headB;
   if (look.head === 'turban') {
     const tm = mat('#fff', { map: turbanTex(hA, hB) });
-    mesh(geo.sphere(0.135, 18, 12), tm, head, [0, 0.07, -0.012], [0, 0, 0], [1.08, 0.82, 1.12]);
+    mesh(geo.sphere(0.135, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.56), tm, head, [0, 0.07, -0.012], [0, 0, 0], [1.08, 0.82, 1.1]);
     for (let k = 0; k < 3; k++) mesh(geo.torus(0.122 - k * 0.012, 0.022, 6, 18), tm, head, [0, 0.05 + k * 0.035, 0.005], [Math.PI / 2 - 0.35 + k * 0.08, 0, 0]);
     mesh(geo.box(0.05, 0.08, 0.03), tm, head, [0, 0.12, 0.12], [0.5, 0, 0]);
   } else if (look.head === 'sindhi') {
     // a round cap, open in an arch over the forehead, covered in mirror work
-    mesh(geo.cyl(0.126, 0.124, 0.1, 22, false, Math.PI * 0.18, Math.PI * 1.64), mat('#fff', { map: topiTex(hA, hB), side: THREE.DoubleSide }), head, [0, 0.085, 0], [0, Math.PI, 0]);
+    mesh(geo.cyl(0.126, 0.124, 0.1, 22, false, Math.PI * 0.18, Math.PI * 1.64), mat('#fff', { map: topiTex(hA, hB), side: THREE.DoubleSide }), head, [0, 0.085, 0]);
     mesh(geo.cyl(0.126, 0.126, 0.01, 22), mat(hA), head, [0, 0.135, 0]);
-    mesh(geo.sphere(0.12, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat(look.hair), head, [0, 0.02, -0.004]);
+    hair(head, look.hair);
   } else if (look.head === 'orhni') {
     mesh(geo.sphere(0.07, 10, 8), mat(look.hair), head, [0, -0.02, -0.12]);
     const om = mat('#fff', { map: bandTex(hA, [hB, '#f3efe6'], false), side: THREE.DoubleSide });
-    mesh(new THREE.SphereGeometry(0.142, 18, 12, Math.PI * 0.1, Math.PI * 1.8, 0, Math.PI * 0.62), om, head, [0, 0.0, -0.004], [0, Math.PI, 0]);
+    mesh(new THREE.SphereGeometry(0.142, 22, 12, Math.PI * 0.725, Math.PI * 1.55, 0, Math.PI * 0.62), om, head, [0, 0.0, -0.004]);
     mesh(geo.box(0.2, 0.6, 0.02), om, torso, [0, 0.3, -0.16], [-0.06, 0, 0]);
     mesh(geo.box(0.12, 0.38, 0.02), om, torso, [0.12, 0.36, 0.16], [0.08, 0, 0.35]);
   } else if (look.head === 'short') {
-    mesh(geo.sphere(0.126, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), mat(look.hair), head, [0, 0.01, -0.006]);
-    mesh(geo.box(0.22, 0.1, 0.14), mat(look.hair), head, [0, -0.03, -0.06]);
+    hair(head, look.hair, 0.127, 0.74); // a bob, down past the ears at the back
   } else if (look.head === 'gamcha') {
-    mesh(geo.sphere(0.122, 16, 10), mat(look.hair), head, [0, 0.01, -0.01]);
+    hair(head, look.hair);
     const gm = mat('#fff', { map: check(hA, hB, 6) });
     mesh(geo.torus(0.115, 0.04, 8, 18), gm, head, [0, 0.07, -0.005], [Math.PI / 2 - 0.12, 0, 0]);
     mesh(geo.sphere(0.06, 10, 8), gm, head, [0.02, 0.1, -0.11]);
   } else if (look.head === 'tupi') {
-    mesh(geo.sphere(0.122, 16, 10), mat(look.hair), head, [0, 0.0, -0.01]);
-    mesh(geo.sphere(0.126, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.32), mat(hA), head, [0, 0.035, 0]);
+    hair(head, look.hair);
+    mesh(geo.sphere(0.128, 20, 8, 0, Math.PI * 2, 0, Math.PI * 0.32), mat(hA), head, [0, 0.035, 0]);
   } else if (look.head === 'mathal') {
     // the mathal: a broad conical hat of palm leaf, the Bangladeshi farmer's sunshade
-    mesh(geo.sphere(0.122, 16, 10), mat(look.hair), head, [0, 0.0, -0.01]);
+    hair(head, look.hair);
     const mm = mat('#fff', { map: canvasTex('mathal', 64, 64, (c, w, h) => { c.fillStyle = '#d8b56a'; c.fillRect(0, 0, w, h); c.strokeStyle = '#a8833e'; c.lineWidth = 1.5; for (let k = 0; k < w; k += 5) { c.beginPath(); c.moveTo(k, 0); c.lineTo(k, h); c.stroke(); } for (let k = 0; k < h; k += 12) { c.beginPath(); c.moveTo(0, k); c.lineTo(w, k); c.stroke(); } }, [6, 1]) });
     mesh(geo.cyl(0.0, 0.34, 0.16, 18), mm, head, [0, 0.14, 0]);
     mesh(geo.cyl(0.34, 0.34, 0.012, 18), mat('#a8833e'), head, [0, 0.06, 0]);
   } else if (look.head === 'monkeycap') {
     // the knitted monkey cap of a northern cold wave, open only at the face
     const km = mat(hA, { rough: 1 });
-    mesh(new THREE.SphereGeometry(0.135, 18, 12, Math.PI * 0.7, Math.PI * 1.6, 0, Math.PI * 0.82), mat(hA, { rough: 1, side: THREE.DoubleSide }), head, [0, 0.005, -0.004], [0, Math.PI, 0]);
+    mesh(new THREE.SphereGeometry(0.135, 18, 12, Math.PI * 0.7, Math.PI * 1.6, 0, Math.PI * 0.82), mat(hA, { rough: 1, side: THREE.DoubleSide }), head, [0, 0.005, -0.004]);
     mesh(geo.sphere(0.03, 8, 6), mat(hB), head, [0, 0.14, -0.01]);
     mesh(geo.cyl(0.08, 0.1, 0.1, 14), km, head, [0, -0.13, -0.01]);
   } else if (look.head === 'aanchal') {
     mesh(geo.sphere(0.075, 10, 8), mat(look.hair), head, [0, -0.02, -0.12]);
-    mesh(new THREE.SphereGeometry(0.142, 18, 12, Math.PI * 0.1, Math.PI * 1.8, 0, Math.PI * 0.62), mat('#fff', { map: bandTex(hA, [hB], false), side: THREE.DoubleSide }), head, [0, 0.0, -0.004], [0, Math.PI, 0]);
+    mesh(new THREE.SphereGeometry(0.142, 22, 12, Math.PI * 0.725, Math.PI * 1.55, 0, Math.PI * 0.62), mat('#fff', { map: bandTex(hA, [hB], false), side: THREE.DoubleSide }), head, [0, 0.0, -0.004]);
   } else if (look.head === 'hijab') {
     // a hijab wraps the head and neck, open at the face, and falls over the shoulders
     const hm = mat(hA, { side: THREE.DoubleSide, rough: 0.9 });
-    mesh(new THREE.SphereGeometry(0.142, 24, 16, Math.PI * 0.72, Math.PI * 1.56, 0, Math.PI * 0.9), hm, head, [0, 0.005, -0.006], [0, Math.PI, 0]);
+    mesh(new THREE.SphereGeometry(0.142, 24, 16, Math.PI * 0.72, Math.PI * 1.56, 0, Math.PI * 0.9), hm, head, [0, 0.005, -0.006]);
     // the band framing the face, and the drape that falls from under the chin over the shoulders like a short cape
     mesh(geo.torus(0.128, 0.012, 6, 24, Math.PI * 1.1), mat(look.headB ?? '#' + new THREE.Color(hA).multiplyScalar(0.72).getHexString()), head, [0, 0.0, 0.035], [0, 0, -Math.PI * 0.05 + Math.PI * 1.5 - Math.PI * 0.55]);
     const cape = new THREE.LatheGeometry([[0.11, 0.1], [0.13, 0.03], [0.165, -0.02], [0.215, -0.055], [0.245, -0.1], [0.25, -0.16], [0.236, -0.24]].map(([r, y]) => new THREE.Vector2(r, y)), 28);
@@ -430,7 +441,7 @@ export function buildFarmer(look) {
   } else if (look.head === 'cap') {
     // a baseball cap, peak to the front, short hair showing at the sides and back
     // the hair is only round the back and above the ears, so it never covers the face
-    mesh(geo.sphere(0.121, 16, 12, Math.PI / 2 + 1.25, Math.PI * 2 - 2.5, 0, Math.PI * 0.56), mat(look.hair), head, [0, 0.0, -0.006], [0, 0, 0], [0.97, 1.06, 1]);
+    hair(head, look.hair, 0.121, 0.64);
     const cm = mat(hA, { rough: 0.9 });
     mesh(geo.sphere(0.13, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2), cm, head, [0, 0.062, -0.006], [-0.08, 0, 0], [0.92, 0.72, 1.0]);
     mesh(geo.cyl(0.125, 0.125, 0.012, 20, false, -Math.PI / 2, Math.PI), cm, head, [0, 0.068, 0.0], [0.06, 0, 0], [0.92, 1, 1.4]);
@@ -439,9 +450,9 @@ export function buildFarmer(look) {
     const lm = mat(hB, { rough: 0.6 });
     for (const sd of [-1, 1]) mesh(geo.box(0.028, 0.008, 0.004), lm, head, [sd * 0.011, 0.112, 0.113], [-0.6, 0, sd * -0.35]);
   } else if (look.head === 'bare') {
-    mesh(geo.sphere(0.124, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.6), mat(look.hair), head, [0, 0.01, -0.008]);
+    hair(head, look.hair);
   } else if (look.head === 'gaungbaung') {
-    mesh(geo.sphere(0.122, 16, 10), mat(look.hair), head, [0, 0.01, -0.01]);
+    hair(head, look.hair);
     const gm = mat(hA);
     mesh(geo.torus(0.112, 0.042, 8, 18), gm, head, [0, 0.07, 0], [Math.PI / 2 - 0.1, 0, 0]);
     mesh(geo.sphere(0.115, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), gm, head, [0, 0.08, 0], [0, 0, 0], [1, 0.6, 1]);
@@ -457,8 +468,9 @@ export function buildFarmer(look) {
   const arms = [];
   const sleeve = look.top === 'choli' || look.top === 'shirt' ? 'short' : look.top === 'genji' ? 'none' : 'long';
   for (const side of [-1, 1]) {
-    const shoulder = group(torso, [side * (female ? 0.2 : 0.215), 0.47, 0]);
+    const shoulder = group(torso, [side * (female ? 0.186 : 0.2), 0.47, 0]);
     const upperM = sleeve === 'none' ? skin : look.top === 'polo' ? cloth(look.topA) : topM;
+    mesh(geo.sphere(sleeve === 'long' ? 0.064 : 0.06, 14, 10), upperM, torso, [side * (female ? 0.175 : 0.188), 0.48, 0], [0, 0, 0], [1, 0.9, 0.95]); // the round of the shoulder
     if (sleeve === 'short') { mesh(limb(0.05, 0.04, 0.28), skin, shoulder); mesh(limb(0.06, 0.054, 0.13, 1), upperM, shoulder); }
     else mesh(limb(sleeve === 'long' ? 0.058 : 0.053, sleeve === 'long' ? 0.048 : 0.04, 0.28), upperM, shoulder);
     const elbow = group(shoulder, [0, -0.28, 0]);
@@ -504,7 +516,29 @@ export function buildFarmer(look) {
   for (const t of Object.values(tools)) t.visible = false;
   P.tools = tools;
   P.phase = 0;
+  root.traverse((o) => { if (o.isMesh) o.material = personMat(o.material); });
   return P;
+}
+
+// People must read clearly against the field, as characters do in games: a rim of light on the edges turned away from
+// the camera, and a little of their own colour kept in deep shade, so a farmer under a tree is a figure, not a
+// silhouette. personLight (0..1, set by the stage from the time of day) dims both at night.
+export const personLight = { value: 1 };
+const personMats = new Map();
+function personMat(m) {
+  if (!personMats.has(m)) {
+    const p = m.clone();
+    p.onBeforeCompile = (sh) => {
+      sh.uniforms.personLight = personLight;
+      sh.fragmentShader = `uniform float personLight;\n${sh.fragmentShader}`.replace('#include <opaque_fragment>', `
+        float rimK = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 2.6);
+        outgoingLight += (vec3(1.0, 0.95, 0.86) * rimK * 0.42 + diffuseColor.rgb * 0.16) * personLight;
+        #include <opaque_fragment>`);
+    };
+    p.customProgramCacheKey = () => 'person';
+    personMats.set(m, p);
+  }
+  return personMats.get(m);
 }
 
 const lerp = (a, b, t) => a + (b - a) * t;

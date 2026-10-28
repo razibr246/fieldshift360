@@ -244,6 +244,7 @@ export function createWorld(scene, g) {
   const tint = SKYTINT[L.sky] ?? SKYTINT.clear;
   let flash = 0;
   return {
+    sky: skyM,
     flash() { flash = 0.35; },
     marker(pos) { marker.visible = !!pos; if (pos) marker.position.set(pos[0], L.ground(pos[0], pos[1]) + 4.6, pos[1]); },
     update(t, dt, phase, ev, camPos, focus) {
@@ -318,7 +319,7 @@ export function createWorld(scene, g) {
       for (const a of animals) {
         const A = a.userData.animal; A.ph += dt;
         if (A.kind === 'duck') { a.position.x = A.home[0] + Math.cos(A.ph * 0.25) * 1.6; a.position.z = A.home[1] + Math.sin(A.ph * 0.25) * 1.2; a.rotation.y = -A.ph * 0.25; const w = L.water.find((w2) => (w2.r ? Math.hypot(a.position.x - w2.cx, a.position.z - w2.cz) < w2.r : a.position.x > w2.x0 && a.position.x < w2.x1 && a.position.z > w2.z0 && a.position.z < w2.z1)); a.position.y = w ? w.y + Math.sin(A.ph * 3) * 0.02 : L.ground(a.position.x, a.position.z); continue; }
-        if (A.kind === 'grazer') { A.head.rotation.x = 0.45 + Math.sin(A.ph * 0.6) * 0.35; A.tail.rotation.z = Math.sin(A.ph * 2.2) * 0.35; }
+        if (A.kind === 'grazer') { A.head.rotation.x = 0.05 + Math.max(0, Math.sin(A.ph * 0.5)) * 1.05 + Math.sin(A.ph * 3.1) * 0.03 /* head up a while, then down to the grass */; A.tail.rotation.z = Math.sin(A.ph * 2.2) * 0.35; }
         else {
           if (!A.to || Math.hypot(a.position.x - A.to[0], a.position.z - A.to[1]) < 0.2) A.to = [A.home[0] + (Math.random() - 0.5) * 6, A.home[1] + (Math.random() - 0.5) * 4];
           const dx = A.to[0] - a.position.x, dz = A.to[1] - a.position.z, d = Math.hypot(dx, dz) || 1;

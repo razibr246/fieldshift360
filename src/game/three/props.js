@@ -366,17 +366,53 @@ export function animal(type) {
     cone(g, 0.03, 0.08, '#e2a020', [0, 0.42, 0.27], [Math.PI / 2, 0, 0], 4); box(g, 0.03, 0.06, 0.08, '#d62a2a', [0, 0.52, 0.16]);
     g.userData.animal = { kind: 'chicken' }; return g;
   }
+  // four-legged: a barrel body with a deep chest and round haunches, jointed legs on dark hooves, a neck that bends
+  // down to graze, a head with a muzzle, nostrils, eyes and ears, and each animal's own horns, hump, udder or mane
   const big = type === 'buffalo' ? 1.15 : type === 'goat' ? 0.55 : type === 'donkey' ? 0.75 : 1;
   const b = G(); b.scale.setScalar(big); g.add(b);
-  box(b, 0.75, 0.75, 1.7, col, [0, 1.05, 0]);
-  if (type === 'ox') blob(b, 0.3, col, [0, 1.5, 0.45], [1, 1, 1.2], 0); // the zebu hump
-  for (const [x, z] of [[-0.25, 0.65], [0.25, 0.65], [-0.25, -0.65], [0.25, -0.65]]) box(b, 0.17, 0.75, 0.17, col, [x, 0.38, z]);
-  const head = G(); head.position.set(0, 1.3, 0.95); b.add(head);
-  box(head, 0.4, 0.4, 0.6, col, [0, 0, 0.2], [0.35, 0, 0]);
-  if (type === 'donkey') { box(head, 0.08, 0.35, 0.06, col, [-0.12, 0.35, 0.05]); box(head, 0.08, 0.35, 0.06, col, [0.12, 0.35, 0.05]); }
-  else if (type === 'buffalo') for (const s of [-1, 1]) put(head, new THREE.TorusGeometry(0.25, 0.05, 5, 10, Math.PI), M('#1a1716'), [s * 0.28, 0.15, 0], [0, s * 0.5, s * 0.5]);
-  else for (const s of [-1, 1]) cone(head, 0.05, 0.3, '#d9d0bd', [s * 0.18, 0.3, 0], [0, 0, -s * 0.5], 5);
-  const tail = G(); tail.position.set(0, 1.3, -0.85); b.add(tail); box(tail, 0.06, 0.7, 0.06, col, [0, -0.35, 0]);
+  const tone = (k) => '#' + new THREE.Color(col).lerp(new THREE.Color(k < 0 ? '#000000' : '#ffffff'), Math.abs(k)).getHexString();
+  const hoof = '#2a221d', pale = type === 'buffalo' || type === 'donkey' ? tone(0.25) : '#e9dccb';
+  const nose = type === 'buffalo' ? '#141110' : type === 'donkey' ? tone(0.45) : '#b98579';
+  put(b, new THREE.CapsuleGeometry(0.37, 0.95, 4, 10), col, [0, 1.05, -0.02], [Math.PI / 2, 0, 0], [0.95, 1, 1.12]);
+  blob(b, 0.38, col, [0, 1.1, 0.5], [0.98, 1.08, 0.95]); // chest and shoulders
+  blob(b, 0.37, col, [0, 1.1, -0.52], [1.02, 1.04, 0.95]); // haunches
+  blob(b, 0.3, tone(0.12), [0, 0.86, 0.05], [1, 0.55, 2.2]); // the lighter belly
+  if (type === 'ox') { blob(b, 0.24, tone(-0.12), [0, 1.5, 0.5], [0.9, 1.1, 1.1]); blob(b, 0.2, col, [0, 0.86, 0.8], [0.35, 1.3, 1]); } // zebu hump and dewlap
+  if (type === 'cow') { blob(b, 0.15, '#e3aaa0', [0, 0.72, -0.36], [1, 0.7, 1.1]); for (const [x, z] of [[-0.05, -0.31], [0.05, -0.31], [-0.05, -0.41], [0.05, -0.41]]) cyl(b, 0.015, 0.01, 0.07, '#d8968c', [x, 0.63, z]); }
+  if (type === 'donkey') for (let k = 0; k < 5; k++) box(b, 0.05, 0.12, 0.14, '#3b3633', [0, 1.5 + k * 0.08, 0.72 + k * 0.07], [0.9, 0, 0]); // the upright mane
+  // legs: thigh, shank and hoof; the hind thighs are fuller
+  for (const [x, z, hind] of [[-0.2, 0.6, 0], [0.2, 0.6, 0], [-0.2, -0.6, 1], [0.2, -0.6, 1]]) {
+    cyl(b, hind ? 0.13 : 0.11, 0.075, 0.46, col, [x, 0.74, z], [hind ? -0.12 : 0.04, 0, 0], 8);
+    blob(b, 0.075, col, [x, 0.5, z + (hind ? -0.03 : 0.01)], [1, 1, 1], 0); // the knee or hock
+    cyl(b, 0.06, 0.052, 0.4, col, [x, 0.3, z], [0, 0, 0], 7);
+    cyl(b, 0.062, 0.078, 0.1, hoof, [x, 0.05, z], [0, 0, 0], 7);
+  }
+  // the head hangs from a pivot at the base of the neck; world.js swings it down to the grass and back
+  // cattle and buffalo carry the head low and forward on a short thick neck; the goat and donkey hold it higher
+  const bovine = type === 'cow' || type === 'ox' || type === 'buffalo';
+  const head = G(); head.position.set(0, bovine ? 1.15 : 1.2, 0.72); b.add(head);
+  if (bovine) cyl(head, 0.2, 0.3, 0.5, col, [0, 0.12, 0.2], [1.2, 0, 0], 9);
+  else cyl(head, 0.15, 0.26, 0.68, col, [0, 0.24, 0.2], [0.9, 0, 0], 9); // the neck, up and forward
+  const n = bovine ? [0, 0.24, 0.46] : [0, 0.46, 0.4];
+  blob(head, 0.18, col, n, [0.85, 0.95, 1.05]); // the skull
+  cyl(head, 0.1, 0.135, 0.36, col, [0, n[1] - 0.12, n[2] + 0.2], [2.1, 0, 0], 9); // the long face
+  blob(head, 0.11, nose, [0, n[1] - 0.24, n[2] + 0.37], [1.05, 0.75, 0.75]); // muzzle and nostrils
+  if (type === 'cow' || type === 'ox') blob(head, 0.09, pale, [0, n[1] + 0.03, n[2] + 0.15], [0.9, 1.2, 0.5]); // the pale blaze
+  for (const s of [-1, 1]) {
+    blob(head, 0.028, '#120d0b', [s * 0.13, n[1] + 0.02, n[2] + 0.1], [1, 1, 1], 0); // eyes
+    if (type === 'donkey') cone(head, 0.06, 0.42, col, [s * 0.09, n[1] + 0.3, n[2] - 0.05], [-0.15, 0, -s * 0.18], 6); // long upright ears
+    else cone(head, 0.07, 0.2, tone(-0.08), [s * 0.22, n[1] + 0.02, n[2] - 0.04], [0, 0, -s * (Math.PI / 2 + 0.25)], 6); // ears out to the side
+    if (type === 'buffalo') { // heavy horns: out to the side, then swept back and up
+      cyl(head, 0.06, 0.07, 0.22, '#1a1716', [s * 0.22, n[1] + 0.13, n[2] - 0.06], [0, 0, s * Math.PI / 2], 6);
+      cone(head, 0.06, 0.38, '#1a1716', [s * 0.36, n[1] + 0.2, n[2] - 0.24], [-1.15, s * 0.35, 0], 6);
+    }
+    else if (type === 'goat') cone(head, 0.035, 0.24, '#4a3a2c', [s * 0.06, n[1] + 0.2, n[2] - 0.08], [-0.55, 0, -s * 0.15], 5);
+    else if (type === 'cow' || type === 'ox') cone(head, 0.04, type === 'ox' ? 0.24 : 0.16, '#d9d0bd', [s * 0.15, n[1] + 0.16, n[2] - 0.04], [0, 0, -s * 0.55], 5);
+  }
+  if (type === 'goat') cone(head, 0.04, 0.14, '#3a2c20', [0, n[1] - 0.36, n[2] + 0.3], [Math.PI, 0, 0], 5); // the beard
+  const tail = G(); tail.position.set(0, 1.28, -0.9); b.add(tail);
+  cyl(tail, 0.035, 0.022, 0.72, col, [0, -0.36, -0.03], [0.05, 0, 0], 6);
+  blob(tail, 0.06, type === 'ox' ? '#2a2420' : tone(-0.35), [0, -0.76, -0.05], [0.8, 1.6, 0.8], 0); // the tuft
   g.userData.animal = { kind: 'grazer', head, tail };
   return g;
 }

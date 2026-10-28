@@ -10,6 +10,10 @@ import landParcels1600 from './land-parcels-aerial-1600.webp';
 import landParcels900 from './land-parcels-aerial-900.webp';
 import landParcels2400 from './land-parcels-aerial-2400.webp';
 import landParcels3200 from './land-parcels-aerial-3200.webp';
+import farmGame1600 from './farm-game-3d-1600.webp';
+import farmGame900 from './farm-game-3d-900.webp';
+import farmGame2400 from './farm-game-3d-2400.webp';
+import farmGame3200 from './farm-game-3d-3200.webp';
 import seedlings1600 from './seedlings-sunrise-1600.webp';
 import seedlings900 from './seedlings-sunrise-900.webp';
 import seedlings2400 from './seedlings-sunrise-2400.webp';
@@ -180,6 +184,11 @@ export const IMAGES = {
   landParcels: {
     src: landParcels1600, srcSet: `${landParcels900} 900w, ${landParcels1600} 1600w, ${landParcels2400} 2400w, ${landParcels3200} 3200w`, width: W, height: H, focus: '52% 62%',
     alt: { bn: 'আকাশ থেকে দেখা খেতের মধ্যে সাদা দাগে চিহ্নিত কয়েকটি জমি, পাশে পুকুর ও খাল', en: 'Aerial view of farm plots with three fields outlined in white, beside ponds and a canal' },
+  },
+  // A frame of the 3D farm game "মাঠের মানুষ" (Rahima Begum's field, Gowainghat, Sylhet), captured from the game itself — its cover.
+  farmGame: {
+    src: farmGame1600, srcSet: `${farmGame900} 900w, ${farmGame1600} 1600w, ${farmGame2400} 2400w, ${farmGame3200} 3200w`, width: 3200, height: 1800, focus: '50% 45%',
+    alt: { bn: 'থ্রিডি খেলার দৃশ্য: বেগুনি হিজাব আর শাড়িতে এক কৃষক নারী, পাশে নানা ফসলের সবুজ খেত, পেছনে চা-বাগানের টিলা, টিনের ঘর, গরু আর নদী', en: 'A scene from the 3D game: a farmer in a purple hijab and sari beside a field of mixed crops, with a tea-garden hill, a tin-roofed house, a cow and a river behind' },
   },
   // Close-up of young seedlings with flooded paddy at sunrise — crop advice / today's tasks.
   seedlings: {
