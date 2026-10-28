@@ -34,50 +34,50 @@ export default function StoryLevel() {
   const m = lv.mission ? MISSIONS[lv.mission] : null;
   return (
     <div className="page-shell pb-24 pt-[100px] sm:pt-[112px]">
-      <Link to="/stories" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-700"><ArrowLeft size={16} />{T('সাত বিভাগের গল্প', 'Seven divisions')}</Link>
+      <Link to="/stories" className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-700 transition hover:text-primary-800"><ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-1" />{T('সাত বিভাগের গল্প', 'Seven divisions')}</Link>
       <Hero lv={lv} />
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
-        <section className="glass flat rounded-[24px] p-5 sm:p-6">
-          <h2 className="text-[20px] font-bold">{T('গল্প', 'The story')}</h2>
-          <p className="mt-2 whitespace-pre-line text-[16px] leading-8 text-ink/85">{L(lv.story)}</p>
+        <section className="glass flat lift rounded-[28px] border border-white/80 p-6 sm:p-7 shadow-md">
+          <h2 className="font-display text-[22px] font-bold text-ink">{T('গল্প', 'The story')}</h2>
+          <p className="mt-3 whitespace-pre-line text-[16px] leading-8 text-ink/85 font-normal">{L(lv.story)}</p>
         </section>
-        <section className="glass flat rounded-[24px] p-5">
-          <div className="space-y-3">
-            <Boss icon={Swords} tone="text-red-700 bg-red-50" k={T('পরিবেশের দানব', 'Environmental boss')} v={L(lv.hazard)} />
-            <Boss icon={Bug} tone="text-paddy-700 bg-paddy-50" k={T('রোগ-পোকার দানব', 'Biological boss')} v={L(lv.bio)} />
-            <Boss icon={Sparkles} tone="text-primary-700 bg-primary-50" k={T('FieldShift আর কর্মকর্তার পাওয়ার-আপ', 'FieldShift and officer power-up')} v={L(lv.power)} />
+        <section className="glass flat lift rounded-[28px] border border-white/80 p-6 shadow-md">
+          <div className="space-y-3.5">
+            <Boss icon={Swords} tone="text-red-700 bg-red-100/80 shadow-2xs" k={T('পরিবেশের দানব', 'Environmental boss')} v={L(lv.hazard)} />
+            <Boss icon={Bug} tone="text-paddy-700 bg-paddy-100/80 shadow-2xs" k={T('রোগ-পোকার দানব', 'Biological boss')} v={L(lv.bio)} />
+            <Boss icon={Sparkles} tone="text-primary-700 bg-primary-100/80 shadow-2xs" k={T('FieldShift আর কর্মকর্তার পাওয়ার-আপ', 'FieldShift and officer power-up')} v={L(lv.power)} />
           </div>
           {UPAZILAS[lv.upz] && <OfficerCard u={UPAZILAS[lv.upz]} />}
-          {m && <div className="mt-4 border-t border-border pt-3">
-            <div className="text-[13px] font-semibold text-muted">{T('জমি', 'Plots')}</div>
-            <ul className="mt-1 space-y-1 text-[14px]">{m.plots.map((p) => <li key={p.id} className="flex justify-between gap-2"><span>{L(p.name)}</span><b className="tabular">{num(p.area, s.lang, { dp: 1 })} {T('একর', 'ac')}</b></li>)}</ul>
+          {m && <div className="mt-5 border-t border-border/80 pt-4">
+            <div className="text-[13px] font-bold uppercase tracking-wider text-muted">{T('জমি', 'Plots')}</div>
+            <ul className="mt-2 space-y-1.5 text-[14px]">{m.plots.map((p) => <li key={p.id} className="flex justify-between gap-2 rounded-xl bg-canvas/70 px-3 py-1.5 font-medium"><span>{L(p.name)}</span><b className="tabular text-primary-900">{num(p.area, s.lang, { dp: 1 })} {T('একর', 'ac')}</b></li>)}</ul>
           </div>}
         </section>
       </div>
       {lv.pillars && (
-        <section className="mt-6">
-          <h2 className="text-[20px] font-bold">{T('আট স্তম্ভে জীবন', 'Eight pillars of a farming life')}</h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-8">
+          <h2 className="font-display text-[22px] font-bold text-ink">{T('আট স্তম্ভে জীবন', 'Eight pillars of a farming life')}</h2>
+          <div className="mt-4 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
             {lv.pillars.map((p, k) => { const Icon = PILLAR_ICONS[k]; return (
-              <div key={k} className="glass flat rounded-2xl p-4">
-                <div className="flex items-center gap-2 text-[14px] font-bold" style={{ color: lv.tone }}><Icon size={17} />{L(PILLARS[k])}</div>
-                <p className="mt-1.5 text-[14px] leading-6 text-ink/80">{L(p)}</p>
+              <div key={k} className="glass flat lift rounded-2xl border border-white/70 p-4.5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-primary-200 bg-white/85">
+                <div className="flex items-center gap-2.5 text-[14.5px] font-bold" style={{ color: lv.tone }}><span className="grid h-8 w-8 place-items-center rounded-xl bg-black/[.04]"><Icon size={18} /></span>{L(PILLARS[k])}</div>
+                <p className="mt-2 text-[14px] leading-6 text-ink/80">{L(p)}</p>
               </div>
             ); })}
           </div>
         </section>
       )}
       {lv.live && <LiveLevel lv={lv} />}
-      {m && (!D ? <div className="mt-8 h-64 animate-pulse rounded-[24px] bg-black/[.04]" /> : (
+      {m && (!D ? <div className="mt-8 h-64 animate-pulse rounded-[28px] bg-black/[.04]" /> : (
         <>
           <Hazard m={m} D={D} lv={lv} />
           <Mission m={m} D={D} lv={lv} />
         </>
       ))}
       {lv.resolution && (
-        <section className="mt-6 rounded-[24px] border border-primary-200 bg-primary-50/70 p-5 sm:p-6">
-          <h2 className="flex items-center gap-2 text-[20px] font-bold text-primary-900"><HeartHandshake size={20} />{T('FieldShift আর উপজেলা কৃষি অফিসার যা বদলালেন', 'What FieldShift and the upazila officer changed')}</h2>
-          <p className="mt-2 text-[15.5px] leading-8 text-primary-950/85">{L(lv.resolution)}</p>
+        <section className="mt-8 rounded-[28px] border border-primary-300/80 bg-gradient-to-br from-primary-50/90 to-primary-100/50 p-6 sm:p-7 shadow-sm">
+          <h2 className="flex items-center gap-2.5 font-display text-[22px] font-bold text-primary-950"><HeartHandshake size={22} className="text-primary-700" />{T('FieldShift আর উপজেলা কৃষি অফিসার যা বদলালেন', 'What FieldShift and the upazila officer changed')}</h2>
+          <p className="mt-3 text-[16px] leading-8 text-primary-950/90">{L(lv.resolution)}</p>
         </section>
       )}
       <nav className="mt-8 flex justify-between gap-3">
@@ -91,19 +91,19 @@ export default function StoryLevel() {
 function Hero({ lv }) {
   const { T, L, s } = useStore();
   return (
-    <header className="relative mt-3 overflow-hidden rounded-[28px] bg-primary-950 text-white">
-      <div className="grid h-[260px] grid-cols-4 gap-0.5 sm:h-[320px]">
-        {lv.crops.slice(0, 3).map((c, k) => <div key={c.id} className={`relative ${k === 0 ? 'col-span-2' : ''}`}><CropPhoto crop={c} width={700} sizes="400px" creditTop /></div>)}
+    <header className="relative mt-3 overflow-hidden rounded-[32px] bg-gradient-to-br from-primary-950 via-primary-900 to-sky-950 text-white shadow-xl ring-1 ring-white/20">
+      <div className="grid h-[260px] grid-cols-4 gap-0.5 sm:h-[340px]">
+        {lv.crops.slice(0, 3).map((c, k) => <div key={c.id} className={`relative overflow-hidden ${k === 0 ? 'col-span-2' : ''}`}><CropPhoto crop={c} width={700} sizes="400px" creditTop /></div>)}
       </div>
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(8,26,14,.15)_0%,rgba(8,26,14,.88)_100%)]" />
-      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full px-3 py-1 text-[13px] font-bold" style={{ background: lv.tone }}>{T(`স্তর ${bnDigits(lv.n)}`, `Level ${lv.n}`)}</span>
-          <span className="text-[14px] font-semibold text-white/85">{L(lv.division)} {T('বিভাগ', 'division')} · {L(lv.upazila)}{lv.union ? `, ${L(lv.union)}` : ''}</span>
-          {lv.woman && <span className="rounded-full bg-violet-200 px-2.5 py-0.5 text-[12px] font-bold text-violet-900">{T('নারী কৃষক', 'Woman farmer')}</span>}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(8,26,14,.08)_0%,rgba(8,26,14,.75)_50%,rgba(8,26,14,.95)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 backdrop-blur-[2px]">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="rounded-full px-3.5 py-1 text-[13px] font-bold text-white shadow-sm ring-1 ring-white/30" style={{ background: lv.tone }}>{T(`স্তর ${bnDigits(lv.n)}`, `Level ${lv.n}`)}</span>
+          <span className="rounded-full bg-white/15 px-3 py-1 text-[13.5px] font-semibold text-white backdrop-blur-md ring-1 ring-white/20">{L(lv.division)} {T('বিভাগ', 'division')} · {L(lv.upazila)}{lv.union ? `, ${L(lv.union)}` : ''}</span>
+          {lv.woman && <span className="rounded-full bg-violet-300 px-3 py-0.5 text-[12.5px] font-bold text-violet-950 shadow-sm">{T('নারী কৃষক', 'Woman farmer')}</span>}
         </div>
-        <h1 className="font-display mt-2 text-[34px] font-semibold leading-tight sm:text-[46px]">{L(lv.farmer)}{lv.age ? <span className="text-white/70">, {T(`${bnDigits(lv.age)} বছর`, `${lv.age}`)}</span> : null}</h1>
-        <p className="mt-1 text-[14px] text-white/80">{T('সই ফসল', 'Signature crops')}: {lv.crops.map((c) => L(c.name)).join(' · ')}{lv.acres ? T(` · মোট ${num(lv.acres, 'bn', { dp: 1 })} একর`, ` · ${lv.acres} acres in all`) : ''}</p>
+        <h1 className="font-display mt-3 text-[34px] font-bold leading-tight sm:text-[48px] tracking-tight">{L(lv.farmer)}{lv.age ? <span className="text-white/70">, {T(`${bnDigits(lv.age)} বছর`, `${lv.age}`)}</span> : null}</h1>
+        <p className="mt-2 text-[15px] font-medium text-white/90">{T('সই ফসল', 'Signature crops')}: <span className="font-bold text-white">{lv.crops.map((c) => L(c.name)).join(' · ')}</span>{lv.acres ? T(` · মোট ${num(lv.acres, 'bn', { dp: 1 })} একর`, ` · ${lv.acres} acres in all`) : ''}</p>
       </div>
     </header>
   );

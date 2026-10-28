@@ -68,21 +68,24 @@ function SelectScreen({ who, setWho, onGo }) {
     <section className="scene-in">
       <div className="max-w-3xl">
         <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold text-primary-800"><Globe2 size={15} />{T('খামারের খেলা · ১২ জন কৃষক, ৬ দেশ', 'The farm game · 12 farmers, 6 countries')}</p>
-        <h1 className="mt-4 text-[40px] font-semibold leading-[1.12] tracking-[-0.03em] sm:text-[56px]">{T('মাঠের মানুষ', 'Field Folk')} <span className="bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text text-transparent">3D</span></h1>
-        <p className="mt-3 max-w-2xl text-[17px] leading-[1.65] text-ink/70">{T('বাংলাদেশের সাত বিভাগের সাতজন আর প্রতিবেশী পাঁচ দেশের পাঁচজন কৃষক — অ্যাপে যাঁদের অ্যাকাউন্ট আছে। প্রত্যেকের নিজের মাটি, নিজের পোশাক, নিজের ফসল আর নিজের বিপদ। একজনকে বেছে নিন, উপগ্রহ থেকে তাঁর মাঠে নামুন, আর পুরো একটা মৌসুম পার করুন।', 'Seven farmers from Bangladesh’s seven divisions and five from the neighbouring countries — the ones with accounts in the app. Each has their own soil, their own clothes, their own crops and their own dangers. Pick one, drop from orbit onto their field, and see a whole season through.')}</p>
+        <h1 className="mt-4 text-[40px] font-semibold leading-[1.12] tracking-[-0.03em] sm:text-[56px]">{T('মাঠের মানুষ', 'Field Folk')} <span className="bg-[linear-gradient(100deg,#1e5c22_0%,#3d8c34_40%,#1d717a_100%)] bg-clip-text text-transparent">3D</span></h1>
+        <p className="mt-3 max-w-2xl text-[17px] leading-[1.65] text-ink/70">{T('বাংলাদেশের সাত বিভাগের সাতজন আর প্রতিবেশী পাঁচ দেশের পাঁচজন কৃষক — অ্যাপে যাঁদের অ্যাকাউন্ট আছে। প্রত্যেকের নিজের মাটি, নিজের পোশাক, নিজের ফসল আর নিজের বিপদ। একজনকে বেছে নিন, উপগ্রহ থেকে তাঁর মাঠে নামুন, আর পুরো একটা মৌসুম পার করুন।', 'Seven farmers from Bangladesh\u2019s seven divisions and five from the neighbouring countries \u2014 the ones with accounts in the app. Each has their own soil, their own clothes, their own crops and their own dangers. Pick one, drop from orbit onto their field, and see a whole season through.')}</p>
       </div>
       <div className="mt-7 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
         {/* the chosen farmer, standing on their own ground */}
-        <div className="relative min-h-[460px] overflow-hidden rounded-[30px] text-white shadow-[var(--shadow-lift)] lg:sticky lg:top-24 lg:self-start lg:h-[min(640px,calc(100svh-120px))]" style={{ background: stage(R.country) }}>
-          <div className="absolute inset-x-0 bottom-0 top-10"><Preview id={who} mood="idle" /></div>
+        <div className="relative min-h-[500px] overflow-hidden rounded-[30px] text-white shadow-[var(--shadow-lift)] lg:sticky lg:top-24 lg:self-start lg:h-[min(680px,calc(100svh-120px))]" style={{ background: stage(R.country) }}>
+          {/* subtle animated radial glow behind the character */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(55% 55% at 50% 90%, ${TONE[R.country][0]}55 0%, transparent 70%)`, animation: 'fade-in 1.2s ease both' }} />
+          <div className="absolute inset-x-0 bottom-0 top-8"><Preview id={who} mood="idle" /></div>
           <div className="relative p-5 sm:p-6">
-            <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[.12em] text-white/70"><span className="text-[18px]">{R.flag}</span>{L(R.place)}</p>
-            <p className="font-display mt-1 text-[32px] font-bold leading-tight sm:text-[38px]">{L(F)}</p>
-            <p className="text-[15px] text-white/75">{F.local ? `${F.local} · ` : ''}{L(F.trait)}</p>
+            <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[.12em] text-white/70"><span className="text-[20px]">{R.flag}</span>{L(R.place)}</p>
+            <p className="font-display mt-1 text-[34px] font-bold leading-tight sm:text-[40px]">{L(F)}</p>
+            <p className="text-[15px] text-white/75 mt-0.5">{F.local ? `${F.local} · ` : ''}{L(F.trait)}</p>
           </div>
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16 sm:p-6 sm:pt-20">
+          {/* bottom info strip */}
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-5 pt-20 sm:p-6 sm:pt-24">
             <div className="flex flex-wrap gap-1.5">{F.dress.map((d) => <span key={d.en} className="rounded-full bg-white/15 px-2.5 py-1 text-[12.5px] font-semibold ring-1 ring-white/20 backdrop-blur">{L(d)}</span>)}</div>
-            <p className="mt-3 flex items-start gap-2 text-[14px] leading-6 text-white/85"><ShieldAlert size={16} className="mt-1 shrink-0 text-amber-300" />{L(R.place.hazard)}</p>
+            <p className="mt-2.5 flex items-start gap-2 text-[14px] leading-6 text-white/85"><ShieldAlert size={16} className="mt-0.5 shrink-0 text-amber-300" />{L(R.place.hazard)}</p>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -94,9 +97,10 @@ function SelectScreen({ who, setWho, onGo }) {
                   const r = REGIONS[id], on = id === who, n = FARMER_IDS.indexOf(id);
                   return (
                     <button key={id} type="button" onClick={() => { setWho(id); play('tap'); }} aria-pressed={on} style={{ '--n': n }}
-                      className={`surface-card lift group flex items-center gap-2.5 rounded-[20px] p-2.5 pr-3 text-left transition-all duration-200 active:scale-[0.97] ${on ? 'ring-2 ring-primary-600 !bg-white shadow-md' : 'border border-border/70 bg-white/75 hover:bg-white hover:border-primary-300 hover:shadow-xs'}`}>
-                      <span className="relative grid h-[60px] w-[52px] shrink-0 place-items-end overflow-hidden rounded-[14px] shadow-2xs" style={{ background: stage(r.country) }}>
-                        {pics ? <img src={pics[n]} alt="" className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" /> : <span className="m-auto text-[24px]">{r.flag}</span>}
+                      className={`surface-card lift group flex items-center gap-2.5 rounded-[20px] p-2.5 pr-3 text-left transition-all duration-200 active:scale-[0.97] ${on ? 'ring-2 ring-primary-600 !bg-white shadow-lg' : 'border border-border/70 bg-white/75 hover:bg-white hover:border-primary-300 hover:shadow-sm'}`}>
+                      <span className="relative grid h-[64px] w-[56px] shrink-0 place-items-end overflow-hidden rounded-[14px] shadow-sm" style={{ background: stage(r.country) }}>
+                        {pics ? <img src={pics[n]} alt="" className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-110" /> : <span className="m-auto text-[26px]">{r.flag}</span>}
+                        {on && <span className="absolute inset-0 rounded-[14px] ring-2 ring-primary-500" />}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1 truncate text-[11.5px] font-semibold text-muted"><span>{r.flag}</span>{r.division ? L(r.division) : L(r.place)}</span>
@@ -110,7 +114,7 @@ function SelectScreen({ who, setWho, onGo }) {
               </div>
             </div>
           ))}
-          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-2 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/20 hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200">{T(`${F.bn}-এর মাঠে চলুন`, `To ${F.en}’s field`)}<ArrowRight size={19} /></button>
+          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-3 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/25 hover:scale-[1.025] active:scale-[0.975] transition-transform duration-200">{T(`${F.bn}-এর মাঠে চলুন`, `To ${F.en}'s field`)}<ArrowRight size={19} /></button>
           <p className="text-center text-[12.5px] text-muted">{T('এঁরা নমুনা মানুষ; জায়গা, ফসল আর বিপদের তথ্য সত্যি।', 'These are sample people; the places, crops and dangers are real.')}</p>
         </div>
       </div>
@@ -132,17 +136,19 @@ function BriefScreen({ who, onDone, onBack }) {
   return (
     <section className="scene-in mx-auto max-w-5xl">
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="relative min-h-[380px] overflow-hidden rounded-[30px] shadow-[var(--shadow-lift)]" style={{ background: stage(R.country) }}>
+        <div className="relative min-h-[400px] overflow-hidden rounded-[30px] shadow-[var(--shadow-lift)]" style={{ background: stage(R.country) }}>
           <div className="absolute inset-0"><Preview id={who} mood={last ? 'cheer' : 'idle'} /></div>
-          <p className="absolute left-5 top-4 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[.12em] text-white/75"><span className="text-[18px]">{R.flag}</span>{L(R.place.area)}</p>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 50%)' }} />
+          <p className="absolute left-5 top-4 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[.14em] text-white/80"><span className="text-[18px]">{R.flag}</span>{L(R.place.area)}</p>
+          <p className="absolute bottom-4 left-5 right-5 text-[22px] font-bold text-white leading-tight drop-shadow-[0_2px_10px_rgba(0,0,0,.5)]">{L(R.farmer)}</p>
         </div>
         <div className="flex flex-col gap-3">
-          <div className="glass rounded-[26px] !bg-white/85 p-5 sm:p-6" aria-live="polite">
+          <div className="glass rounded-[26px] !bg-white/90 p-5 sm:p-6" aria-live="polite">
             <p className="text-[13px] font-semibold uppercase tracking-wide text-primary-700">{L(F)} · {T(`${num(i + 1, 'bn')}/${num(R.intro.length, 'bn')}`, `${i + 1}/${R.intro.length}`)}</p>
-            <p key={`${who}${i}`} className="mt-2 min-h-[96px] text-[19px] leading-[1.65] text-ink sm:text-[21px]"><Words text={line} /></p>
-            <div className="mt-3 flex gap-1">{R.intro.map((_, k) => <span key={k} className={`h-1 flex-1 rounded-full transition-colors duration-500 ${k <= i ? 'bg-primary-600' : 'bg-black/10'}`} />)}</div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex gap-3"><button type="button" onClick={onBack} className="text-[14px] font-semibold text-muted hover:text-ink">{T('← অন্য কৃষক', '← Another farmer')}</button><button type="button" onClick={onDone} className="text-[14px] font-semibold text-muted hover:text-ink">{T('গল্প বাদ দিন', 'Skip story')}</button></div>
+            <p key={`${who}${i}`} className="mt-2 min-h-[100px] text-[20px] leading-[1.7] text-ink sm:text-[22px]"><Words text={line} /></p>
+            <div className="mt-3 flex gap-1.5">{R.intro.map((_, k) => <span key={k} className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${k <= i ? 'bg-primary-600' : 'bg-black/10'}`} />)}</div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-3"><button type="button" onClick={onBack} className="text-[14px] font-semibold text-muted hover:text-ink transition-colors">{T('← অন্য কৃষক', '← Another farmer')}</button><button type="button" onClick={onDone} className="text-[14px] font-semibold text-muted hover:text-ink transition-colors">{T('গল্প বাদ দিন', 'Skip story')}</button></div>
               <button type="button" onClick={() => { play('tap'); last ? onDone() : setI(i + 1); }} className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white">
                 {last ? T('উপগ্রহ থেকে নামুন!', 'Drop in from orbit!') : T('তারপর?', 'And then?')}<ArrowRight size={18} />
               </button>
@@ -302,7 +308,7 @@ function GameStage({ who, onEnd, onRestart, onQuit }) {
           <span className="absolute left-2 top-1.5 text-[10px] font-bold text-white/80">{T('উ', 'N')}↑</span>
         </div>
         {zone && zone.left > 0 && (
-          <div className={`g3-hud w-full rounded-xl px-2.5 py-1.5 text-center ${zone.left < 8 ? 'ring-2 ring-red-400 animate-pulse' : 'ring-1 ring-sky-300/60'}`}>
+          <div className={`g3-hud w-full rounded-xl px-2.5 py-1.5 text-center ${zone.left < 30 ? 'g3-zone-urgent' : zone.left < 60 ? 'ring-2 ring-red-400/80' : 'ring-1 ring-sky-300/60'}`}>
             <p className="text-[10.5px] font-bold uppercase tracking-wider text-sky-200">{L(R.storm)}</p>
             <p className="font-display text-[22px] font-bold tabular">{num(Math.floor(zone.left / 60), lang)}:{num(String(Math.ceil(zone.left % 60) % 60).padStart(2, '0'), lang)}</p>
             <p className="text-[11px] text-white/75">{hud.inZone ? T('নিরাপদ বৃত্তে আছেন ✓', 'Inside the safe circle ✓') : T('নিরাপদ বৃত্তে যান!', 'Get inside the safe circle!')}</p>
@@ -361,25 +367,25 @@ function GameStage({ who, onEnd, onRestart, onQuit }) {
       {/* bottom: the prompt, the stamina bar, and the inventory */}
       {!intro && (
         <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-2 px-3">
-          {prompt && !touch && <div className="g3-hud flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[14px] font-semibold"><kbd className="grid h-6 min-w-6 place-items-center rounded-md bg-white px-1.5 text-[12px] font-bold text-ink">E</kbd>{prompt}</div>}
-          <div className="h-1 w-[min(60vw,280px)] overflow-hidden rounded-full bg-white/15" title={T('দম', 'Stamina')}><span className="block h-full rounded-full bg-gradient-to-r from-emerald-300 to-lime-200 transition-[width] duration-200" style={{ width: `${hud.stamina * 100}%` }} /></div>
-          <div className={`g3-hud flex items-stretch gap-1 rounded-2xl p-1.5 ${touch ? 'mb-[118px] sm:mb-0' : ''}`}>
+          {prompt && !touch && <div className="g3-hud flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold shadow-lg backdrop-blur-xl"><kbd className="grid h-6 min-w-6 place-items-center rounded-md bg-white px-1.5 text-[12px] font-bold text-ink shadow-2xs">E</kbd>{prompt}</div>}
+          <div className="h-1.5 w-[min(60vw,300px)] overflow-hidden rounded-full bg-white/20 shadow-inner" title={T('দম', 'Stamina')}><span className="block h-full rounded-full bg-gradient-to-r from-emerald-400 via-lime-300 to-amber-300 transition-[width] duration-200 shadow-sm" style={{ width: `${hud.stamina * 100}%` }} /></div>
+          <div className={`g3-hud flex items-stretch gap-1.5 rounded-2xl p-2 shadow-2xl backdrop-blur-2xl ${touch ? 'mb-[118px] sm:mb-0' : ''}`}>
             {Object.entries(R.crops).map(([k, c], n) => (
               <button key={k} type="button" onClick={() => { g.sel = k; play('tap'); }} aria-pressed={hud.sel === k} title={`${L(c)} (${n + 1})`}
-                className={`relative flex min-w-[54px] flex-col items-center rounded-xl px-2 pb-1 pt-1.5 text-[11px] font-semibold transition sm:min-w-[72px] ${hud.sel === k ? 'bg-white/90 text-ink shadow-[0_0_0_2px_#ffd24a]' : 'bg-white/[.06] text-white/85 hover:bg-white/15'}`}>
-                <span className="absolute left-1 top-0.5 text-[9.5px] opacity-60">{n + 1}</span>
-                <Sprout size={16} className={hud.sel === k ? 'text-primary-700' : 'text-lime-200'} />
-                <span className="mt-0.5 max-w-[64px] truncate">{L(c)}</span>
-                <span className="font-display text-[13px] tabular">×{num(hud.seeds[k], lang)}</span>
+                className={`relative flex min-w-[56px] flex-col items-center rounded-xl px-2.5 pb-1.5 pt-2 text-[11px] font-semibold transition-all duration-200 sm:min-w-[76px] ${hud.sel === k ? 'scale-105 bg-white/95 text-ink shadow-[0_0_0_2px_#ffd24a,0_8px_20px_rgba(255,210,74,0.35)]' : 'bg-white/[.08] text-white/90 hover:bg-white/20 active:scale-95'}`}>
+                <span className="absolute left-1.5 top-0.5 text-[9.5px] font-bold opacity-60">{n + 1}</span>
+                <Sprout size={17} className={hud.sel === k ? 'text-primary-700' : 'text-lime-200'} />
+                <span className="mt-0.5 max-w-[64px] truncate font-medium">{L(c)}</span>
+                <span className="font-display text-[13.5px] font-bold tabular">×{num(hud.seeds[k], lang)}</span>
               </button>
             ))}
-            <span className="mx-0.5 w-px bg-white/15" />
-            <div className="flex min-w-[60px] flex-col items-center justify-center rounded-xl bg-white/[.06] px-2 text-[11px] font-semibold" title={T('বালতির পানি', 'Water can')}>
-              <Droplets size={16} className="text-sky-300" /><span className="font-display text-[13px] tabular">{num(hud.can, lang)}/{num(hud.canMax, lang)}</span>
-              <span className="mt-0.5 h-1 w-10 overflow-hidden rounded-full bg-white/15"><span className="block h-full bg-sky-300 transition-[width]" style={{ width: `${(hud.can / hud.canMax) * 100}%` }} /></span>
+            <span className="mx-0.5 w-px bg-white/20" />
+            <div className="flex min-w-[62px] flex-col items-center justify-center rounded-xl bg-white/[.08] px-2 text-[11px] font-semibold" title={T('বালতির পানি', 'Water can')}>
+              <Droplets size={16} className="text-sky-300" /><span className="font-display text-[13px] font-bold tabular">{num(hud.can, lang)}/{num(hud.canMax, lang)}</span>
+              <span className="mt-1 h-1.5 w-11 overflow-hidden rounded-full bg-white/20"><span className="block h-full rounded-full bg-gradient-to-r from-sky-400 to-sky-200 transition-[width]" style={{ width: `${(hud.can / hud.canMax) * 100}%` }} /></span>
             </div>
-            <div className="flex min-w-[56px] flex-col items-center justify-center rounded-xl bg-white/[.06] px-2 text-[11px] font-semibold" title={T('ঝুড়ি', 'Basket')}>
-              <ShoppingBasket size={16} className="text-amber-200" /><span className="font-display text-[13px] tabular">{num(hud.basketN, lang)}</span>
+            <div className="flex min-w-[58px] flex-col items-center justify-center rounded-xl bg-white/[.08] px-2 text-[11px] font-semibold" title={T('ঝুড়ি', 'Basket')}>
+              <ShoppingBasket size={16} className="text-amber-200" /><span className="font-display text-[13px] font-bold tabular">{num(hud.basketN, lang)}</span>
             </div>
           </div>
         </div>
@@ -412,12 +418,13 @@ function GameStage({ who, onEnd, onRestart, onQuit }) {
       {/* the drop from orbit */}
       {intro && (
         <div className="absolute inset-0 flex flex-col items-center justify-between p-6">
-          <div className="g3-drop mt-[14vh] text-center">
-            <p className="flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-[.35em] text-emerald-300"><Satellite size={14} />{T('FieldShift উপগ্রহ থেকে নামছেন', 'Dropping in from the FieldShift satellite')}</p>
-            <p className="font-display mt-2 text-[34px] font-extrabold leading-tight drop-shadow-[0_4px_18px_rgba(0,0,0,.5)] sm:text-[52px]">{R.flag} {L(R.place)}</p>
-            <p className="mt-1 text-[16px] text-white/85">{L(R.place.area)}</p>
+          <div className="g3-drop mt-[13vh] text-center">
+            <p className="flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-[.38em] text-emerald-300"><Satellite size={14} className="animate-pulse" />{T('FieldShift উপগ্রহ থেকে নামছেন', 'Dropping in from the FieldShift satellite')}</p>
+            <p className="font-display mt-2 text-[36px] font-extrabold leading-tight drop-shadow-[0_4px_22px_rgba(0,0,0,.55)] sm:text-[54px]">{R.flag} {L(R.place)}</p>
+            <p className="mt-1 text-[16px] font-semibold text-white/85">{L(R.place.area)}</p>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/50"><MapPin size={11} />{L(R.farmer)} · {L(F.trait)}</p>
           </div>
-          <button type="button" onClick={() => st.current?.skipIntro()} className="g3-hud rounded-full px-5 py-2 text-[14px] font-semibold">{T('এড়িয়ে যান', 'Skip')} →</button>
+          <button type="button" onClick={() => st.current?.skipIntro()} className="g3-hud rounded-full px-5 py-2 text-[14px] font-semibold hover:scale-105 transition-transform">{T('এড়িয়ে যান', 'Skip')} →</button>
         </div>
       )}
 
@@ -572,10 +579,12 @@ function EndScreen({ who, r, onReplay, onPick }) {
   return (
     <section className="scene-in mx-auto max-w-4xl">
       <div className="relative overflow-hidden rounded-[30px] text-white shadow-[var(--shadow-lift)]" style={{ background: stage(R.country) }}>
-        <div className="grid items-center sm:grid-cols-[0.8fr_1.2fr]">
-          <div className="h-[300px]"><Preview id={who} mood="cheer" /></div>
+        {/* decorative ambient overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,.2) 0%, transparent 40%, rgba(0,0,0,.5) 100%)' }} />
+        <div className="relative grid items-center sm:grid-cols-[0.8fr_1.2fr]">
+          <div className="h-[320px] sm:h-[360px]"><Preview id={who} mood="cheer" /></div>
           <div className="p-6 text-center sm:text-left">
-            <div className="flex justify-center gap-2 sm:justify-start">{[0, 1, 2].map((k) => <Star key={k} size={40} className={`star-pop ${k < stars ? 'fill-amber-300 text-amber-300' : 'text-white/20'}`} style={{ animationDelay: `${200 + k * 220}ms` }} />)}</div>
+            <div className="flex justify-center gap-2 sm:justify-start">{[0, 1, 2].map((k) => <Star key={k} size={44} className={`star-pop ${k < stars ? 'fill-amber-300 text-amber-300' : 'text-white/20'}`} style={{ animationDelay: `${220 + k * 240}ms` }} />)}</div>
             <p className="mt-3 text-[12px] font-bold uppercase tracking-[.3em] text-amber-200">{T('মৌসুম জয়', 'Season won')}</p>
             <h1 className="font-display mt-1 text-[32px] font-extrabold leading-tight sm:text-[42px]"><Words text={T(`জয় জয়! আজ রাতে ${R.dinner.bn}!`, `Winner winner, ${R.dinner.en} dinner!`)} /></h1>
             <p className="mt-2 text-[16px] text-white/80">{L(R.lines.win)} — {L(R.farmer)}</p>

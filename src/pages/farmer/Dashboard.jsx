@@ -41,38 +41,38 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <section data-tour="dash-hero" className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
-        <div className="absolute inset-0 -z-10"><Photo name="seedlings" fill sizes="(min-width: 1200px) 1200px, 100vw" priority /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,38,20,.92)_0%,rgba(13,38,20,.75)_45%,rgba(13,38,20,.25)_100%)]" /></div>
+      <section data-tour="dash-hero" className="relative isolate overflow-hidden rounded-[28px] bg-gradient-to-br from-primary-950 via-primary-900 to-sky-950 text-white shadow-xl ring-1 ring-white/15">
+        <div className="absolute inset-0 -z-10"><Photo name="seedlings" fill sizes="(min-width: 1200px) 1200px, 100vw" priority /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,38,20,.94)_0%,rgba(13,38,20,.82)_50%,rgba(13,38,20,.35)_100%)]" /><div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-500/15 blur-3xl" /></div>
         <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.2fr_.8fr] lg:items-end">
           <div>
-            <p className="text-[15px] text-white/80">{T(`আসসালামু আলাইকুম, ${farmer.name.bn}`, `Assalamu alaikum, ${farmer.name.en}`)}</p>
-            <h1 className="mt-2 text-[30px] font-bold leading-tight sm:text-[40px]">{L(st)}<span className="grad-shine block">{T(`${chosen.crop.name.bn}, ${chosen.crop.action.bn} ${fmtBangla(chosen.t0, 'bn')}`, `${chosen.crop.name.en}, ${chosen.crop.action.en.toLowerCase()} ${fmtDate(chosen.t0, 'en')}`)}</span></h1>
-            <p className="mt-3 max-w-xl text-[15.5px] leading-7 text-white/80">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
-            <div className="mt-3"><Tags list={[climateTag(), 'RULE']} /></div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[13px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/20">{T(`আসসালামু আলাইকুম, ${farmer.name.bn}`, `Assalamu alaikum, ${farmer.name.en}`)}</p>
+            <h1 className="mt-3 text-[30px] font-bold leading-tight sm:text-[42px]">{L(st)}<span className="grad-shine block">{T(`${chosen.crop.name.bn}, ${chosen.crop.action.bn} ${fmtBangla(chosen.t0, 'bn')}`, `${chosen.crop.name.en}, ${chosen.crop.action.en.toLowerCase()} ${fmtDate(chosen.t0, 'en')}`)}</span></h1>
+            <p className="mt-3.5 max-w-xl text-[15.5px] leading-7 text-white/85">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
+            <div className="mt-4"><Tags list={[climateTag(), 'RULE']} /></div>
           </div>
-          <div data-tour="dash-next" className="keep-solid glass rounded-[24px] !bg-white/92 p-5 text-ink shadow-lg border border-white/80 backdrop-blur-md">
+          <div data-tour="dash-next" className="keep-solid glass rounded-[24px] !bg-white/95 p-5 text-ink shadow-[0_12px_36px_rgba(0,0,0,0.18)] border border-white/90 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl">
             <div className="flex items-start gap-3.5">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-100/80 text-primary-800 shadow-2xs transition-transform duration-300 group-hover:scale-110"><next.icon size={22} /></span>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 text-primary-800 shadow-sm transition-transform duration-300 group-hover:scale-110"><next.icon size={24} /></span>
               <div className="min-w-0">
-                <div className="text-[13px] font-semibold text-primary-700 tracking-tight">{T('এখন যা করবেন', 'Your next step')}</div>
-                <div className="font-display text-[20px] font-bold leading-tight">{next.title}</div>
+                <div className="text-[12px] font-bold uppercase tracking-wider text-primary-700">{T('এখন যা করবেন', 'Your next step')}</div>
+                <div className="font-display mt-0.5 text-[20px] font-bold leading-tight text-ink">{next.title}</div>
                 <p className="mt-1 text-[14px] leading-6 text-muted">{next.text}</p>
               </div>
             </div>
             <div className="mt-4" data-tour="plan-progress">
-              <div className="mb-1.5 flex items-center justify-between gap-2 text-[12px] font-semibold">
+              <div className="mb-1.5 flex items-center justify-between gap-2 text-[12.5px] font-semibold">
                 <span className="text-muted">{!landConfirmed
                   ? T('পরিকল্পনার শুরু', 'Plan progress')
                   : confirmedPlan ? T('পরিকল্পনা পাকা', 'Plan confirmed') : T(`ধাপ ${num(planStep, 'bn')} / ৭`, `Step ${planStep} of 7`)}</span>
-                <span className="text-primary-800 font-bold">{num(planProgress, lang)}%</span>
+                <span className="text-primary-800 font-bold tabular">{num(planProgress, lang)}%</span>
               </div>
               <div role="progressbar" aria-label={T('পরিকল্পনার অগ্রগতি', 'Plan progress')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(planProgress)}
                 className="h-2.5 overflow-hidden rounded-full bg-primary-100 shadow-inner">
                 <div className="plan-progress-fill h-full rounded-full bg-gradient-to-r from-primary-500 via-primary-600 to-paddy-500 shadow-sm" style={{ width: `${planProgress}%` }} />
               </div>
-              {!landConfirmed && <p className="mt-1 text-[11.5px] text-muted">{T('জমি বাছাই করলেই পরিকল্পনার ধাপ শুরু হবে।', 'Choose your field to begin the plan steps.')}</p>}
+              {!landConfirmed && <p className="mt-1.5 text-[11.5px] text-muted">{T('জমি বাছাই করলেই পরিকল্পনার ধাপ শুরু হবে।', 'Choose your field to begin the plan steps.')}</p>}
             </div>
-            <Button to={next.to} className="mt-3.5 w-full shadow-sm">{next.cta}<ChevronRight size={17} /></Button>
+            <Button to={next.to} className="mt-4 w-full shadow-md py-3 text-[15px] font-semibold">{next.cta}<ChevronRight size={17} /></Button>
           </div>
         </div>
       </section>

@@ -19,7 +19,7 @@ const hash = (x, z) => { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453;
 const PATCH = { wheat: '#7fa84a', stubble: '#c9b06a', mustard: '#e3c93a', paddy: '#a9b44a', bare: '#b39466', sunflower: '#d9b43a', sesame: '#9aa45a', groundnut: '#7c9a4a' };
 
 function terrain(L) {
-  const size = 260, seg = 170;
+  const size = 340, seg = 200;
   const geo = new THREE.PlaneGeometry(size, size, seg, seg); geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position, cols = new Float32Array(pos.count * 3);
   const ground = C(L.grass), soil = C(L.soil), path = C(L.path), sand = C(L.sand ?? '#d9c79c'), tmp = new THREE.Color();
@@ -28,7 +28,7 @@ function terrain(L) {
     const far = Math.hypot(x, z);
     let h = L.ground(x, z);
     const wet = L.water.some((w) => (w.r ? Math.hypot(x - w.cx, z - w.cz) < w.r + 2 : x > w.x0 - 2 && x < w.x1 + 2 && z > w.z0 - 2 && z < w.z1 + 2));
-    if (far > 70 && !wet) h += (far - 70) * 0.04 * (L.far === 'himalaya' ? 3 : (L.far === 'churia' || L.far === 'meghalaya') && z < 0 ? 1.6 : L.far === 'chittagong' && x > 0 ? 2.2 : 0.2);
+    if (far > 70 && !wet) h += (far - 70) * 0.045 * (L.far === 'himalaya' ? 3.2 : (L.far === 'churia' || L.far === 'meghalaya') && z < 0 ? 1.7 : L.far === 'chittagong' && x > 0 ? 2.3 : 0.25);
     pos.setY(i, h);
     const n = hash(Math.floor(x / 2), Math.floor(z / 2));
     tmp.copy(ground).offsetHSL((n - 0.5) * 0.03, (n - 0.5) * 0.08, (n - 0.5) * 0.06);
@@ -53,7 +53,7 @@ function waters(L) {
   for (const w of L.water) {
     const geo = w.r ? new THREE.CircleGeometry(w.r + 0.4, 40) : new THREE.PlaneGeometry(w.x1 - w.x0, w.z1 - w.z0, Math.min(80, Math.ceil((w.x1 - w.x0) / 3)), Math.min(80, Math.ceil((w.z1 - w.z0) / 3)));
     geo.rotateX(-Math.PI / 2);
-    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: w.color, roughness: 0.12, metalness: 0.2, transparent: true, opacity: 0.88, flatShading: true }));
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: w.color, roughness: 0.08, metalness: 0.3, transparent: true, opacity: 0.9, flatShading: true }));
     m.position.set(w.r ? w.cx : (w.x0 + w.x1) / 2, w.y, w.r ? w.cz : (w.z0 + w.z1) / 2);
     m.receiveShadow = true; m.userData.base = geo.attributes.position.array.slice();
     list.push(m);
@@ -72,12 +72,17 @@ function scenery(kind, group) {
       if (snow && h > hMax * 0.6) { const s = cone(group, h * 0.38, h * 0.3, '#f4f6f8', [Math.cos(a) * r, h - 2 - h * 0.15 + 0.2, Math.sin(a) * r], [0, rnd() * 3, 0], 6); s.castShadow = false; }
     }
   };
-  if (kind === 'plain') for (let k = 0; k < 80; k++) { const a = rnd() * Math.PI * 2, r = 85 + rnd() * 40, b = blob(group, 3 + rnd() * 3, '#5f7f45', [Math.cos(a) * r, 3, Math.sin(a) * r], [1, 1.5, 1], 0); b.castShadow = false; }
-  if (kind === 'kirthar') { ridge(26, 120, 170, Math.PI * 0.75, Math.PI * 1.25, 18, 42, '#9a7a56'); for (let k = 0; k < 40; k++) { const a = rnd() * Math.PI * 2, r = 80 + rnd() * 40; blob(group, 2 + rnd() * 2, '#7d8a4a', [Math.cos(a) * r, 2, Math.sin(a) * r], [1.3, 0.5, 1.2], 0).castShadow = false; } }
-  if (kind === 'churia') { ridge(30, 110, 150, -Math.PI * 0.95, -Math.PI * 0.05, 20, 45, '#3f6a3a'); ridge(20, 160, 200, -Math.PI * 0.9, -Math.PI * 0.1, 40, 70, '#5b7a76'); }
+  if (kind === 'plain') {
+    for (let k = 0; k < 120; k++) {
+      const a = rnd() * Math.PI * 2, r = 85 + rnd() * 65, b = blob(group, 3.2 + rnd() * 3.5, '#4f7a3f', [Math.cos(a) * r, 3.2, Math.sin(a) * r], [1.1, 1.5, 1.1], 0);
+      b.castShadow = false;
+    }
+  }
+  if (kind === 'kirthar') { ridge(32, 120, 180, Math.PI * 0.75, Math.PI * 1.25, 20, 48, '#9a7a56'); for (let k = 0; k < 55; k++) { const a = rnd() * Math.PI * 2, r = 80 + rnd() * 60; blob(group, 2.2 + rnd() * 2.2, '#7d8a4a', [Math.cos(a) * r, 2, Math.sin(a) * r], [1.3, 0.5, 1.2], 0).castShadow = false; } }
+  if (kind === 'churia') { ridge(38, 110, 160, -Math.PI * 0.95, -Math.PI * 0.05, 22, 50, '#3f6a3a'); ridge(25, 160, 220, -Math.PI * 0.9, -Math.PI * 0.1, 45, 78, '#5b7a76'); }
   if (kind === 'himalaya') {
-    ridge(34, 75, 110, -Math.PI, Math.PI, 26, 50, '#355f40');
-    ridge(22, 150, 200, -Math.PI * 0.85, -Math.PI * 0.15, 70, 120, '#6a7f8e', true);
+    ridge(40, 75, 120, -Math.PI, Math.PI, 28, 56, '#355f40');
+    ridge(28, 150, 220, -Math.PI * 0.85, -Math.PI * 0.15, 75, 135, '#6a7f8e', true);
     // Punakha Dzong where the rivers meet, down the valley to the south-west
     const d = new THREE.Group(); d.position.set(-62, 0, 72); d.scale.setScalar(2.6); group.add(d);
     box(d, 14, 5, 7, '#f2ede2', [0, 2.5, 0]); box(d, 14.4, 1, 7.4, '#8a2a20', [0, 5.3, 0]); box(d, 5, 4, 5, '#f2ede2', [1, 7.5, 0]); box(d, 5.4, 0.8, 5.4, '#8a2a20', [1, 9.7, 0]);
@@ -85,31 +90,31 @@ function scenery(kind, group) {
   }
 
   if (kind === 'dhaka') {
-    for (let k = 0; k < 60; k++) { const a = rnd() * Math.PI * 2, r = 85 + rnd() * 40; blob(group, 3 + rnd() * 3, '#5f8f45', [Math.cos(a) * r, 3, Math.sin(a) * r], [1, 1.4, 1], 0).castShadow = false; }
-    for (let k = 0; k < 9; k++) { const a = -Math.PI * 0.85 + k * 0.2, r = 110 + rnd() * 30, x = Math.cos(a) * r, z = Math.sin(a) * r;
+    for (let k = 0; k < 85; k++) { const a = rnd() * Math.PI * 2, r = 85 + rnd() * 60; blob(group, 3.2 + rnd() * 3.5, '#5f8f45', [Math.cos(a) * r, 3, Math.sin(a) * r], [1, 1.4, 1], 0).castShadow = false; }
+    for (let k = 0; k < 12; k++) { const a = -Math.PI * 0.85 + k * 0.18, r = 110 + rnd() * 40, x = Math.cos(a) * r, z = Math.sin(a) * r;
       box(group, 18, 7, 10, k % 2 ? '#9aa4ad' : '#b7aa96', [x, 3.5, z]).castShadow = false; cyl(group, 0.8, 1, 16, '#8a8178', [x + 6, 8, z], [0, 0, 0], 8).castShadow = false; }
   }
   if (kind === 'chittagong') {
-    ridge(26, 85, 130, -Math.PI * 0.45, Math.PI * 0.45, 22, 46, '#3d6a3a');
+    ridge(34, 85, 140, -Math.PI * 0.45, Math.PI * 0.45, 24, 52, '#3d6a3a');
     const t = new THREE.Group(); t.position.set(110, 34, -10); group.add(t); box(t, 3, 4, 3, '#f2ede2', [0, 2, 0]); cone(t, 2, 3, '#c9482e', [0, 5.5, 0], [0, Math.PI / 4, 0], 4); // Chandranath on its hill
-    for (let k = 0; k < 5; k++) { const z = -60 + k * 30, x = -110 - rnd() * 30; box(group, 6, 4, 26, k % 2 ? '#8a3a2a' : '#4a5a6a', [x, 1, z]).castShadow = false; box(group, 4, 5, 6, '#e8e4da', [x, 5, z - 8]).castShadow = false; cyl(group, 0.2, 0.2, 18, '#d6a020', [x + 10, 9, z + 4], [0, 0, 0], 5).castShadow = false; }
+    for (let k = 0; k < 7; k++) { const z = -60 + k * 26, x = -110 - rnd() * 35; box(group, 6, 4, 26, k % 2 ? '#8a3a2a' : '#4a5a6a', [x, 1, z]).castShadow = false; box(group, 4, 5, 6, '#e8e4da', [x, 5, z - 8]).castShadow = false; cyl(group, 0.2, 0.2, 18, '#d6a020', [x + 10, 9, z + 4], [0, 0, 0], 5).castShadow = false; }
   }
-  if (kind === 'rivers' || kind === 'char') for (let k = 0; k < 70; k++) { const a = rnd() * Math.PI * 2, r = 80 + rnd() * 50; blob(group, 3 + rnd() * 3, kind === 'char' ? '#7f9f55' : '#4f8a3c', [Math.cos(a) * r, 3, Math.sin(a) * r], [1, 1.4, 1], 0).castShadow = false; }
-  if (kind === 'char') for (let k = 0; k < 140; k++) { const x = -60 + rnd() * 120, z = 28 + rnd() * 14; cone(group, 0.35, 1.6, '#e9e4d6', [x, 0.8, z], [0, 0, (rnd() - 0.5) * 0.4], 4).castShadow = false; }
+  if (kind === 'rivers' || kind === 'char') for (let k = 0; k < 95; k++) { const a = rnd() * Math.PI * 2, r = 80 + rnd() * 70; blob(group, 3.2 + rnd() * 3.5, kind === 'char' ? '#7f9f55' : '#4f8a3c', [Math.cos(a) * r, 3, Math.sin(a) * r], [1, 1.4, 1], 0).castShadow = false; }
+  if (kind === 'char') for (let k = 0; k < 180; k++) { const x = -70 + rnd() * 140, z = 26 + rnd() * 18; cone(group, 0.35, 1.6, '#e9e4d6', [x, 0.8, z], [0, 0, (rnd() - 0.5) * 0.4], 4).castShadow = false; }
   if (kind === 'meghalaya') {
-    ridge(30, 110, 150, -Math.PI * 0.95, -Math.PI * 0.05, 30, 60, '#3a6a4a'); ridge(20, 160, 200, -Math.PI * 0.9, -Math.PI * 0.1, 60, 90, '#6a8a96');
+    ridge(38, 110, 160, -Math.PI * 0.95, -Math.PI * 0.05, 34, 68, '#3a6a4a'); ridge(26, 160, 220, -Math.PI * 0.9, -Math.PI * 0.1, 68, 102, '#6a8a96');
     box(group, 4, 40, 1, '#e8f4f8', [-30, 18, -128], [0.15, 0, 0]).castShadow = false; // a waterfall down the hills
   }
   if (kind === 'bagan') {
     // brick temples and white stupas across the plain, as at Bagan
-    for (let k = 0; k < 26; k++) {
-      const a = rnd() * Math.PI * 2, r = 75 + rnd() * 70, s = 1 + rnd() * 2.2, x = Math.cos(a) * r, z = Math.sin(a) * r, white = rnd() < 0.25;
+    for (let k = 0; k < 34; k++) {
+      const a = rnd() * Math.PI * 2, r = 75 + rnd() * 85, s = 1 + rnd() * 2.2, x = Math.cos(a) * r, z = Math.sin(a) * r, white = rnd() < 0.25;
       const t = new THREE.Group(); t.position.set(x, 0, z); t.scale.setScalar(s); group.add(t);
       const col = white ? '#f2ede2' : '#a8593a';
       box(t, 6, 3, 6, col, [0, 1.5, 0]); box(t, 4.4, 1.6, 4.4, col, [0, 3.8, 0]); box(t, 3, 1.2, 3, col, [0, 5.2, 0]);
       cone(t, 1.4, 4, white ? '#e2b84a' : col, [0, 7.8, 0], [0, 0, 0], 8);
     }
-    ridge(16, 170, 210, -Math.PI * 0.4, Math.PI * 0.4, 14, 24, '#8a8a7a');
+    ridge(22, 170, 230, -Math.PI * 0.4, Math.PI * 0.4, 16, 28, '#8a8a7a');
   }
 }
 
@@ -148,7 +153,7 @@ function sky() {
         vec3 q = floor(vP * 260.0); float st = step(0.9975, h(q)) * stars * smoothstep(0.0, 0.25, y); c += vec3(st);
         gl_FragColor = vec4(c, 1.0); }`,
   });
-  return new THREE.Mesh(new THREE.SphereGeometry(420, 32, 16), mat);
+  return new THREE.Mesh(new THREE.SphereGeometry(520, 32, 16), mat);
 }
 
 // Sky colours through the day: [phase, top, mid, low, sun light, sun intensity, hemi intensity]

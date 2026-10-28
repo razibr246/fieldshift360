@@ -27,19 +27,27 @@ const needWebGL = () => {
   if (!glOK) throw new Error('WebGL is not available');
 };
 
-// The cinematic grade, after tone mapping: a little more colour, a gentle S-curve, warm light and cooler shadows,
-// and a soft vignette.
+// The cinematic grade, after tone mapping: stronger saturation boost, a deeper S-curve, warm-light/cool-shadow
+// colour split, a soft vignette that darkens the corners, and a barely-visible film grain for texture.
 const GRADE = {
-  uniforms: { tDiffuse: { value: null } },
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     void main() {
       vec3 c = texture2D(tDiffuse, vUv).rgb;
       float l = dot(c, vec3(0.299, 0.587, 0.114));
-      c = mix(vec3(l), c, 1.14);
-      c = c + (c - 0.5) * 0.08 * (1.0 - abs(c - 0.5) * 2.0);
-      c += mix(vec3(-0.012, 0.0, 0.025), vec3(0.03, 0.012, -0.02), smoothstep(0.2, 0.8, l));
-      vec2 d = vUv - 0.5; c *= 1.0 - dot(d, d) * 0.55;
+      /* saturation +18% */
+      c = mix(vec3(l), c, 1.18);
+      /* S-curve contrast */
+      c = c + (c - 0.5) * 0.12 * (1.0 - abs(c - 0.5) * 2.0);
+      /* warm highlights, cool shadows */
+      c += mix(vec3(-0.016, 0.002, 0.032), vec3(0.038, 0.015, -0.024), smoothstep(0.15, 0.85, l));
+      /* vignette */
+      vec2 d = vUv - 0.5; c *= 1.0 - dot(d, d) * 0.72;
+      /* subtle grain */
+      float g = (hash(vUv + fract(uTime * 0.017)) - 0.5) * 0.022;
+      c += g;
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }`,
 };
@@ -50,22 +58,22 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 900);
+  const camera = new THREE.PerspectiveCamera(touch ? 60 : 52, 1, 0.1, 900);
   // on computers: ambient occlusion (contact shadows where things meet), a soft glow on bright light, the grade
-  let composer = null, gtao = null;
+  let composer = null, gtao = null, gradPass = null;
   if (!touch) {
     try {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
       gtao = new GTAOPass(scene, camera, 2, 2);
-      gtao.blendIntensity = 0.85; gtao.updateGtaoMaterial({ radius: 0.6, distanceExponent: 1.4, thickness: 1.2, scale: 1 });
+      gtao.blendIntensity = 0.9; gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.5, thickness: 1.3, scale: 1 });
       composer.addPass(gtao);
-      composer.addPass(new UnrealBloomPass(new THREE.Vector2(2, 2), 0.22, 0.45, 0.92));
+      composer.addPass(new UnrealBloomPass(new THREE.Vector2(2, 2), 0.32, 0.52, 0.88));
       composer.addPass(new OutputPass());
-      composer.addPass(new ShaderPass(GRADE));
+      gradPass = new ShaderPass(GRADE); composer.addPass(gradPass);
     } catch { composer = null; }
   }
   const world = createWorld(scene, g);
@@ -243,7 +251,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     const t = now / 1000;
     const inp = inputVector();
-    if (cam.intro > 0) { cam.introT += dt; if (cam.introT > 4.6) { cam.intro = 0; onEvent({ type: 'introDone' }); } }
+    if (cam.intro > 0) { cam.introT += dt; if (cam.introT > 5.2) { cam.intro = 0; onEvent({ type: 'introDone' }); } }
+    if (gradPass) gradPass.uniforms.uTime.value = t;
     if (!paused && cam.intro === 0) {
       if (keys.has('Space') || keys.has('KeyE') || keys.has('KeyF')) { keys.delete('Space'); keys.delete('KeyE'); keys.delete('KeyF'); simAct(g); }
       step(g, dt, inp);
@@ -271,8 +280,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     focus.x += rx; focus.z += rz;
     camPos.set(focus.x + Math.sin(cam.yaw) * Math.cos(pitch) * dist, gy + 1.45 + Math.sin(pitch) * dist, focus.z + Math.cos(cam.yaw) * Math.cos(pitch) * dist);
     if (cam.intro > 0) {
-      const k = ease((cam.introT - 0.6) / 3.8);
-      const top = tmpV.set(0, 170, 30);
+      const k = ease((cam.introT - 0.8) / 4.0);
+      const top = tmpV.set(0, 200, 50);
       camera.position.copy(top).lerp(camPos, k);
       camera.up.set(0, 1, 0); camera.lookAt(focus.x * k, focus.y * k, focus.z * k);
     } else {
@@ -339,7 +348,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     target: () => target(g),
     onPlot: () => plotAt(g.me.x, g.me.z) !== null,
     dispose() {
-      alive = false; cancelAnimationFrame(raf); ro.disconnect(); life.dispose(); composer?.dispose(); gtao?.dispose?.();
+      alive = false; cancelAnimationFrame(raf); ro.disconnect(); life.dispose(); composer?.dispose(); gtao?.dispose?.(); gradPass?.dispose?.();
       window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
       overlay.replaceChildren();
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
@@ -357,11 +366,12 @@ export function createPreview(canvas, look) {
   renderer.shadowMap.enabled = true;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
-  scene.add(new THREE.HemisphereLight('#fff6e8', '#5a6a3a', 1.4));
-  const key = new THREE.DirectionalLight('#fff1d6', 2.4); key.position.set(2.5, 4, 3); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
+  scene.add(new THREE.HemisphereLight('#fff6e0', '#4a6838', 1.6));
+  const key = new THREE.DirectionalLight('#fffbe8', 2.8); key.position.set(2.8, 4.5, 3.2); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
   // a tight shadow box round the figure, with bias, so cloth shows no shadow speckle
-  Object.assign(key.shadow.camera, { left: -1.4, right: 1.4, top: 2.4, bottom: -0.4, near: 1, far: 12 }); key.shadow.bias = -0.0006; key.shadow.normalBias = 0.02; scene.add(key);
-  const rim = new THREE.DirectionalLight('#bfe0ff', 1.2); rim.position.set(-3, 2, -3); scene.add(rim);
+  Object.assign(key.shadow.camera, { left: -1.5, right: 1.5, top: 2.6, bottom: -0.5, near: 1, far: 12 }); key.shadow.bias = -0.0005; key.shadow.normalBias = 0.018; scene.add(key);
+  const rim = new THREE.DirectionalLight('#c8e4ff', 1.4); rim.position.set(-3, 2.5, -3); scene.add(rim);
+  const fill = new THREE.DirectionalLight('#ffe8d0', 0.65); fill.position.set(1, 0.5, -3); scene.add(fill);
   const ground = new THREE.Mesh(new THREE.CircleGeometry(1.1, 40).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.25 })); ground.receiveShadow = true; scene.add(ground);
   let P = null, raf = 0, alive = true, last = performance.now(), mode = 'idle', spin = 0.35;
   const set = (lk) => { if (P) scene.remove(P.root); P = buildFarmer(lk); P.root.traverse((o) => { if (o.isMesh) o.castShadow = true; }); scene.add(P.root); };
