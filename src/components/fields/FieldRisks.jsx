@@ -6,7 +6,7 @@ import { useStore } from '../../store';
 import { Card, Tags } from '../ui';
 import { fieldRisks } from '../../engine/risks';
 import { fieldTerrain } from '../../engine/briefs';
-import { landSummary } from '../../engine/landsat';
+import { landSummary, fieldGreen } from '../../engine/landsat';
 
 const ICON = { wet: Waves, erosion: Mountain, heat: Thermometer, cold: Snowflake, dry: Sun, stress: Leaf };
 const LEVEL = [
@@ -19,7 +19,7 @@ const LEVEL = [
 export default function FieldRisks({ parcel, tm: tmIn, upazilaId }) {
   const { T, L, tm: tmMine, upazila } = useStore();
   const tm = tmIn ?? tmMine, upz = upazilaId ?? upazila.id;
-  const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(parcel?.id), tm, land: landSummary(upz) }), [parcel?.id, tm, upz]);
+  const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(parcel?.id), tm, land: landSummary(upz), field: fieldGreen(parcel?.id, upz) }), [parcel?.id, tm, upz]);
   if (!risks.length) return null;
   const high = risks.filter((r) => r.level === 2);
   return (

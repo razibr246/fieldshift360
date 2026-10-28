@@ -4,6 +4,7 @@
 // leanest months (when the area's fields most often lie bare), each Rabi season's greenness against its usual (years of
 // vegetation stress), and how the ground heat of the hot months has changed. Pure. [REAL data in, RULE logic]
 import LAND from '../data/land/land_sat.json' with { type: 'json' };
+import FIELDS from '../data/land/field_ndvi.json' with { type: 'json' };
 
 export const LAND_SOURCE = LAND.provenance;
 export const landRecord = (id) => LAND.points[id] ?? null;
@@ -60,5 +61,24 @@ export function landSummary(id) {
     heat: groundHeat(p.lst), lstCycle: monthlyCycle(p.lst), evapCycle: monthlyCycle(p.evap),
     evapYear: monthlyCycle(p.evap).reduce((a, v, i) => a + (v ?? 0) * [31, 28.25, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][i], 0),
     years: [Math.min(...Object.keys(p.ndvi).map((k) => +k.slice(0, 4))), Math.max(...Object.keys(p.ndvi).map((k) => +k.slice(0, 4)))],
+  };
+}
+
+// ── each registered field's own record: MODIS 250 m NDVI (scripts/fetch/modis-fields.mjs) ──
+export const FIELD_NDVI_SOURCE = FIELDS.provenance;
+
+// One field's Rabi greenness year by year (January–February, against its own trend), its stressed seasons, and how
+// green its Rabi runs against the area's (the 5 km record). Null until enough years have been fetched.
+export function fieldGreen(fieldId, upazilaId) {
+  const s = FIELDS.fields?.[fieldId];
+  if (!s) return null;
+  const rabi = rabiGreenness(s, [1, 2]);
+  if (rabi.length < 12) return null;
+  const area = LAND.points[upazilaId]?.ndvi;
+  const janFeb = (ser) => mean(Object.entries(ser).filter(([k]) => ['01', '02'].includes(k.slice(5, 7)) && +k.slice(0, 4) >= 2016).map(([, v]) => v));
+  const mine = janFeb(s), theirs = area ? janFeb(area) : null;
+  return {
+    rabi, stressYears: rabi.filter((r) => r.stress).map((r) => r.y), years: [rabi[0].y, rabi[rabi.length - 1].y],
+    rabiNdvi: mine, areaNdvi: theirs, vsArea: theirs != null ? mine - theirs : null,
   };
 }

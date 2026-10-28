@@ -92,3 +92,16 @@ test('a field’s risk card names water, erosion, heat, cold, a dry Rabi and str
   assert.ok(r.every((x) => [0, 1, 2].includes(x.level) && x.title.bn && x.value.en && x.note.en));
   assert.equal(fieldRisks({ terrain: null, tm: null, land: null }).length, 0);
 });
+
+test('registered fields have their own 250 m MODIS Rabi record since 2001, compared with their area', async () => {
+  const { fieldGreen } = await import('./landsat.js');
+  const { readFileSync } = await import('node:fs');
+  const { parcels } = JSON.parse(readFileSync(new URL('../data/fields/parcels.json', import.meta.url)));
+  const have = parcels.map((p) => fieldGreen(p.id, p.upazila)).filter(Boolean);
+  assert.ok(have.length >= 18, `only ${have.length} fields have a record`);
+  for (const g of have) {
+    assert.ok(g.years[0] <= 2002 && g.years[1] >= 2025);
+    assert.ok(g.rabiNdvi > 0.1 && g.rabiNdvi < 0.9 && g.areaNdvi > 0.1);
+    assert.ok(g.stressYears.length <= 8);
+  }
+});

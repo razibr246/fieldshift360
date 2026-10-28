@@ -10,7 +10,8 @@ const lvl = (v, some, high) => (v >= high ? 2 : v >= some ? 1 : 0);
 const n = (v, dp = 0) => ({ bn: num(v, 'bn', { dp }), en: num(v, 'en', { dp }) });
 
 // terrain: field_terrain.json row or null; tm: timeMachine(clim) of the field's upazila; land: landSummary(upazila)
-export function fieldRisks({ terrain, tm, land }) {
+// field: fieldGreen(fieldId, upazilaId) or null; when present the stressed seasons are the field's own (250 m).
+export function fieldRisks({ terrain, tm, land, field = null }) {
   const out = [];
   const tr = terrainRisk(terrain);
   if (tr) {
@@ -49,7 +50,14 @@ export function fieldRisks({ terrain, tm, land }) {
       value: t(`নভেম্বর-ফেব্রুয়ারিতে গড়ে ${n(now).bn} মিমি বৃষ্টি`, `${n(now).en} mm of rain on average from November to February`),
       note: t('রবির ফসল প্রায় পুরোটাই সেচে চলে: কম পানির ফসল আর পাম্পের পালা খরচ বাঁচায়।', 'The Rabi crop runs almost wholly on irrigation: low-water crops and shared pump turns save money.') });
   }
-  if (land) {
+  if (field) {
+    const recent = field.stressYears.filter((y) => y >= field.years[1] - 15);
+    const vs = field.vsArea;
+    out.push({ k: 'stress', level: lvl(recent.length, 1, 3), src: 'MODIS 250 m',
+      title: t('এই জমির ফসলের চাপের বছর', 'Years this field’s crop was stressed'),
+      value: t(`গত ১৫ বছরে ${n(recent.length).bn}টি রবিতে জমি স্পষ্ট কম সবুজ${vs != null ? `; রবিতে এলাকার চেয়ে ${vs >= 0 ? 'বেশি' : 'কম'} সবুজ (NDVI ${vs >= 0 ? '+' : '−'}${n(Math.abs(vs), 2).bn})` : ''}`, `${recent.length} Rabi seasons in the last 15 years clearly less green${vs != null ? `; ${vs >= 0 ? 'greener' : 'less green'} than the area in the Rabi (NDVI ${vs >= 0 ? '+' : '−'}${n(Math.abs(vs), 2).en})` : ''}`),
+      note: recent.length ? t(`বছরগুলো: ${recent.map((y) => n(y).bn.replace(',', '')).join(', ')}। খরা, গরম বা দেরিতে লাগানোর মৌসুম মনে পড়ে কি? এমন বছরে কম ঝুঁকির ফসলচক্র কাজে দেয়।`, `The years: ${recent.join(', ')}. Do you remember drought, heat or late sowing then? A lower-risk rotation pays in such years.`) : t('গত ১৫ বছরে এই জমির কোনো রবি স্পষ্ট চাপে ছিল না।', 'No Rabi in the last 15 years left this field clearly stressed.') });
+  } else if (land) {
     const recent = land.stressYears.filter((y) => y >= land.years[1] - 15);
     out.push({ k: 'stress', level: lvl(recent.length, 1, 3), src: 'MODIS',
       title: t('ফসলের চাপের বছর', 'Years the crops were stressed'),

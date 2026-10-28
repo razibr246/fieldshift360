@@ -13,6 +13,7 @@
     "fetch:cmip6": "node scripts/fetch/cmip6.mjs",
     "fetch:giovanni": "node scripts/fetch/giovanni.mjs",
     "fetch:land": "node scripts/fetch/gibs-land.mjs",
+    "fetch:fields-ndvi": "node scripts/fetch/modis-fields.mjs",
     "fetch:neighbours": "python3 scripts/build/build_neighbours.py",
     "fetch:power": "node scripts/fetch/power.mjs",
     "fetch:sedac": "node scripts/fetch/sedac.mjs",
