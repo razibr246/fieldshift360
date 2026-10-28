@@ -1,0 +1,108 @@
+{
+ "provenance": {
+  "status": "REAL",
+  "dataset": "NASA SRTM 1 arc-second global (SRTMGL1, about 30 m), via Open Topo Data",
+  "url": "https://www.opentopodata.org/datasets/srtm/",
+  "nasa": "https://lpdaac.usgs.gov/products/srtmgl1v003/",
+  "retrieved": "2026-10-28",
+  "method": "height at the field; relief = field height − mean of 8 points 500 m round it; slope = steepest fall to 8 points 150 m round it",
+  "caveat": "SRTM is the surface in February 2000 (crop, tree and roof tops included) with a few metres of error: coarse classes for local review, not a survey"
+ },
+ "fields": {
+  "DHM-CH-0142": {
+   "elev": 10,
+   "relief": -1.2,
+   "slope": 2.7
+  },
+  "DHM-CH-0377": {
+   "elev": 11,
+   "relief": 0,
+   "slope": 1.3
+  },
+  "DHM-BL-0218": {
+   "elev": 8,
+   "relief": -1.6,
+   "slope": 4
+  },
+  "DHM-JD-0093": {
+   "elev": 9,
+   "relief": -2.9,
+   "slope": 2.7
+  },
+  "GDG-DP-0311": {
+   "elev": 20,
+   "relief": -0.9,
+   "slope": 1.3
+  },
+  "GDG-DP-0587": {
+   "elev": 18,
+   "relief": -2.4,
+   "slope": 2.7
+  },
+  "GDG-GG-0144": {
+   "elev": 20,
+   "relief": -1.9,
+   "slope": 3.3
+  },
+  "GDG-CA-0062": {
+   "elev": 21,
+   "relief": -0.2,
+   "slope": 0.7
+  },
+  "SIT-SA-0101": {
+   "elev": 8,
+   "relief": 0,
+   "slope": 2
+  },
+  "SIT-SA-0102": {
+   "elev": 9,
+   "relief": 1.5,
+   "slope": 1.3
+  },
+  "DAC-TI-0201": {
+   "elev": 3,
+   "relief": -1.1,
+   "slope": 3.3
+  },
+  "DAC-TI-0202": {
+   "elev": 4,
+   "relief": 0.8,
+   "slope": 1.3
+  },
+  "BAK-GA-0301": {
+   "elev": 5,
+   "relief": -1.1,
+   "slope": 4
+  },
+  "BAK-GA-0302": {
+   "elev": 4,
+   "relief": -1.1,
+   "slope": 3.3
+  },
+  "BAK-GA-0303": {
+   "elev": 4,
+   "relief": -2.5,
+   "slope": 2.7
+  },
+  "GAN-KO-0401": {
+   "elev": 37,
+   "relief": -2,
+   "slope": 2.7
+  },
+  "GAN-KO-0402": {
+   "elev": 38,
+   "relief": 1.4,
+   "slope": 2
+  },
+  "GOW-RU-0501": {
+   "elev": 12,
+   "relief": -2.7,
+   "slope": 4
+  },
+  "GOW-RU-0502": {
+   "elev": 14,
+   "relief": -1.7,
+   "slope": 1.3
+  }
+ }
+}

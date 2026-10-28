@@ -1,7 +1,7 @@
 // Field Future: this field over the next ten years under its usual rotation, the best rotation found for it, and the
 // farmer's own, in today's weather and in NASA's projections for the 2040s. Engine: engine/soilfuture.js.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Clapperboard, Printer, Play, Pause, RotateCcw, Telescope, Leaf, Droplets, Coins, Bug, Thermometer, CloudRain, Recycle, CheckCircle2, Sprout, FlaskConical, Wand2, Flame, Scale, ShieldCheck, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
@@ -16,6 +16,9 @@ import { bnOf } from '../../engine/text';
 import SatWater from '../../components/charts/SatWater';
 import FieldStory from '../../components/story/FieldStory';
 import RotationPoster from '../../components/story/RotationPoster';
+import StrategyBriefs from '../../components/future/StrategyBriefs';
+import LandFromSpace from '../../components/future/LandFromSpace';
+import { fieldTerrain } from '../../engine/briefs';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
 import { num, bnDigits, fmtDate } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
@@ -86,7 +89,9 @@ export default function FieldFuture() {
         { id: 'ff-time', label: T('মাটির টাইম মেশিন', 'Soil time machine') },
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
+        { id: 'ff-why', label: T('কেন ও কী ঝুঁকি', 'Why and risks') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
+        { id: 'ff-land', label: T('মহাকাশ থেকে', 'From space') },
         { id: 'ff-water', label: T('মাটির পানি', 'Soil water') },
         { id: 'ff-build', label: T('নিজে বানান', 'Build your own') },
         { id: 'ff-all', label: T('সব ফসলচক্র', 'Every rotation') },
@@ -114,8 +119,15 @@ export default function FieldFuture() {
       {show === 'story' && <FieldStory ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
+      <StrategyBriefs sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} list={[
+        { id: 'habit', kind: 'habit', e: ff.habit, name: T('এখনকার মতো', 'As now') },
+        ...(ff.plan && ff.plan !== ff.habit ? [{ id: 'plan', kind: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা', 'This season’s plan') }] : []),
+        { id: 'best', kind: 'best', e: ff.best, name: T('সেরা ফসলচক্র', 'Best rotation') },
+        { id: 'own', kind: 'own', e: ownE, name: T('আপনার বানানো', 'Your own') },
+      ]} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
+      <LazyMount id="ff-land" height={560}><LandFromSpace upazila={upazila.id} place={upazila.name} /></LazyMount>
       <LazyMount id="ff-water" height={760}><SoilWater ff={ff} sumOf={sumOf} /></LazyMount>
       <div ref={builder}><Builder ctx={ctx} rot={ownRot} setRot={setOwn} e={ownE} sumOf={sumOf} best={ff.best} /></div>
       <LazyMount id="ff-all" height={820}><Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} /></LazyMount>
@@ -873,6 +885,7 @@ function Method({ ctx, ff }) {
   return (
     <Card id="ff-method" className="mt-5 scroll-mt-40 p-4 sm:p-5">
       <h2 className="flex items-center gap-2 text-[20px] font-bold"><FlaskConical size={20} className="text-primary-700" />{T('কীভাবে হিসাব করা', 'How it is worked out')}</h2>
+      <p className="mt-1 text-[13.5px] text-muted">{T('কঠিন শব্দের মানে, আলাদা মাপের তথ্য কীভাবে মেলানো হয় আর কতটা নিশ্চিত: ', 'What the hard words mean, how data at different scales is combined, and how sure it is: ')}<Link to="/science" className="font-semibold text-primary-700 underline-offset-4 hover:underline">{T('সহজ ভাষায় বিজ্ঞান', 'the science, plainly')}</Link></p>
       <dl className="mt-3 grid gap-3 md:grid-cols-2">
         {items.map(([k, v]) => <div key={k} className="rounded-xl bg-black/[.025] p-3"><dt className="text-[14px] font-bold">{k}</dt><dd className="mt-1 text-[13.5px] leading-6 text-muted">{v}</dd></div>)}
       </dl>
