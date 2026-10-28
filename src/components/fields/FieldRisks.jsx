@@ -49,7 +49,7 @@ export default function FieldRisks({ parcel, tm: tmIn, upazilaId }) {
           );
         })}
       </ul>
-      <p className="mt-3 text-[12.5px] leading-5 text-muted">{T('উচ্চতা SRTM-এর (২০০০ সালের উপরিতল, কয়েক মিটার ভুল থাকতে পারে); আবহাওয়া উপজেলার, জমির নয়। মাঠে দাঁড়িয়ে দেখা আর অভিজ্ঞ কৃষকের কথাই শেষ।', 'Heights are SRTM’s (the surface in 2000, with metres of error); the weather is the upazila’s, not the field’s. What you see standing in the field, and what experienced farmers say, comes first.')}</p>
+      <p className="mt-3 text-[12.5px] leading-5 text-muted">{T('উচ্চতা নাসার দুটি মডেলের (SRTM আর ASTER) গড়; দুটোই ফসল-গাছের ওপরের তল দেখে, তাই কয়েক মিটার ভুল থাকতে পারে, প্রতিটি জমির অমিল পাশে লেখা; আবহাওয়া উপজেলার, জমির নয়। মাঠে দাঁড়িয়ে দেখা আর অভিজ্ঞ কৃষকের কথাই শেষ।', 'Heights are the mean of two NASA models (SRTM and ASTER); both see crop and tree tops, so metres of error remain, and each field’s disagreement is shown; the weather is the upazila’s, not the field’s. What you see standing in the field, and what experienced farmers say, comes first.')}</p>
     </Card>
   );
 }

@@ -20,13 +20,16 @@ export { FODDER };
 export const DEEP_ROOT = ['mustard', 'sesame', 'jute'];
 const cropsOf = (rot) => [...new Set(rot.cycle.flatMap((y) => [y.rabi, y.k1]).filter((id) => id && id !== 'fallow'))];
 
-// Waterlogging and flood exposure, and erosion, from the field's SRTM terrain (field_terrain.json). Coarse on purpose:
-// SRTM has metres of error, so only clear hollows, low coastal land and clearly sloping ground are named.
+// Waterlogging and flood exposure, and erosion, from the field's terrain (field_terrain.json: SRTM and ASTER averaged).
+// Both models read crop, tree and roof tops and sit a few metres high over the delta, so land at 7 m or less counts as
+// low land tide or flood water can reach. A hollow is named only when it is deeper than half the two models'
+// disagreement at that field (`spread`); a shallower dip is 'some'. Slope is a plane fitted out to 500 m.
 export function terrainRisk(tr) {
   if (!tr) return null;
-  const wet = tr.elev <= 5 ? 'coast' : tr.relief <= -1.5 ? 'hollow' : tr.relief <= -0.5 ? 'some' : 'none';
-  const erosion = tr.slope >= 8 ? 'high' : tr.slope >= 5 ? 'some' : 'none';
-  return { wet, erosion, ...tr };
+  const sure = Math.abs(tr.relief) >= (tr.spread ?? 0) / 2;
+  const wet = tr.elev <= 7 ? 'coast' : tr.relief <= -1.5 && sure ? 'hollow' : tr.relief <= -0.5 ? 'some' : 'none';
+  const erosion = tr.slope >= 5 ? 'high' : tr.slope >= 2 ? 'some' : 'none';
+  return { wet, erosion, sure, ...tr };
 }
 
 // s: this strategy's summary (evaluate().sNow or .sFut); b: farming as now's; rot: the rotation; kind: 'habit' | 'best'
@@ -65,7 +68,7 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   evidence.push(t(`সেচ: FAO-56 পদ্ধতিতে নাসা POWER-এর আবহাওয়া থেকে, বিঘায় বছরে প্রায় ${num(Math.round(s.waterMm * WATER_M3_PER_MM_BIGHA), 'bn')} ঘনমিটার।`, `Irrigation: the FAO-56 method on NASA POWER weather, about ${Math.round(s.waterMm * WATER_M3_PER_MM_BIGHA)} m³ per bigha a year.`));
   evidence.push(t('আয়: FAOSTAT-এর জাতীয় ফলন × প্রকাশিত দাম ও খরচ (কৃষি বিপণন অধিদপ্তর ও অন্যান্য সূত্র)।', 'Income: FAOSTAT national yields × published prices and costs (Department of Agricultural Marketing and others).'));
   if (world === 'fut') evidence.push(t('২০৪০-এর দশক: নাসার NEX-GDDP-CMIP6, আটটি জলবায়ু মডেলের মাসিক পরিবর্তন।', 'The 2040s: NASA NEX-GDDP-CMIP6, the monthly change in eight climate models.'));
-  if (terrain) evidence.push(t(`জমির ঢাল আর উচ্চতা: নাসার SRTM (৩০ মিটার), জমি সমুদ্র থেকে ${num(terrain.elev, 'bn', { dp: 0 })} মিটার উঁচু, চারপাশের চেয়ে ${num(Math.abs(terrain.relief), 'bn', { dp: 1 })} মিটার ${terrain.relief < 0 ? 'নিচু' : 'উঁচু'}।`, `Lie of the land: NASA SRTM (30 m); the field stands ${terrain.elev.toFixed(0)} m above sea level, ${Math.abs(terrain.relief).toFixed(1)} m ${terrain.relief < 0 ? 'below' : 'above'} the land round it.`));
+  if (terrain) evidence.push(t(`জমির ঢাল আর উচ্চতা: নাসার দুটি উচ্চতা-মডেল (SRTM আর ASTER, ৩০ মিটার) মিলিয়ে, জমি সমুদ্র থেকে ${num(terrain.elev, 'bn', { dp: 0 })} মিটার উঁচু, চারপাশের চেয়ে ${num(Math.abs(terrain.relief), 'bn', { dp: 1 })} মিটার ${terrain.relief < 0 ? 'নিচু' : 'উঁচু'}।`, `Lie of the land: two NASA elevation models (SRTM and ASTER, 30 m) averaged; the field stands ${terrain.elev.toFixed(0)} m above sea level, ${Math.abs(terrain.relief).toFixed(1)} m ${terrain.relief < 0 ? 'below' : 'above'} the land round it.`));
 
   // ── benefits ──
   if (kind === 'habit') benefits.push(t('চেনা ফসল, চেনা বাজার, যন্ত্র আর বীজ হাতের কাছে।', 'Familiar crops and markets, with machines and seed at hand.'));
@@ -95,7 +98,7 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   }
   const tr = terrainRisk(terrain);
   const wetShy = crops.filter((id) => cropOf(id)?.waterlog === 'high' || cropOf(id)?.wellDrained);
-  if (tr && (tr.wet === 'hollow' || tr.wet === 'coast') && wetShy.length) risks.push(t(`জমিটা ${tr.wet === 'coast' ? 'উপকূলের নিচু জমি' : 'চারপাশের চেয়ে নিচু, বৃষ্টির পানি জমে'}; ${list(wetShy, 'bn')} জলাবদ্ধতা সহ্য করে না। নালা কাটা বা উঁচু বেড দরকার কি না দেখুন।`, `The field is ${tr.wet === 'coast' ? 'low coastal land' : 'lower than the land round it, where rain gathers'}; ${list(wetShy, 'en')} cannot stand waterlogging. Check whether drains or raised beds are needed.`));
+  if (tr && (tr.wet === 'hollow' || tr.wet === 'coast') && wetShy.length) risks.push(t(`জমিটা ${tr.wet === 'coast' ? 'নিচু জমি, জোয়ার বা বন্যার পানি আসতে পারে' : 'চারপাশের চেয়ে নিচু, বৃষ্টির পানি জমে'}; ${list(wetShy, 'bn')} জলাবদ্ধতা সহ্য করে না। নালা কাটা বা উঁচু বেড দরকার কি না দেখুন।`, `The field is ${tr.wet === 'coast' ? 'low land that tide or flood water can reach' : 'lower than the land round it, where rain gathers'}; ${list(wetShy, 'en')} cannot stand waterlogging. Check whether drains or raised beds are needed.`));
   if (tr && tr.erosion !== 'none') risks.push(t('জমিতে ঢাল আছে: খালি মাসে বৃষ্টিতে মাটি ধুয়ে যেতে পারে; ঢাল বরাবর নয়, আড়াআড়ি চাষ দিন।', 'The field slopes: rain can wash soil off in bare months; plough across the slope, not down it.'));
   risks.push(t('এটা মডেলের হিসাব, পূর্বাভাস নয়; শুরু করার আগে কৃষি কর্মকর্তা আর অভিজ্ঞ কৃষকের সঙ্গে কথা বলুন।', 'These are model estimates, not forecasts; talk to your agriculture officer and experienced farmers before you start.'));
   return { why, evidence, benefits, gaps, risks };

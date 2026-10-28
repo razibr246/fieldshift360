@@ -15,16 +15,16 @@ export function fieldRisks({ terrain, tm, land }) {
   const tr = terrainRisk(terrain);
   if (tr) {
     const level = tr.wet === 'coast' || tr.wet === 'hollow' ? 2 : tr.wet === 'some' ? 1 : 0;
-    out.push({ k: 'wet', level, src: 'SRTM',
+    out.push({ k: 'wet', level, src: 'SRTM · ASTER',
       title: t('পানি জমা, বন্যা', 'Water gathering, flooding'),
-      value: t(`সমুদ্র থেকে ${n(tr.elev).bn} মিটার, চারপাশের চেয়ে ${n(Math.abs(tr.relief), 1).bn} মিটার ${tr.relief < 0 ? 'নিচু' : 'উঁচু'}`, `${n(tr.elev).en} m above sea level, ${n(Math.abs(tr.relief), 1).en} m ${tr.relief < 0 ? 'below' : 'above'} the land round it`),
-      note: level === 2 ? t(tr.wet === 'coast' ? 'উপকূলের নিচু জমি: জোয়ার, লবণ আর বর্ষার পানি জমার ঝুঁকি। নালা আর উঁচু বেড ভেবে দেখুন।' : 'জমি চারপাশের চেয়ে নিচু: ভারী বৃষ্টির পর পানি জমে। সরিষা, ডাল, তিলের মতো ফসলে নালা দরকার।', tr.wet === 'coast' ? 'Low coastal land: tides, salt and standing monsoon water. Consider drains and raised beds.' : 'The field sits lower than the land round it: water stands after heavy rain. Mustard, pulses and sesame need drains here.')
+      value: t(`সমুদ্র থেকে ${n(tr.elev).bn} মিটার, চারপাশের চেয়ে ${n(Math.abs(tr.relief), 1).bn} মিটার ${tr.relief < 0 ? 'নিচু' : 'উঁচু'} (দুই মডেলের অমিল ±${n((tr.spread ?? 0) / 2, 1).bn} মিটার)`, `${n(tr.elev).en} m above sea level, ${n(Math.abs(tr.relief), 1).en} m ${tr.relief < 0 ? 'below' : 'above'} the land round it (the two models differ by ±${n((tr.spread ?? 0) / 2, 1).en} m)`),
+      note: level === 2 ? t(tr.wet === 'coast' ? 'নিচু জমি: জোয়ার, বন্যা বা বর্ষার পানি জমার ঝুঁকি; উপকূলে লবণও। নালা আর উঁচু বেড ভেবে দেখুন।' : 'জমি চারপাশের চেয়ে নিচু: ভারী বৃষ্টির পর পানি জমে। সরিষা, ডাল, তিলের মতো ফসলে নালা দরকার।', tr.wet === 'coast' ? 'Low land: tide, flood or monsoon water can stand here, and salt near the coast. Consider drains and raised beds.' : 'The field sits lower than the land round it: water stands after heavy rain. Mustard, pulses and sesame need drains here.')
         : level === 1 ? t('সামান্য নিচু: বড় বৃষ্টির পর নজর রাখুন।', 'Slightly low: watch it after heavy rain.') : t('পানি সহজে নেমে যায়।', 'Water runs off easily.') });
     const bare = land?.green.lean.length ?? 0;
     const elevel = tr.erosion === 'high' ? 2 : tr.erosion === 'some' ? 1 : 0;
-    out.push({ k: 'erosion', level: elevel, src: 'SRTM · MODIS',
+    out.push({ k: 'erosion', level: elevel, src: 'SRTM · ASTER · MODIS',
       title: t('মাটি ধুয়ে যাওয়া', 'Soil washing away'),
-      value: t(`ঢাল ${n(tr.slope, 1).bn}%; এলাকার জমি বছরে প্রায় ${n(bare).bn} মাস কম সবুজ`, `slope ${n(tr.slope, 1).en}%; the area’s fields are least green about ${bare} months a year`),
+      value: t(`ঢাল ${n(tr.slope, 2).bn}%; এলাকার জমি বছরে প্রায় ${n(bare).bn} মাস কম সবুজ`, `slope ${n(tr.slope, 2).en}%; the area’s fields are least green about ${bare} months a year`),
       note: elevel ? t('ঢালু জমি: খালি মাসে মাটি ঢেকে রাখুন, ঢাল বরাবর নয়, আড়াআড়ি চাষ দিন।', 'Sloping land: keep it covered in the bare months, and plough across the slope, not down it.')
         : t('সমতল জমি, ধুয়ে যাওয়ার ঝুঁকি কম; তবু খালি মাসে একটা ফসল মাটিকে ভালো রাখে।', 'Flat land, little risk of washing away; still, a crop in the bare months keeps the soil better.') });
   }
