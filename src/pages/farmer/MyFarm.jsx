@@ -6,6 +6,7 @@ import Photo from '../../components/Photo';
 import LandPicker from '../../components/map/LandPicker';
 import FieldsMap, { LEVEL_LOOK } from '../../components/fields/FieldsMap';
 import FieldSatellite from '../../components/fields/FieldSatellite';
+import FieldRisks from '../../components/fields/FieldRisks';
 import { seriesNow } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { num, fmtDate, fmtBangla, todayDhaka } from '../../engine/dates';
@@ -98,6 +99,7 @@ export default function MyFarm() {
             <div data-tour="farm-sat"><FieldSatellite key={selected.id} parcel={selected} index={selIndex} active={selected.id === activeParcel?.id}
               onPlan={planThis} onEdit={() => openEditor('edit')} onReading={(id, r) => setLive((x) => (x[id] === r ? x : { ...x, [id]: r }))} /></div>
           )}
+          {selected && editing !== 'add' && <FieldRisks parcel={selected} />}
         </>
       ) : null}
 

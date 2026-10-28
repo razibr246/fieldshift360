@@ -80,3 +80,15 @@ test('the what-if sliders replay the same seasons warmer and wetter or drier', a
   assert.equal(w.val('tmax', t), c.val('tmax', t) + 2);
   assert.equal(w.val('prec', t), c.val('prec', t) * 0.5);
 });
+
+test('a field’s risk card names water, erosion, heat, cold, a dry Rabi and stressed years, each with its level', async () => {
+  const { fieldRisks } = await import('./risks.js');
+  const { makeClimate, timeMachine } = await import('./climate.js');
+  const { readFileSync } = await import('node:fs');
+  const tm = timeMachine(makeClimate(JSON.parse(readFileSync(new URL('../data/climate/climate_dacope.json', import.meta.url)))));
+  const r = fieldRisks({ terrain: fieldTerrain('DAC-TI-0201'), tm, land: landSummary('dacope') });
+  assert.deepEqual(r.map((x) => x.k), ['wet', 'erosion', 'heat', 'cold', 'dry', 'stress']);
+  assert.equal(r[0].level, 2, 'low coastal land');
+  assert.ok(r.every((x) => [0, 1, 2].includes(x.level) && x.title.bn && x.value.en && x.note.en));
+  assert.equal(fieldRisks({ terrain: null, tm: null, land: null }).length, 0);
+});
