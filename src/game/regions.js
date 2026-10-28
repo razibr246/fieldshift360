@@ -22,7 +22,7 @@ export const SPOTS = {
   safe: { x: 3, z: -29, r: 6.5 },
   house: { x: -21, z: -15 },
 };
-export const WORLD_R = 44; // the farmer can walk this far from the middle
+export const WORLD_R = 80; // the farmer can walk this far from the middle (the farm lies within about 44)
 
 const q = (bn, en) => ({ bn, en });
 const ok = (bn, en) => ({ bn, en, ok: true });

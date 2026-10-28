@@ -259,7 +259,11 @@ function stepFarmer(g, dt, input) {
     me.idle = 0;
     let nx = me.x + me.vx * dt, nz = me.z + me.vz * dt;
     if (inWater(g.L, nx, nz)) { if (!inWater(g.L, nx, me.z)) nz = me.z; else if (!inWater(g.L, me.x, nz)) nx = me.x; else { nx = me.x; nz = me.z; } }
-    [me.x, me.z] = resolve(g.L, nx, nz);
+    const [rx, rz] = resolve(g.L, nx, nz);
+    // ran into a wall, a tree or the water's edge: a thud, and the speed is gone
+    const blocked = Math.hypot(rx - (me.x + me.vx * dt), rz - (me.z + me.vz * dt));
+    if (blocked > 0.02 && me.speed > 2.6 && g.t - (me.bumpAt ?? -9) > 0.7) { me.bumpAt = g.t; me.vx *= 0.25; me.vz *= 0.25; sound(g, 'bump'); }
+    [me.x, me.z] = [rx, rz];
     return;
   }
   // a habit of their own when left alone

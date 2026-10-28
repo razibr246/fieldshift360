@@ -4,7 +4,7 @@
 // warnings on the phone. The 3D world lives in src/game/three; the rules in src/game/sim.js.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Coins, Droplets, ShoppingBasket, Satellite, Smartphone, Volume2, VolumeX, Hand, Sun, Moon, CloudLightning, Bug, TrendingDown, Star, RotateCcw, Users, Sprout, Check, X, ArrowRight, Sparkles, Info, Pause, Play, LogOut, MapPin, ShieldAlert, Footprints, Keyboard, Globe2 } from 'lucide-react';
+import { Music, Gauge, Coins, Droplets, ShoppingBasket, Satellite, Smartphone, Volume2, VolumeX, Hand, Sun, Moon, CloudLightning, Bug, TrendingDown, Star, RotateCcw, Users, Sprout, Check, X, ArrowRight, Sparkles, Info, Pause, Play, LogOut, MapPin, ShieldAlert, Footprints, Keyboard, Globe2 } from 'lucide-react';
 import { useStore } from '../../store';
 import { scrollToTop } from '../../components/Motion';
 import { num } from '../../engine/dates';
@@ -12,10 +12,14 @@ import { bnOf } from '../../engine/text';
 import { REGIONS, FARMER_IDS, BD_IDS, ABROAD_IDS, QUESTS, NDVI_LEGEND } from '../../game/regions';
 import { PLACES } from '../../game/places';
 import { createGame, buy, answerQuiz, priceOf, dayOf, isNight, clock, quizOf, canMax, target, ripeAt } from '../../game/sim';
-import { createStage, createPreview, portraits } from '../../game/three/stage';
-import { play, setMuted } from '../../game/sound';
+import { createStage, createPreview, portraits, QUALITY_KEY } from '../../game/three/stage';
+import { play, setMuted, startAmbience, stopAmbience, setScene, setMusic } from '../../game/sound';
 
 const MUTE_KEY = 'fs360.game.muted';
+const MUSIC_KEY = 'fs360.game.music';
+const BEST_KEY = 'fs360.game.best';
+const readBest = () => { try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); } catch { return {}; } };
+export const starsOf = (r) => { const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0; return lost <= 1 && !hurt ? 3 : lost <= 4 ? 2 : 1; };
 const fill = (s, R) => s.replace('{cur}', R.cur);
 // The compass strip: a mark every 15°, letters at the eight points (Bangla উ পূ দ প, or N E S W).
 const POINTS = { 0: ['উ', 'N'], 45: ['উপূ', 'NE'], 90: ['পূ', 'E'], 135: ['দপূ', 'SE'], 180: ['দ', 'S'], 225: ['দপ', 'SW'], 270: ['প', 'W'], 315: ['উপ', 'NW'] };
@@ -64,6 +68,10 @@ const stage = (cc) => `radial-gradient(110% 80% at 50% 85%, ${TONE[cc][0]}55, tr
 function SelectScreen({ who, setWho, onGo }) {
   const { T, L } = useStore();
   const pics = usePortraits();
+  const best = readBest();
+  const won = FARMER_IDS.filter((id) => best[id]).length;
+  const [light, setLight] = useState(() => { try { return localStorage.getItem(QUALITY_KEY) === 'light'; } catch { return false; } });
+  const setQuality = (v) => { setLight(v); try { localStorage.setItem(QUALITY_KEY, v ? 'light' : 'full'); } catch { /* storage unavailable */ } };
   const R = REGIONS[who], F = R.farmer;
   return (
     <section className="scene-in">
@@ -113,6 +121,7 @@ function SelectScreen({ who, setWho, onGo }) {
                         <span className="font-display block truncate text-[16px] font-bold leading-tight text-ink group-hover:text-primary-900 transition-colors">{L(r.farmer)}</span>
                         <span className="block truncate text-[12px] font-medium text-primary-700">{L(r.storm)}</span>
                       </span>
+                      {best[id] && <span className="flex shrink-0 gap-0.5" aria-label={T(`সেরা ${num(best[id].stars, 'bn')} তারা`, `Best ${best[id].stars} stars`)}>{[0, 1, 2].map((k) => <Star key={k} size={12} className={k < best[id].stars ? 'fill-amber-300 text-amber-500' : 'text-ink/15'} />)}</span>}
                       {on && <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary-600 text-white shadow-2xs"><Check size={14} /></span>}
                     </button>
                   );
@@ -120,6 +129,10 @@ function SelectScreen({ who, setWho, onGo }) {
               </div>
             </div>
           ))}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-white/80 px-4 py-3 text-[13.5px]">
+            <span className="flex items-center gap-1.5 font-semibold text-ink"><Star size={15} className="fill-amber-300 text-amber-500" />{T(`${num(won, 'bn')}/${num(FARMER_IDS.length, 'bn')} জনের মাঠে মৌসুম জয়`, `Season won on ${won} of ${FARMER_IDS.length} fields`)}</span>
+            <button type="button" onClick={() => setQuality(!light)} aria-pressed={light} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 font-semibold text-ink/80 hover:bg-primary-50"><Gauge size={15} />{light ? T('গ্রাফিক্স: হালকা (দুর্বল ফোনে দ্রুত)', 'Graphics: light (fast on weak phones)') : T('গ্রাফিক্স: পূর্ণ', 'Graphics: full')}</button>
+          </div>
           <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-3 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/25 hover:scale-[1.025] active:scale-[0.975] transition-transform duration-200">{T(`${bnOf(F.bn)} মাঠে চলুন`, `To ${F.en}'s field`)}<ArrowRight size={19} /></button>
           <p className="text-center text-[12.5px] text-muted">{T('এঁরা নমুনা মানুষ; জায়গা, ফসল আর বিপদের তথ্য সত্যি।', 'These are sample people; the places, crops and dangers are real.')}</p>
         </div>
@@ -210,6 +223,8 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
   const [running, setRunning] = useState(false);
   const [failed, setFailed] = useState(false);
   const [muted, setMute] = useState(() => { try { return localStorage.getItem(MUTE_KEY) === '1'; } catch { return false; } });
+  const [music, setMusicOn] = useState(() => { try { return localStorage.getItem(MUSIC_KEY) !== '0'; } catch { return true; } });
+  useEffect(() => { setMusic(music); try { localStorage.setItem(MUSIC_KEY, music ? '1' : '0'); } catch { /* storage unavailable */ } }, [music]);
   useEffect(() => { setMuted(muted); try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch { /* storage unavailable */ } }, [muted]);
   const endRef = useRef(onEnd); endRef.current = onEnd;
   const touch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -240,8 +255,13 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
       });
       st.current = stage;
     } catch { setFailed(true); return undefined; }
-    const iv = setInterval(() => setHud(snapshot(g)), 110);
-    return () => { clearInterval(iv); stage.dispose(); };
+    startAmbience();
+    let tick = 0;
+    const iv = setInterval(() => {
+      setHud(snapshot(g));
+      if (++tick % 5 === 0) setScene({ day: !isNight(g), storm: g.ev.storm > 0 ? 1 : g.ev.zone ? Math.min(0.6, 1 - g.ev.zone.left / g.ev.zone.total) : 0, heat: g.ev.heat > 0 ? 1 : 0, wind: g.ev.storm > 0 ? 2.4 : 0.8 });
+    }, 110);
+    return () => { clearInterval(iv); stage.dispose(); stopAmbience(); };
   }, [g]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { st.current?.setLang(lang); }, [lang]);
   useEffect(() => { st.current?.setPaused(paused || !!panel); g.paused = paused || !!panel; }, [paused, panel, g]);
@@ -404,6 +424,7 @@ export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
         <RoundBtn onClick={() => setSat(st.current?.toggleSat() ?? false)} on={sat} label={T('উপগ্রহের চোখ (N)', 'Satellite view (N)')}><Satellite size={18} /></RoundBtn>
         <RoundBtn onClick={() => { setPanel('kiosk'); g.paused = true; }} label="FieldShift"><Smartphone size={18} /></RoundBtn>
         <RoundBtn onClick={() => setMute(!muted)} label={muted ? T('শব্দ চালু', 'Sound on') : T('শব্দ বন্ধ', 'Sound off')}>{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</RoundBtn>
+        <RoundBtn onClick={() => setMusicOn(!music)} on={music} label={music ? T('সুর বন্ধ', 'Music off') : T('সুর চালু', 'Music on')}><Music size={18} /></RoundBtn>
         <RoundBtn onClick={() => setPaused(true)} label={T('বিরতি (Esc)', 'Pause (Esc)')}><Pause size={18} /></RoundBtn>
       </div>
       {touch && !intro && (
@@ -580,7 +601,11 @@ function EndScreen({ who, r, onReplay, onPick }) {
   const lang = s.lang;
   const R = REGIONS[who];
   const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0;
-  const stars = lost <= 1 && !hurt ? 3 : lost <= 4 ? 2 : 1;
+  const stars = starsOf(r);
+  useEffect(() => {
+    const b = readBest(), was = b[who];
+    if (!was || stars > was.stars || (stars === was.stars && (r?.count.earned ?? 0) > was.earned)) { b[who] = { stars, earned: r?.count.earned ?? 0 }; try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch { /* storage unavailable */ } }
+  }, [who, stars, r]);
   const quizzes = QUESTS.map((q) => q.quiz && R.quiz[q.quiz] && { id: q.id, Q: R.quiz[q.quiz] }).filter(Boolean);
   return (
     <section className="scene-in mx-auto max-w-4xl">
@@ -603,7 +628,7 @@ function EndScreen({ who, r, onReplay, onPick }) {
         ))}
       </div>
       <div className="glass mt-5 rounded-[24px] p-5">
-        <p className="font-display text-[19px] font-semibold">{T(`${R.farmer.bn}-এর মাঠ থেকে যা শিখলেন`, `What ${R.farmer.en}’s field taught`)}</p>
+        <p className="font-display text-[19px] font-semibold">{T(`${bnOf(R.farmer.bn)} মাঠ থেকে যা শিখলেন`, `What ${R.farmer.en}’s field taught`)}</p>
         <ul className="mt-3 space-y-3">
           {quizzes.map(({ id, Q }, k) => {
             const a = r?.answers.find((x) => x.id === id);

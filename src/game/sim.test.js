@@ -111,3 +111,25 @@ test('walking the village finds every place, once each', () => {
   assert.equal(g.seen.length, g.home.places.length);
   assert.equal(g.out.filter((e) => e.type === 'place').length, g.home.places.length);
 });
+
+test('the walkable land reaches the outer villages, and nothing out there stands in water or a field', async () => {
+  const { layoutFor, WORLD_IDS, inWater, resolve } = await import('./layout.js');
+  const { WORLD_R } = await import('./regions.js');
+  for (const w of WORLD_IDS) {
+    const L = layoutFor(w), outer = L.props.filter((p) => p.outer);
+    assert.ok(outer.length >= 30, `${w}: only ${outer.length} things beyond the farm`);
+    for (const p of outer) assert.ok(!inWater(L, p.x, p.z), `${w}: ${p.type} in the water`);
+    const [x, z] = resolve(L, 500, 0);
+    assert.ok(Math.hypot(x, z) <= WORLD_R + 1e-6);
+  }
+});
+
+test('running into a wall stops the farmer with a thud', async () => {
+  const { createGame, update } = await import('./sim.js');
+  const g = createGame('razib');
+  const b = g.L.blockers.find((x) => x.r && x.r > 0.3);
+  g.me.x = b.x - b.r - 1.2; g.me.z = b.z; g.me.vx = 4; g.me.vz = 0; g.nextQuestAt = 1e9;
+  for (let k = 0; k < 30; k++) update(g, 1 / 30, { mx: 1, mz: 0, run: true });
+  assert.ok(g.out.some((e) => e.type === 'sound' && e.s === 'bump'), 'a thud');
+  assert.ok(Math.hypot(g.me.x - b.x, g.me.z - b.z) >= b.r + 0.34, 'not inside the tree');
+});

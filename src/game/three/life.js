@@ -78,8 +78,41 @@ export function createLife(scene, g, overlay, lang = 'bn') {
     return false;
   }
 
+  // Bodies, not ghosts: the farmer and the villagers push each other apart (the villager gives way more), a run
+  // into someone knocks the farmer back and staggers them, with a word and a thud, and villagers keep apart too.
+  const BODY = 0.36;
+  const OUCH = [{ bn: 'আস্তে, ভাই!', en: 'Easy there!' }, { bn: 'দেখে চলো!', en: 'Watch where you go!' }, { bn: 'উফ্‌, ধাক্কা!', en: 'Oof!' }];
+  function bodies(dt) {
+    const me = g.me;
+    for (const n of folk) {
+      n.stag = Math.max(0, (n.stag ?? 0) - dt); n.bumpT = Math.max(0, (n.bumpT ?? 0) - dt);
+      const dx = n.x - me.x, dz = n.z - me.z, d = Math.hypot(dx, dz), m = BODY * 2;
+      if (d >= m || d < 1e-4) continue;
+      const push = m - d, ux = dx / d, uz = dz / d;
+      const nx = n.x + ux * push * 0.75, nz = n.z + uz * push * 0.75;
+      if (!inWater(L, nx, nz)) [n.x, n.z] = resolve(L, nx, nz, 0.3);
+      [me.x, me.z] = resolve(L, me.x - ux * push * 0.25, me.z - uz * push * 0.25);
+      const into = me.vx * ux + me.vz * uz; // speed straight at them
+      if (into > 2.6 && n.bumpT <= 0 && !(me.down > 0)) {
+        n.bumpT = 1.2; n.stag = 0.6; n.hold = 1.8; n.act = null; n.yaw = Math.atan2(-ux, -uz);
+        // the farmer is thrown back a step and loses the run; the villager rocks back
+        [me.x, me.z] = resolve(L, me.x - ux * 0.45, me.z - uz * 0.45); me.vx = me.vz = 0;
+        [n.x, n.z] = resolve(L, n.x + ux * 0.25, n.z + uz * 0.25, 0.3);
+        n.bubT = 2.4; n.bubble.textContent = T(OUCH[Math.floor(Math.random() * OUCH.length)]); n.bubble.style.display = ''; n.bubble.classList.remove('g3-pop'); void n.bubble.offsetWidth; n.bubble.classList.add('g3-pop');
+        g.out.push({ type: 'sound', s: 'bump' });
+      }
+    }
+    for (let i = 0; i < folk.length; i++) for (let j = i + 1; j < folk.length; j++) {
+      const a = folk[i], b = folk[j], dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), m = BODY * 2;
+      if (d >= m || d < 1e-4) continue;
+      const p = (m - d) / 2, ux = dx / d, uz = dz / d;
+      [a.x, a.z] = resolve(L, a.x - ux * p, a.z - uz * p, 0.3); [b.x, b.z] = resolve(L, b.x + ux * p, b.z + uz * p, 0.3);
+    }
+  }
+
   function update(t, dt, project, camPos) {
     const me = g.me, storm = !!(g.ev.zone && (g.ev.zone.left > 0 || g.ev.storm > 0));
+    if (dt > 0) bodies(dt);
     folk.forEach((n, i) => {
       n.cool -= dt; n.hold -= dt; n.speed = 0;
       const dMe = Math.hypot(me.x - n.x, me.z - n.z);
@@ -114,6 +147,7 @@ export function createLife(scene, g, overlay, lang = 'bn') {
       }
       const gy = L.ground(n.x, n.z);
       n.P.root.position.set(n.x, gy, n.z); n.P.root.rotation.y = n.yaw;
+      n.P.root.rotation.x = n.stag > 0 ? -Math.sin((n.stag / 0.6) * Math.PI) * 0.22 : 0; // knocked back a step
       n.P.root.visible = Math.hypot(camPos.x - n.x, camPos.z - n.z) < 70;
       animate(n.P, { speed: n.speed, run: n.run, act: n.hold > 0 ? null : n.act, t: t + i * 7, down: 0 }, dt);
       // name when near, words when speaking

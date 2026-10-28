@@ -15,7 +15,7 @@ import { createField } from './field';
 import { buildFarmer, animate } from './people';
 import { createLife } from './life';
 import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS } from '../sim';
-import { QUESTS, FIELD_W, FIELD_D } from '../regions';
+import { QUESTS, FIELD_W, FIELD_D, WORLD_R } from '../regions';
 
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const isTouch = () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -52,19 +52,22 @@ const GRADE = {
     }`,
 };
 
+export const QUALITY_KEY = 'fs360.game.quality';
 export function createStage({ canvas, overlay, minimap, compass, g, lang, onEvent }) {
   needWebGL();
   const touch = isTouch();
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touch ? 1.5 : 2));
+  // 'light' graphics (chosen on the farmer picker, for weaker phones and laptops): no post effects, fewer pixels
+  const light = (() => { try { return localStorage.getItem(QUALITY_KEY) === 'light'; } catch { return false; } })();
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !touch && !light, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, light ? 1 : touch ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = !light; renderer.shadowMap.type = THREE.PCFShadowMap;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(touch ? 60 : 52, 1, 0.1, 900);
   // on computers: ambient occlusion (contact shadows where things meet), a soft glow on bright light, the grade
   let composer = null, gtao = null, gradPass = null;
-  if (!touch) {
+  if (!touch && !light) {
     try {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
@@ -181,7 +184,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   }
 
   // ---- minimap: a static picture of the farm, with the farmer, the zone and the goal drawn over it ----
-  const MAP_R = 46;
+  // the farm fills the map; out beyond it, the map zooms out to the whole walkable land
+  let MAP_R = 46;
   let mapBg = null;
   function paintMap() {
     const c = minimap; if (!c) return;
@@ -203,6 +207,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   }
   function drawMap(t, goalPos) {
     const c = minimap; if (!c || !mapBg) return;
+    const wantR = Math.hypot(g.me.x, g.me.z) > 40 ? WORLD_R + 4 : 46;
+    if (wantR !== MAP_R) { MAP_R = wantR; paintMap(); }
     const x = c.getContext('2d'), S = c.width, k = S / (MAP_R * 2), X = (v) => (v + MAP_R) * k;
     x.clearRect(0, 0, S, S); x.drawImage(mapBg, 0, 0);
     // pest and ripe dots

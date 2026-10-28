@@ -447,10 +447,49 @@ const SOLID = {
   buffalo: () => ({ circle: 1 }), cow: () => ({ circle: 0.9 }), ox: () => ({ circle: 0.9 }), goat: () => ({ circle: 0.5 }), pole: () => ({ circle: 0.2 }),
 };
 
+// Beyond the farm, out to the edge the farmer can walk to: the world's own trees in clumps and lines, a few more
+// homesteads with their haystacks, and animals grazing, kept out of the water, the neighbours' fields and the paths.
+const TREES = ['mango', 'bamboo', 'banana', 'coconut', 'betelnut', 'guava', 'toddy', 'eucalyptus', 'poplar', 'date', 'kikar', 'sal', 'bluepine', 'tamarind', 'hijal', 'mangrove'];
+const ANIMALS = ['cow', 'goat', 'buffalo', 'ox'];
+const segDist = (x, z, [ax, az], [bx, bz]) => { const vx = bx - ax, vz = bz - az, l = vx * vx + vz * vz || 1, t = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / l)); return Math.hypot(x - ax - vx * t, z - az - vz * t); };
+function outerRing(L, seed) {
+  const r = seeded(seed * 7 + 3), count = {};
+  for (const p of L.props) count[p.type] = (count[p.type] ?? 0) + 1;
+  const trees = TREES.filter((t) => count[t]).sort((a, b) => count[b] - count[a]);
+  const animals = ANIMALS.filter((t) => count[t]);
+  const house = L.props.find((p) => p.main)?.type;
+  if (!trees.length) return;
+  const wet = (x, z) => L.water.some((w) => (w.r ? Math.hypot(x - w.cx, z - w.cz) < w.r + 2 : x > w.x0 - 2 && x < w.x1 + 2 && z > w.z0 - 2 && z < w.z1 + 2));
+  const inField = (x, z) => (L.patches ?? []).some(([x0, x1, z0, z1]) => x > x0 - 1 && x < x1 + 1 && z > z0 - 1 && z < z1 + 1);
+  const onPath = (x, z) => L.paths.some((p) => p.some((pt, i) => i && segDist(x, z, p[i - 1], pt) < 3));
+  const taken = (x, z, d) => L.props.some((p) => Math.hypot(p.x - x, p.z - z) < d);
+  const free = (x, z, d = 3) => Math.hypot(x, z) > 47 && Math.hypot(x, z) < WORLD_R - 2 && !wet(x, z) && !inField(x, z) && !onPath(x, z) && !taken(x, z, d);
+  const spot = (min = 48) => { for (let k = 0; k < 30; k++) { const a = r() * Math.PI * 2, d = min + r() * (WORLD_R - 4 - min); const x = Math.cos(a) * d, z = Math.sin(a) * d; if (free(x, z)) return [x, z]; } return null; };
+  const add = (type, x, z, o = {}) => L.props.push({ type, x, z, rot: o.rot ?? r() * Math.PI * 2, s: o.s ?? 0.85 + r() * 0.3, outer: true });
+  // tree clumps: a homestead's grove, a roadside line
+  for (let c = 0; c < 14; c++) {
+    const at = spot(); if (!at) continue;
+    const t = trees[c % Math.min(trees.length, 3)];
+    for (let k = 0, n = 3 + Math.floor(r() * 4); k < n; k++) { const x = at[0] + (r() - 0.5) * 9, z = at[1] + (r() - 0.5) * 9; if (free(x, z, 2.2)) add(t, x, z); }
+  }
+  // homesteads: a house facing the farm, a haystack and a tree or two
+  if (house) for (let k = 0; k < 4; k++) {
+    const at = spot(54); if (!at) continue;
+    const [x, z] = at;
+    add(house, x, z, { rot: Math.atan2(-x, -z) + (r() - 0.5) * 0.6, s: 0.8 + r() * 0.15 });
+    if (count.kup && free(x + 5, z + 2, 2)) add('kup', x + 5, z + 2, { s: 0.85 });
+    if (free(x - 5, z - 3, 2)) add(trees[0], x - 5, z - 3);
+  }
+  // animals grazing in the open
+  for (let k = 0; k < 6 && animals.length; k++) { const at = spot(); if (at) add(animals[k % animals.length], at[0], at[1], { s: 1 }); }
+}
+
 const cache = {};
+const SEEDS = Object.fromEntries(Object.keys(WORLDS).map((w, i) => [w, 101 + i * 37]));
 export function layoutFor(world) {
   if (cache[world]) return cache[world];
   const L = WORLDS[world]();
+  outerRing(L, SEEDS[world]);
   L.S = L.spots;
   L.blockers = [];
   for (const p of L.props) {
