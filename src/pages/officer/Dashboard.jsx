@@ -4,6 +4,7 @@ import { ChevronRight, UsersRound, LifeBuoy, BellRing, Sprout, TrendingDown, Map
 import { useStore } from '../../store';
 import { PageHeader, StatCard, Card, Badge, Button, Tags, RISK_STYLE, CountUp } from '../../components/ui';
 import MapView from '../../components/map/MapView';
+import { LazyMount } from '../../components/SectionNav';
 import { areaInfo } from '../../components/map/UpazilaLayers';
 import SupplyChart from '../../components/charts/SupplyChart';
 import { SYMPTOMS, DISEASES, aiLabel } from '../../data/demo';
@@ -84,7 +85,7 @@ export default function OfficerDashboard() {
             <Button to="/officer/map" variant="secondary" className="shrink-0 whitespace-nowrap"><MapPinned size={16} />{T('বড় করে দেখুন', 'Full map')}</Button>
           </div>
           <div className="overflow-hidden rounded-xl ring-1 ring-border/80 shadow-xs">
-            <MapView center={[union.meta.lat, union.meta.lon]} zoom={13} focus={union.id} overlay={areaChip(union, T, lang)} points={points} circles={hs.map((h) => ({ id: h.id, lat: h.lat, lon: h.lon, radius: 900, color: '#b42318' }))} height={470} label={T('ইউনিয়নের মানচিত্র', 'Union map')} />
+            <LazyMount height={470} idle><MapView center={[union.meta.lat, union.meta.lon]} zoom={13} focus={union.id} overlay={areaChip(union, T, lang)} points={points} circles={hs.map((h) => ({ id: h.id, lat: h.lat, lon: h.lon, radius: 900, color: '#b42318' }))} height={470} label={T('ইউনিয়নের মানচিত্র', 'Union map')} /></LazyMount>
           </div>
           <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-muted">
             {Object.entries(CROP_COLOR).map(([k, c]) => <span key={k} className="inline-flex items-center gap-1.5 font-medium"><i className="inline-block h-2.5 w-2.5 rounded-full shadow-2xs" style={{ background: c }} />{cropName(k, lang)}</span>)}

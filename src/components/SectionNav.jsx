@@ -10,12 +10,15 @@ import { onScroll, pageTop, scrollToEl, scrollToTop } from './Motion';
 // variable --app-header, which the bar's `top` reads, so it never slides under the header.
 let HEADER = 64;
 function useHeaderHeight() {
-  useLayoutEffect(() => {
-    const el = [...document.querySelectorAll('header')].find((h) => { const cs = getComputedStyle(h); return (cs.position === 'sticky' || cs.position === 'fixed') && parseFloat(cs.top) === 0; });
+  // The page's sticky or fixed header, found by its class and measured by a ResizeObserver (which reports the size
+  // the browser has already worked out), so opening a long page does not force a layout before it first paints.
+  useEffect(() => {
+    const el = document.querySelector('header.sticky, header.fixed');
     if (!el) return undefined;
-    const set = () => { HEADER = Math.round(el.getBoundingClientRect().height); document.documentElement.style.setProperty('--app-header', `${HEADER}px`); };
-    set();
-    const ro = new ResizeObserver(set);
+    const ro = new ResizeObserver(([e]) => {
+      const h = Math.round(e.borderBoxSize?.[0]?.blockSize ?? el.getBoundingClientRect().height);
+      if (h !== HEADER) { HEADER = h; document.documentElement.style.setProperty('--app-header', `${h}px`); }
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
@@ -128,19 +131,27 @@ export function SectionNav({ sections, label }) {
   );
 }
 
-// Renders children once they come within ~400 px of the screen; until then holds their height with a placeholder.
+// Renders children once they come within ~600 px of the screen; until then holds their height with a placeholder.
 // `id`: the id the section inside will carry, put on the placeholder until then, so a SectionNav pill can glide to a
 // section that has not mounted yet (the nav re-aims once it has).
-export function LazyMount({ height = 200, children, className = '', id }) {
+// `idle`: for something heavy to start (a WebGL map): also wait until the browser has a quiet moment after the page
+// has painted, so opening the page is not held up by it.
+export function LazyMount({ height = 200, children, className = '', id, idle = false }) {
   const ref = useRef(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
     if (on) return undefined;
-    if (!('IntersectionObserver' in window)) { setOn(true); return undefined; }
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { rootMargin: '600px 0px' });
+    let io = null, h = 0;
+    const go = () => {
+      if (!idle) { setOn(true); return; }
+      const ric = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 300));
+      h = ric(() => setOn(true), { timeout: 1500 });
+    };
+    if (!('IntersectionObserver' in window)) { go(); return undefined; }
+    io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); go(); } }, { rootMargin: '600px 0px' });
     if (ref.current) io.observe(ref.current);
-    return () => io.disconnect();
-  }, [on]);
+    return () => { io?.disconnect(); if (h) (window.cancelIdleCallback ?? clearTimeout)(h); };
+  }, [on, idle]);
   return <div ref={ref} id={on ? undefined : id} className={`${className} ${on ? '' : 'scroll-mt-40'}`} style={on ? undefined : { minHeight: height }}>{on ? <div className="swap-in">{children}</div> : <Skeleton height={height} className="mt-5" />}</div>;
 }
 

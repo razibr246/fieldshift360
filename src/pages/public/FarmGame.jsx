@@ -57,8 +57,10 @@ function usePortraits() {
   const [pics, setPics] = useState(portraitCache);
   useEffect(() => {
     if (portraitCache) return;
-    const t = setTimeout(() => { try { portraitCache = portraits(FARMER_IDS.map((id) => REGIONS[id].farmer.look)); setPics(portraitCache); } catch { /* no WebGL */ } }, 60);
-    return () => clearTimeout(t);
+    // drawn when the browser is idle, so the picker opens first
+    const ric = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 60));
+    const t = ric(() => { try { portraitCache = portraits(FARMER_IDS.map((id) => REGIONS[id].farmer.look)); setPics(portraitCache); } catch { /* no WebGL */ } }, { timeout: 1200 });
+    return () => (window.cancelIdleCallback ?? clearTimeout)(t);
   }, []);
   return pics;
 }

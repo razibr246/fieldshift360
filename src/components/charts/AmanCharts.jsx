@@ -290,13 +290,15 @@ export function DistrictMap({ district, year, selected, home, onPick }) {
   const { s, T } = useStore();
   const lang = s.lang;
   const [hover, setHover] = useState(null);
-  const all = district.upazilas.flatMap((u) => u.ring);
-  const lons = all.map((p) => p[0]), lats = all.map((p) => p[1]);
-  const k = Math.cos((((Math.min(...lats) + Math.max(...lats)) / 2) * Math.PI) / 180);
+  // the district's bounds, worked out once (not again for every boundary point)
+  const { k, sx, H, lon0, lat1 } = useMemo(() => {
+    let lon0 = Infinity, lon1 = -Infinity, lat0 = Infinity, lat1 = -Infinity;
+    for (const u of district.upazilas) for (const [lon, lat] of u.ring) { if (lon < lon0) lon0 = lon; if (lon > lon1) lon1 = lon; if (lat < lat0) lat0 = lat; if (lat > lat1) lat1 = lat; }
+    const k = Math.cos((((lat0 + lat1) / 2) * Math.PI) / 180), sx = (600 - 24) / ((lon1 - lon0) * k);
+    return { k, sx, H: Math.round((lat1 - lat0) * sx + 24), lon0, lat1 };
+  }, [district]);
   const W = 600, pad = 12;
-  const sx = (W - 2 * pad) / ((Math.max(...lons) - Math.min(...lons)) * k);
-  const H = Math.round((Math.max(...lats) - Math.min(...lats)) * sx + 2 * pad);
-  const pr = ([lon, lat]) => [pad + (lon - Math.min(...lons)) * k * sx, pad + (Math.max(...lats) - lat) * sx];
+  const pr = ([lon, lat]) => [pad + (lon - lon0) * k * sx, pad + (lat1 - lat) * sx];
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={T(`${district.bn} জেলার মানচিত্র`, `Map of ${district.en} district`)}>
       {district.upazilas.map((u, i) => {

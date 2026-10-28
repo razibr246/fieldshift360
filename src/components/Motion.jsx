@@ -61,7 +61,7 @@ export function useScrollOnNavigate({ skip = false } = {}) {
     // A filter or tab kept in the address (?y=2025) is the same page: stay put.
     if (skip || (samePage && type !== 'POP')) return undefined;
     const y = type === 'POP' ? SAVED.get(loc.key) : 0;
-    if (!y) { window.scrollTo({ top: 0, behavior: 'instant' }); return undefined; }
+    if (!y) { if (window.scrollY) window.scrollTo({ top: 0, behavior: 'instant' }); return undefined; } // at the top already: no forced layout
     let tries = 0, raf = 0;
     const restore = () => {
       if (document.documentElement.scrollHeight - window.innerHeight >= y || tries++ > 60) window.scrollTo({ top: y, behavior: 'instant' });

@@ -93,7 +93,7 @@ function RadarPage() {
 
       {/* What to tell the farmers, then when the rains set in, then the season in full */}
       <RadarBrief view={view} row={row} year={year} mine={mine} district={district} />
-      {onsetSummary(view, row) && <div className="mt-6"><OnsetCard upazila={view} name={row} /></div>}
+      {onsetSummary(view, row) && <div className="mt-6"><LazyMount id="rd-onset" height={520}><OnsetCard upazila={view} name={row} /></LazyMount></div>}
 
       <Card id="rd-season" className="mt-6 p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -155,7 +155,7 @@ function RadarPage() {
             <Card className="p-5 sm:p-6">
               <h3 className="flex items-center gap-2 text-[18px] font-bold"><TrendingUp size={18} className="text-paddy-700" />{T('রোপণ কতটা এগোল', 'How far transplanting got')}</h3>
               <p className="mt-1 text-[13.5px] leading-6 text-muted">{progressText(detail.data, year, T, day)}</p>
-              <div className="mt-3"><ProgressChart detail={detail.data} year={year} normalTo={AMAN.normalTo} /></div>
+              <div className="mt-3"><LazyMount height={300}><ProgressChart detail={detail.data} year={year} normalTo={AMAN.normalTo} /></LazyMount></div>
               <Legend items={[[GOLD_LINE, T(`${yr(year)} সাল`, String(year))], [DASH, T('আগের বছরগুলোর মধ্যমা', 'Past years’ median')], [BAND_GREEN, T('আগের বছরগুলোর মাঝের অর্ধেক', 'Middle half of past years')]]} />
             </Card>
             <Card className="p-5 sm:p-6">
@@ -189,7 +189,7 @@ function RadarPage() {
       <Card id="rd-rain" className="mt-6 p-5 sm:p-6">
         <h3 className="flex items-center gap-2 text-[18px] font-bold"><CloudRain size={18} className="text-sky-700" />{T(`জুন–জুলাইয়ের বৃষ্টি, ${yr(AMAN.years.rain[0])}–${yr(AMAN.years.rain[1])}`, `June–July rain, ${AMAN.years.rain[0]}–${AMAN.years.rain[1]}`)}</h3>
         <p className="mt-1 text-[13.5px] leading-6 text-muted">{rainTrendText(row, T)}</p>
-        <div className="mt-3"><RainTrend row={row} /></div>
+        <div className="mt-3"><LazyMount height={300}><RainTrend row={row} /></LazyMount></div>
       </Card>
 
       {/* The rest of the district, for comparison only */}
