@@ -82,7 +82,7 @@ const fresh = () => ({
   harvests: {}, // farmerId -> { qty, price }
   fieldCheck: null,
   irrigated: {}, // farmerId -> 'YYYY-MM-DD' the farmer last irrigated (restarts the field water balance)
-  whatIf: 'normal', // what-if season for the recommendation: normal | dry | hot1 | hot2 (not saved)
+  whatIf: 'normal', // what-if season for the recommendation: normal | dry | hot1 | hot2, or the sliders' 'c:<°C>:<rain factor>' (not saved)
   live: null,
   shared: { status: 'connecting', plans: [], at: null }, // the shared plan board (api/plans.js); not saved
   daysAfter: null,

@@ -228,8 +228,13 @@ export const WHAT_IFS = {
   hot1: { dT: 1, rain: 1, bn: 'গরম (+১°)', en: 'Hotter (+1°)' },
   hot2: { dT: 2, rain: 1, bn: 'আরও গরম (+২°)', en: 'Much hotter (+2°)' },
 };
+// key: one of WHAT_IFS, or a slider setting 'c:<°C added>:<rain factor>' (e.g. 'c:1.5:0.8').
+export const parseWhatIf = (key) => {
+  if (typeof key === 'string' && key.startsWith('c:')) { const [, dT, rain] = key.split(':').map(Number); return { dT: Number.isFinite(dT) ? dT : 0, rain: Number.isFinite(rain) ? rain : 1 }; }
+  return WHAT_IFS[key] ?? WHAT_IFS.normal;
+};
 export function whatIf(clim, key = 'normal') {
-  const w = WHAT_IFS[key] ?? WHAT_IFS.normal;
+  const w = parseWhatIf(key);
   if (!w.dT && w.rain === 1) return clim;
   const val = (v, t) => {
     const x = clim.val(v, t);

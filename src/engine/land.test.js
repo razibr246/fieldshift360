@@ -69,3 +69,14 @@ test('a crop the farmer cannot grow is left out of the season advice', async () 
   assert.notEqual(noHabit.rec.crop.id, plot.last_crop, 'the crop grown now is not advised once ruled out');
   assert.equal(noHabit.label, 'SHIFT');
 });
+
+test('the what-if sliders replay the same seasons warmer and wetter or drier', async () => {
+  const { parseWhatIf, whatIf, makeClimate } = await import('./climate.js');
+  const { readFileSync } = await import('node:fs');
+  assert.deepEqual(parseWhatIf('c:1.5:0.8'), { dT: 1.5, rain: 0.8 });
+  assert.equal(parseWhatIf('hot2').dT, 2);
+  const c = makeClimate(JSON.parse(readFileSync(new URL('../data/climate/climate_godagari.json', import.meta.url))));
+  const w = whatIf(c, 'c:2:0.5'), t = c.start + 200 * 86400000;
+  assert.equal(w.val('tmax', t), c.val('tmax', t) + 2);
+  assert.equal(w.val('prec', t), c.val('prec', t) * 0.5);
+});

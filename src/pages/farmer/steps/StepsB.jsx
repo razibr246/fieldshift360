@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { clockText } from '../../../engine/forecast';
 // Season planner steps 5–7: the recommendation, the next crop, and the price-drop (glut) check.
 import { Info, Droplet, CheckCircle2, CalendarDays, Wheat, ShieldCheck, Coins, CloudSun, MapPin, Layers, FlaskConical, Pencil, Sprout, Telescope } from 'lucide-react';
@@ -10,7 +11,7 @@ import { W_LABEL } from './StepsA.jsx';
 import { cropName, DECIMAL_HA, IRRIGATION } from '../../../engine/crops.js';
 import { fertilizerPlan, phWord, TEXTURE } from '../../../engine/soil.js';
 import { PRIORITIES } from '../../../engine/decision.js';
-import { WHAT_IFS } from '../../../engine/climate.js';
+import { WHAT_IFS, parseWhatIf } from '../../../engine/climate.js';
 import { AMAN_PREP } from '../../../engine/rotation.js';
 import { bnOf } from '../../../engine/text.js';
 import { num, fmtDate, fmtRange, fmtBangla, bnDigits, MONTHS_BN, MONTHS_EN } from '../../../engine/dates.js';
@@ -605,6 +606,31 @@ export function StepGlut() {
 }
 
 // "What if the weather changes?": replay the 25 seasons hotter or drier and show whether the advice still holds.
+// Two sliders for any mix of warmer and wetter or drier: the same 25 seasons replayed with every day so many degrees
+// warmer and every day's rain scaled. Applied a moment after the thumb stops, so dragging stays smooth.
+function WhatIfSliders() {
+  const { s, dispatch, T } = useStore();
+  const cur = parseWhatIf(s.whatIf);
+  const [dT, setDT] = useState(cur.dT), [rain, setRain] = useState(Math.round((cur.rain - 1) * 100));
+  useEffect(() => { const c = parseWhatIf(s.whatIf); setDT(c.dT); setRain(Math.round((c.rain - 1) * 100)); }, [s.whatIf]);
+  const timer = useRef(0);
+  const push = (a, b) => { clearTimeout(timer.current); timer.current = setTimeout(() => dispatch({ type: 'set', patch: { whatIf: a === 0 && b === 0 ? 'normal' : `c:${a}:${(100 + b) / 100}` } }), 250); };
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const sign = (v) => (v > 0 ? '+' : v < 0 ? '−' : '');
+  return (
+    <div className="mt-3 grid gap-3 rounded-xl bg-canvas p-3 sm:grid-cols-2">
+      <label className="block text-[13.5px] font-semibold">
+        <span className="flex justify-between"><span>{T('প্রতিদিন আরও গরম', 'Every day warmer by')}</span><span className="tabular text-red-700">{T(`${sign(dT)}${num(Math.abs(dT), 'bn', { dp: 1 })}°`, `${sign(dT)}${Math.abs(dT).toFixed(1)}°`)}</span></span>
+        <input type="range" min="0" max="3" step="0.5" value={dT} onChange={(e) => { const v = +e.target.value; setDT(v); push(v, rain); }} className="mt-1.5 w-full accent-red-600" aria-label={T('তাপমাত্রা কত বাড়বে', 'Degrees warmer')} />
+      </label>
+      <label className="block text-[13.5px] font-semibold">
+        <span className="flex justify-between"><span>{T('বৃষ্টি', 'Rain')}</span><span className="tabular text-sky-700">{T(`${sign(rain)}${num(Math.abs(rain), 'bn')}%`, `${sign(rain)}${Math.abs(rain)}%`)}</span></span>
+        <input type="range" min="-40" max="40" step="10" value={rain} onChange={(e) => { const v = +e.target.value; setRain(v); push(dT, v); }} className="mt-1.5 w-full accent-sky-600" aria-label={T('বৃষ্টি কত শতাংশ বদলাবে', 'Rain change, per cent')} />
+      </label>
+    </div>
+  );
+}
+
 function WhatIfBar() {
   const { s, dispatch, T, L, decision: d, decisionBase: b } = useStore();
   const changed = s.whatIf !== 'normal';
@@ -623,6 +649,7 @@ function WhatIfBar() {
         <Segmented value={s.whatIf} onChange={(v) => dispatch({ type: 'set', patch: { whatIf: v } })}
           options={Object.entries(WHAT_IFS).map(([k, w]) => ({ value: k, label: T(w.bn, w.en) }))} className="whitespace-nowrap" />
       </div>
+      <WhatIfSliders />
       {changed && (
         <Note key={s.whatIf} tone={same ? 'ok' : 'gold'} className="swap-in mt-3">
           {same
