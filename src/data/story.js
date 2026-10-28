@@ -107,12 +107,12 @@ export const SCENES = [
     },
     habit: {
       label: { bn: 'যেমন ঠিক ছিল, আগামী সপ্তাহেই তুলব', en: 'Stick to the plan, harvest next week' },
-      result: { bn: 'টানা তিন দিনের বৃষ্টিতে পাকা দানা ঝরে গেল, ভেজা ফসলে ছত্রাক ধরল।', en: 'Three days of rain shook out the ripe seed, and mould set into the wet crop.' },
+      result: { bn: 'দুই দিনের ঝড়বৃষ্টিতে পাকা শুঁটি ফেটে দানা ঝরে গেল, ভেজা ফসলে ছত্রাক ধরল।', en: 'Two days of stormy rain split the ripe pods and shed the seed, and mould set into the wet crop.' },
       fx: { crop: -25, money: -4000, water: 0 },
     },
     tool: 'weather',
     win: {
-      text: { bn: 'লাইভ আবহাওয়ার ৮ দিনের পূর্বাভাস: পরশু থেকে তিন দিন ভারী বৃষ্টি, সম্ভাবনা ৮৫%। রহিম ভাই দুই দিন আগেই ফসল তুলে শুকিয়ে ঘরে নিলেন।', en: 'The live 8-day forecast: heavy rain for three days from the day after tomorrow, 85% likely. Rahim harvested two days early and got the crop dry and indoors.' },
+      text: { bn: 'লাইভ আবহাওয়ার ৮ দিনের পূর্বাভাস: পরশু থেকে দুই দিন ঝড়বৃষ্টি। রহিম ভাই দুই দিন আগেই ফসল তুলে শুকিয়ে ঘরে নিলেন।', en: 'The live 8-day forecast: two days of stormy rain from the day after tomorrow. Rahim harvested two days early and got the crop dry and indoors.' },
       fx: { crop: 10, money: 3000, water: 0 },
     },
     hint: { bn: 'এখন জানা দরকার সামনের কয়েক দিনের আবহাওয়া।', en: 'What you need now is the weather for the next few days.' },

@@ -9,7 +9,7 @@
     "build": "vite build",
     "build:single": "vite build --mode single",
     "preview": "vite preview",
-    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/engine/farmTimeline.test.js src/voice/voice.test.js src/game/sim.test.js src/radar/onset.test.js src/data/farmer_tour.test.js",
+    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/engine/farmTimeline.test.js src/voice/voice.test.js src/game/sim.test.js src/radar/onset.test.js src/data/farmer_tour.test.js src/engine/play.test.js",
     "fetch:cmip6": "node scripts/fetch/cmip6.mjs",
     "fetch:giovanni": "node scripts/fetch/giovanni.mjs",
     "fetch:neighbours": "python3 scripts/build/build_neighbours.py",

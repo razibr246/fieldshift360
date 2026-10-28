@@ -2,9 +2,11 @@
 // answers with the old habit or with one of FieldShift's tools (হাতিয়ার) and sees what happens to crop, profit and water.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sprout, TrendingDown, ScanLine, Droplets, CloudSun, LifeBuoy, History, Coins, Swords, Star, RotateCcw, ArrowRight, Check, X, Sparkles, ExternalLink, Lightbulb } from 'lucide-react';
+import { Sprout, TrendingDown, ScanLine, Droplets, CloudSun, LifeBuoy, History, Coins, Swords, Star, RotateCcw, ArrowRight, Check, X, Sparkles, ExternalLink, Lightbulb, Satellite, Trophy } from 'lucide-react';
 import Photo from '../../components/Photo';
-import { useStore } from '../../store';
+import { useStore, clim as godagariClim } from '../../store';
+import { Tags } from '../../components/ui';
+import { chapterFacts, seasonTotals } from '../../engine/play';
 import { scrollToEl } from '../../components/Motion';
 import { num } from '../../engine/dates';
 import { START, WRONG_TOOL, TOOLS, SCENES } from '../../data/story';
@@ -15,6 +17,10 @@ const TOOL_TINT = {
   today: 'from-sky-300 to-sky-700', weather: 'from-amber-300 to-orange-500', help: 'from-rose-400 to-red-600',
 };
 const clamp = (v) => Math.max(0, Math.min(100, v));
+// Money in words a farmer reads at a glance: "−৬,০০০ টাকা" (৳ beside a Bangla digit is easy to misread as ৬).
+const taka = (v, lang) => (lang === 'bn' ? `${v < 0 ? '−' : ''}${num(Math.abs(v), 'bn')} টাকা` : `${v < 0 ? '−' : ''}Tk ${num(Math.abs(v), 'en')}`);
+const BEST = 'fs-play-best';
+const readBest = () => { try { return JSON.parse(localStorage.getItem(BEST) || 'null'); } catch { return null; } };
 
 export default function Play() {
   const { T, L, s } = useStore();
@@ -146,7 +152,7 @@ function Meters({ m, delta }) {
   const { T, s } = useStore();
   const lang = s.lang;
   const crop = useCountUp(m.crop), money = useCountUp(m.money), water = useCountUp(m.water);
-  const money$ = `${money < 0 ? '−' : ''}৳${num(Math.abs(money), lang)}`;
+  const money$ = taka(money, lang);
   const items = [
     { k: 'crop', icon: Sprout, label: T('ফসল', 'Crop'), value: num(crop, lang), bar: crop, color: 'bg-primary-500' },
     { k: 'money', icon: Coins, label: T('লাভ', 'Profit'), value: money$, tone: m.money < 0 ? 'text-red-700' : 'text-primary-800' },
@@ -165,7 +171,7 @@ function Meters({ m, delta }) {
               <div className="flex items-baseline justify-between gap-2"><span className="text-[12px] font-semibold text-muted">{it.label}</span><span className={`font-display text-[16px] font-bold tabular ${it.tone ?? ''}`}>{it.value}</span></div>
               {it.bar !== undefined && <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-black/[.07]"><div className={`progress-sheen h-full rounded-full ${it.color} transition-[width] duration-700 ease-[var(--ease-spring)]`} style={{ width: `${it.bar}%` }} /></div>}
             </div>
-            {d ? <span key={delta.k} className={`delta-float absolute -top-2 right-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shadow-sm ${d > 0 ? 'bg-primary-600' : 'bg-red-600'}`}>{d > 0 ? '+' : '−'}{it.k === 'money' ? '৳' : ''}{num(Math.abs(d), lang)}</span> : null}
+            {d ? <span key={delta.k} className={`delta-float absolute -top-2 right-2 rounded-full px-2 py-0.5 text-[11px] font-bold text-white shadow-sm ${d > 0 ? 'bg-primary-600' : 'bg-red-600'}`}>{d > 0 ? '+' : '−'}{num(Math.abs(d), lang)}{it.k === 'money' ? T(' টাকা', '') : ''}</span> : null}
           </div>
         );
       })}
@@ -198,7 +204,7 @@ function ToolCard({ id, tool, n, shaking, onPick }) {
       className={`tool-card glass flat group flex flex-col items-start gap-2.5 rounded-[22px] p-4 text-left transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl active:scale-95 border border-white/80 bg-white/85 hover:border-primary-300 cursor-pointer ${shaking ? 'tool-shake' : 'tool-deal'}`}>
       <span className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br ${TOOL_TINT[id]} text-white shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_8px_18px_-8px_rgba(0,0,0,.45)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6`}><Icon size={22} /></span>
       <span className="font-display text-[16.5px] font-bold leading-snug text-ink group-hover:text-primary-800 transition-colors">{L(tool)}</span>
-      <span className="text-[13px] leading-5 text-muted">{L(tool.note)}</span>
+      <span className="hidden text-[13px] leading-5 text-muted sm:block">{L(tool.note)}</span>
     </button>
   );
 }
@@ -230,6 +236,7 @@ function Outcome({ sc, stage, last, onNext }) {
           </div>
         </div>
       </div>
+      <RealFact id={sc.id} />
       <div className="lg:col-span-2">
         <button type="button" onClick={onNext} className="btn-gloss inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold text-white shadow-md active:scale-95 transition-all">
           {last ? T('মৌসুমের ফলাফল দেখুন', 'See the season result') : T('পরের মাসে চলুন', 'On to next month')}<ArrowRight size={18} />
@@ -294,6 +301,7 @@ function Confetti() {
 
 function StartScreen({ onStart }) {
   const { T, L } = useStore();
+  const best = useMemo(readBest, []);
   return (
     <section className="grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]">
       <div className="hero-rise">
@@ -310,9 +318,10 @@ function StartScreen({ onStart }) {
           <button type="button" onClick={onStart} className="btn-gloss inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-[17px] font-semibold text-white"><Swords size={19} />{T('খেলা শুরু করুন', 'Start the game')}</button>
           <span className="text-[14px] text-muted">{T('৬টি অধ্যায় · প্রায় ৩ মিনিট', '6 chapters · about 3 minutes')}</span>
         </div>
+        {best && <p className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold text-paddy-700"><Trophy size={16} />{T(`আপনার সেরা: ${num(best.stars, 'bn')}টি তারা, ${taka(best.money, 'bn')}`, `Your best: ${best.stars} star${best.stars === 1 ? '' : 's'}, ${taka(best.money, 'en')}`)}</p>}
       </div>
       {/* The six tools as a loose, slightly tilted hand of cards, each floating on its own rhythm. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-hidden="true">
+      <div className="hidden grid-cols-2 gap-3 sm:grid sm:grid-cols-3" aria-hidden="true">
         {Object.entries(TOOLS).map(([k, t], n) => {
           const Icon = TOOL_ICON[k];
           return (
@@ -326,6 +335,21 @@ function StartScreen({ onStart }) {
           );
         })}
       </div>
+      {/* The season ahead: six months, six real problems, each met by one tool. */}
+      <ol className="lg:col-span-2 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6" aria-label={T('মৌসুমের ছয় অধ্যায়', 'The six chapters of the season')}>
+        {SCENES.map((sc, k) => {
+          const Icon = TOOL_ICON[sc.tool];
+          return (
+            <li key={sc.id} className="hand-card relative isolate overflow-hidden rounded-[20px] bg-primary-950 p-3.5 text-white" style={{ '--n': k, '--rot': '0deg' }}>
+              <div className="absolute inset-0 -z-10 opacity-60"><Photo name={sc.photo} fill focus={sc.focus} sizes="220px" decorative /></div>
+              <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(8,26,14,.2),rgba(8,26,14,.88))]" />
+              <span className="flex items-center justify-between text-[12px] font-semibold text-white/80">{T(`অধ্যায় ${num(k + 1, 'bn')}`, `Chapter ${k + 1}`)}<Icon size={15} className="text-paddy-300" /></span>
+              <span className="mt-6 block text-[13px] font-semibold text-paddy-300">{L(sc.month)}</span>
+              <span className="block text-[14.5px] font-bold leading-snug">{L(sc.title)}</span>
+            </li>
+          );
+        })}
+      </ol>
     </section>
   );
 }
@@ -336,7 +360,18 @@ function EndScreen({ m, tries, onReplay }) {
   const first = tries.filter((t) => t === 'first').length;
   const stars = first >= 6 ? 3 : first >= 4 ? 2 : first >= 2 ? 1 : 0;
   const title = stars === 3 ? T('মাঠের চ্যাম্পিয়ন!', 'Field champion!') : stars === 2 ? T('দক্ষ কৃষক!', 'Skilled farmer!') : T('শিখছেন — আবার খেলুন', 'Still learning — play again');
-  const money = `${m.money < 0 ? '−' : ''}৳${num(Math.abs(m.money), lang)}`;
+  const money = taka(m.money, lang);
+  // The same season played all on old habits, and all with the right tool first time.
+  const paths = useMemo(() => [
+    { k: 'habit', label: T('সব সময় আগের অভ্যাসে', 'Old habits all season'), v: seasonTotals(SCENES, START, SCENES.map(() => 'habit')).money, tone: 'bg-red-500' },
+    { k: 'you', label: T('আপনি', 'You'), v: m.money, tone: 'bg-paddy-400' },
+    { k: 'tool', label: T('প্রতিবার ঠিক হাতিয়ারে', 'The right tool every time'), v: seasonTotals(SCENES, START, SCENES.map(() => 'tool')).money, tone: 'bg-primary-600' },
+  ], [T, m.money]);
+  const span = Math.max(...paths.map((p) => Math.abs(p.v)), 1);
+  useEffect(() => {
+    const b = readBest();
+    if (!b || stars > b.stars || (stars === b.stars && m.money > b.money)) { try { localStorage.setItem(BEST, JSON.stringify({ stars, money: m.money })); } catch { /* storage blocked */ } }
+  }, [stars, m.money]);
   return (
     <section className="scene-in mx-auto max-w-3xl text-center">
       <div className="flex justify-center gap-3">
@@ -353,6 +388,22 @@ function EndScreen({ m, tries, onReplay }) {
           </div>
         ))}
       </div>
+      <div className="outcome-in glass mt-6 rounded-[24px] p-5 text-left" style={{ animationDelay: '1150ms' }}>
+        <p className="text-[15px] font-bold">{T('একই মৌসুম, তিন রকম পথে: মৌসুমের লাভ', 'The same season, three ways: season profit')}</p>
+        <div className="mt-3 space-y-2.5">
+          {paths.map((p) => (
+            <div key={p.k} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 text-[13.5px] sm:grid-cols-[11rem_1fr_7rem]">
+              <span className={`truncate ${p.k === 'you' ? 'font-bold' : 'text-ink/75'}`}>{p.label}</span>
+              <b className="tabular text-right sm:order-last">{taka(p.v, lang)}</b>
+              <span className="relative col-span-2 h-4 rounded-full bg-black/[.04] sm:col-span-1">
+                <span className="absolute left-1/2 top-0 h-4 w-px bg-black/20" aria-hidden="true" />
+                <span className={`absolute top-0.5 h-3 rounded-full ${p.tone} transition-all duration-700`} style={{ [p.v < 0 ? 'right' : 'left']: '50%', width: `${(Math.abs(p.v) / span) * 50}%` }} aria-hidden="true" />
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[12.5px] text-muted">{T('খেলার টাকা শেখানোর জন্য, আসল হিসাব নয়; শুধু দিক আর আন্দাজ বোঝায়।', 'Game money is for learning, not a real estimate; it shows the direction and rough size.')}</p>
+      </div>
       <ol className="glass mt-6 divide-y divide-black/[.06] rounded-[24px] text-left">
         {SCENES.map((sc, k) => (
           <li key={sc.id} className="outcome-in flex items-center gap-3 px-5 py-3" style={{ animationDelay: `${1200 + k * 90}ms` }}>
@@ -367,5 +418,31 @@ function EndScreen({ m, tries, onReplay }) {
         <button type="button" onClick={onReplay} className="glass-pill inline-flex items-center gap-2 rounded-full px-6 py-3 text-[16px] font-semibold"><RotateCcw size={17} />{T('আবার খেলুন', 'Play again')}</button>
       </div>
     </section>
+  );
+}
+
+// What is real behind the chapter: one number from Godagari's own NASA record, DAM prices or the officer's rule.
+function RealFact({ id }) {
+  const { T, s } = useStore();
+  const f = useMemo(() => (godagariClim ? chapterFacts(godagariClim)[id] : null), [id]);
+  if (!f) return null;
+  const n = (v, o) => num(v, s.lang, o);
+  const text = {
+    choose: () => T(`নাসা POWER-এর গোদাগাড়ীর আবহাওয়ায় (FAO-56): বোরোতে লাগে প্রায় ${n(f.boro)} মিমি পানি, সরিষায় ${n(f.mustard)} মিমি, চার ভাগের এক ভাগের মতো। ১ নভেম্বর মানে ১৬ কার্তিক।`, `In Godagari’s NASA POWER weather (FAO-56): Boro needs about ${f.boro} mm of water, mustard ${f.mustard} mm, roughly a quarter. 1 November is 16 Kartik.`),
+    glut: () => T(`কৃষি বিপণন অধিদপ্তরের দামে টমেটো ফেব্রুয়ারি-মার্চে বছরের স্বাভাবিকের প্রায় অর্ধেকে নামে, আর সবচেয়ে দামি মাসের চেয়ে ${n(f.ratio, { dp: 1 })} গুণ সস্তা।`, `In DAM prices, tomatoes fall to about half the year’s usual price in February–March, ${f.ratio.toFixed(1)} times cheaper than the dearest month.`),
+    blight: () => T(`নাসা POWER: ২৫ বছরে গোদাগাড়ীর পৌষে সাধারণত ${n(f.coldNights)} রাত ১০° বা তার চেয়ে ঠান্ডা; ঠান্ডা, ভেজা ভোরে পাতার ছত্রাক-রোগ ছড়ায়।`, `NASA POWER: in 25 years Godagari’s Poush usually has ${f.coldNights} nights at 10° or colder; cold, damp mornings spread leaf fungus.`),
+    dry: () => T(`নাসা POWER: ২৫ বছরের ${n(f.dryYears)} বছরে গোদাগাড়ীর মাঘে ৫ মিমি-র কম বৃষ্টি; সাধারণত টানা ${n(f.dryRun)} দিন এক ফোঁটাও না।`, `NASA POWER: in ${f.dryYears} of 25 years Godagari’s Magh had under 5 mm of rain; usually ${f.dryRun} days in a row without a drop.`),
+    storm: () => T(`নাসা POWER: ২৫ বছরের ${n(f.wetYears)} বছরে গোদাগাড়ীর ফাল্গুনে অন্তত একদিন ৫ মিমি-র বেশি বৃষ্টি, ঠিক যখন সরিষা কাটার সময়।`, `NASA POWER: in ${f.wetYears} of 25 years Godagari’s Falgun had at least one day over 5 mm of rain, just when mustard is cut.`),
+    pests: () => T(`নিয়ম: ${n(f.days)} দিনের মধ্যে ${n(f.km, { dp: 1 })} কিলোমিটারের ভেতরে ${n(f.reports)}টি একই রকম খবর এলে কর্মকর্তার পাতায় এলাকার সতর্কতা ওঠে।`, `The rule: ${f.reports} similar reports within ${f.km} km in ${f.days} days raise an area alert on the officer’s screen.`),
+  }[id]?.();
+  if (!text) return null;
+  return (
+    <div className="outcome-in glass flex items-start gap-3 rounded-[22px] p-4 lg:col-span-2" style={{ animationDelay: '700ms' }}>
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-100 text-sky-800"><Satellite size={19} /></span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[13px] font-semibold uppercase tracking-wide text-sky-800">{T('এটা কি সত্যি? আসল তথ্য', 'Is this real? The real data')}</p><Tags list={[f.kind]} /></div>
+        <p className="mt-1 text-[15px] leading-7 text-ink/85">{text}</p>
+      </div>
+    </div>
   );
 }
