@@ -7,8 +7,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Compass, ListOrdered, X, Lightbulb, MousePointerClick } from 'lucide-react';
-import { useStore, demo } from '../store';
-import { STORAGE_PREFIX } from '../config/brand';
+import { useStore, demo } from '../../store';
+import { STORAGE_PREFIX } from '../../config/brand';
 import { TourModePicker, TourPlayback, QUICK_TOUR_STEP_SECONDS, TOUR_STEP_SECONDS } from './TourPlayback';
 
 const KEY = `${STORAGE_PREFIX}.officerTour`;

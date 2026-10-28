@@ -1,5 +1,5 @@
 import { Clock3, ListOrdered, Pause, Play, Sparkles, X, Zap } from 'lucide-react';
-import { num } from '../engine/dates';
+import { num } from '../../engine/dates';
 
 export const TOUR_STEP_SECONDS = 8;
 export const QUICK_TOUR_STEP_SECONDS = 6;

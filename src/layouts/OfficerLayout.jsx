@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, ScrollProgress, useScrollOnNavigate } from '../components/Motion';
 import { BackToTop } from '../components/SectionNav';
-import OfficerTour, { startOfficerTour } from '../components/OfficerTour';
+import OfficerTour, { startOfficerTour } from '../components/tour/OfficerTour';
 import { Bell, Compass, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton } from '../components/chrome';
@@ -168,7 +168,7 @@ export default function OfficerLayout() {
               <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')} aria-expanded={showSearch}>
                 <Search size={18} />
               </button>
-              {/* The complete guide to the officer pages (components/OfficerTour.jsx). */}
+              {/* The complete guide to the officer pages (components/tour/OfficerTour.jsx). */}
               <button type="button" onClick={() => startOfficerTour(0)} aria-label={T('পুরো অফিসার অংশের গাইড', 'Guide to the officer pages')}
                 className="officer-guide-trigger inline-flex h-10 items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-2.5 text-[14px] font-semibold text-primary-800 transition-all duration-200 hover:scale-105 hover:bg-primary-100 active:scale-95 sm:px-3">
                 <Compass size={17} /><span className="hidden sm:inline">{T('গাইড', 'Guide')}</span>

@@ -9,7 +9,7 @@ import { useStore, demo } from '../store';
 import { IRRIGATION, cropName } from '../engine/crops';
 import { num, bnDigits } from '../engine/dates';
 import FarmerAvatar from '../components/brand/FarmerAvatar';
-import FarmerTour, { startFarmerTour } from '../components/FarmerTour';
+import FarmerTour, { startFarmerTour } from '../components/tour/FarmerTour';
 
 export function useFarmerNav() {
   const { T } = useStore();

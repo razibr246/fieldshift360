@@ -4,7 +4,7 @@ import PublicLayout from './layouts/PublicLayout';
 import Home from './pages/public/Home';
 import { WhyDrawer, DataInfo, Toast } from './components/Overlays';
 import { MotionManager } from './components/Motion';
-import DemoTour from './components/DemoTour';
+import DemoTour from './components/tour/DemoTour';
 
 // Every page except Home loads on first visit, so the landing page does not download the whole app. Once the home
 // page has settled, the rest are fetched quietly in the background (skipped on Data Saver or 2G), which also lets the

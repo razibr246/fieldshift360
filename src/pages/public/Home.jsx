@@ -19,7 +19,7 @@ import ClimateShift from '../../components/charts/ClimateShift';
 import { LazyMount } from '../../components/SectionNav';
 import NeighbourPhotos from '../../components/NeighbourPhotos';
 import { useStore } from '../../store';
-import { startTour } from '../../components/DemoTour';
+import { startTour } from '../../components/tour/DemoTour';
 import { num, fmtDate, fmtBangla, banglaDate, daysBetween, bnDigits } from '../../engine/dates';
 import { THEN, NOW } from '../../engine/climate';
 import { PROJECT_NAME, PROJECT_TAGLINE, PROJECT_EVENT, PROJECT_TEAM } from '../../config/brand';

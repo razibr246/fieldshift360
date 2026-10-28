@@ -6,9 +6,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ChevronDown, Compass, HeartHandshake, MousePointerClick, X } from 'lucide-react';
-import { useStore } from '../store';
-import { num } from '../engine/dates';
-import { FARMER_TOUR as STEPS, FARMER_CHAPTERS as CHAPTERS } from '../data/farmer_tour';
+import { useStore } from '../../store';
+import { num } from '../../engine/dates';
+import { FARMER_TOUR as STEPS, FARMER_CHAPTERS as CHAPTERS } from '../../data/farmer_tour';
 import { TourModePicker, TourPlayback, QUICK_TOUR_STEP_SECONDS, TOUR_STEP_SECONDS } from './TourPlayback';
 
 const KEY = 'fs-farmer-tour';

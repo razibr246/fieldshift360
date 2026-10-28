@@ -4,7 +4,7 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clapperboard, X } from 'lucide-react';
-import { useStore } from '../store';
+import { useStore } from '../../store';
 
 export const TOUR = [
   { path: '/', hash: 'climate-shift', title: { bn: 'আবহাওয়া বদলেছে, পুরোনো ফসলচক্র টেকে না', en: 'The weather has moved; the old rotation no longer holds' },
