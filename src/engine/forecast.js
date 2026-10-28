@@ -8,13 +8,27 @@ const CURRENT = 'temperature_2m,relative_humidity_2m,precipitation,weather_code,
 export const forecastUrl = (lat, lon, tz = 'Asia/Dhaka') =>
   `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=${CURRENT}&hourly=${HOURLY}&daily=${DAILY}&forecast_days=8&timezone=${encodeURIComponent(tz)}`;
 
+// Open-Meteo now and then answers 502/503 for a moment or drops the connection; one retry after a short pause saves the
+// page from showing no weather until its next ten-minute refresh.
+async function getOnce(url, signal, retry = 1) {
+  try {
+    const r = await fetch(url, { signal });
+    if (r.status >= 500 && retry > 0) throw new Error(`Open-Meteo ${r.status}`);
+    return r;
+  } catch (e) {
+    if (retry <= 0 || signal.aborted) throw e;
+    await new Promise((res) => setTimeout(res, 1500));
+    return getOnce(url, signal, retry - 1);
+  }
+}
+
 // Returns { current, hours[], days[], url } or throws. `tz` sets whose wall clock the times are in (Dhaka by default).
 export async function fetchForecast(lat, lon, { timeout = 15000, tz } = {}) {
   const url = forecastUrl(lat, lon, tz);
   const ctl = new AbortController();
   const to = setTimeout(() => ctl.abort(), timeout);
   try {
-    const r = await fetch(url, { signal: ctl.signal });
+    const r = await getOnce(url, ctl.signal);
     if (!r.ok) throw new Error(`Open-Meteo ${r.status}`);
     const j = await r.json();
     const h = j.hourly, d = j.daily, c = j.current;
