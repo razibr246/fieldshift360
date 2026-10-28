@@ -49,6 +49,8 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in
   `services/voice-agent/lib/agent/field/shared/` are generated, never edit them. `public/radar/` is the original Ropon
   Radar prototype (Apache-2.0); `src/radar/` is the in-app radar and onset logic.
+- `src/components/`: shared UI (`ui.jsx`, `Motion.jsx`, `SectionNav.jsx` with `LazyMount`), charts in `charts/`, maps in
+  `map/`, and the guided tours in `tour/` (demo, farmer, officer; the farmer tour's steps are `src/data/farmer_tour.js`).
 - `src/game/`: "মাঠের মানুষ", the 3D farm game (three.js in `game/three/`). Its simulation (`sim.js`) and story
   campaign (`saga.js`) are pure and tested like the engine; keep rendering out of them.
 
