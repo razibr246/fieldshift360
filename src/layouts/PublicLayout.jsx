@@ -9,7 +9,7 @@ import { PageOutlet, ScrollProgress, scrollToEl, scrollToTop, useScrollOnNavigat
 export const scrollToId = (id) => scrollToEl(document.getElementById(id), 0); // sections carry their own scroll margin for the header
 
 const SECTIONS = ['how', 'land', 'data', 'officer'];
-const GAME_PATHS = ['/games', '/play', '/farm', '/stories'];
+const GAME_PATHS = ['/games', '/saga', '/play', '/farm', '/stories'];
 const SPY_LINE = 140; // a section counts as "current" once its top passes this far below the top of the window
 
 export default function PublicLayout() {

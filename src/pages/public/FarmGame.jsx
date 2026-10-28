@@ -8,6 +8,7 @@ import { Coins, Droplets, ShoppingBasket, Satellite, Smartphone, Volume2, Volume
 import { useStore } from '../../store';
 import { scrollToTop } from '../../components/Motion';
 import { num } from '../../engine/dates';
+import { bnOf } from '../../engine/text';
 import { REGIONS, FARMER_IDS, BD_IDS, ABROAD_IDS, QUESTS, NDVI_LEGEND } from '../../game/regions';
 import { PLACES } from '../../game/places';
 import { createGame, buy, answerQuiz, priceOf, dayOf, isNight, clock, quizOf, canMax, target, ripeAt } from '../../game/sim';
@@ -71,6 +72,11 @@ function SelectScreen({ who, setWho, onGo }) {
         <h1 className="mt-4 text-[40px] font-semibold leading-[1.12] tracking-[-0.03em] sm:text-[56px]">{T('মাঠের মানুষ', 'Field Folk')} <span className="bg-[linear-gradient(100deg,#1e5c22_0%,#3d8c34_40%,#1d717a_100%)] bg-clip-text text-transparent">3D</span></h1>
         <p className="mt-3 max-w-2xl text-[17px] leading-[1.65] text-ink/70">{T('বাংলাদেশের সাত বিভাগের সাতজন আর প্রতিবেশী পাঁচ দেশের পাঁচজন কৃষক — অ্যাপে যাঁদের অ্যাকাউন্ট আছে। প্রত্যেকের নিজের মাটি, নিজের পোশাক, নিজের ফসল আর নিজের বিপদ। একজনকে বেছে নিন, উপগ্রহ থেকে তাঁর মাঠে নামুন, আর পুরো একটা মৌসুম পার করুন।', 'Seven farmers from Bangladesh\u2019s seven divisions and five from the neighbouring countries \u2014 the ones with accounts in the app. Each has their own soil, their own clothes, their own crops and their own dangers. Pick one, drop from orbit onto their field, and see a whole season through.')}</p>
       </div>
+      <Link to="/saga" className="mt-5 flex items-center gap-3 rounded-2xl border border-paddy-300/70 bg-paddy-50 p-4 text-[15px] font-semibold text-primary-950 transition hover:-translate-y-0.5 hover:shadow-md">
+        <Sparkles size={20} className="shrink-0 text-paddy-600" />
+        <span className="min-w-0 flex-1">{T('গল্পের অভিযান: রাজিবের "দশ বছরের উত্তরাধিকার", ধামরাইয়ের আসল তিন মৌসুমে', 'Story campaign: Razib’s “Ten-Year Inheritance”, in three real Dhamrai seasons')}</span>
+        <ArrowRight size={18} className="shrink-0" />
+      </Link>
       <div className="mt-7 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
         {/* the chosen farmer, standing on their own ground */}
         <div className="relative min-h-[500px] overflow-hidden rounded-[30px] text-white shadow-[var(--shadow-lift)] lg:sticky lg:top-24 lg:self-start lg:h-[min(680px,calc(100svh-120px))]" style={{ background: stage(R.country) }}>
@@ -114,7 +120,7 @@ function SelectScreen({ who, setWho, onGo }) {
               </div>
             </div>
           ))}
-          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-3 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/25 hover:scale-[1.025] active:scale-[0.975] transition-transform duration-200">{T(`${F.bn}-এর মাঠে চলুন`, `To ${F.en}'s field`)}<ArrowRight size={19} /></button>
+          <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss mt-3 inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/25 hover:scale-[1.025] active:scale-[0.975] transition-transform duration-200">{T(`${bnOf(F.bn)} মাঠে চলুন`, `To ${F.en}'s field`)}<ArrowRight size={19} /></button>
           <p className="text-center text-[12.5px] text-muted">{T('এঁরা নমুনা মানুষ; জায়গা, ফসল আর বিপদের তথ্য সত্যি।', 'These are sample people; the places, crops and dangers are real.')}</p>
         </div>
       </div>
@@ -183,13 +189,13 @@ const snapshot = (g) => ({
   inZone: g.ev.zone ? Math.hypot(g.me.x - g.ev.zone.x, g.me.z - g.ev.zone.z) <= g.ev.zone.r : false,
 });
 
-function GameStage({ who, onEnd, onRestart, onQuit }) {
+export function GameStage({ who, mods, onEnd, onRestart, onQuit }) {
   const { T, L, s } = useStore();
   const lang = s.lang;
   const R = REGIONS[who];
   const cv = useRef(null), overlay = useRef(null), mapRef = useRef(null), compassRef = useRef(null);
   const gRef = useRef(null), st = useRef(null);
-  if (!gRef.current) gRef.current = createGame(who);
+  if (!gRef.current) gRef.current = createGame(who, mods);
   const g = gRef.current;
   const [hud, setHud] = useState(() => snapshot(g));
   const [panel, setPanel] = useState(null);
@@ -422,7 +428,7 @@ function GameStage({ who, onEnd, onRestart, onQuit }) {
             <p className="flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-[.38em] text-emerald-300"><Satellite size={14} className="animate-pulse" />{T('FieldShift উপগ্রহ থেকে নামছেন', 'Dropping in from the FieldShift satellite')}</p>
             <p className="font-display mt-2 text-[36px] font-extrabold leading-tight drop-shadow-[0_4px_22px_rgba(0,0,0,.55)] sm:text-[54px]">{R.flag} {L(R.place)}</p>
             <p className="mt-1 text-[16px] font-semibold text-white/85">{L(R.place.area)}</p>
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/50"><MapPin size={11} />{L(R.farmer)} · {L(F.trait)}</p>
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-[12px] text-white/50"><MapPin size={11} />{L(R.farmer)} · {L(R.farmer.trait)}</p>
           </div>
           <button type="button" onClick={() => st.current?.skipIntro()} className="g3-hud rounded-full px-5 py-2 text-[14px] font-semibold hover:scale-105 transition-transform">{T('এড়িয়ে যান', 'Skip')} →</button>
         </div>

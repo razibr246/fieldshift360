@@ -28,7 +28,8 @@ const ALERT = (R) => ({
   glutOff: { tone: 'ok', title: { bn: `${gen(R.crops[R.glut].bn)} দাম ফিরেছে`, en: `${R.crops[R.glut].en} prices are back` }, body: { bn: 'এখন বেচতে পারেন।', en: 'You can sell now.' } },
 });
 
-export function createGame(id) {
+// mods: a season's strength (1 = as designed), e.g. from a real year's weather in the story campaign (src/game/saga.js).
+export function createGame(id, mods = {}) {
   const R = REGIONS[id], F = R.farmer, L = layoutFor(R.world);
   const plots = [];
   for (let r = 0; r < FROWS; r++) for (let c = 0; c < FCOLS; c++) {
@@ -44,6 +45,7 @@ export function createGame(id) {
     quest: 0, questStarted: false, nextQuestAt: 1.5, perks: {}, answers: [], ev: { heat: 0, storm: 0, glut: 0, done: {}, zone: null, flood: 0 },
     waitFor: null, timers: [], plots, out: [], won: false, broke: false, alerts: ALERT(R),
     home: PLACES[id], seen: [], phase: 0.06,
+    mods: { heat: 1, storm: 1, pests: 1, ...mods },
   };
   g.out.push({ type: 'say', text: R.lines.hello });
   return g;
@@ -183,12 +185,12 @@ function beginEvent(g, q) {
   const lead = g.F.alertLead, A = g.alerts;
   if (q.event === 'heat') g.waitFor = { n: 3, then: () => {
     emit(g, { type: 'alert', ...A.heatSoon }); say(g, 'heat');
-    at(g, 10 + lead, () => { g.ev.heat = 30; emit(g, { type: 'alert', ...A.heatOn }); sound(g, 'alarm'); });
+    at(g, 10 + lead, () => { g.ev.heat = Math.round(30 * g.mods.heat); emit(g, { type: 'alert', ...A.heatOn }); sound(g, 'alarm'); });
   } };
   if (q.event === 'pests') g.waitFor = { n: 3, then: () => {
     emit(g, { type: 'alert', ...A.pestSoon });
     at(g, 8 + lead, () => {
-      growing(g).filter((p) => !p.pests).sort(() => Math.random() - 0.5).slice(0, 3).forEach((p) => { p.pests = 1; p.pestT = 0; });
+      growing(g).filter((p) => !p.pests).sort(() => Math.random() - 0.5).slice(0, Math.max(1, Math.round(3 * g.mods.pests))).forEach((p) => { p.pests = 1; p.pestT = 0; });
       g.ev.pestsLeft = true; emit(g, { type: 'alert', ...A.pestOn }); say(g, 'pest'); sound(g, 'alarm');
     });
   } };
@@ -331,7 +333,7 @@ function stepEvents(g, dt) {
   if (z && z.left > 0) {
     z.left -= dt;
     if (z.left <= 0) {
-      g.ev.storm = 16; emit(g, { type: 'alert', ...A.stormOn }); sound(g, 'thunder');
+      g.ev.storm = Math.round(16 * g.mods.storm); emit(g, { type: 'alert', ...A.stormOn }); sound(g, 'thunder');
       if (Math.hypot(me.x - z.x, me.z - z.z) > z.r) {
         me.down = 3.2; me.act = null; g.count.hurt++;
         const fine = Math.min(g.money, 60); g.money -= fine;

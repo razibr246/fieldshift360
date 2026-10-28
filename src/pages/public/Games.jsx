@@ -22,7 +22,7 @@ export default function Games() {
           <span className="block">{T('খেলতে খেলতে', 'Learn the field')}</span>
           <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('মাঠ চিনুন।', 'by playing.')}</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-ink/70">{T('তিনটি খেলা, একটাই শিক্ষা: বিপদ আসার আগে জানলে ফসল বাঁচে। খেলে দেখুন FieldShift কোন সমস্যায় কীভাবে পাশে থাকে।', 'Three games, one lesson: know before trouble arrives and the crop survives. Play and see how FieldShift helps with each problem.')}</p>
+        <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-ink/70">{T('চারটি খেলা, একটাই শিক্ষা: বিপদ আসার আগে জানলে ফসল বাঁচে। খেলে দেখুন FieldShift কোন সমস্যায় কীভাবে পাশে থাকে।', 'Four games, one lesson: know before trouble arrives and the crop survives. Play and see how FieldShift helps with each problem.')}</p>
       </div>
       <ol className="mt-7 grid gap-2 sm:grid-cols-3" aria-label={T('খেলার ধাপ', 'How the games work')}>
         {[
@@ -39,7 +39,18 @@ export default function Games() {
           </li>
         ))}
       </ol>
-      <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {/* The story campaign, first: the biggest game here. */}
+      <Link to="/saga" className="lift group relative isolate mt-10 flex min-h-[340px] items-end overflow-hidden rounded-[32px] bg-primary-950 text-white shadow-[var(--shadow-lift)]">
+        <div className="absolute inset-0 -z-10 transition-transform duration-[1.4s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-105"><Photo name="dhamraiBridge" fill sizes="100vw" decorative /></div>
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(8,20,12,.92)_0%,rgba(8,20,12,.6)_55%,rgba(8,20,12,.15)_100%)]" />
+        <div className="max-w-2xl p-7 sm:p-10">
+          <p className="inline-flex items-center gap-2 rounded-full bg-paddy-300 px-3 py-1 text-[13px] font-bold text-primary-950"><BookOpen size={14} />{T('নতুন · গল্পের অভিযান · ৩D', 'New · story campaign · 3D')}</p>
+          <p className="font-display mt-3 text-[34px] font-bold leading-tight sm:text-[48px]">{T('দশ বছরের উত্তরাধিকার', 'The Ten-Year Inheritance')}</p>
+          <p className="mt-2 text-[16px] leading-7 text-white/85">{T('অসুস্থ বাবার দুই বিঘা জমি আর চল্লিশ বছরের পুরোনো খাতা এখন আপনার। ধামরাইয়ের তিনটি আসল নাসা-আবহাওয়ার মৌসুম, পরিবার আর গ্রামের কঠিন সিদ্ধান্ত, আর ২০৪৫ সালে আপনার মেয়ে পাবে যা আপনি রেখে যাবেন।', 'Your ailing father’s two bigha and forty-year-old notebook are yours now. Three seasons of Dhamrai’s real NASA weather, hard choices for family and village, and in 2045 your daughter inherits what you leave.')}</p>
+          <span className="mt-4 inline-flex items-center gap-2 font-semibold text-paddy-300">{T('গল্প শুরু করুন', 'Begin the story')}<ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" /></span>
+        </div>
+      </Link>
+      <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {games.map((g, n) => (
           <Link key={g.to} to={g.to} style={{ '--n': n }} className="tool-card tool-deal glass flat group overflow-hidden rounded-[28px] border border-white/80 shadow-md hover:shadow-2xl hover:border-primary-400/60 transition-all duration-300 bg-white/80 backdrop-blur-md">
             <div className="relative aspect-[16/9] overflow-hidden">
