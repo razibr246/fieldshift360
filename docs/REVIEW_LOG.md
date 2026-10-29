@@ -13,6 +13,10 @@ fill this in on anyone's behalf.
 
 ## What a reviewer should check
 
+0. **First: Boro's flowering-heat limit.** It is crossed in 12–13 of 13 recent seasons at Godagari and Dacope and
+   11 of 13 at Dhamrai and Gangachara, yet Boro is grown there every year (`docs/EVIDENCE.md`). Should the limit be
+   higher, longer, or tied to a heat-tolerant variety (e.g. BRRI dhan 89)? This one rule moves many recommendations.
+
 1. **Crop weather rules** (`docs/THRESHOLDS.md`): each heat, cold and rain limit and the growth-stage window it
    applies to, for local varieties (e.g. BARI Masur-8, BINA Sarisha-9, BRRI dhan 89).
 2. **Sowing windows**: the usual date and the ±2-week alternatives per crop and upazila.

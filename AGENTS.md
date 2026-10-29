@@ -57,8 +57,10 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 ## Rules of this project
 
 - Real vs sample is a product rule: climate, rain, radar, soil, prices and yields are real; farmers, requests and the
-  register's owners are sample. Every number carries a `<Tags list={[...]} />` label (`REAL`, `RULE`, `AI`, ...);
-  keep them truthful.
+  register's owners are sample. Every number carries a `<Tags list={[...]} />` label saying what produced it (`SAT`,
+  `STATION`, `MODEL`, `RECORD`, `RULE`, `AI`, `DEMO`); NASA POWER weather and SoilGrids soil are `MODEL` (real data,
+  not field measurements). Keep them truthful; the dataset register behind `/science#coverage` is
+  `src/engine/provenance.js`.
 - Before changing behaviour, check `docs/THRESHOLDS.md` (crop thresholds), `docs/DATA_SOURCES.md` (update it when
   data changes), `docs/RADAR.md` (onset rule), `docs/VOICE.md` and `docs/MERGE.md`.
 - Style: ES modules and JSX as the surrounding code; PascalCase component files, lowercase engine and script files;

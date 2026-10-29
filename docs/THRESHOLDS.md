@@ -31,6 +31,11 @@ Days are counted from planting or transplanting.
 | Jute (rotation) | Less than 50 mm rain in total means it must be irrigated | 0–30 | Assumption | |
 | Aus rice (rotation) | 3 or more days with Tmax ≥ 35 °C at flowering cause empty grains | 70–90 | As Boro (Yoshida 1981) | |
 
+**Known problem (29 October 2026).** The Boro rule above is crossed in 12–13 of 13 seasons 2013–2025 at Godagari
+and Dacope and 11 of 13 at Dhamrai and Gangachara, yet Boro is the main crop in all four. It almost certainly over-warns
+for local varieties and lowers Boro's weather score; the app says so wherever this happens. It is the first item in
+`docs/REVIEW_LOG.md`. A season "counting as unsafe" here means a limit was crossed, not that the crop was lost.
+
 ## Planting dates, duration and soil
 
 The usual date is tested, and so are two weeks earlier and two weeks later (the planting band). A sowing day that

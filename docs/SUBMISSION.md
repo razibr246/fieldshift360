@@ -7,17 +7,20 @@ Checked against the official challenge statement (rotation strategies for soil h
 
 ## Project description (for the Space Apps project page)
 
-**FieldShift 360 helps Bangladesh's smallholder farmers choose crop rotations that rebuild their soil, save water
-and hold up as the climate changes, using NASA Earth observations, a model estimate of their field's soil (ISRIC SoilGrids, 250 m; not a soil test), crop characteristics
-and their own priorities.**
+**FieldShift 360 helps Bangladesh's smallholder farmers explore crop rotations that may improve soil health and
+resilience, using NASA Earth observations, crop characteristics, a model estimate of soil (ISRIC SoilGrids,
+250 m; not a soil test), and farmer priorities.** This prototype uses sample farmer accounts and demo fields.
+NASA POWER weather is upazila-scale, and Sentinel-2 crop sequences are inferred from green-cover observations;
+neither is a field-level ground measurement.
 
 The crop calendar farmers inherited no longer fits the weather. On the Barind around Godagari the risk is drought,
 spring heat and a falling water table; on the low land of Dhamrai it is floods and waterlogging; elsewhere salt,
-flash floods and cold waves. Most advice stops at one season. FieldShift 360 looks ten years ahead, for one real
-field:
+flash floods and cold waves. Most advice stops at one season. FieldShift 360 lets users explore ten-year
+scenarios for a selected demo field:
 
-- **Starting from what the satellite saw.** The field's Sentinel-2 green-cover curve names the crops it actually
-  grew last Rabi and this monsoon; the ten years start from that rotation.
+- **Starting from satellite observations.** Sentinel-2 green-cover observations are used to infer a likely crop
+  sequence for the selected demo field. Cloud gaps and classification uncertainty mean this is an estimate, not
+  verified crop history; users can choose the registry value instead.
 - **Every feasible rotation, ten years each.** All one- and two-year cycles of a Rabi crop, a Kharif-1 crop and
   T. Aman, with or without the straw kept (several hundred per field), run on the upazila's 25 seasons of NASA POWER
   weather. Each is scored on soil carbon (the ICBM model, started from the field's ISRIC SoilGrids carbon) and the
@@ -40,20 +43,24 @@ rotation as a picture poster, or ask by SMS from a feature phone. Upazila office
 Boro farmers would save across the upazila in water, greenhouse gas and soil carbon. Union officers receive
 farmers' problem reports and reply from the same numbers; upazila officers see Ropon Radar,
 when the rains set in each year (GPM IMERG) and when Aman was actually transplanted (Sentinel-1 radar), for every
-upazila of seven districts; the rain-onset rule agrees with BMD station-based onsets within a week. The full engine
+upazila of seven districts; the rain-onset rule agrees with BMD station-based onsets within a week at three stations. The full engine
 covers seven upazilas, one in each division of Bangladesh; sample farms in India, Pakistan, Nepal, Bhutan and Myanmar
 get ten-year rotation options on their SoilGrids soil estimate and their country's yields, with GRACE and SMAP water.
 
-Everything is honest about its data: every number is tagged real, rule, AI or sample. Climate, rain, radar, soil,
-prices and yields are real; the farmers are sample people; crop thresholds are stated starting values for an
-agriculture officer to review.
+Every number says what produced it: observed by a satellite, reported by a station, estimated by a model, a
+published record, a rule, AI, or sample. The weather (NASA POWER) and the soil (SoilGrids) are real data but model
+estimates at upazila and 250 m scale, not field measurements; satellite, price and yield records are real; the farmers
+and their plans are sample people; the crop thresholds are starting values that no local agronomist has reviewed
+yet. Each rotation strategy is shown with why it came up, its evidence, what it may offer, what is not known, its
+risks and what needs local review, and the app says plainly that the farmer and the agriculture officer decide.
 
 ## Who it is for, and how many (impact)
 
 - **16.88 million farm households** in Bangladesh (BBS Agriculture Census 2019) choose what to plant every season;
   FieldShift 360 is built for them, their union officers (SAAO) and upazila officers (UAO).
 - **4.85 million ha of Boro rice** (BBS 2022-23), the country's thirstiest crop and the biggest chance to save
-  groundwater; GRACE shows the water under the Barind falling 8.9 cm a decade.
+  groundwater; GRACE shows the water stored in the region round Godagari falling about 8.9 cm a decade (2003–2021,
+  a regional figure read from saturating colour tiles, so its size is approximate).
 - **2.51 million people** live in the seven upazilas, one per division, where the full engine runs today (BBS
   Census 2022): Dhamrai 517,135, Godagari 376,386, Bakerganj 356,022, Sitakunda 457,396, Dacope 159,369,
   Gangachara 286,730, Gowainghat 355,979.
@@ -65,17 +72,33 @@ agriculture officer to review.
 
 ## How we know it works (validity)
 
-- **A working prototype:** every page runs in the browser on committed data; 108 automated tests cover the engine,
-  the voice assistant, the game and the rain-onset rule; every page is checked on phone and desktop with no errors.
-- **Satellites checked against each other:** IMERG against POWER rain, r = 0.81 in Rabi seasons and 0.76 in the
-  monsoon over 25 seasons; SMAP against POWER root-zone wetness, r = 0.89–0.96.
+- **A working prototype:** on 29 October 2026 a clean checkout of the committed code ran 146 automated tests
+  (`npm test`: the engine, explanations and data coverage, voice and SMS, radar onset, the farmer tour and the game),
+  all passing, and the production build succeeded. This is code-level checking, not farmer or officer usability
+  testing, which has not yet been run (see below and `docs/USER_TESTING.md`).
+- **Sources checked against each other:** NASA POWER rain against GPM IMERG over 25 seasons, r = 0.67–0.82 in the
+  Rabi across the seven upazilas but only 0.10–0.76 in the monsoon (weak in the wet south, so monsoon-rain rules
+  there are less certain); SMAP L4 against POWER root-zone wetness, r = 0.89–0.96 over 128 months, a consistency
+  check rather than independent validation since both draw on NASA's GEOS land modelling; SRTM against ASTER at the
+  19 registered fields, 1.0–11.9 m apart, shown per field. Details: `docs/EVIDENCE.md`.
 - **Checked against the ground:** the rain-onset rule agrees with Bangladesh Meteorological Department station-based
   onsets (Han et al. 2024) within a week at Rajshahi, Barishal and Dinajpur; POWER temperatures are corrected to the
   nearest BMD station's 1991–2020 normals.
 - **Published science, named:** ICBM soil carbon (Andrén & Kätterer 1997), FAO-56 crop water, the NRCS soil-health
   principles, IPCC 2019 Tier 1 paddy methane, robust decision making over 8 CMIP6 models × 5 FAOSTAT yield years.
 - **Honest about the rest:** crop thresholds are starting values awaiting an agriculture officer's review
-  (THRESHOLDS.md); the farmers are sample people, labelled so on every screen.
+  (THRESHOLDS.md, `docs/REVIEW_LOG.md`, still empty); the farmers are sample people, labelled so on every screen.
+
+## Not validated yet, and the plan
+
+None of the following has happened; nothing in the app or this kit claims it has.
+
+| Gap | Plan (about four weeks, one upazila) |
+| --- | --- |
+| Farmers and officers have not used it | Week 1–2: the protocol in `docs/USER_TESTING.md` with 6–8 farmers (including low-literacy users and low-end phones) and 2–3 SAAOs; record whether each can say what is recommended, why, and what to check first |
+| Crop thresholds not reviewed locally | Week 1: an upazila agriculture officer or BARI/BRRI agronomist goes through `docs/THRESHOLDS.md`, starting with Boro's flowering-heat limit, which is crossed in nearly every recent season in four upazilas where Boro is the main crop and so almost certainly over-warns; each change is recorded in `docs/REVIEW_LOG.md` and `src/data/reviews.js` |
+| Soil is a model estimate | Week 2–3: soil tests (SRDI mobile lab) on 10 registered fields; compare pH and organic carbon with SoilGrids and publish the difference |
+| Yields are national averages | Week 3–4: farmers' recorded harvests for the same fields against FAOSTAT; the season's backtest "bad years" against farmers' recall of bad seasons |
 
 ## Team and roles
 
@@ -83,7 +106,7 @@ Fill in before submitting (Teamwork is scored on roles):
 
 | Name | Role | What they did |
 | --- | --- | --- |
-| Razib Miah | [role] | [what they did] |
+| Complete from verified team records before submission | Add each contributor's actual role | Describe only work they personally completed |
 
 ## Datasets used
 
@@ -94,12 +117,12 @@ Fill in before submitting (Teamwork is scored on roles):
 | NASA POWER daily point API (community AG): T2M_MAX, T2M_MIN, PRECTOTCORR, RH2M, ALLSKY_SFC_SW_DWN | 25-season backtest, rotation runs, scores, harvest timing, climate change "then vs now" | https://power.larc.nasa.gov |
 | NASA POWER monthly GWETROOT, GWETTOP (root-zone and surface soil wetness, NASA GMAO MERRA-2) | Rabi-season soil water 2002–2025 and its trend, beside each rotation's irrigation need | https://power.larc.nasa.gov |
 | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT via POWER; GPM_3IMERGDF v07 at GES DISC) | Rain onset, June–July rain, drought/flood indices, rain cross-check | https://gpm.nasa.gov/data/imerg · https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary |
-| NASA GRACE / GRACE-FO (JPL mascons, CRI) via NASA GIBS | Water stored on and under the land, 2003–2021, under each upazila and farm abroad | https://nasa-gibs.github.io/gibs-api-docs/ |
+| NASA GRACE / GRACE-FO (JPL mascons, CRI) via NASA GIBS | Water stored on and under the land, yearly 2003–2021 (monthly Apr 2002 – Jul 2022), a regional average round each upazila and farm abroad | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA SMAP Level 4 root-zone soil moisture via NASA GIBS | This month's root-zone soil moisture against normal; a check on POWER's soil wetness | https://smap.jpl.nasa.gov |
 | NASA NEX-GDDP-CMIP6 v2.0 | The 2040s for every rotation; each of the 8 models on its own for the robustness test | https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6 |
 | NASA GIBS, HLS (Harmonized Landsat Sentinel-2) | Satellite photos of the fields through the season | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA FIRMS (neighbouring-country pages) | Fire detections | https://firms.modaps.eosdis.nasa.gov |
-| NASA SEDAC via NASA GIBS: GPW v4.11 population density 2020, LECZ v3 (land below 10 m), Global Agricultural Lands croplands 2000 | Each upazila's population density, low-lying land and cropland share, measured inside its boundary (home page "Who it is for") | https://sedac.ciesin.columbia.edu |
+| NASA SEDAC via NASA GIBS: GPW v4.11 population density 2020, LECZ v3 (land below 10 m), Global Agricultural Lands croplands 2000 | Each upazila's population density, low-lying land and cropland share, summarised from the gridded layers inside its boundary (home page "Who it is for") | https://sedac.ciesin.columbia.edu |
 | NASA Image and Video Library | The delta, the Sundarbans and Rupganj photographed from the Space Shuttle, the ISS and ASTER (home page) | https://images.nasa.gov |
 
 ### Partners and others
@@ -122,23 +145,23 @@ Full list with dates and where each is used: [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Demo video script (about 3 minutes, Bangla speech with English subtitles)
 
-Record the "3-minute demo story" on the home page; each scene is one step. Subtitles in English throughout.
+One farmer, one field, one decision first; the evidence; what is real; then the ten-year view and the rest. The
+"3-minute demo story" on the home page follows this order; timings, words and the fallback recording plan are in
+`docs/DEMO_SCRIPT.md`.
 
 | Time | Screen | Say (subtitle) |
 | --- | --- | --- |
-| 0:00–0:15 | Steps 1–2, Home: the drought/flood photo and 25 seasons of NASA weather, then "Who it is for" | "The weather has moved, and the crop calendar our parents trusted no longer fits. NASA POWER shows how much in 25 seasons. Nearly 17 million farm households make this choice every season." |
-| 0:15–0:40 | Step 3: Field Future, the satellite-seen rotation and the soil time machine (Rahim, Godagari) | "Sentinel-2 saw mustard then Boro on Rahim's field. From there, one field, three rotations, ten years, from its own soil: the plough pan, the roots, the carbon." |
-| 0:40–1:00 | Step 4: the best rotation, then pick "less water" | "Several hundred rotations, ten years each: soil health, water, profit, weather risk and pests. The farmer's priorities change the ranking." |
-| 1:00–1:15 | Step 5: the climate account, Boro to AWD; then "My field's ten years" story | "Paddy methane against soil carbon; AWD cuts it again. And the farmer gets a narrated story of their own field to share." |
-| 1:15–1:35 | Step 6: the 40-future test | "Eight NASA climate models times five real yield years: forty futures. The robust choice keeps the soil in nearly all of them." |
-| 1:35–1:55 | Step 7: Razib's season plan (Dhamrai) | "This year's step, tested on 25 seasons of NASA weather. Flood-prone Dhamrai gets its own answer." |
-| 1:55–2:10 | Step 8: voice, then the SMS screen | "By voice, by typing, or by SMS from a basic phone, in Bangla: the same working answers." |
-| 2:10–2:35 | Step 9: Ropon Radar | "When do the rains set in, and when was rice planted? NASA IMERG rain, checked against BMD, and Sentinel-1 radar, for every upazila." |
-| 2:35–3:00 | Step 10: the upazila impact | "If a third of Godagari's Boro farmers switched: millions of cubic metres of water a year, while GRACE shows the water underground falling. Real data; sample farmers; open rules." |
+| 0:00–0:20 | Season plan: what Rahim grows now beside two alternatives (Godagari) | "One field, one decision. What he grows now and two alternatives, on the same 25 seasons of NASA weather and the same prices; the bar shows why each ranks where it does." |
+| 0:20–0:40 | The first step and what to check first | "Which crop, which week, and what to check in the field: a soil test, because the soil numbers are a model estimate. One tap sends it to his officer." |
+| 0:40–1:05 | How this recommendation was made | "What went into the calculation and what is only context; rules not yet reviewed locally; and how firm it is. When the options are close, it says so." |
+| 1:05–1:25 | Science page: data coverage and where sources disagree | "Every source labelled: satellite, station, model, record, rule or sample. GRACE is regional, never this field." |
+| 1:25–2:05 | Field Future: three rotations side by side, then the soil verdict | "As now, the best and the next alternative: why, evidence, benefits, unknowns, risks and what to check locally. And whether any rotation really helps this soil." |
+| 2:05–2:30 | Field Future: the eight-model test | "Eight NASA climate models times five real yield years: what holds in any model and what rests on an assumption." |
+| 2:30–3:00 | Voice "বিকল্পগুলোর তুলনা", then the officer view | "The same comparison by voice or SMS, with how sure it is and how to reach a person. Real data; sample farmers; open rules." |
 
 ## Slide notes (short deck)
 
-1. **Title.** FieldShift 360: rotations that rebuild the soil and hold up in any future. NASA data for
+1. **Title.** FieldShift 360: comparing crop rotations for soil health and a changing climate. NASA data for
    Bangladesh's smallholders. Team, challenge name.
 2. **The problem.** Shifting heat, changing rain, water shortages, extreme weather and tired soil; advice that
    stops at one season. Photo: cracked earth beside a flooded field.
@@ -147,15 +170,18 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
    upazilas today; SEDAC shows which of them lie below 10 m.
 4. **How it decides.** The field's estimated soil (SoilGrids, a 250 m model, not a soil test) + 25 seasons of NASA POWER + crop characteristics + the farmer's
    priorities → every rotation run for ten years → soil carbon, NRCS soil health, water, profit, risk, pests.
-5. **The soil time machine.** One field, three rotations, a living soil profile season by season.
+5. **Three strategies side by side.** Farming as now, the best rotation and the next alternative: why each, its
+   evidence, what it may offer, what is unknown, its risks and what needs local review; then the soil time machine.
 6. **Water and climate.** Irrigation per rotation, AWD, Rabi soil wetness since 2002, methane against soil carbon.
-7. **Robust to any future.** NEX-GDDP-CMIP6 2040s; the best rotations re-run in 8 models × 5 yield years = 40 futures,
-   each with its chance of keeping the soil. Field Future starts from the rotation Sentinel-2 saw on the field.
+7. **Tested against 40 futures.** NEX-GDDP-CMIP6 2040s; the best rotations re-run in 8 models × 5 yield years = 40
+   futures, each with the share in which it keeps the soil; what holds in any model is separated from what rests on
+   an assumption. Field Future starts from the rotation Sentinel-2 appears to show on the field.
 8. **For every farmer and officer.** A narrated story video and a picture poster of the farmer's own rotation; SMS
    for feature phones; the upazila-wide effect of a switch for the officer.
 9. **This season's step.** KEEP / ADJUST / SHIFT on 25 seasons; voice in Bangla; officers see reports and Ropon
    Radar for seven districts.
-10. **Honest data.** Real vs sample tags on every number; DATA_SOURCES and THRESHOLDS documents; what still needs an
-   officer's review.
-11. **Next.** Officer review of thresholds, BMD onset checks for Sylhet and Chattogram, a pilot with one union and an SMS short code; the same engine for any
+10. **Honest data.** Every number labelled satellite, station, model, record, rule, AI or sample; a coverage-and-gaps
+   table per field; where sources disagree; "a close call" when options are near; the evidence sheet.
+11. **Next.** The four-week validation plan above (farmer and officer testing, threshold review, soil tests, recorded
+    yields), BMD onset checks for Sylhet and Chattogram, a pilot with one union and an SMS short code; the same engine for any
     country, since POWER, SoilGrids and CMIP6 are global.
