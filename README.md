@@ -1,6 +1,6 @@
 # FieldShift 360
 
-**A crop-rotation decision tool for Bangladesh's smallholders, on NASA Earth observations, the field's own soil, crop
+**A crop-rotation decision tool for Bangladesh's smallholders, on NASA Earth observations, a model estimate of the field's soil, crop
 characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https://nasa-field-shift-360.vercel.app
 
 ## Summary
@@ -39,7 +39,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 | --- | --- | --- |
 | A **decision-support tool** | Field Future ranks every feasible rotation for the field, starting from the rotation Sentinel-2 actually saw on it, and names the best and the most robust (with its chance over 40 futures), with its first year dated (the Rabi's best sowing day still ahead, the radar's Aman day) and planned in one tap; the season plan turns this year's step into KEEP, ADJUST or SHIFT; officers see the upazila-wide effect of a switch | `/farmer/future`, `/farmer/plan`, `/officer/upazila` |
 | Uses **NASA Earth observations** | NASA POWER (weather and root-zone soil wetness), GPM IMERG rain, NEX-GDDP-CMIP6 projections, GIBS HLS imagery, FIRMS fires | Every score; table below |
-| **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's own carbon; SRDI fertilizer doses per union | `src/data/soil/soil_*.json`, Field Future soil column |
+| **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's estimated carbon (a 250 m model, not a soil test); SRDI fertilizer doses per union | `src/data/soil/soil_*.json`, Field Future soil column |
 | **Crop characteristics** | Per crop: duration, sowing windows, water need (FAO-56 coefficients), weather failure rules, family, legume nitrogen, harvest index and root-to-shoot ratio for carbon | `src/engine/crops.js`, `src/engine/soilfuture.js` |
 | **Farmer priorities and constraints** | More income, less water, less risk, better soil, an early harvest, **feeding the cattle** (straw, pulse haulm, mustard oil cake) and **keeping the soil covered**: they re-weight both the rotation ranking and the season plan at once. The farmer can also **rule out crops they cannot grow** (no market, machine, seed or labour); water availability comes from their own irrigation source | Planner step 4, Field Future |
 | **Explore rotation strategies** | All one- and two-year cycles of a Rabi crop, a Kharif-1 crop and T. Aman, with or without the straw kept; side-by-side comparison; build your own; every rotation on a profit-against-soil chart | `/farmer/future` |
@@ -84,6 +84,11 @@ The commit history shows each change with its date.
 
 MIT (`LICENSE`), except `public/radar/` (the Ropon Radar prototype), which is Apache-2.0 (`public/radar/LICENSE`).
 Data keeps its own licence, listed per dataset in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+**Eligibility.** The challenge page asks teams not to begin work before the event. The preparation above existed
+before 21 October 2026 and is declared here rather than hidden. Whether prepared work is allowed under the
+official Space Apps rules for this year has to be confirmed with the organisers by the team before submission; no
+product change can settle it.
+
 
 ## Background
 
@@ -331,28 +336,29 @@ Open them from the login page (each country is one card: farmer on one side, off
 
 | Output | Label |
 | --- | --- |
-| Climate history, backtests, "this season so far", rain cross-check | **REAL** (NASA POWER, GPM IMERG) |
-| Soil properties (SoilGrids) and fertilizer doses (SRDI) | **REAL** (a 250 m model estimate and SRDI's union data, not a field soil test) |
+| Climate history, backtests, "this season so far" | **MODEL** (NASA POWER: MERRA-2 and satellites, temperatures matched to BMD **STATION** normals) |
+| Rain onset, rain cross-check | **SAT** (GPM IMERG), checked against BMD station-based onsets |
+| Field green curve, transplanting dates, field greenness, terrain, GRACE water | **SAT** (Sentinel-2, Sentinel-1, MODIS, SRTM and ASTER, GRACE; GRACE is a regional average, not a field measurement) |
+| Soil properties (SoilGrids) | **MODEL** (a 250 m machine-learning estimate, not a soil test of the field) |
+| Fertilizer doses (SRDI) | **RECORD** (SRDI's union guides, from its soil tests in the union) |
 | Scores, Keep/Adjust/Shift, rotation, price-drop risk, water advice, harvest weeks | **Rule-based** (`src/engine/`) |
 | Area problem clusters | **AI** (DBSCAN) on sample requests |
-| Crop doctor | **Sample** (no trained model shipped) |
+| Crop doctor | **AI** (Google Gemini vision on the farmer's photo with the field's context; a first look, not a diagnosis; sample requests in the demo are made up) |
 | Prices and full production costs per crop | **REAL** (government procurement prices, DAM notices, ministry and field cost studies; years differ and are shown) |
 | Farmers, plans, requests, officers, normal supply | **Sample** (`src/data/demo.js`) |
 | Today's weather | **REAL** from Open-Meteo when online, otherwise sample scenarios |
 
-Crop thresholds in `src/engine/crops.js` are starting values for an agronomist or SAAO to check.
+Crop thresholds in `src/engine/crops.js` are starting values for an agronomist or SAAO to check; no local review has
+taken place yet (`docs/REVIEW_LOG.md`). The app uses the same labels (SAT, STATION, MODEL, RECORD, RULE, AI, sample)
+beside every number, and lists every dataset with its years, scale, use and status at `/science#coverage`; the
+evidence sheet is `docs/EVIDENCE.md`.
 
-## 5-minute demo
+## 3-minute demo
 
-1. **Home**: read the live recommendation and season ribbon, then **Work out my field**.
-2. **My field**: search "Rishikul", drag the pin, set the size, **This is my field**. The union and soil change.
-3. **Season plan**: weather then vs now, soil, choose **Earn more** (then **Use less water**, and watch the answer change).
-4. **Recommendation**: try **What if the weather changes?** (drier, +1°, +2°), open **Why?** for the score table. **Next crop**: the rotation on the Bangla-month ribbon.
-5. **Price-drop check**: compare dates, then **Confirm**.
-6. **Crop doctor**: try the sample, then **Send to my officer**.
-7. **Officer view** (one upazila officer): **Whole upazila** first, then pick a union; the new request is at the top; **Area alerts**: edit the advice (watch the SMS counter), **Send to N farmers**.
-8. **Area map**: whole upazila with village names and land use; switch the map type to **NASA satellite** and step through the season.
-9. Back to **Farmer, Help**: the advice has arrived (bell badge).
+One farmer, one field, one decision first, then the evidence, what is real, the ten-year view and the rest: the
+script with timings and the fallback recording plan are in `docs/DEMO_SCRIPT.md`; **3-minute demo story** on the
+home page plays the same order. The short path a farmer takes on a first visit is on the farmer home page: choose the
+field, say what matters, compare the options, talk it over with the officer.
 
 ## Structure
 
