@@ -19,6 +19,8 @@ import RotationPoster from '../../components/story/RotationPoster';
 import StrategyBriefs from '../../components/future/StrategyBriefs';
 import LandFromSpace from '../../components/future/LandFromSpace';
 import SoilVerdict from '../../components/future/SoilVerdict';
+import StrategyCompare from '../../components/future/StrategyCompare';
+import JudgementNote from '../../components/explain/JudgementNote';
 import { runnerUp, soilVerdict } from '../../engine/explain';
 import { fieldTerrain } from '../../engine/briefs';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
@@ -60,6 +62,7 @@ export default function FieldFuture() {
   const [world, setWorld] = useState('now');
   const [scen, setScen] = useState('ssp245');
   const [own, setOwn] = useState(null);
+  const [brief, setBrief] = useState('best'); // which strategy's full brief is open
   const change = useMemo(() => climateChange(deltas, upazila.id, scen), [upazila.id, scen]);
   const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
     [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
@@ -77,6 +80,14 @@ export default function FieldFuture() {
     { id: 'best', e: ff.best, tone: GREEN, title: T('সেরা ফসলচক্র', 'Best rotation') },
     { id: 'own', e: ownE, tone: GOLD, title: T('আপনার বানানো', 'Your own') },
   ];
+  // The strategies compared everywhere on the page: the field's current rotation first, the best, the next real
+  // alternative, and this season's plan kept every year when it is different again.
+  const strategies = [
+    { id: 'habit', kind: 'habit', e: ff.habit, name: T('এখন যেমন চাষ', 'As now'), tone: SLATE },
+    { id: 'best', kind: 'best', e: ff.best, name: T('সেরা ফসলচক্র', 'Best rotation'), tone: GREEN },
+    ...(second ? [{ id: 'alt', kind: 'alt', e: second, name: T('পরের বিকল্প', 'Next alternative'), tone: TEAL }] : []),
+    ...(ff.plan && ![ff.habit, ff.best, second].some((x) => x && keyOf(x.rot) === keyOf(ff.plan.rot)) ? [{ id: 'plan', kind: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা প্রতি বছর', 'This season’s plan, every year'), tone: GOLD }] : []),
+  ];
   const base = useMemo(() => ({ clim, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }), [clim, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
   const builder = useRef(null);
   const editFrom = (rot) => { setOwn({ cycle: rot.cycle.map((y) => ({ ...y })), residue: rot.residue }); scrollToEl(builder.current); };
@@ -91,6 +102,7 @@ export default function FieldFuture() {
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
         { id: 'ff-time', label: T('মাটির টাইম মেশিন', 'Soil time machine') },
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
+        { id: 'ff-strategies', label: T('ফসলচক্র পাশাপাশি', 'Rotations compared') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
         { id: 'ff-verdict', label: T('মাটির রায়', 'Soil verdict') },
         { id: 'ff-why', label: T('কেন ও কী ঝুঁকি', 'Why and risks') },
@@ -113,6 +125,7 @@ export default function FieldFuture() {
         {!ctx.climF && <span className="text-[13px] text-muted">{T('এই এলাকার জলবায়ু মডেলের তথ্য নেই', 'No climate projections for this area')}</span>}
       </div>
 
+      <JudgementNote className="mb-4" />
       {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
@@ -122,13 +135,13 @@ export default function FieldFuture() {
       </div>
       {show === 'story' && <FieldStory ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
+      <StrategyCompare sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} list={strategies}
+        onDetails={(id) => { setBrief(id); scrollToEl(document.getElementById('ff-why')); }} />
       <Compare ff={ff} ownE={ownE} second={second} sumOf={sumOf} ctx={ctx} rotName={rotName} />
       <SoilVerdict ff={ff} second={second} sumOf={sumOf} rotName={rotName} />
-      <StrategyBriefs sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} list={[
-        { id: 'habit', kind: 'habit', e: ff.habit, name: T('এখনকার মতো', 'As now') },
-        ...(ff.plan && ff.plan !== ff.habit ? [{ id: 'plan', kind: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা', 'This season’s plan') }] : []),
-        { id: 'best', kind: 'best', e: ff.best, name: T('সেরা ফসলচক্র', 'Best rotation') },
-        { id: 'own', kind: 'own', e: ownE, name: T('আপনার বানানো', 'Your own') },
+      <StrategyBriefs sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} at={brief} setAt={setBrief} list={[
+        ...strategies,
+        { id: 'own', kind: 'own', e: ownE, name: T('আপনার বানানো', 'Your own'), tone: GOLD },
       ]} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
@@ -396,7 +409,7 @@ function Compare({ ff, ownE, second, sumOf, ctx, rotName }) {
     { icon: Recycle, k: T('মাটিতে জমা CO₂, বিঘায়', 'CO₂ stored, per bigha'), f: (x) => `${signed(co2PerBigha(x.socEnd - ctx.soc0), lang, 2)} ${T('টন', 't')}`, better: (x) => x.socEnd },
     { icon: Droplets, k: T('সেচের পানি, বিঘায় বছরে', 'Irrigation, per bigha a year'), f: (x) => `${num(x.waterMm * WATER_M3_PER_MM_BIGHA, lang)} ${T('ঘনমিটার', 'm³')}`, better: (x) => -x.waterMm },
     { icon: Coins, k: T('লাভ, বিঘায় বছরে*', 'Profit, per bigha a year*'), f: (x) => `৳${num(x.money, lang)}`, better: (x) => x.money },
-    { icon: Thermometer, k: T('আবহাওয়ায় খারাপ মৌসুম', 'Seasons the weather fails'), f: (x) => `${num(x.risk * 100, lang)}%`, better: (x) => -x.risk },
+    { icon: Thermometer, k: T('তাপ-বৃষ্টির সীমা পেরোনো মৌসুম', 'Seasons over a heat or rain limit'), f: (x) => `${num(x.risk * 100, lang)}%`, better: (x) => -x.risk },
     { icon: Bug, k: T('রোগ-পোকার চাপ', 'Pest and disease pressure'), f: (x) => pestWord(x.pest), better: (x) => -x.pest },
     { icon: Sprout, k: T('ইউরিয়া কম লাগে, বিঘায় বছরে', 'Urea saved, per bigha a year'), f: (x) => `${num(ureaSavedKgPerBigha(x.nFix), lang, { dp: 1 })} ${T('কেজি', 'kg')}`, better: (x) => x.nFix },
   ];
@@ -666,7 +679,7 @@ function RobustSays({ bestRow, ff, sumOf }) {
         <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13.5px] leading-6 text-ink/85">
           <li>{T('লাভের ক্রম: আজকের দাম আর দেশের গড় ফলন ধরে; দাম বদলালে বদলায়।', 'The profit order: at today’s prices and national yields; it moves with prices.')}</li>
           <li>{T('কত কার্বন (মাপ): শুরুর মাটি SoilGrids-এর আনুমানিক হিসাব।', 'How much carbon (the size): the starting soil is SoilGrids’ estimate.')}</li>
-          <li>{T('খারাপ মৌসুম: ফসলের তাপ-বৃষ্টির সীমা, যা কৃষিবিদের যাচাই বাকি।', 'Bad seasons: the crops’ heat and rain limits, still to be reviewed by agronomists.')}</li>
+          <li>{T('সীমা পেরোনো মৌসুম: ফসলের তাপ-বৃষ্টির সীমা, যা কৃষিবিদের যাচাই বাকি।', 'Seasons over a limit: the crops’ heat and rain limits, still to be reviewed by agronomists.')}</li>
         </ul>
       </div>
     </div>
@@ -870,7 +883,7 @@ function Climate({ change, ctx, ff, ownE, scen }) {
         <div>
           <div className="text-[14px] font-bold">{T('আপনার ফসলগুলোর কী হবে', 'What happens to your crops')}</div>
           <table className="mt-1 w-full text-[13.5px]">
-            <thead><tr className="text-left text-muted"><th className="py-1.5 font-semibold">{T('ফসল', 'Crop')}</th><th className="py-1.5 font-semibold">{T('খারাপ মৌসুম', 'Bad seasons')}</th><th className="py-1.5 font-semibold">{T('সেচ, মিমি', 'Irrigation, mm')}</th></tr></thead>
+            <thead><tr className="text-left text-muted"><th className="py-1.5 font-semibold">{T('ফসল', 'Crop')}</th><th className="py-1.5 font-semibold">{T('সীমা পেরোনো মৌসুম', 'Seasons over a limit')}</th><th className="py-1.5 font-semibold">{T('সেচ, মিমি', 'Irrigation, mm')}</th></tr></thead>
             <tbody>
               {crops.map((id) => {
                 const sl = slotOf(id);
@@ -886,7 +899,7 @@ function Climate({ change, ctx, ff, ownE, scen }) {
               })}
             </tbody>
           </table>
-          <p className="mt-2 text-[12.5px] leading-5 text-muted">{T('খারাপ মৌসুম: ২০১৩–২০২৫-এর ১৩ মৌসুমের যতগুলোতে ফসলের নিজের নিয়মে আবহাওয়া ফসল নষ্ট করত (যেমন ফুল আসার সময় ৩৫°-এর ওপরে গরম)। ২০৪০-এর দশকে একই দিনগুলো মডেলের পরিবর্তনে সরিয়ে আবার গোনা। * পাটের জন্য FAO-56 সহগ নেই, তাই খরিফ-১-এর সবচেয়ে পানি-খাওয়া ফসলের হিসাব ধরা।', 'Bad seasons: of the 13 seasons 2013–2025, how many the crop’s own rules say the weather would have spoiled (heat at flowering, say). For the 2040s the same days are shifted by the models’ change and counted again. * Jute has no FAO-56 coefficients, so the thirstiest Kharif-1 crop stands in.')}</p>
+          <p className="mt-2 text-[12.5px] leading-5 text-muted">{T('সীমা পেরোনো মৌসুম: ২০১৩–২০২৫-এর ১৩ মৌসুমের যতগুলোতে ফসলের নিজের কোনো তাপ বা বৃষ্টির সীমা পেরিয়েছে (যেমন ফুল আসার সময় ৩৫°-এর ওপরে গরম); এটা ক্ষতির সতর্কতা, ফসল নষ্টের হিসাব নয়। ২০৪০-এর দশকে একই দিনগুলো মডেলের পরিবর্তনে সরিয়ে আবার গোনা। * পাটের জন্য FAO-56 সহগ নেই, তাই খরিফ-১-এর সবচেয়ে পানি-খাওয়া ফসলের হিসাব ধরা।', 'Seasons over a limit: of the 13 seasons 2013–2025, how many crossed one of the crop’s own heat or rain limits (heat at flowering, say); a warning of damage, not a count of lost crops. For the 2040s the same days are shifted by the models’ change and counted again. * Jute has no FAO-56 coefficients, so the thirstiest Kharif-1 crop stands in.')}</p>
         </div>
       </div>
     </Card>

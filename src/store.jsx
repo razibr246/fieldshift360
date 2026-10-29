@@ -63,7 +63,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 

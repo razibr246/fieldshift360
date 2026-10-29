@@ -40,6 +40,11 @@ test('a strategy brief always says why, what evidence, what is unknown and what 
   assert.ok(b.risks.some((x) => /fodder/.test(x.en)), 'keeping straw in the soil costs fodder');
   assert.ok(b.risks.some((x) => /waterlogging/.test(x.en)), 'low coastal land and a crop that hates waterlogging');
   assert.ok(b.gaps.some((x) => /Mungbean/.test(x.en)), 'unpriced crop named');
+  assert.ok(b.review.some((x) => /no local agronomist/.test(x.en)) && b.review.some((x) => /soil test/.test(x.en)), 'local review is its own list');
+  assert.ok(b.review.some((x) => /water stands/.test(x.en)), 'low land: look for standing water');
+  assert.ok(!b.evidence.some((x) => /your field’s ISRIC SoilGrids carbon/.test(x.en)), 'the soil is not called the field’s own');
+  const alt = strategyBrief({ s: best, b: base, rot, kind: 'alt', terrain: null });
+  assert.match(alt.why[0].en, /real alternative/);
 });
 
 test('asking for fodder or for covered soil changes which rotation comes first', async () => {

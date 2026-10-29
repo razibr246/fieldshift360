@@ -299,7 +299,7 @@ function LimeCalc({ D }) {
     <div className="mt-4 rounded-xl border border-border bg-white p-3">
       <div className="text-[14px] font-bold">{T('মাটির pH-চুনের হিসাব', 'Soil pH and lime')}</div>
       <label className="mt-2 block text-[12.5px] text-muted">{T('মাটি পরীক্ষার pH', 'Soil-test pH')}: <b className="text-ink">{num(ph, s.lang, { dp: 1 })}</b></label>
-      <input type="range" min="3.8" max="7" step="0.1" value={ph} onChange={(e) => setPh(Number(e.target.value))} className="w-full accent-primary-700" />
+      <input type="range" aria-label={T('মাটি পরীক্ষার pH', 'Soil-test pH')} min="3.8" max="7" step="0.1" value={ph} onChange={(e) => setPh(Number(e.target.value))} className="w-full accent-primary-700" />
       <p className="text-[13.5px] leading-6">{dose ? T(`হেক্টরে ${num(dose, 'bn', { dp: 1 })} টন ডলোচুন, বিঘায় প্রায় ${num(dose * T_HA_TO_KG_BIGHA, 'bn')} কেজি; চাষের ২–৩ সপ্তাহ আগে, তিন-চার বছরে একবার।`, `${dose} t/ha of dolomite, about ${Math.round(dose * T_HA_TO_KG_BIGHA)} kg a bigha; 2–3 weeks before planting, once in three or four years.`) : T('pH ৫.৫ বা বেশি: চুন লাগবে না।', 'pH 5.5 or more: no lime needed.')}</p>
       {soil && <p className="mt-1 text-[11.5px] text-muted">{T(`SoilGrids-এ উপজেলার মাঝখানে pH ${num(soil.ph, 'bn', { dp: 1 })}, এঁটেল ${num(soil.clay, 'bn')}%; টিলার মাটি আলাদা হতে পারে, তাই নিজের মাটি পরীক্ষা দিন।`, `SoilGrids at the upazila centre: pH ${soil.ph}, clay ${soil.clay}%; tila soil can differ, so use your own test.`)}</p>}
     </div>
@@ -312,7 +312,7 @@ function SaltCalc() {
     <div className="mt-4 rounded-xl border border-border bg-white p-3">
       <div className="text-[14px] font-bold">{T('মাস–হফম্যান: এই লবণে কোন ফসল কত দেয়', 'Maas–Hoffman: what each crop gives at this salt')}</div>
       <label className="mt-2 block text-[12.5px] text-muted">{T('শিকড়ের কাছে মাটির লবণ', 'Root-zone salt')}: <b className="text-ink">{num(ec, s.lang, { dp: 1 })} dS/m</b></label>
-      <input type="range" min="0" max="16" step="0.5" value={ec} onChange={(e) => setEc(Number(e.target.value))} className="w-full accent-primary-700" />
+      <input type="range" aria-label={T('শিকড়ের কাছে মাটির লবণ', 'Root-zone salt')} min="0" max="16" step="0.5" value={ec} onChange={(e) => setEc(Number(e.target.value))} className="w-full accent-primary-700" />
       <ul className="mt-1 space-y-1">
         {Object.keys(SALT).map((k) => { const v = relYield(k, ec); return (
           <li key={k} className="flex items-center gap-2 text-[12.5px]"><span className="w-[92px] shrink-0">{CROP_WORD[k][s.lang]}</span><div className="h-2 flex-1 rounded-full bg-black/[.06]"><div className="h-full rounded-full transition-all duration-500" style={{ width: `${v}%`, background: v > 60 ? '#2f6e2f' : v > 30 ? '#d08f26' : '#b3261e' }} /></div><b className="w-9 text-right tabular">{num(v, s.lang)}%</b></li>
@@ -386,7 +386,7 @@ function Mission({ m, D, lv }) {
                 {Object.entries(m.inputs ?? {}).filter(() => (m.id === 'sylhet' ? g.id === 'B' : g.id === 'farm')).map(([k, v]) => (
                   <div key={k}>
                     <div className="text-[12.5px] font-semibold text-muted">{L(v.label)}: <b className="text-ink">{num(inp[k], lang, { dp: 1 })}</b></div>
-                    <input type="range" min={v.min} max={v.max} step={v.step} value={inp[k]} onChange={(e) => setInp({ ...inp, [k]: Number(e.target.value) })} className="w-full accent-primary-700" />
+                    <input type="range" aria-label={L(v.label)} min={v.min} max={v.max} step={v.step} value={inp[k]} onChange={(e) => setInp({ ...inp, [k]: Number(e.target.value) })} className="w-full accent-primary-700" />
                   </div>
                 ))}
               </div>

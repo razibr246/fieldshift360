@@ -182,7 +182,8 @@ function k1Window(id, ready, clearBy) {
   const reason = t0 > close ? 'window' : end > clearBy ? 'aman' : null;
   return { fits: !reason, reason, t0, end };
 }
-// Share of 2013–2025 seasons where the crop's own rules said the weather failed it, sowing on that day of the year.
+// Share of 2013–2025 seasons in which one of the crop's heat or rain limits was crossed, sowing on that day of the
+// year: a warning of weather damage, not a count of lost crops.
 function riskShare(clim, crop, t0) {
   if (!clim || !crop.rules?.length || t0 == null) return 0;
   const m = monthOf(t0), d = dayOf(t0), rabi = !!RABI_CROPS[crop.id];

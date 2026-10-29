@@ -159,3 +159,14 @@ export function compareText({ cols, lang, field, firm }) {
   const tail = firm === 'close' ? (bn ? 'হিসাবে ফসলগুলো কাছাকাছি; আপনার মত চাই।' : 'The options are close; I would like your view.') : (bn ? 'এটা নিয়ে আপনার মত চাই।' : 'I would like your view on this.');
   return [head, ...cols.map(line), tail].join('\n');
 }
+
+// A crop the farmer already grows here, whose heat or rain limit is crossed in nearly every recent season, points to
+// a limit that is too strict for local varieties rather than to a crop that fails every year (Boro's flowering-heat
+// limit in Godagari is crossed in all 13 seasons 2013–2025, yet Boro is the main crop there). Flag it so its weather
+// score is read with caution until an agronomist reviews the limit.
+export const OVERWARN = 0.2; // share of seasons that went fine, at or below which the limit is suspect
+export function calibrationFlags(options, lastCrop) {
+  return options
+    .filter((o) => o.crop.id === lastCrop && o.bt.now.n > 0 && o.bt.now.safe / o.bt.now.n <= OVERWARN)
+    .map((o) => ({ crop: o.crop, safe: o.bt.now.safe, n: o.bt.now.n }));
+}

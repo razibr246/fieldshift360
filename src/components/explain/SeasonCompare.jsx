@@ -2,12 +2,13 @@
 // same seasons (2013–2025, this field, these prices), each with why it ranks where it does. Crops the farmer left out
 // are named under the table, with a way back to change that.
 import { Link } from 'react-router-dom';
-import { Columns3, Ban } from 'lucide-react';
+import { Columns3, Ban, ArrowRight } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, ScoreRing, RISK_STYLE, Tags } from '../ui';
-import { seasonColumns, margin } from '../../engine/explain';
+import { seasonColumns, margin, calibrationFlags } from '../../engine/explain';
 import { cropName } from '../../engine/crops';
 import { num, fmtDate } from '../../engine/dates';
+import { bnOf } from '../../engine/text';
 import CropPhoto from '../CropPhoto';
 import WhyBar, { FACTOR } from './WhyBar';
 
@@ -28,6 +29,7 @@ export default function SeasonCompare() {
     { k: T('দাম পড়ার ঝুঁকি', 'Price-drop risk'), f: null, show: (o) => <span className={`chip ${RISK_STYLE[o.glut.level].cls}`}>{L(RISK_STYLE[o.glut.level])}</span> },
   ];
   const out = s.exclude ?? [];
+  const suspect = calibrationFlags(d.options, farmer.last_crop);
   return (
     <Card id="season-compare" data-tour="season-compare" className="mt-4 scroll-mt-40 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -38,6 +40,11 @@ export default function SeasonCompare() {
         <Tags list={['MODEL', 'RECORD', 'RULE']} />
       </div>
       {m.close && <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[13.5px] leading-6 text-amber-900 ring-1 ring-amber-200">{T(`প্রথম দুটির ব্যবধান মাত্র ${num(m.gap, 'bn', { dp: 0 })} নম্বর: তথ্য এত সূক্ষ্ম নয় যে এদের আলাদা করা যায়। নিজের অভিজ্ঞতা আর বাজার দেখে বাছুন।`, `The first two are only ${num(m.gap, 'en', { dp: 0 })} points apart: the data is not precise enough to split them. Choose by your own experience and the market.`)}</p>}
+      {suspect.map((f) => (
+        <p key={f.crop.id} className="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-[13.5px] leading-6 text-sky-950 ring-1 ring-sky-200">
+          {T(`সাবধানে পড়ুন: ${f.crop.name.bn} এখানে প্রতি বছর হয়, অথচ এর তাপ-বৃষ্টির সীমা ${num(f.n, 'bn')}টির মধ্যে ${num(f.n - f.safe, 'bn')}টি মৌসুমে পেরিয়েছে। সীমাটা স্থানীয় জাতের জন্য সম্ভবত বেশি কড়া, তাই ${bnOf(f.crop.name.bn)} আবহাওয়ার নম্বর আসলের চেয়ে কম দেখাতে পারে। কৃষিবিদের যাচাই না হওয়া পর্যন্ত এটা মাথায় রাখুন।`, `Read with care: ${f.crop.name.en.toLowerCase()} is grown here every year, yet its heat or rain limit was crossed in ${f.n - f.safe} of ${f.n} seasons. The limit is probably too strict for local varieties, so its weather score may be too low. Keep this in mind until an agronomist reviews it.`)}
+        </p>
+      ))}
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[560px] border-separate border-spacing-x-1.5 text-[13.5px]">
           <thead>
@@ -80,6 +87,11 @@ export default function SeasonCompare() {
         <p className="mt-3 flex flex-wrap items-center gap-1.5 text-[13px] text-muted"><Ban size={14} className="text-red-700" />{T('আপনি বাদ দিয়েছেন:', 'Left out by you:')} <b className="text-ink/80">{out.map((id) => cropName(id, lang)).join(', ')}</b>
           <button type="button" onClick={() => dispatch({ type: 'set', patch: { step: 3 } })} className="font-semibold text-primary-800 underline-offset-2 hover:underline">{T('বদলান', 'Change')}</button></p>
       )}
+      <Link to="/farmer/future" onClick={() => setTimeout(() => document.getElementById('ff-strategies')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 900)}
+        className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-primary-50 px-4 py-3 text-[14.5px] font-semibold text-primary-900 ring-1 ring-primary-200 hover:bg-primary-100">
+        <span>{T('এটা শুধু এই মৌসুম। দশ বছরের ফসলচক্র পাশাপাশি দেখুন: এখনকার চাষ, সেরা আর পরের বিকল্প, কেন আর কী ঝুঁকি', 'This is one season only. See ten-year rotations side by side: as now, the best and the next alternative, why and with what risks')}</span>
+        <ArrowRight size={17} className="shrink-0" />
+      </Link>
       <p className="mt-2 text-[12.5px] text-muted">{T('গাঢ় সবুজ: সেই সারিতে সবচেয়ে ভালো। অন্য চাওয়া বাছলে বা ফসল বাদ দিলে (ধাপ ৪) ক্রম সঙ্গে সঙ্গে বদলায়।', 'Bold green: the best in that row. Picking other priorities or leaving crops out (step 4) re-orders this at once.')}</p>
     </Card>
   );

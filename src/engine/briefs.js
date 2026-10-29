@@ -33,9 +33,11 @@ export function terrainRisk(tr) {
 }
 
 // s: this strategy's summary (evaluate().sNow or .sFut); b: farming as now's; rot: the rotation; kind: 'habit' | 'best'
-// | 'plan' | 'own'; world: 'now' | 'fut'; terrain: field_terrain.json row or null. Returns five lists of { bn, en }.
+// | 'alt' (the next rotation with different crops) | 'plan' | 'own'; world: 'now' | 'fut'; terrain: field_terrain.json
+// row or null. Returns six lists of { bn, en }: why, evidence, benefits, gaps, risks, and review (what a farmer or
+// agriculture officer has to confirm on the ground before acting on it).
 export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }) {
-  const why = [], evidence = [], benefits = [], gaps = [], risks = [];
+  const why = [], evidence = [], benefits = [], gaps = [], risks = [], review = [];
   const crops = cropsOf(rot), habitCrops = kind === 'habit' ? crops : null;
   const dWater = (b.waterMm - s.waterMm) * WATER_M3_PER_MM_BIGHA; // m³ a bigha a year saved (+) or used (−)
   const dMoney = s.money - b.money, dRisk = (s.risk - b.risk) * 100, dPest = s.pest - b.pest, dSoc = s.dSoc - b.dSoc;
@@ -44,6 +46,7 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   // ── why ──
   if (kind === 'habit') why.push(t('এই জমিতে এখন যা হয় (উপগ্রহে দেখা বা অফিসের নিবন্ধন), তুলনার ভিত্তি হিসেবে।', 'What this field grows now (seen by satellite or in the office register), as the baseline to compare against.'));
   else if (kind === 'best') why.push(t('কয়েকশো ফসলচক্র দশ বছর করে চালিয়ে আপনার চাওয়া মিলিয়ে এটাই সবার আগে।', 'Of several hundred rotations run for ten years each, this one comes first for what you said matters to you.'));
+  else if (kind === 'alt') why.push(t('সেরাটার পরে যেটা সবচেয়ে এগিয়ে আর অন্য ফসলের: সেরাটা আপনার জমি বা বাজারে না মিললে এটাই আসল বিকল্প।', 'The highest-ranked rotation after the best that grows different crops: the real alternative if the best does not suit your land or market.'));
   else if (kind === 'plan') why.push(t('এবারের মৌসুমের পরিকল্পনা প্রতি বছর রাখলে দশ বছরে কী হয়, তা দেখাতে।', 'To show what ten years of this season’s plan would do, kept every year.'));
   else why.push(t('আপনার নিজের বেছে নেওয়া ফসলগুলো।', 'The crops you chose yourself.'));
   if (kind !== 'habit') {
@@ -51,7 +54,7 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
       [dSoc / 2, t(`মাটির জৈব পদার্থ এখনকার চাষের চেয়ে ${num(Math.abs(dSoc), 'bn', { dp: 1 })} শতাংশ বেশি বাড়ে`, `soil organic matter rises ${Math.abs(dSoc).toFixed(1)}% more than farming as now`)],
       [dWater / 150, t(`বিঘায় বছরে প্রায় ${num(Math.round(dWater), 'bn')} ঘনমিটার কম সেচ`, `about ${Math.round(dWater)} m³ less irrigation per bigha a year`)],
       [dMoney / 3000, t(`বিঘায় বছরে প্রায় ৳${num(Math.round(dMoney), 'bn')} বেশি লাভ`, `about ৳${Math.round(dMoney)} more profit per bigha a year`)],
-      [-dRisk / 5, t(`আবহাওয়ায় খারাপ মৌসুম ${num(Math.abs(dRisk), 'bn', { dp: 0 })} শতাংশ-বিন্দু কম`, `${Math.abs(dRisk).toFixed(0)} percentage points fewer seasons the weather fails`)],
+      [-dRisk / 5, t(`ফসলের তাপ-বৃষ্টির সীমা পেরোনো মৌসুম ${num(Math.abs(dRisk), 'bn', { dp: 0 })} শতাংশ-বিন্দু কম`, `${Math.abs(dRisk).toFixed(0)} percentage points fewer seasons over a crop’s heat or rain limit`)],
       [-dPest / 20, t('একই গোত্রের ফসল পরপর কম, তাই রোগ-পোকার চক্র ভাঙে', 'fewer crops of the same family in a row, which breaks pest and disease cycles')],
     ].filter(([g]) => g > 0.15).sort((a, c) => c[0] - a[0]);
     if (gains.length) why.push(t(`সবচেয়ে বড় কারণ: ${gains.slice(0, 2).map((g) => g[1].bn).join('; ')}।`, `Mainly: ${gains.slice(0, 2).map((g) => g[1].en).join('; ')}.`));
@@ -63,8 +66,8 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   }
 
   // ── evidence ──
-  evidence.push(t(`আবহাওয়ার ঝুঁকি: প্রতিটি ফসলের ব্যর্থতার নিয়ম নাসা POWER-এর ২৫ মৌসুমে (২০০১–২০২৫) চালানো; খারাপ মৌসুম গড়ে ${num(s.risk * 100, 'bn', { dp: 0 })}%।`, `Weather risk: each crop’s failure rules replayed over 25 seasons of NASA POWER (2001–2025); the weather failed ${(s.risk * 100).toFixed(0)}% of seasons on average.`));
-  evidence.push(t('মাটির কার্বন: ICBM মডেল (Andrén ও Kätterer ১৯৯৭), শুরু আপনার জমির ISRIC SoilGrids কার্বন থেকে।', 'Soil carbon: the ICBM model (Andrén & Kätterer 1997), starting from your field’s ISRIC SoilGrids carbon.'));
+  evidence.push(t(`আবহাওয়ার ঝুঁকি: প্রতিটি ফসলের তাপ-বৃষ্টির সীমা নাসা POWER-এর ১৩ মৌসুমে (২০১৩–২০২৫) মিলিয়ে দেখা; গড়ে ${num(s.risk * 100, 'bn', { dp: 0 })}% মৌসুমে কোনো সীমা পেরিয়েছে। এটা ক্ষতির সতর্কতা, ফসল নষ্টের হিসাব নয়।`, `Weather risk: each crop’s heat and rain limits checked over 13 seasons of NASA POWER weather (2013–2025); a limit was crossed in ${(s.risk * 100).toFixed(0)}% of seasons on average. That warns of damage; it is not a count of lost crops.`));
+  evidence.push(t('মাটির কার্বন: ICBM মডেল (Andrén ও Kätterer ১৯৯৭), শুরু ISRIC SoilGrids-এর আনুমানিক কার্বন থেকে (২৫০ মিটার মডেল, মাটি পরীক্ষা নয়)।', 'Soil carbon: the ICBM model (Andrén & Kätterer 1997), starting from ISRIC SoilGrids’ estimate of the carbon (a 250 m model, not a soil test).'));
   evidence.push(t(`সেচ: FAO-56 পদ্ধতিতে নাসা POWER-এর আবহাওয়া থেকে, বিঘায় বছরে প্রায় ${num(Math.round(s.waterMm * WATER_M3_PER_MM_BIGHA), 'bn')} ঘনমিটার।`, `Irrigation: the FAO-56 method on NASA POWER weather, about ${Math.round(s.waterMm * WATER_M3_PER_MM_BIGHA)} m³ per bigha a year.`));
   evidence.push(t('আয়: FAOSTAT-এর জাতীয় ফলন × প্রকাশিত দাম ও খরচ (কৃষি বিপণন অধিদপ্তর ও অন্যান্য সূত্র)।', 'Income: FAOSTAT national yields × published prices and costs (Department of Agricultural Marketing and others).'));
   if (world === 'fut') evidence.push(t('২০৪০-এর দশক: নাসার NEX-GDDP-CMIP6, আটটি জলবায়ু মডেলের মাসিক পরিবর্তন।', 'The 2040s: NASA NEX-GDDP-CMIP6, the monthly change in eight climate models.'));
@@ -92,7 +95,7 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   if (kind !== 'habit') {
     if (dWater < -5) risks.push(t(`এখনকার চাষের চেয়ে বিঘায় বছরে প্রায় ${num(Math.round(-dWater), 'bn')} ঘনমিটার বেশি সেচ লাগে।`, `About ${Math.round(-dWater)} m³ more irrigation per bigha a year than farming as now.`));
     if (dMoney < -200) risks.push(t(`এখনকার চাষের চেয়ে বিঘায় বছরে প্রায় ৳${num(Math.round(-dMoney), 'bn')} কম আয় (দাম-না-জানা ফসল বাদে)।`, `About ৳${Math.round(-dMoney)} less income per bigha a year than farming as now (leaving out unpriced crops).`));
-    if (dRisk > 2) risks.push(t(`আবহাওয়ায় খারাপ মৌসুম ${num(dRisk, 'bn', { dp: 0 })} শতাংশ-বিন্দু বেশি।`, `${dRisk.toFixed(0)} percentage points more seasons the weather fails.`));
+    if (dRisk > 2) risks.push(t(`ফসলের তাপ-বৃষ্টির সীমা পেরোনো মৌসুম ${num(dRisk, 'bn', { dp: 0 })} শতাংশ-বিন্দু বেশি।`, `${dRisk.toFixed(0)} percentage points more seasons over a crop’s heat or rain limit.`));
     if (rot.residue === 'retain' && fodder.length) risks.push(t('খড় জমিতে মেশালে গরুর খড় কমে: গোখাদ্য কোথা থেকে আসবে, আগে ভেবে নিন।', 'Ploughing the straw in leaves less straw for the cattle: plan where the fodder will come from.'));
     if (fresh.length) risks.push(t(`নতুন ফসল (${list(fresh, 'bn')}): জাত, বোনার সময় আর বাজার উপসহকারী কৃষি কর্মকর্তার সঙ্গে মিলিয়ে নিন।`, `New crops (${list(fresh, 'en')}): check variety, sowing time and market with the sub-assistant agriculture officer.`));
   }
@@ -101,5 +104,13 @@ export function strategyBrief({ s, b, rot, kind, world = 'now', terrain = null }
   if (tr && (tr.wet === 'hollow' || tr.wet === 'coast') && wetShy.length) risks.push(t(`জমিটা ${tr.wet === 'coast' ? 'নিচু জমি, জোয়ার বা বন্যার পানি আসতে পারে' : 'চারপাশের চেয়ে নিচু, বৃষ্টির পানি জমে'}; ${list(wetShy, 'bn')} জলাবদ্ধতা সহ্য করে না। নালা কাটা বা উঁচু বেড দরকার কি না দেখুন।`, `The field is ${tr.wet === 'coast' ? 'low land that tide or flood water can reach' : 'lower than the land round it, where rain gathers'}; ${list(wetShy, 'en')} cannot stand waterlogging. Check whether drains or raised beds are needed.`));
   if (tr && tr.erosion !== 'none') risks.push(t('জমিতে ঢাল আছে: খালি মাসে বৃষ্টিতে মাটি ধুয়ে যেতে পারে; ঢাল বরাবর নয়, আড়াআড়ি চাষ দিন।', 'The field slopes: rain can wash soil off in bare months; plough across the slope, not down it.'));
   risks.push(t('এটা মডেলের হিসাব, পূর্বাভাস নয়; শুরু করার আগে কৃষি কর্মকর্তা আর অভিজ্ঞ কৃষকের সঙ্গে কথা বলুন।', 'These are model estimates, not forecasts; talk to your agriculture officer and experienced farmers before you start.'));
-  return { why, evidence, benefits, gaps, risks };
+
+  // ── what needs local review before acting ──
+  review.push(t('ফসলের তাপ-বৃষ্টির সীমা প্রকাশিত গবেষণার শুরুর মান; স্থানীয় কৃষিবিদ এখনো যাচাই করেননি।', 'The crops’ heat and rain limits are starting values from published research; no local agronomist has reviewed them yet.'));
+  review.push(t('একটা মাটি পরীক্ষা: শুরুর কার্বন, pH আর সারের মাত্রা ঠিক করতে।', 'A soil test: to fix the starting carbon, pH and fertiliser doses.'));
+  if (fresh.length) review.push(t(`${list(fresh, 'bn')}: জাত, বোনার সময়, বীজ আর বাজার উপসহকারী কৃষি কর্মকর্তার সঙ্গে।`, `${list(fresh, 'en')}: variety, sowing time, seed and market, with the sub-assistant agriculture officer.`));
+  if (tr && tr.wet !== 'none') review.push(t('বর্ষায় আর ভারী বৃষ্টির পর জমিতে পানি জমে কি না, নিজের চোখে।', 'Whether water stands on the field in the monsoon and after heavy rain, seen with your own eyes.'));
+  if (rot.residue === 'retain' && fodder.length) review.push(t('খড় জমিতে রাখলে গরুর খাবার কোথা থেকে আসবে।', 'Where the cattle’s fodder will come from if the straw stays on the field.'));
+  if (s.unpriced?.length) review.push(t(`${list(s.unpriced, 'bn')}-এর স্থানীয় দাম।`, `The local price of ${list(s.unpriced, 'en')}.`));
+  return { why, evidence, benefits, gaps, risks, review };
 }

@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { Calculator, Eye, Scale, ListChecks, AlertTriangle, CheckCircle2, Gauge, ArrowRight } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, Tag } from '../ui';
-import { margin, weightStability, climateStability, firmness, DECISION_INPUTS } from '../../engine/explain';
+import { margin, weightStability, climateStability, firmness, calibrationFlags, DECISION_INPUTS } from '../../engine/explain';
 import { WHAT_IFS } from '../../engine/climate';
 import { cropName } from '../../engine/crops';
 import { num } from '../../engine/dates';
@@ -20,7 +20,8 @@ const FIRM = {
 };
 
 export default function HowMade() {
-  const { s, T, L, decision: d, decisionArgs } = useStore();
+  const { s, T, L, decision: d, decisionArgs, farmer } = useStore();
+  const suspect = calibrationFlags(d.options, farmer.last_crop);
   const lang = s.lang;
   const m = margin(d.options);
   const ws = useMemo(() => weightStability(d.options, d.weights), [d]);
@@ -69,6 +70,7 @@ export default function HowMade() {
           <h4 className="mt-4 flex items-center gap-1.5 text-[14.5px] font-bold"><ListChecks size={15} className="text-primary-700" />{T('নিয়ম আর ধরে নেওয়া কথা', 'Rules and assumptions')}</h4>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-[13.5px] leading-5 text-ink/85">
             <li>{T(`${bnOf(rec.crop.name.bn)} ${num(nRules, 'bn')}টি আবহাওয়ার নিয়ম (তাপ, বৃষ্টি): প্রকাশিত গবেষণা থেকে শুরুর মান। স্থানীয় কৃষিবিদের যাচাই এখনো হয়নি; যাচাইয়ের খাতা docs/REVIEW_LOG.md।`, `${nRules} weather rules for ${rec.crop.name.en.toLowerCase()} (heat, rain): starting values from published research. Not yet reviewed by local agronomists; the review log is docs/REVIEW_LOG.md.`)}</li>
+            {suspect.map((f) => <li key={f.crop.id} className="font-semibold text-sky-900">{T(`${bnOf(f.crop.name.bn)} সীমা ${num(f.n, 'bn')}টির মধ্যে ${num(f.n - f.safe, 'bn')}টি মৌসুমে পেরিয়েছে, যদিও ফসলটা এখানে প্রতি বছর হয়: সীমাটা সম্ভবত বেশি কড়া, তাই এর আবহাওয়ার নম্বর কম দেখাতে পারে। এটা স্থানীয় যাচাইয়ের প্রথম বিষয়।`, `${f.crop.name.en}’s limit was crossed in ${f.n - f.safe} of ${f.n} seasons although it is grown here every year: the limit is probably too strict, so its weather score may read too low. This is the first thing for local review.`)}</li>)}
             <li>{T('আবহাওয়া উপজেলার (প্রায় ৫০ কিমি ঘর), জমির নয়।', 'The weather is the upazila’s (a cell of about 50 km), not the field’s.')}</li>
             <li>{T('ফলন দেশের গড়; আপনার জমির ফলন বেশি বা কম হতে পারে।', 'Yields are national averages; yours may be higher or lower.')}</li>
             <li>{T('মাটি SoilGrids-এর ২৫০ মিটারের আনুমানিক হিসাব, মাটি পরীক্ষা নয়।', 'The soil is SoilGrids’ 250 m estimate, not a soil test.')}</li>

@@ -12,6 +12,7 @@ import { fieldGreen } from '../../engine/landsat';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import econ from '../../data/market/crop_economics.json';
 import watchFile from '../../data/fields/field_watch.json';
+import { provenance as radarProv } from '../../data/radar/aman_radar.json'; // only this key is bundled
 
 const ICON = { ok: CheckCircle2, coarse: MapIcon, stale: Clock, missing: XCircle, sample: FlaskConical, unreviewed: CircleDashed };
 const TONE = { ok: 'text-primary-700', coarse: 'text-sky-700', stale: 'text-amber-700', missing: 'text-red-700', sample: 'text-amber-700', unreviewed: 'text-amber-700' };
@@ -25,7 +26,7 @@ export default function DataCoverage() {
     terrain: !!fieldTerrain(p?.id), fieldNdvi: !!fieldGreen(p?.id, upazila.id),
     watch: !!(p && savedWatch(p)), watchEnd: watchFile.provenance?.window?.[1],
     cmip6: !!deltas.upazilas?.[upazila.id], priceYearMin: years.length ? Math.min(...years) : null,
-    radarThrough: '2025-10-31', liveWeather,
+    radarThrough: radarProv?.through, liveWeather,
   });
   const gaps = rows.filter((r) => ['stale', 'missing'].includes(r.status));
   return (

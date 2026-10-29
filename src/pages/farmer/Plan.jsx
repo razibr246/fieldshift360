@@ -9,6 +9,7 @@ import { LABEL_STYLE, RISK_STYLE, WATER_STYLE } from '../../components/ui';
 import { PRIORITIES } from '../../engine/decision';
 import { num, fmtDate } from '../../engine/dates';
 import { scrollToTop } from '../../components/Motion';
+import JudgementNote from '../../components/explain/JudgementNote';
 
 export function usePlanSteps() {
   const { T } = useStore();
@@ -54,6 +55,7 @@ export default function Plan() {
           ))}
         </ol>
         <div className="mx-auto max-w-[740px]">
+          <JudgementNote className="-mt-3 mb-4" />
           <div key={i} className="swap-in" data-tour="plan-body">
             <Step />
           </div>

@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { contributions, margin, weightStability, climateStability, firmness, beforeYouAct, soilVerdict, runnerUp, soilChanges, seasonColumns, compareText, CLOSE } from './explain.js';
+import { contributions, margin, weightStability, climateStability, firmness, beforeYouAct, soilVerdict, runnerUp, soilChanges, seasonColumns, compareText, calibrationFlags, OVERWARN, CLOSE } from './explain.js';
 import { DATASETS, coverage, KINDS } from './provenance.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url)));
@@ -111,4 +111,14 @@ test('where sources disagree: rain against rain, one elevation model against ano
   assert.deepEqual(d.map((x) => [x.k, x.level]), [['rain', 'big'], ['terrain', 'big'], ['green', 'big'], ['models', sp.rainMax - sp.rainMin > 30 ? 'big' : 'some']]);
   assert.equal(Math.round(d[0].pct), 50);
   assert.equal(disagreements({}).length, 0);
+});
+
+test('a crop grown here every year whose limit is crossed in nearly every season is flagged as a suspect limit', async () => {
+  const { args, d } = await season();
+  const flags = calibrationFlags(d.options, args.plot.last_crop);
+  const cur = d.options.find((o) => o.crop.id === args.plot.last_crop);
+  assert.equal(flags.length, cur && cur.bt.now.safe / cur.bt.now.n <= OVERWARN ? 1 : 0);
+  const mk = (id, safe, n) => ({ crop: { id }, bt: { now: { safe, n } } });
+  assert.deepEqual(calibrationFlags([mk('boro', 0, 13), mk('wheat', 0, 13)], 'boro').map((f) => f.crop.id), ['boro'], 'only the crop already grown');
+  assert.equal(calibrationFlags([mk('boro', 9, 13)], 'boro').length, 0);
 });
