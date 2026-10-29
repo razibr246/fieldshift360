@@ -11,6 +11,7 @@ import { ECON_SOURCES } from '../../../engine/economics.js';
 import { num, fmtDate } from '../../../engine/dates.js';
 import { cropName } from '../../../engine/crops.js';
 import cropEconomics from '../../../data/market/crop_economics.json';
+import CropPhoto from '../../../components/CropPhoto';
 
 const ICONS = { droplets: Droplets, coins: Coins, shield: Shield, sprout: Sprout, timer: Timer, cow: Beef, layers: Layers };
 export const W_LABEL = { C: { bn: 'আবহাওয়ার ঝুঁকি', en: 'Weather safety' }, W: { bn: 'সেচের পানি', en: 'Water' }, S: { bn: 'মাটির সঙ্গে মিল', en: 'Soil match' }, P: { bn: 'ফসলের দাম', en: 'Harvest value' }, R: { bn: 'ফসলচক্র', en: 'Rotation' }, G: { bn: 'দাম পড়ার ঝুঁকি', en: 'Price-drop risk' }, E: { bn: 'আগাম ফসল', en: 'Early harvest' } };
@@ -95,7 +96,8 @@ export default function StepPriorities() {
             const off = (s.exclude ?? []).includes(id);
             return (
               <button key={id} type="button" onClick={() => dispatch({ type: 'toggleExclude', id })} aria-pressed={off}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[14px] font-semibold transition ${off ? 'border-red-300 bg-red-50 text-red-800 line-through decoration-2' : 'border-border bg-canvas text-ink/80 hover:border-primary-300'}`}>
+                className={`inline-flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-3.5 text-[14px] font-semibold transition ${off ? 'border-red-300 bg-red-50 text-red-800 line-through decoration-2' : 'border-border bg-canvas text-ink/80 hover:border-primary-300'}`}>
+                <span className={`relative h-6 w-6 shrink-0 overflow-hidden rounded-full ${off ? 'opacity-40 grayscale' : ''}`}><CropPhoto crop={{ id, name: { bn: cropName(id, 'bn'), en: cropName(id, 'en') } }} width={96} sizes="24px" thumb /></span>
                 {off && <Ban size={14} />}{cropName(id, lang)}
               </button>
             );
@@ -114,6 +116,7 @@ export default function StepPriorities() {
               <div className="flex items-center gap-3">
                 <span className="font-display w-5 text-center text-[15px] font-bold text-muted">{num(i + 1, lang)}</span>
                 <ScoreRing value={o.score} size={40} />
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-1 ring-black/5 sm:h-[72px] sm:w-[72px]"><CropPhoto crop={o.crop} width={200} sizes="72px" thumb /></div>
                 <div className="min-w-0 flex-1">
                   <div className="font-display text-[17px] font-bold leading-tight">{L(o.crop.name)}</div>
                   <div className="text-[12.5px] text-muted">{L(o.crop.action)} {fmtDate(o.t0, lang)} · {T('কাটা শুরু', 'harvest from')} {fmtDate(o.hw.start, lang)}</div>
@@ -134,7 +137,8 @@ export default function StepPriorities() {
             </li>
           ))}
         </ol>
-        <p className="mt-3 text-[12.5px] leading-5 text-muted">{T('লাভ = FAOSTAT-এর দেশের গড় ফলন × (কেজিপ্রতি দাম − কেজিপ্রতি সব খরচ)। দাম ও খরচ সরকারি সংগ্রহ মূল্য, কৃষি বিপণন অধিদপ্তর, মন্ত্রণালয় আর মাঠ গবেষণা থেকে; প্রতিটির বছর আলাদা, নিচে লেখা আছে। খরচে বীজ, চাষ, শ্রম, সার, সেচ সব আছে। পানি = FAO-র ফসল-সহগ × এই এলাকার ১৩ মৌসুমের বাষ্পীভবন − কাজে লাগা বৃষ্টি (ধানে জমি কাদা করার ২০০ মিমি সহ)। দাম পড়ার ঝুঁকি পাশের নমুনা কৃষকদের পরিকল্পনা থেকে।', 'Profit = FAOSTAT national average yield × (price per kg − full cost per kg). Prices and costs come from government procurement prices, DAM, the ministries and field studies, each from its own year (listed below). The cost covers seed, ploughing, labour, fertiliser and irrigation. Water = FAO crop coefficients × 13 seasons of local evaporation − usable rain (plus 200 mm to puddle rice). Price-drop risk comes from the sample neighbours’ plans.')} <Tags list={['DEMO']} /></p>
+        <p className="mt-3 text-[12px] leading-5 text-muted">{T('ছবি: উইকিমিডিয়া কমন্স থেকে প্রতিটি ফসলের মাঠের আসল ছবি; ছবিতে আঙুল রাখলে বা চাপলে তোলার মানুষ আর লাইসেন্স দেখা যায়।', 'Photos: real field photos of each crop from Wikimedia Commons; hover or tap a photo for its author and licence.')}</p>
+        <p className="mt-1 text-[12.5px] leading-5 text-muted">{T('লাভ = FAOSTAT-এর দেশের গড় ফলন × (কেজিপ্রতি দাম − কেজিপ্রতি সব খরচ)। দাম ও খরচ সরকারি সংগ্রহ মূল্য, কৃষি বিপণন অধিদপ্তর, মন্ত্রণালয় আর মাঠ গবেষণা থেকে; প্রতিটির বছর আলাদা, নিচে লেখা আছে। খরচে বীজ, চাষ, শ্রম, সার, সেচ সব আছে। পানি = FAO-র ফসল-সহগ × এই এলাকার ১৩ মৌসুমের বাষ্পীভবন − কাজে লাগা বৃষ্টি (ধানে জমি কাদা করার ২০০ মিমি সহ)। দাম পড়ার ঝুঁকি পাশের নমুনা কৃষকদের পরিকল্পনা থেকে।', 'Profit = FAOSTAT national average yield × (price per kg − full cost per kg). Prices and costs come from government procurement prices, DAM, the ministries and field studies, each from its own year (listed below). The cost covers seed, ploughing, labour, fertiliser and irrigation. Water = FAO crop coefficients × 13 seasons of local evaporation − usable rain (plus 200 mm to puddle rice). Price-drop risk comes from the sample neighbours’ plans.')} <Tags list={['DEMO']} /></p>
         <ul className="mt-2 grid gap-x-4 gap-y-0.5 text-[12px] leading-5 text-muted sm:grid-cols-2">
           {Object.entries(cropEconomics.crops).map(([id, c]) => (
             <li key={id}><b className="text-ink/70">{cropName(id, lang)}</b>: {T('দাম', 'price')} ৳{num(c.price.tk, lang, { dp: 2 })} (<a href={c.price.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2">{L(c.price.what)}</a>), {T('খরচ', 'cost')} ৳{num(c.cost.tk, lang, { dp: 2 })} (<a href={c.cost.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2">{L(c.cost.what)}</a>)</li>

@@ -45,7 +45,9 @@ function photoOf(crop, width) {
 }
 
 // Inside a link (a card), pass linkCredit={false}: the credit is then plain text, since links cannot nest.
-export default function CropPhoto({ crop, width = 800, fallback = 'seedlings', sizes = '400px', className = '', linkCredit = true, creditTop = false }) {
+// thumb: a small picture with no room for the credit line; the credit moves to its tooltip and the picture links to
+// its Commons page, where the author and licence are given in full.
+export default function CropPhoto({ crop, width = 800, fallback = 'seedlings', sizes = '400px', className = '', linkCredit = true, creditTop = false, thumb = false }) {
   const { T, L } = useStore();
   const [img, setImg] = useState(null);
   const [shown, setShown] = useState(false);
@@ -63,7 +65,12 @@ export default function CropPhoto({ crop, width = 800, fallback = 'seedlings', s
           <img key={img.src} src={img.src} alt={T(`খেতে ${L(crop.name)}`, `${L(crop.name)} growing in the field`)} loading="lazy" decoding="async" referrerPolicy="no-referrer"
             onLoad={() => setShown(true)} onError={() => setImg(null)}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${shown ? 'opacity-100' : 'opacity-0'}`} />
-          {shown && (
+          {shown && thumb && (
+            <a href={img.page} target="_blank" rel="noopener noreferrer" className="absolute inset-0"
+              title={`${L(crop.name)}${img.where ? `, ${L(img.where)}` : ''} · ${T('ছবি', 'Photo')}: ${img.artist}${img.license ? ` · ${img.license}` : ''} · Wikimedia Commons`}
+              aria-label={T(`${L(crop.name)}-এর ছবির উৎস`, `Source of the ${L(crop.name)} photo`)} />
+          )}
+          {shown && !thumb && (
             <Credit link={linkCredit} href={img.page}
               className={`absolute inset-x-0 px-3 text-[11px] leading-4 text-white/90 hover:text-white ${creditTop ? 'top-0 bg-gradient-to-b from-black/60 to-transparent pb-6 pt-2' : 'bottom-0 bg-gradient-to-t from-black/70 to-transparent pb-2 pt-6'}`}>
               <span className="font-semibold">{L(crop.name)}</span>{img.where ? `, ${L(img.where)}` : ''}
