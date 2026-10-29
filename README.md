@@ -80,15 +80,15 @@ After the challenge statement was read (22 October 2026):
 
 The commit history shows each change with its date.
 
-## Licence
-
-MIT (`LICENSE`), except `public/radar/` (the Ropon Radar prototype), which is Apache-2.0 (`public/radar/LICENSE`).
-Data keeps its own licence, listed per dataset in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 **Eligibility.** The challenge page asks teams not to begin work before the event. The preparation above existed
 before 21 October 2026 and is declared here rather than hidden. Whether prepared work is allowed under the
 official Space Apps rules for this year has to be confirmed with the organisers by the team before submission; no
 product change can settle it.
 
+## Licence
+
+MIT (`LICENSE`), except `public/radar/` (the Ropon Radar prototype), which is Apache-2.0 (`public/radar/LICENSE`).
+Data keeps its own licence, listed per dataset in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 ## Background
 
