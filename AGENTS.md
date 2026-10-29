@@ -43,7 +43,7 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 - `scripts/`: `fetch/`, `build/`, `onset/` (the rain-onset rule, also imported by `src/radar/onset.test.js`),
   `photos/`, `lib/`; index in `scripts/README.md`. Do not hand-edit generated data: change the script and re-run it.
   Moving a script changes its depth, so check its `ROOT` path and relative imports.
-- `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `ANTHROPIC_API_KEY`); `vite.config.js`
+- `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`); `vite.config.js`
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
 - `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
   project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in

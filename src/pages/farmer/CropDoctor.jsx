@@ -1,4 +1,4 @@
-// Crop doctor: the farmer photographs a crop and Claude (vision, api/doctor.js) gives a careful first look, weighed
+// Crop doctor: the farmer photographs a crop and Gemini (vision, api/doctor.js; Claude if only that key is set) gives a careful first look, weighed
 // against the field's live context (crop and stage, the week's weather, the latest satellite reading, the soil) and
 // checked against current DAE/BARI/BRRI guidance by a restricted web search. It is a first look, not a diagnosis:
 // every result says how sure it is and can go straight to the agriculture officer with the photo.
@@ -16,7 +16,7 @@ import { bnOf } from '../../engine/text';
 import { clockText } from '../../engine/forecast';
 
 const THRESHOLD = 0.7;
-const MAX_SIDE = 1568; // Claude reads images up to about this long edge at full detail
+const MAX_SIDE = 1568; // the vision models read images up to about this long edge at full detail
 const URGENCY = { low: { tone: 'green', bn: 'তাড়া নেই', en: 'Not urgent' }, medium: { tone: 'amber', bn: 'কয়েক দিনের মধ্যে দেখুন', en: 'Act within days' }, high: { tone: 'red', bn: 'জরুরি', en: 'Urgent' } };
 
 // Shrink and re-encode in the browser: a small JPEG uploads fast on a rural connection, and re-encoding drops the
@@ -265,7 +265,7 @@ export default function CropDoctor() {
                   <Loader2 size={36} className="mx-auto animate-spin text-violet-600" />
                   <h3 className="mt-3.5 text-[18px] font-bold text-ink">{T('ডাক্তার ছবিটা খুঁটিয়ে দেখছে…', 'The doctor is looking closely…')}</h3>
                   <p className="mx-auto mt-2 max-w-xs text-[14px] leading-6 text-muted">
-                    {T('দাগের ধরন, রং, পোকা যাচাই করছে; আবহাওয়া আর উপগ্রহের সঙ্গে মেলাচ্ছে; দরকার হলে সরকারি কৃষি সুপারিশ যাচাই করছে।', 'Looking at the spots, colours and insects, checking them against the weather and the satellite, and against official guidance where needed.')}
+                    {T('দাগের ধরন, রং, পোকা যাচাই করছে; আবহাওয়া আর উপগ্রহের সঙ্গে মেলাচ্ছে; দরকার হলে সরকারি কৃষি সুপারিশ যাচাই করছে। এক-দুই মিনিট লাগতে পারে।', 'Looking at the spots, colours and insects, checking them against the weather and the satellite, and against official guidance where needed. This can take a minute or two.')}
                   </p>
                 </div>
               </div>

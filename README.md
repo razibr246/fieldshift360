@@ -30,7 +30,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
   ([docs/RADAR.md](docs/RADAR.md)); it agrees with BMD station-based onsets within a week at three stations.
 - **Run it.** `npm install`, then `npm run dev`; `npm test` runs the engine, voice, radar and game tests; `npm run
   build` makes the static site. Data needs no network: every file is committed. The AI crop doctor needs
-  `ANTHROPIC_API_KEY` on the server (see `.env.example`); without it the app says so and photos go to the officer.
+  `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`) on the server (see `.env.example`); without it the app says so and photos go to the officer.
 - **Guided demo.** "3-minute demo story" on the home page walks through it in ten steps: the changed weather and who it is for, then rotations.
 
 ## The challenge, line by line
@@ -358,7 +358,7 @@ Crop thresholds in `src/engine/crops.js` are starting values for an agronomist o
 
 ```
 index.html, vite.config.js, vercel.json, package.json      app entry and build setup
-api/                    Vercel functions: plans (shared plan board), messages, abroad, doctor (Claude crop doctor)
+api/                    Vercel functions: plans (shared plan board), messages, abroad, doctor (Gemini crop doctor)
 public/                 sw.js (offline), manifest, icon; aman/ (radar data per upazila), models/ (photo AI),
                         radar/ (the original Ropon Radar prototype, served as is)
 src/

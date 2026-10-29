@@ -103,13 +103,13 @@ const devAbroadApi = () => ({
   },
 });
 
-// npm run dev: serves api/doctor.js itself (the real Claude call), reading ANTHROPIC_API_KEY from .env.local.
+// npm run dev: serves api/doctor.js itself (the real AI call), reading GEMINI_API_KEY (or ANTHROPIC_API_KEY) from .env.local.
 // Without a key it answers 503, just like the deployed function, and the page says the AI doctor is off.
 const devDoctorApi = (env) => ({
   name: 'dev-doctor-api',
   apply: 'serve',
   configureServer(server) {
-    if (env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY) process.env.ANTHROPIC_API_KEY = env.ANTHROPIC_API_KEY;
+    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'ANTHROPIC_API_KEY']) if (env[k] && !process.env[k]) process.env[k] = env[k];
     server.middlewares.use('/api/doctor', async (req, res) => {
       const { default: handler } = await import('./api/doctor.js');
       let raw = '';

@@ -6,7 +6,7 @@
   "installCommand": "npm install",
   "functions": {
     "api/doctor.js": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   }
 }

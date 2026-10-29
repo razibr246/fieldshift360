@@ -1,7 +1,8 @@
-// Crop doctor: a first look at a farmer's crop photo by Claude (vision), with the field's live context and a web
-// search restricted to official and scientific sources, so advice follows current Bangladesh recommendations.
-// Vercel serverless function. Needs ANTHROPIC_API_KEY in the project's environment; without it the endpoint answers
-// 503 and the app says the AI doctor is not switched on. The key never reaches the browser.
+// Crop doctor: a first look at a farmer's crop photo by Google Gemini (vision), with the field's live context and
+// Google Search grounding, so advice follows current Bangladesh recommendations. Vercel serverless function. Needs
+// GEMINI_API_KEY in the project's environment (GEMINI_MODEL optionally picks the model); without it, Claude is used
+// if ANTHROPIC_API_KEY is set (web search limited to official and scientific sources), and with neither the endpoint
+// answers 503 and the app says the AI doctor is not switched on. Keys never reach the browser.
 //   POST /api/doctor  { image: <base64 JPEG, already shrunk in the browser>, crop, lang, context }
 //   → { report, sources, model, at }
 // The result is a first look, not a diagnosis: the prompt keeps it to likely causes with the evidence seen, what to do
@@ -9,6 +10,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export const MODEL = 'claude-opus-5-5';
+export const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MAX_IMAGE_B64 = 3_000_000; // ~2.2 MB JPEG; the browser sends ~1568 px, usually 200–500 KB
 const CROPS = new Set(['boro', 'tomato', 'wheat', 'lentil', 'mustard', 'mungbean', 'sesame', 'jute', 'aus', 'aman']);
 // Where the doctor may look things up: Bangladesh's agriculture institutes and extension, FAO, CABI.
@@ -67,6 +70,32 @@ Give a careful first look, the way an experienced Sub-Assistant Agriculture Offi
 Finish by calling the report_crop_check tool exactly once with your answer.`;
 }
 
+// Gemini: one request with Google Search grounding; the answer is the report as JSON in the report tool's schema.
+// A key whose plan has no search quota (free keys) is refused with 429: the request then runs once more without search.
+async function geminiReport({ image, crop, lang, context, known }) {
+  const ask = (search) => fetch(`${GEMINI_API}/${GEMINI_MODEL}:generateContent`, {
+    method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt().replace('Use web search only when it helps', 'Use Google Search only when it helps').replace('Finish by calling the report_crop_check tool exactly once with your answer.', 'Answer only with the JSON report.') }] },
+      contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'image/jpeg', data: image } }, { text: userText({ crop, lang, context, known }) }] }],
+      ...(search ? { tools: [{ googleSearch: {} }] } : {}),
+      generationConfig: { responseMimeType: 'application/json', responseJsonSchema: REPORT_TOOL.input_schema, temperature: 0.3 },
+    }),
+    signal: AbortSignal.timeout(search ? 140_000 : 280_000),
+  });
+  let r = await ask(true);
+  if (r.status === 429) r = await ask(false);
+  const js = await r.json().catch(() => ({}));
+  if (!r.ok) return { status: r.status === 429 ? 429 : r.status === 400 ? 400 : r.status === 401 || r.status === 403 ? 503 : 502, error: r.status === 429 ? 'busy, try again in a minute' : r.status === 401 || r.status === 403 ? 'doctor not configured' : `AI service error ${r.status}` };
+  const cand = js.candidates?.[0];
+  if (!cand || cand.finishReason === 'SAFETY' || js.promptFeedback?.blockReason) return { status: 422, error: 'declined', category: js.promptFeedback?.blockReason ?? cand?.finishReason ?? null };
+  const text = (cand.content?.parts ?? []).filter((p) => p.text && !p.thought).map((p) => p.text).join('');
+  let report;
+  try { report = JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, '')); } catch { return { status: 502, error: 'no report' }; }
+  const sources = (cand.groundingMetadata?.groundingChunks ?? []).map((c) => c.web).filter((w) => w?.uri).slice(0, 6).map((w) => ({ url: w.uri, title: w.title || w.uri }));
+  return { report, sources, model: js.modelVersion || GEMINI_MODEL };
+}
+
 function userText({ crop, lang, context = {}, known = [] }) {
   const c = context;
   const lines = [
@@ -86,7 +115,8 @@ function userText({ crop, lang, context = {}, known = [] }) {
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'method not allowed' }); }
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return res.status(503).json({ error: 'doctor not configured' });
+  const gemini = !!process.env.GEMINI_API_KEY;
+  if (!gemini && !process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return res.status(503).json({ error: 'doctor not configured' });
   let body = req.body;
   try { if (typeof body === 'string') body = JSON.parse(body || '{}'); } catch { return res.status(400).json({ error: 'bad json' }); }
   const image = String(body?.image ?? '');
@@ -97,6 +127,14 @@ export default async function handler(req, res) {
   const known = Array.isArray(body?.known) ? body.known.slice(0, 12).map((k) => ({ key: String(k.key).slice(0, 30), en: String(k.en).slice(0, 60) })) : [];
   const context = typeof body?.context === 'object' && body.context ? body.context : {};
   if (context.note) context.note = String(context.note).slice(0, 500);
+
+  if (gemini) {
+    try {
+      const g = await geminiReport({ image, crop, lang, context, known });
+      if (g.error) return res.status(g.status).json({ error: g.error, ...(g.category !== undefined ? { category: g.category } : {}) });
+      return res.status(200).json({ ...g, at: Date.now() });
+    } catch { return res.status(502).json({ error: 'AI service unreachable' }); }
+  }
 
   const client = new Anthropic();
   const messages = [{
