@@ -7,11 +7,12 @@ import { Link } from 'react-router-dom';
 import { BookOpen, Satellite, Ruler, Layers, Scale, Users, ArrowRight, Tag as TagIcon, Database, GitCompare, ClipboardCheck, Droplets, Leaf, Thermometer, CloudRain, Mountain, Waves, Sprout, Wind, Snowflake, FlaskConical } from 'lucide-react';
 import { useStore } from '../../store';
 import { Tags, TagLegend } from '../../components/ui';
-import { num } from '../../engine/dates';
+import { num, bnDigits } from '../../engine/dates';
+import { bnOf } from '../../engine/text';
 import { rainCrossCheck } from '../../engine/climate';
 import { disagreements, modelSpread } from '../../engine/provenance';
 import { fieldTerrain } from '../../engine/briefs';
-import { fieldGreen } from '../../engine/landsat';
+import { fieldGreen, stressMethods, landRecord } from '../../engine/landsat';
 import { RABI_CROPS, ROTATION_CROPS } from '../../engine/crops';
 import { reviewOf } from '../../data/reviews';
 import deltas from '../../data/climate/cmip6_deltas.json';
@@ -141,6 +142,8 @@ export default function Science() {
         </div>
       </section>
 
+      <MethodsCompare />
+
       <section id="rules" className="mt-12 scroll-mt-28">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><ClipboardCheck size={20} className="text-primary-700" />{T('ফসলের নিয়ম আর তাদের যাচাই', 'The crop rules and who has checked them')}</h2>
         <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('প্রতিটি নিয়ম প্রকাশিত গবেষণা থেকে নেওয়া শুরুর মান (উৎস docs/THRESHOLDS.md-এ)। স্থানীয় কৃষিবিদ বা কৃষি কর্মকর্তা যাচাই করলে কে, কবে, কী বদলালেন তা এখানে আর docs/REVIEW_LOG.md-এ লেখা হবে। এখন পর্যন্ত কেউ যাচাই করেননি।', 'Each rule is a starting value from published research (sources in docs/THRESHOLDS.md). When a local agronomist or agriculture officer reviews them, who, when and what changed is recorded here and in docs/REVIEW_LOG.md. So far no one has.')}</p>
@@ -216,5 +219,53 @@ function Disagree({ x }) {
       <p className="mt-1.5 text-[14px] font-semibold leading-6 text-ink/85">{body.v}</p>
       <p className="mt-1 text-[13.5px] leading-6 text-muted">{body.e}</p>
     </article>
+  );
+}
+
+// Three statistical methods on one field's MODIS record (engine/landsat.js stressMethods): which Rabi seasons each
+// calls stressed, where they agree, and what each is good and bad at.
+const METHOD = {
+  trend: { bn: 'নিজের ধারা থেকে নিচে (অ্যাপ যা ব্যবহার করে)', en: 'Below its own trend (what the app uses)', good: { bn: 'যে জমি বছর বছর সবুজ হচ্ছে, তার পুরোনো সাধারণ বছরকে চাপ বলে না', en: 'Does not call an ordinary early year stressed on a field that has been greening' }, bad: { bn: 'ছোট রেকর্ডে ধারা নিজেই অনিশ্চিত', en: 'On a short record the trend itself is uncertain' } },
+  low: { bn: 'সবচেয়ে কম পাঁচ ভাগের এক ভাগ', en: 'The lowest fifth', good: { bn: 'সহজ, বোঝানো যায়, কোনো অনুমান লাগে না', en: 'Simple to explain, assumes nothing' }, bad: { bn: 'জমি সবুজ হতে থাকলে পুরোনো বছরগুলোই বেশি ধরা পড়ে', en: 'If the field greens over time, it mostly picks the early years' } },
+  area: { bn: 'এলাকার তুলনায় কম', en: 'Below the area that season', good: { bn: 'সবার ওপর পড়া আবহাওয়া বাদ যায়; থাকে জমির নিজের সমস্যা', en: 'Weather that hit everyone cancels out; the field’s own trouble is left' }, bad: { bn: 'খরার মতো এলাকাজুড়ে চাপ ধরা পড়ে না', en: 'Misses a drought that hit the whole area' } },
+};
+function MethodsCompare() {
+  const { T, L, s, upazila, activeParcel, parcels } = useStore();
+  const p = activeParcel ?? parcels.find((x) => x.upazila === upazila.id);
+  const m = p ? stressMethods(fieldGreen(p.id, upazila.id), landRecord(upazila.id)?.ndvi) : null;
+  if (!m) return null;
+  const span = Array.from(new Set(fieldGreen(p.id, upazila.id).rabi.map((r) => r.y))).sort((a, b) => a - b);
+  return (
+    <section id="methods" className="mt-12 scroll-mt-28">
+      <h2 className="flex items-center gap-2 text-[24px] font-bold"><Layers size={20} className="text-primary-700" />{T('একই তথ্যে তিনটি পদ্ধতি', 'Three methods on the same data')}</h2>
+      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T(`${bnOf(p.name.bn)} ২৫০ মিটার MODIS রেকর্ডে (প্রতি রবির জানুয়ারি-ফেব্রুয়ারি) কোন মৌসুমে ফসল চাপে ছিল, তিনটি আলাদা পরিসংখ্যান পদ্ধতিতে। যেখানে তিনটিই একমত, সেখানেই সবচেয়ে বেশি ভরসা; যেখানে মেলে না, সেখানে মাঠের মানুষের স্মৃতিই ঠিক করবে।`, `Which Rabi seasons were stressed in ${L(p.name)}’s 250 m MODIS record (January–February of each Rabi), by three different statistical methods. Where all three agree, trust it most; where they differ, the memory of the people who farm it decides.`)}</p>
+      <div className="mt-4 overflow-x-auto rounded-[22px] border border-border bg-white p-4">
+        <table className="w-full min-w-[720px] text-[13px]">
+          <thead><tr><th className="w-[230px] pb-2 text-left font-semibold text-muted">{T('পদ্ধতি', 'Method')}</th>{span.map((y) => <th key={y} className="pb-2 text-center font-normal text-muted tabular">{T(`'${bnDigits(String(y).slice(2))}`, `'${String(y).slice(2)}`)}</th>)}</tr></thead>
+          <tbody>
+            {Object.entries(m.sets).map(([k, ys]) => (
+              <tr key={k} className="border-t border-border">
+                <td className="py-2 pr-2 font-semibold">{L(METHOD[k])}</td>
+                {span.map((y) => <td key={y} className="py-2 text-center">{ys.includes(y) ? <span className={`mx-auto block h-3.5 w-3.5 rounded-full ${m.all.includes(y) ? 'bg-red-600' : 'bg-amber-500'}`} title={String(y)} /> : <span className="mx-auto block h-1.5 w-1.5 rounded-full bg-black/10" />}</td>)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-3 text-[13.5px] leading-6">{m.all.length
+          ? T(`তিনটি পদ্ধতিই একমত: ${m.all.map((y) => num(y, 'bn').replace(',', '')).join(', ')} (লাল)।`, `All three agree on ${m.all.join(', ')} (red).`)
+          : T('কোনো বছরে তিনটি পদ্ধতি একসঙ্গে একমত নয়: চাপের বছর নিয়ে এই জমির রেকর্ড স্পষ্ট নয়।', 'The three never agree on one year: this field’s record is not clear about stressed seasons.')}
+          {' '}{T(`প্রথম দুটির মিল ${num(Math.round(m.agreeTrendLow * 100), 'bn')}%।`, `The first two overlap ${Math.round(m.agreeTrendLow * 100)}%.`)}</p>
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        {Object.keys(m.sets).map((k) => (
+          <article key={k} className="rounded-[18px] border border-border bg-white p-3.5 text-[13.5px] leading-6">
+            <p className="font-bold">{L(METHOD[k])}</p>
+            <p className="mt-1 text-primary-800">+ {L(METHOD[k].good)}</p>
+            <p className="text-red-800">− {L(METHOD[k].bad)}</p>
+          </article>
+        ))}
+      </div>
+      <p className="mt-2 text-[12.5px] text-muted">{T('একটা পিক্সেল প্রায় ১৫ বিঘা: জমি আর তার পাশের জমি একসঙ্গে। মেঘলা দিনে MODIS-এর মান কম আসে; প্রতি মাসের সবচেয়ে বেশি মানটা রাখা হয়।', 'One pixel is about 15 bigha: the field and its neighbours together. Clouds pull MODIS values down; each month keeps its highest composite.')}</p>
+    </section>
   );
 }

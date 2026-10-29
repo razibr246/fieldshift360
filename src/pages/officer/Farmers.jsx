@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Search, UsersRound, ArrowLeft, ChevronRight, Sprout, Droplets, Layers, MapPin, LifeBuoy, CheckCircle2 } from 'lucide-react';
 import FieldRisks from '../../components/fields/FieldRisks';
+import LandsatThen from '../../components/fields/LandsatThen';
 import { tms, useStore, soilData, srdi } from '../../store';
 import { srdiUnionOf } from '../../engine/soil';
 import priceSeasons from '../../data/market/price_seasons.json';
@@ -169,6 +170,7 @@ export function FarmDetail() {
         <div className="space-y-6">
           <FarmerFields f={f} />
           <FieldRisks parcel={parcels.find((p) => p.owner === f.id && p.main) ?? parcels.find((p) => p.owner === f.id) ?? null} tm={tms[officerUpazila.id]} upazilaId={officerUpazila.id} />
+          <LandsatThen parcel={parcels.find((p) => p.owner === f.id && p.main) ?? parcels.find((p) => p.owner === f.id) ?? null} upazilaId={officerUpazila.id} />
           <Card className="p-5">
             <div className="flex items-center justify-between gap-2"><h2 className="text-[19px] font-bold">{T('এই জমির জন্য পরামর্শ', 'Recommendation for this field')}</h2><Tags list={['RULE']} /></div>
             <div className="mt-3 flex items-center gap-3">

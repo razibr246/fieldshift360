@@ -19,6 +19,7 @@ comes from is in [docs/DATA_SOURCES.md](../docs/DATA_SOURCES.md).
 | `fetch:land` | `fetch/gibs-land.mjs` | NASA MODIS NDVI and land surface temperature and MERRA-2 evaporation, monthly since 2001, via GIBS: `src/data/land/land_sat.json` |
 | `fetch:terrain` | `fetch/srtm.mjs` | NASA SRTM and ASTER 30 m heights averaged, hollows and slope at every registered field: `src/data/land/field_terrain.json` |
 | `fetch:fields-ndvi` | `fetch/modis-fields.mjs` | NASA MODIS 250 m NDVI at every registered field, January–February since 2001 (ORNL DAAC, about half an hour): `src/data/land/field_ndvi.json` |
+| `fetch:landsat` | `fetch/landsat-fields.mjs` | NASA/USGS Landsat WELD 30 m NDVI at every registered field, December–March of the 1984–86, 1988–91 and 1998–2001 epochs (NASA GIBS, no login): `src/data/land/field_landsat.json` |
 | `fetch:cmip6` | `fetch/cmip6.mjs` | NASA NEX-GDDP-CMIP6 change per month, 8 models, `src/data/climate/cmip6_deltas.json` |
 | `fetch:stories` | `fetch/stories.mjs` | Climate for the story upazilas, `src/data/climate/stories_climate.json` |
 | `fetch:wetness` | `fetch/soil-wetness.mjs` | NASA POWER root-zone soil wetness, `src/data/water/soil_wetness.json` |

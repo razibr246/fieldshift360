@@ -7,6 +7,8 @@ import LandPicker from '../../components/map/LandPicker';
 import FieldsMap, { LEVEL_LOOK } from '../../components/fields/FieldsMap';
 import FieldSatellite from '../../components/fields/FieldSatellite';
 import FieldRisks from '../../components/fields/FieldRisks';
+import FieldRiskMap from '../../components/fields/FieldRiskMap';
+import LandsatThen from '../../components/fields/LandsatThen';
 import { seriesNow } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { num, fmtDate, fmtBangla, todayDhaka } from '../../engine/dates';
@@ -100,6 +102,8 @@ export default function MyFarm() {
               onPlan={planThis} onEdit={() => openEditor('edit')} onReading={(id, r) => setLive((x) => (x[id] === r ? x : { ...x, [id]: r }))} /></div>
           )}
           {selected && editing !== 'add' && <FieldRisks parcel={selected} />}
+          {selected && editing !== 'add' && <LandsatThen parcel={selected} />}
+          {editing !== 'add' && <FieldRiskMap upazilaId={upazila.id} highlight={selected?.id} />}
         </>
       ) : null}
 

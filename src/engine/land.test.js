@@ -110,3 +110,26 @@ test('registered fields have their own 250 m MODIS Rabi record since 2001, compa
     assert.ok(g.stressYears.length <= 8);
   }
 });
+
+test('three statistical methods name a field’s stressed seasons, and where they agree is shown', async () => {
+  const { stressMethods, fieldGreen, landRecord } = await import('./landsat.js');
+  const f = fieldGreen('GDG-DP-0311', 'godagari');
+  const m = stressMethods(f, landRecord('godagari').ndvi);
+  assert.ok(m.n >= 12 && m.k >= 1);
+  assert.deepEqual(Object.keys(m.sets), ['trend', 'low', 'area']);
+  assert.equal(m.sets.low.length, m.k, 'the lowest fifth');
+  assert.deepEqual(m.sets.trend, f.stressYears, 'the app’s own method is the first');
+  assert.ok(m.all.every((y) => m.sets.trend.includes(y) && m.sets.low.includes(y) && m.sets.area.includes(y)));
+  assert.ok(m.agreeTrendLow >= 0 && m.agreeTrendLow <= 1);
+  assert.equal(stressMethods(null), null);
+});
+
+test('each field’s Rabi greenness a generation ago (Landsat) sits beside today’s (MODIS), with only clear changes called', async () => {
+  const { landsatThenNow } = await import('./landsat.js');
+  const r = landsatThenNow('DAC-TI-0201', 'dacope');
+  assert.deepEqual(r.then.map((e) => e.label), ['1988–91', '1998–2001'], 'no clear 1984–86 pixels here');
+  assert.ok(r.then.every((e) => e.ndvi > 0 && e.ndvi < 1 && e.n >= 2));
+  assert.ok(['greener', 'browner', 'similar'].includes(r.direction));
+  assert.equal(r.direction, Math.abs(r.change) <= 0.05 ? 'similar' : r.change > 0 ? 'greener' : 'browner');
+  assert.equal(landsatThenNow('nope', 'dacope'), null);
+});

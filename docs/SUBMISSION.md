@@ -119,6 +119,10 @@ Fill in before submitting (Teamwork is scored on roles):
 | NASA/JAXA GPM IMERG daily (IMERG_PRECTOT via POWER; GPM_3IMERGDF v07 at GES DISC) | Rain onset, June–July rain, drought/flood indices, rain cross-check | https://gpm.nasa.gov/data/imerg · https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDF_07/summary |
 | NASA GRACE / GRACE-FO (JPL mascons, CRI) via NASA GIBS | Water stored on and under the land, yearly 2003–2021 (monthly Apr 2002 – Jul 2022), a regional average round each upazila and farm abroad | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA SMAP Level 4 root-zone soil moisture via NASA GIBS | This month's root-zone soil moisture against normal; a check on POWER's soil wetness | https://smap.jpl.nasa.gov |
+| NASA MODIS: MOD13Q1 250 m NDVI per registered field (ORNL DAAC), monthly NDVI and land surface temperature (GIBS) | Each field’s stressed Rabi seasons and its greenness against the area; bare months; ground heat; three statistical methods compared | https://modis.ornl.gov · https://nasa-gibs.github.io/gibs-api-docs/ |
+| NASA/USGS Landsat (WELD global monthly NDVI, 30 m, via GIBS) | Each field’s Rabi greenness in 1988–91 and 1998–2001 beside MODIS today | https://nasa-gibs.github.io/gibs-api-docs/ |
+| NASA SRTM and NASA/METI ASTER GDEM (30 m) | Standing water and erosion risk per field, with the two models’ disagreement | https://lpdaac.usgs.gov/products/srtmgl1v003/ |
+| NASA GMAO MERRA-2 land evaporation (GIBS) | Monthly evapotranspiration beside the FAO-56 working | https://gmao.gsfc.nasa.gov/reanalysis/MERRA-2/ |
 | NASA NEX-GDDP-CMIP6 v2.0 | The 2040s for every rotation; each of the 8 models on its own for the robustness test | https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6 |
 | NASA GIBS, HLS (Harmonized Landsat Sentinel-2) | Satellite photos of the fields through the season | https://nasa-gibs.github.io/gibs-api-docs/ |
 | NASA FIRMS (neighbouring-country pages) | Fire detections | https://firms.modaps.eosdis.nasa.gov |

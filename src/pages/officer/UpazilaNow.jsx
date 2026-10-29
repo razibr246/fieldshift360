@@ -13,6 +13,7 @@ import MARKET from '../../data/market/market_dhaka.json';
 import CROPS from '../../data/geo/bangladesh_crops.json';
 import SEDAC from '../../data/region/sedac.json';
 import CENSUS from '../../data/region/census.json';
+import FieldRiskMap from '../../components/fields/FieldRiskMap';
 import { fmtDate, num, todayDhaka } from '../../engine/dates';
 import { HARVEST_AFTER } from '../../engine/outlook';
 
@@ -105,6 +106,8 @@ function UpazilaNowPage() {
             </>
           )}
         </Card>
+
+        <FieldRiskMap upazilaId={upz.id} />
 
         <Card className="p-5 sm:p-6">
           <Head icon={Layers} tags={['SAT']}>{T('জমি কীভাবে বদলাচ্ছে', 'How the land is changing')}</Head>

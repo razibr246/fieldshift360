@@ -5,6 +5,7 @@
 // vegetation stress), and how the ground heat of the hot months has changed. Pure. [REAL data in, RULE logic]
 import LAND from '../data/land/land_sat.json' with { type: 'json' };
 import FIELDS from '../data/land/field_ndvi.json' with { type: 'json' };
+import LANDSAT from '../data/land/field_landsat.json' with { type: 'json' };
 
 export const LAND_SOURCE = LAND.provenance;
 export const landRecord = (id) => LAND.points[id] ?? null;
@@ -81,4 +82,51 @@ export function fieldGreen(fieldId, upazilaId) {
     rabi, stressYears: rabi.filter((r) => r.stress).map((r) => r.y), years: [rabi[0].y, rabi[rabi.length - 1].y],
     rabiNdvi: mine, areaNdvi: theirs, vsArea: theirs != null ? mine - theirs : null,
   };
+}
+
+// Three statistical ways to name a field's stressed Rabi seasons from the same MODIS record, side by side, so the
+// choice of method is visible rather than hidden:
+//   trend  the method the app uses: below its own long-term trend by one standard deviation or more (a field that has
+//          been greening for twenty years is not called stressed just for an ordinary early year)
+//   low    the plain rule: the lowest fifth of the raw values, no trend removed (early years dominate when a field
+//          greens over time)
+//   area   the field against its area in the same season, lowest fifth of the difference (weather that hit the whole
+//          area cancels out; what is left is the field's own trouble: water, pests, late sowing)
+// field: fieldGreen(); areaNdvi: the upazila's monthly NDVI (land_sat.json). Years each method names, and where all agree.
+export function stressMethods(field, areaNdvi = null) {
+  if (!field?.rabi?.length) return null;
+  const rows = field.rabi, k = Math.max(1, Math.round(rows.length / 5));
+  const lowest = (xs) => new Set([...xs].sort((a, b) => a.v - b.v).slice(0, k).map((x) => x.y));
+  const trend = new Set(rows.filter((r) => r.stress).map((r) => r.y));
+  const low = lowest(rows);
+  let area = null;
+  if (areaNdvi) {
+    const a = Object.fromEntries(rabiGreenness(areaNdvi, [1, 2]).map((r) => [r.y, r.v]));
+    const d = rows.filter((r) => a[r.y] != null).map((r) => ({ y: r.y, v: r.v - a[r.y] }));
+    if (d.length >= 8) area = lowest(d);
+  }
+  const sets = { trend, low, ...(area ? { area } : {}) };
+  const years = [...new Set(Object.values(sets).flatMap((x) => [...x]))].sort((a, b) => a - b);
+  const all = years.filter((y) => Object.values(sets).every((x) => x.has(y)));
+  const jac = (x, y) => { const u = new Set([...x, ...y]); return u.size ? [...x].filter((v) => y.has(v)).length / u.size : 1; };
+  return { n: rows.length, k, years, sets: Object.fromEntries(Object.entries(sets).map(([m, x]) => [m, [...x].sort((a, b) => a - b)])), all, agreeTrendLow: jac(trend, low), perDecade: rows.perDecade };
+}
+
+// A field's Rabi greenness a generation ago (Landsat WELD, 30 m, December–March of three epochs) beside today's
+// (MODIS 250 m, January–February since 2016). Different sensors at different scales: only a clear change in
+// direction (more than 0.05 NDVI) is called, never a small difference. null when Landsat has no clear pixels there.
+export const LANDSAT_SOURCE = LANDSAT.provenance;
+const EPOCHS = [['1984–86', 1984, 1986], ['1988–91', 1988, 1991], ['1998–2001', 1998, 2001]];
+export function landsatThenNow(fieldId, upazilaId) {
+  const s = LANDSAT.fields?.[fieldId];
+  if (!s) return null;
+  const season = (k) => (+k.slice(5, 7) === 12 ? +k.slice(0, 4) + 1 : +k.slice(0, 4)); // December counts with the next year
+  const then = EPOCHS.map(([label, a, b]) => {
+    const v = Object.entries(s).filter(([k]) => season(k) >= a && season(k) <= b).map(([, x]) => x);
+    return { label, ndvi: mean(v), n: v.length };
+  }).filter((e) => e.n >= 2);
+  if (!then.length) return null;
+  const now = fieldGreen(fieldId, upazilaId)?.rabiNdvi ?? null;
+  const last = then[then.length - 1], change = now != null ? now - last.ndvi : null;
+  return { then, now, change, direction: change == null ? null : change > 0.05 ? 'greener' : change < -0.05 ? 'browner' : 'similar' };
 }

@@ -23,6 +23,7 @@ Kinds: **SAT** observed by satellite · **STATION** reported by a weather statio
 | FAOSTAT yields | RECORD | calc | 2020–2024 | national average | Not the field's yield |
 | Prices and full production costs | RECORD | calc | each with its year (2020–2025) | national / Dhaka markets | Local markets differ; some cost years are old |
 | MODIS MOD13Q1 NDVI per field | SAT | context (stressed Rabi seasons) | 2001–2026 | 250 m pixel (~15 bigha) | The field and its neighbours |
+| Landsat WELD NDVI per field | SAT | context (Rabi greenness a generation ago) | 1988–91, 1998–2001 (Dec–Mar) | 30 m, 3×3 pixels at the field centre | A different sensor and scale from MODIS: only a clear change (> 0.05 NDVI) is read; no clear pixels for 1984–86 |
 | MODIS monthly NDVI and LST | SAT | context | 2001–2026 | ~5 km | Area average |
 | MERRA-2 land evaporation | MODEL | context | 2001–2026 | ~50 km | Area average |
 | SRTM + ASTER GDEM terrain | SAT | context (water standing, erosion) | 2000–2013 | 30 m | Sees crop and tree tops; per-field disagreement shown |
@@ -32,6 +33,13 @@ Kinds: **SAT** observed by satellite · **STATION** reported by a weather statio
 | Open-Meteo forecast | MODEL | calc (today's watering advice) | today + 3 days | ~11 km | A forecast |
 | Crop heat and rain thresholds | RULE | calc | — | per crop | **Not yet reviewed by local agronomists** (`docs/REVIEW_LOG.md`) |
 | Neighbours' plans | SAMPLE | calc (price-drop risk) | — | union | Sample farmers |
+
+## Not used, and why
+
+- **ECOSTRESS** (70 m land-surface temperature and evapotranspiration): served only behind a NASA Earthdata login
+  (AppEEARS); not on NASA GIBS. Ready to add once an Earthdata token is set in `.env.local`.
+- **GEDI** biomass and canopy height (on GIBS): it measures trees and forest; over paddy fields it adds nothing a
+  farmer could act on, so it is left out rather than shown for its own sake.
 
 ## Model assumptions
 
@@ -61,6 +69,8 @@ Kinds: **SAT** observed by satellite · **STATION** reported by a weather statio
 | CMIP6 model spread, 2040s | yearly rain −30% to +27% depending on model and upazila; Rabi daytime heat −0.3 to +1.8 °C |
 | SMAP L4 against NASA POWER (MERRA-2) root-zone wetness, monthly | r = 0.89–0.96 over 128 months at the seven upazilas; both draw on NASA's GEOS land modelling, so this is a consistency check, not independent validation |
 | GRACE trend, Godagari region | −8.9 cm a decade (2003–2021, p = 0.008); Dhamrai region +2.2 cm (not significant). Regional, and from saturating colour tiles: the direction is more reliable than the size |
+| Three statistical methods for stressed seasons, same field record | At Godagari's demo field GDG-DP-0311 the app's method (below the field's own trend) and the plain lowest-fifth rule overlap 17% and never agree all three: the field has greened since 2001, so the plain rule picks the early years. Shown live per field at `/science#methods` |
+| Landsat then against MODIS now, 19 fields | All 19 fields are greener in the Rabi now than in 1988–91 (e.g. GDG-DP-0311: 0.29 → 0.57), consistent with irrigated Boro spreading; within Landsat alone Dacope's two fields fell from 0.27–0.28 to 0.16 between 1988–91 and 1998–2001, the years shrimp farming and salinity spread there. Part of the then-now gap may be the instruments |
 | Crop thresholds by local agronomists | **not done yet** |
 | Plausibility of the crop limits | **A known problem.** Boro's flowering-heat limit (3+ days ≥ 35 °C, 75–95 days after transplanting) is crossed in 12–13 of 13 seasons 2013–2025 at Godagari and Dacope (depending on the sowing date), 11 of 13 at Dhamrai and Gangachara, 5 of 13 at Bakerganj, 2 at Sitakunda and 1 at Gowainghat, although Boro is the main crop in all of them. The limit almost certainly over-warns for local varieties and pulls Boro's weather score down; the app flags this beside the comparison and in “How this recommendation was made”. First item for local review |
 | Farmer and officer usability test | **not done yet** (protocol: `docs/USER_TESTING.md`) |

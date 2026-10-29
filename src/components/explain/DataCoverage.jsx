@@ -8,7 +8,7 @@ import { num } from '../../engine/dates';
 import { coverage, STATUS } from '../../engine/provenance';
 import { savedWatch } from '../../data/parcels';
 import { fieldTerrain } from '../../engine/briefs';
-import { fieldGreen } from '../../engine/landsat';
+import { fieldGreen, landsatThenNow } from '../../engine/landsat';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import econ from '../../data/market/crop_economics.json';
 import watchFile from '../../data/fields/field_watch.json';
@@ -23,7 +23,7 @@ export default function DataCoverage() {
   const p = activeParcel;
   const rows = coverage({
     today, climEnd: clim?.prov?.end, soilScope: soil?.scope, srdi: true,
-    terrain: !!fieldTerrain(p?.id), fieldNdvi: !!fieldGreen(p?.id, upazila.id),
+    terrain: !!fieldTerrain(p?.id), fieldNdvi: !!fieldGreen(p?.id, upazila.id), landsat: !!landsatThenNow(p?.id, upazila.id),
     watch: !!(p && savedWatch(p)), watchEnd: watchFile.provenance?.window?.[1],
     cmip6: !!deltas.upazilas?.[upazila.id], priceYearMin: years.length ? Math.min(...years) : null,
     radarThrough: radarProv?.through, liveWeather,
