@@ -63,7 +63,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 
@@ -236,6 +236,8 @@ export function StoreProvider({ children }) {
   // today's date, so a sowing day already gone is not offered (it changes once a day; the planner re-runs then)
   const planToday = todayDhaka();
   const decision = useMemo(() => decide({ clim: climW, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday, exclude: s.exclude }), [climW, farmer, soil, union, s.priorities, econ, planToday, s.exclude]);
+  // What decide() was given, on the measured climate: the "how this was made" panel re-runs it in other climates.
+  const decisionArgs = useMemo(() => ({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday, exclude: s.exclude }), [fclim, soil, farmer, union, s.priorities, econ, planToday, s.exclude]);
   // The as-measured answer, kept alongside so a what-if can show what changed.
   const decisionBase = useMemo(() => (climW === fclim ? decision : decide({ clim: fclim, soil, plot: farmer, union, priorities: s.priorities, econ, today: planToday, exclude: s.exclude })), [s.exclude, climW, fclim, decision, farmer, soil, union, s.priorities, econ, planToday]);
   const chosen = useMemo(() => {
@@ -337,7 +339,7 @@ export function StoreProvider({ children }) {
   const farmerOf = useCallback((id) => farmerById.get(id), [farmerById]);
 
   const value = {
-    s, dispatch, T, L, toast, farmer, farmers, farmerOf, soil, union, unions, unionsAll, decision, decisionBase, chosen, rotation, hotspots,
+    s, dispatch, T, L, toast, farmer, farmers, farmerOf, soil, union, unions, unionsAll, decision, decisionBase, decisionArgs, chosen, rotation, hotspots,
     profile: s.profiles[farmer.id] ?? {}, upazila, clim: fclim, tm: tms[upazila.id], officerUpazila, officerClim, upazilaFarmers,
     today, daysAfter, demoNow: today, weather, liveWeather: !!live, stage, water,
     myAdvisories, unreadMsgs, unreadAdvisories: unreadMsgs.length, markSeen: (ids) => dispatch({ type: 'markSeen', id: farmer.id, ids: ids ?? myAdvisories.map((a) => a.id) }), confirmedPlan, landConfirmed,

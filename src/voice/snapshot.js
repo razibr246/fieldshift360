@@ -7,6 +7,7 @@ import { supplyCurve, normalWeekly, riskForWeeks, slotLoad, weekStart } from '..
 import { fmtDate, fmtDateBoth, daysBetween } from '../engine/dates.js';
 import { SYMPTOMS, DISEASES, aiLabel, upazilaOfUnion } from '../data/demo.js';
 import { UPAZILA_DEFAULT_ADVICE } from '../data/advice.js';
+import { seasonColumns, margin } from '../engine/explain.js';
 
 const both = (f) => ({ bn: f('bn'), en: f('en') });
 const ACT = {
@@ -51,6 +52,11 @@ export function farmerSnapshot(ctx, { clim, soilData, unions }) {
     alts[o.crop.id] = { crop: o.crop.name, score: Math.round(o.score), plantDate: both((l) => fmtDateBoth(o.t0, l)), act: ACT[o.crop.id], better: o.score > chosen.score };
   }
   const rot = rotation;
+  const m = margin(decision.options);
+  const compare = {
+    cols: seasonColumns(decision, f.last_crop).map(({ role, o }) => ({ role, crop: o.crop.name, score: Math.round(o.score), safe: o.bt.now.safe, n: o.bt.now.n, waterMm: o.water ? Math.round(o.water.mm) : null, profit: o.money ? Math.round(o.money.net) : null })),
+    gap: Number.isFinite(m.gap) ? Math.round(m.gap) : null, close: m.close,
+  };
   return {
     v: 1,
     prov: { climate: clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', soil: soilData.provenance.status === 'REAL' ? 'REAL' : 'DEMO' },
@@ -69,6 +75,7 @@ export function farmerSnapshot(ctx, { clim, soilData, unions }) {
       reasons: reasons(ctx), confirmed: !!ctx.confirmedPlan, score: Math.round(chosen.score),
     },
     alts,
+    compare,
     crops: crops(),
     symptoms: Object.fromEntries(Object.entries(SYMPTOMS).map(([k, v]) => [k, { bn: v.bn, en: v.en }])),
     rotation: rot && (rot.best || rot.directAman) ? {

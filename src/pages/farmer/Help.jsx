@@ -2,7 +2,7 @@
 // look for on the plant), says how much of the field and since when, and the request carries the field's real
 // evidence with it: crop stage, today's soil water, the latest satellite reading and the local weather.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Camera, MapPin, Send, UserRoundCheck, MessageSquareText, Clock, X, Bug, Leaf, Droplets, HelpCircle, Phone, ScanLine, Satellite, CloudRain, Sprout, CheckCircle2 } from 'lucide-react';
 import { useStore, demo } from '../../store';
 import { PageHeader, Card, Button, Badge, EmptyState, Note, Tags, Segmented, WATER_STYLE } from '../../components/ui';
@@ -41,11 +41,13 @@ export default function Help() {
   const [which, setWhich] = useState(amanNow ? 'now' : 'plan');
   const onAman = amanNow && which === 'now';
   const crop = onAman ? AMAN : chosen.crop;
-  const [type, setType] = useState('disease');
+  // Opened from the season plan's "discuss with my officer": a question with the comparison already written in.
+  const ask = useLocation().state?.ask;
+  const [type, setType] = useState(ask ? 'question' : 'disease');
   const [problem, setProblem] = useState(null); // a CROP_PROBLEMS key, or null = not sure
   const [spread, setSpread] = useState('few');
   const [since, setSince] = useState('days');
-  const [text, setText] = useState('');
+  const [text, setText] = useState(ask ?? '');
   const [img, setImg] = useState(null);
   const [err, setErr] = useState(null);
   const fileRef = useRef();

@@ -7,6 +7,9 @@ import { StepHeader, Card, Tag, Tags, WhyButton, Note, ScoreRing, MiniBar, LABEL
 import SupplyChart from '../../../components/charts/SupplyChart';
 import SeasonRibbon from '../../../components/charts/SeasonRibbon';
 import CropPhoto from '../../../components/CropPhoto';
+import HowMade from '../../../components/explain/HowMade';
+import SeasonCompare from '../../../components/explain/SeasonCompare';
+import ActCard from '../../../components/explain/ActCard';
 import { W_LABEL } from './StepsA.jsx';
 import { cropName, DECIMAL_HA, IRRIGATION } from '../../../engine/crops.js';
 import { fertilizerPlan, phWord, TEXTURE } from '../../../engine/soil.js';
@@ -103,13 +106,13 @@ function FieldBasis({ rec }) {
       src: activeParcel && !activeParcel.pending && activeParcel.verified
         ? T(`উপজেলা কৃষি অফিসের নিবন্ধন, যাচাই ${fmtDate(Date.parse(activeParcel.verified), 'bn')}`, `Upazila agriculture office registry, checked ${fmtDate(Date.parse(activeParcel.verified), 'en')}`)
         : T('আপনার দেওয়া তথ্য; কৃষি অফিসের যাচাই বাকি', 'From you; the agriculture office has not checked it yet') },
-    soil.ph != null && { icon: Layers, k: T('মাটি', 'Soil'), tag: soilTag(),
+    soil.ph != null && { icon: Layers, k: T('মাটি', 'Soil'), tag: 'MODEL',
       v: T(`pH ${num(soil.ph, 'bn', { dp: 1 })} (${ph.bn})${TEXTURE[soil.texture] ? `, ${TEXTURE[soil.texture].bn}` : ''}`, `pH ${num(soil.ph, 'en', { dp: 1 })} (${ph.en})${TEXTURE[soil.texture] ? `, ${TEXTURE[soil.texture].en.toLowerCase()}` : ''}`),
       sub: rec.soilNotes.slice(1).map(L).join('। ') || L(rec.soilNotes[0]),
       src: soil.scope === 'field'
         ? T('ISRIC SoilGrids, আপনার জমির ২৫০ মিটারের ঘর। উপগ্রহ-মডেলের হিসাব, মাটি পরীক্ষা নয়।', 'ISRIC SoilGrids, your field’s 250 m cell. A model estimate, not a soil test.')
         : T('ISRIC SoilGrids, ইউনিয়নের মাঝখান। আপনার জমির নিজের মাপ নয়।', 'ISRIC SoilGrids at the union centre, not your own field.') },
-    { icon: CloudSun, k: T('আবহাওয়া', 'Weather'), tag: clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER',
+    { icon: CloudSun, k: T('আবহাওয়া', 'Weather'), tag: clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER',
       v: T(`${bnDigits(total)} মৌসুমের ${bnDigits(safe)}টিতে এই তারিখে ঠিকঠাক`, `Fine on this date in ${safe} of ${total} seasons`),
       sub: bad.length ? T(`খারাপ গেছে: ${bnDigits(bad.join(', '))}`, `Went badly: ${bad.join(', ')}`) : T(`${bnDigits(total)} মৌসুমে একবারও খারাপ যায়নি`, `Not one bad season in ${total}`),
       src: T(`নাসা POWER, ${L(upazila.name)}, প্রতিদিনের মাপ ২০০১–২০২৫${station ? `; তাপমাত্রা ${station.bn}-এর গড়ে মেলানো` : ''}`, `NASA POWER, ${L(upazila.name)}, daily 2001–2025${station ? `; temperature matched to ${station.en}` : ''}`) },
@@ -117,11 +120,11 @@ function FieldBasis({ rec }) {
       v: T(`আপনার জমিতে মোট প্রায় ${num(rec.water.m3PerBigha * bigha, 'bn')} ঘনমিটার`, `About ${num(rec.water.m3PerBigha * bigha, 'en')} m³ for your field`),
       sub: T(`ফসলে ${num(rec.water.mm, 'bn')} মিমি লাগে; আসবে ${L(IRRIGATION[farmer.irrigation])} থেকে`, `The crop needs ${rec.water.mm} mm; from your ${L(IRRIGATION[farmer.irrigation]).toLowerCase()}`),
       src: T('এই এলাকার আবহাওয়া আর FAO-র ফসল-সহগ দিয়ে হিসাব', 'Worked out from local weather and FAO crop coefficients') },
-    fert.length > 0 && { icon: FlaskConical, k: T('সার, আপনার জমির মাপে', 'Fertiliser for your field'), tag: 'REAL',
+    fert.length > 0 && { icon: FlaskConical, k: T('সার, আপনার জমির মাপে', 'Fertiliser for your field'), tag: 'RECORD',
       v: fert.map((i) => `${i.fertilizer.replace(/\s*\(.*\)/, '')} ${num(i.kg, lang)} ${T('কেজি', 'kg')}`).join(', '),
       sub: fp.cost ? T(`সরকারি দামে প্রায় ৳${num(fp.cost, 'bn')}`, `About ৳${num(fp.cost, 'en')} at the official price`) : null,
       src: T(`মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI), ${L(union.meta)} ইউনিয়নের মাটি পরীক্ষা থেকে`, `SRDI, from ${L(union.meta)} union’s soil tests`) },
-    m && { icon: Coins, k: T('দাম, খরচ, ফলন', 'Price, cost, yield'), tag: 'REAL',
+    m && { icon: Coins, k: T('দাম, খরচ, ফলন', 'Price, cost, yield'), tag: 'RECORD',
       v: T(`কেজি ৳${num(m.priceKg, 'bn', { dp: 2 })} দাম, ৳${num(m.costKg, 'bn', { dp: 2 })} খরচ`, `৳${m.priceKg} a kg price, ৳${m.costKg} cost`),
       sub: T(`আপনার জমিতে ফলন প্রায় ${num(m.kg * bigha, 'bn')} কেজি (দেশের গড় ফলন ধরে)`, `About ${num(m.kg * bigha, 'en')} kg from your field (at the national average yield)`),
       src: T(`${m.price.what.bn} (${bnDigits(m.price.year)}); ${m.costSrc.what.bn} (${bnDigits(m.costSrc.year)}); FAOSTAT ${bnDigits(m.faoYear)}`, `${m.price.what.en} (${m.price.year}); ${m.costSrc.what.en} (${m.costSrc.year}); FAOSTAT ${m.faoYear}`) },
@@ -171,7 +174,7 @@ export function StepDecision() {
     <div>
       <StepHeader kicker={T('ধাপ ৫, পরামর্শ', 'Step 5, recommendation')} title={T('এই রবিতে কী করবেন', 'What to do this Rabi')}
         sub={T(`শুধু আপনার জমির জন্য: ${fieldName}, ${village}, ${num(farmer.area_dec, 'bn')} শতক। ${prio}`, `For your field only: ${fieldName}, ${village}, ${farmer.area_dec} decimal. ${prio}`)}
-        tags={[ctx.clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', soilTag(), 'RULE']} />
+        tags={[ctx.clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER', 'RECORD', 'RULE']} />
       {/* The farmer's own pick (from the list below, or the first year of Field Future's ten-year rotation) when it is not
           this season's recommendation: both stay visible, and one tap goes back to the recommendation. */}
       {(chosen.crop.id !== rec.crop.id || chosen.shift !== rec.shift) && (
@@ -204,6 +207,9 @@ export function StepDecision() {
         {d.caution && <p className="mt-3 rounded-xl bg-black/15 px-3 py-2 text-[14px] text-white/90">{T('সাবধান: কোনো ফসলের নম্বরই খুব ভালো নয়। সিদ্ধান্তের আগে কৃষি কর্মকর্তার সঙ্গে কথা বলুন।', 'Careful: no option scores well. Talk to your agriculture officer before deciding.')}</p>}
         <div className="mt-4"><WhyButton inverse payload={optionWhy(rec, d, ctx)} /></div>
       </div>
+      <SeasonCompare />
+      <ActCard />
+      <HowMade />
       <FieldBasis rec={rec} />
       <WhatIfBar />
       <h3 className="mt-6 text-[18px] font-bold">{T('সব ফসল পাশাপাশি', 'All the options side by side')}</h3>
@@ -243,7 +249,7 @@ export function StepDecision() {
           );
         })}
       </div>
-      <p className="mt-3 text-[13px] text-muted">{T('লাভ = দেশের গড় ফলন (FAOSTAT) × (সরকারি বা বাজারের দাম − সব খরচ), প্রতিটি উৎসের বছরসহ। দাম পড়ার ঝুঁকি পাশের কৃষকদের নমুনা পরিকল্পনা থেকে।', 'Profit = national average yield (FAOSTAT) × (official or market price − full cost), each source with its year. Price-drop risk uses sample plans for the neighbours.')} <Tags list={['REAL', 'DEMO']} /></p>
+      <p className="mt-3 text-[13px] text-muted">{T('লাভ = দেশের গড় ফলন (FAOSTAT) × (সরকারি বা বাজারের দাম − সব খরচ), প্রতিটি উৎসের বছরসহ। দাম পড়ার ঝুঁকি পাশের কৃষকদের নমুনা পরিকল্পনা থেকে।', 'Profit = national average yield (FAOSTAT) × (official or market price − full cost), each source with its year. Price-drop risk uses sample plans for the neighbours.')} <Tags list={['RECORD', 'DEMO']} /></p>
     </div>
   );
 }
@@ -264,7 +270,7 @@ function rotationWhy(o, r, ctx) {
   const yrs = (ys) => (lang === 'bn' ? bnDigits(ys.join(', ')) : ys.join(', '));
   const comp = [['soil', T('মাটি: উপকার আর মানানসই', 'Soil: benefit and fit')], ['family', T('আলাদা গোত্রের ফসল', 'Different crop family')], ['water', T('সেচের পানি', 'Water')], ['climate', T('আবহাওয়া (২০১৩–২০২৫)', 'Weather (2013–2025)')], ['window', T('সময়ে কুলোয় কিনা', 'Fits the gap')]];
   return {
-    title: T(`পরের ফসল: ${o.crop.name.bn}`, `Next crop: ${o.crop.name.en}`), tags: [clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', soilTag(), 'RULE'],
+    title: T(`পরের ফসল: ${o.crop.name.bn}`, `Next crop: ${o.crop.name.en}`), tags: [clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER', soilTag(), 'RULE'],
     blocks: [
       { h: T('নম্বর কীভাবে এল', 'How the score adds up'), table: { totalRow: true, head: [T('বিষয়', 'Factor'), T('নম্বর', 'Score'), T('ওজন', 'Weight'), T('যোগ হলো', 'Adds')], rows: [
         ...comp.map(([k, label]) => [label, num(o.comp[k], lang), `${num(r.weights[k] * 100, lang)}%`, num(r.weights[k] * o.comp[k], lang, { dp: 1 })]),
@@ -310,7 +316,7 @@ export function StepRotation() {
       sub: T('এর আগে বা পরে বুনলে ফলন কমে', 'Sown before or after it, yield falls'), src: T('বারি, বিজেআরআই ও ব্রির কৃষি প্রযুক্তি সুপারিশ', 'BARI, BJRI and BRRI crop guidance') },
     { icon: Sprout, k: T('আমনের আগে জমি খালি', 'Off before the Aman'), tag: r.amanMeasured ? 'REAL' : 'RULE', v: T(`আমন রোপণ ${fmtDate(r.amanT, 'bn')}, জমি চাই ${fmtDate(r.clearBy, 'bn')}`, `Aman ${fmtDate(r.amanT, 'en')}, land ready by ${fmtDate(r.clearBy, 'en')}`),
       sub: T(`${L(b.crop.name)} উঠবে ${fmtDate(b.endT, 'bn')}`, `${L(b.crop.name)} is off by ${fmtDate(b.endT, 'en')}`), src: amanSrc },
-    b.bt && { icon: CloudSun, k: T('আবহাওয়া, এই দিনে বুনলে', 'Weather, sown on this day'), tag: clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER',
+    b.bt && { icon: CloudSun, k: T('আবহাওয়া, এই দিনে বুনলে', 'Weather, sown on this day'), tag: clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER',
       v: T(`${bnDigits(b.bt.then.n + b.bt.now.n)} মৌসুমের ${bnDigits(b.bt.then.safe + b.bt.now.safe)}টিতে ঠিকঠাক`, `Fine in ${b.bt.then.safe + b.bt.now.safe} of ${b.bt.then.n + b.bt.now.n} seasons`),
       sub: bad.length ? T(`খারাপ গেছে: ${bnDigits(bad.join(', '))}`, `Went badly: ${bad.join(', ')}`) : T('একবারও খারাপ যায়নি', 'Not one bad season'),
       src: T(`নাসা POWER, ${L(upazila.name)}, ২০০১–২০২৫${clim.prov.corrected ? `; তাপমাত্রা ${clim.prov.corrected.station.bn}-এর গড়ে মেলানো` : ''}`, `NASA POWER, ${upazila.name.en}, 2001–2025${clim.prov.corrected ? `; temperature matched to ${clim.prov.corrected.station.en}` : ''}`) },
@@ -327,7 +333,7 @@ export function StepRotation() {
     <div>
       <StepHeader kicker={T('ধাপ ৬, পরের মৌসুম', 'Step 6, next season')} title={T('এই ফসলের পর কী লাগাবেন', 'What to grow after this crop')}
         sub={T(`${chosen.crop.name.bn} তোলা আর আমন রোপণের মাঝের সময়ে আপনার জমিতে কোন ফসল ধরে, তা মাপা হয়েছে আপনার জমির মাটি, এলাকার ২৫ বছরের আবহাওয়া আর রাডারে মাপা আমনের সময় দিয়ে।`, `Which crop fits your field between the ${chosen.crop.name.en.toLowerCase()} harvest and the Aman, worked out from your soil, 25 years of local weather and the radar-measured Aman date.`)}
-        tags={[clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', soilTag(), 'RULE']} />
+        tags={[clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER', soilTag(), 'RULE']} />
       <Card className="p-4">
         <div className="mb-2 text-[14px] font-semibold">{T('বাংলা মাসে পুরো বছরের পরিকল্পনা', 'The year, by Bangla month')}</div>
         <SeasonRibbon compact />
@@ -457,7 +463,7 @@ export function PriceHistory({ crop, hw }) {
           <h3 className="text-[16px] font-bold text-ink">{T(`আপনার ফসল তোলার মাসে (${months}) ${bnOf(crop.name.bn)} দাম আসলে কেমন ছিল`, `What the ${crop.name.en.toLowerCase()} price really did in your harvest months (${months})`)}</h3>
           <p className="text-[13.5px] leading-6 text-muted">{T(`প্রতি বছর ${kind}, সে বছরের সাধারণ (মাঝামাঝি) দামের তুলনায়।`, `Each year’s ${kind}, against that year’s usual (median) price.`)}</p>
         </div>
-        <Tags list={['REAL']} />
+        <Tags list={['RECORD']} />
       </div>
       {h.n > 0 ? (
         <>

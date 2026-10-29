@@ -61,6 +61,21 @@ test('farmer: plan answer names the crop, date and honest data status', () => {
   assert.ok(!/নমুনা, আসল/.test(again.say), 'provenance is said once, not every time');
 });
 
+test('farmer: comparing the options names each crop, says how sure the order is and how to reach a person', () => {
+  const snap = fsnap('RAHIM');
+  for (const [q, lang] of [['বিকল্পগুলোর তুলনা', 'bn'], ['compare the options', 'en']]) {
+    const s = createSession({ role: 'farmer', lang });
+    const r = ask(q, snap, s);
+    assert.ok(snap.compare.cols.length >= 3, 'the crop grown now and two alternatives at least');
+    for (const c of snap.compare.cols) assert.ok(r.say.includes(c.crop[lang]), `${c.crop.en} named: ${r.say}`);
+    assert.match(r.say, lang === 'bn' ? /নম্বর এগিয়ে|কার্যত সমান/ : /leads by|practically a tie/);
+    assert.match(r.say, /16123|১৬১২৩/);
+  }
+  const nasa = ask('তথ্য কোথা থেকে এল?', snap, createSession({ role: 'farmer' }));
+  assert.match(nasa.say, /মাটি পরীক্ষা নয়/);
+  assert.ok(!/মাটি, দাম আর খরচ এখনো নমুনা/.test(nasa.say), 'prices and soil are not called samples');
+});
+
 test('farmer: water, weather, harvest, price, next crop all answer', () => {
   const snap = fsnap('RAHIM');
   const s = createSession({ role: 'farmer' });

@@ -4,6 +4,7 @@ import { Droplets, ScanLine, Sprout, Wheat, TrendingDown, LifeBuoy, MapPinned, C
 import { useStore, demo } from '../../store';
 import { Button, StatCard, Card, Note, Tags, LABEL_STYLE, RISK_STYLE, WATER_STYLE, ScoreRing, climateTag, CountUp } from '../../components/ui';
 import Photo from '../../components/Photo';
+import QuickPath from '../../components/explain/QuickPath';
 import SeasonRibbon from '../../components/charts/SeasonRibbon';
 import SeasonSoFar from '../../components/charts/SeasonSoFar';
 import { WATER_COLORS, weatherAlerts } from '../../engine/water';
@@ -76,6 +77,8 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
+
+      <QuickPath />
 
       <Card className="p-5" data-tour="dash-year">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

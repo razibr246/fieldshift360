@@ -1,8 +1,8 @@
 // Season planner step 4: what matters most to the farmer. Each choice shows, before it is picked, which crop it would
 // put first; below, every crop's real numbers side by side (water from FAO-56 on local weather, value from FAOSTAT
 // yields and DAM prices, fertiliser from SRDI, weather safety from 25 NASA seasons), re-ordered live as the weights change.
-import { useLayoutEffect, useRef } from 'react';
-import { Droplets, Coins, Shield, Sprout, Timer, ExternalLink, CheckCircle2, Beef, Layers, Ban } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { Droplets, Coins, Shield, Sprout, Timer, ExternalLink, CheckCircle2, Beef, Layers, Ban, ArrowUp, ArrowDown } from 'lucide-react';
 import { useStore } from '../../../store';
 import { StepHeader, Card, MiniBar, ScoreRing, Tags, RISK_STYLE } from '../../../components/ui';
 import { PRIORITIES, weightsFor } from '../../../engine/decision.js';
@@ -12,6 +12,7 @@ import { num, fmtDate } from '../../../engine/dates.js';
 import { cropName } from '../../../engine/crops.js';
 import cropEconomics from '../../../data/market/crop_economics.json';
 import CropPhoto from '../../../components/CropPhoto';
+import WhyBar from '../../../components/explain/WhyBar';
 
 const ICONS = { droplets: Droplets, coins: Coins, shield: Shield, sprout: Sprout, timer: Timer, cow: Beef, layers: Layers };
 export const W_LABEL = { C: { bn: 'আবহাওয়ার ঝুঁকি', en: 'Weather safety' }, W: { bn: 'সেচের পানি', en: 'Water' }, S: { bn: 'মাটির সঙ্গে মিল', en: 'Soil match' }, P: { bn: 'ফসলের দাম', en: 'Harvest value' }, R: { bn: 'ফসলচক্র', en: 'Rotation' }, G: { bn: 'দাম পড়ার ঝুঁকি', en: 'Price-drop risk' }, E: { bn: 'আগাম ফসল', en: 'Early harvest' } };
@@ -51,6 +52,15 @@ export default function StepPriorities() {
     early: (() => { const o = by((x) => x.hw.start); return o && { o, v: T(`কাটা শুরু ${fmtDate(o.hw.start, 'bn')}`, `harvest from ${fmtDate(o.hw.start, 'en')}`) }; })(),
   };
   const flip = useFlip(rows.map((o) => o.crop.id));
+  // Where each crop stood before the last change of priorities or left-out crops, to show which way it moved.
+  const order = rows.map((o) => o.crop.id).join();
+  const before = useRef({ order, prev: {} });
+  if (before.current.order !== order) before.current = { order, prev: before.current.now ?? {} };
+  const nowRank = Object.fromEntries(rows.map((o, i) => [o.crop.id, i]));
+  useEffect(() => { before.current.now = nowRank; });
+  const moved = (id) => (before.current.prev[id] == null ? 0 : before.current.prev[id] - nowRank[id]);
+  // Crops the farmer left out, with what they would have scored, so they do not just vanish.
+  const leftOut = (s.exclude ?? []).map((id) => decision.all.filter((r) => r.crop.id === id).sort((a, b) => b.score - a.score)[0]).filter(Boolean);
   const lean = new Set(s.priorities.flatMap((p) => LEANS[p]));
   const hl = (k) => (lean.has(k) ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-canvas');
   const hl2 = (a, b) => (lean.has(a) || lean.has(b) ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-canvas');
@@ -118,7 +128,10 @@ export default function StepPriorities() {
                 <ScoreRing value={o.score} size={40} />
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl ring-1 ring-black/5 sm:h-[72px] sm:w-[72px]"><CropPhoto crop={o.crop} width={200} sizes="72px" thumb /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-display text-[17px] font-bold leading-tight">{L(o.crop.name)}</div>
+                  <div className="font-display flex items-center gap-1.5 text-[17px] font-bold leading-tight">{L(o.crop.name)}
+                    {moved(o.crop.id) > 0 && <span className="inline-flex items-center text-[12px] font-bold text-primary-700" title={T('ওপরে উঠেছে', 'Moved up')}><ArrowUp size={13} />{num(moved(o.crop.id), lang)}</span>}
+                    {moved(o.crop.id) < 0 && <span className="inline-flex items-center text-[12px] font-bold text-red-700" title={T('নিচে নেমেছে', 'Moved down')}><ArrowDown size={13} />{num(-moved(o.crop.id), lang)}</span>}
+                  </div>
                   <div className="text-[12.5px] text-muted">{L(o.crop.action)} {fmtDate(o.t0, lang)} · {T('কাটা শুরু', 'harvest from')} {fmtDate(o.hw.start, lang)}</div>
                 </div>
               </div>
@@ -134,9 +147,23 @@ export default function StepPriorities() {
                 <Cell cls={hl('fert')} k={T('সার/বিঘা (SRDI)', 'Fertiliser/bigha (SRDI)')} v={o.money?.fert != null ? `৳${num(o.money.fert, lang)}` : '–'} sub={T('খরচের ভেতরেই ধরা', 'already in the cost')} />
                 <Cell cls={hl2('soil', 'glut')} k={T('মাটি · দাম পড়া', 'Soil · price drop')} v={<span className="inline-flex items-center gap-1">{num(o.comp.S, lang)} · <span className={`chip ${RISK_STYLE[o.glut.level].cls}`}>{L(RISK_STYLE[o.glut.level])}</span></span>} />
               </div>
+              <WhyBar o={o} weights={decision.weights} className="mt-2.5" />
             </li>
           ))}
         </ol>
+        {leftOut.length > 0 && (
+          <ul className="mt-2.5 space-y-1.5">
+            {leftOut.map((o) => (
+              <li key={o.crop.id} className="flex items-center gap-3 rounded-2xl border border-dashed border-red-200 bg-red-50/40 p-3 text-ink/55">
+                <Ban size={16} className="shrink-0 text-red-700" />
+                <span className="font-display text-[16px] font-bold line-through decoration-2">{L(o.crop.name)}</span>
+                <span className="text-[13px]">{T(`আপনি বাদ দিয়েছেন (থাকলে নম্বর হতো ${num(o.score, 'bn', { dp: 0 })})`, `Left out by you (it would score ${num(o.score, 'en', { dp: 0 })})`)}</span>
+                <button type="button" onClick={() => dispatch({ type: 'toggleExclude', id: o.crop.id })} className="ml-auto text-[13px] font-semibold text-primary-800 hover:underline">{T('ফিরিয়ে আনুন', 'Bring back')}</button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="mt-2 text-[12px] leading-5 text-muted">{T('রঙিন দাগ: প্রতিটি বিষয় (আবহাওয়া, পানি, মাটি, আয়...) নম্বরে কত যোগ করল; পাশের সংখ্যা সর্বোচ্চ কত পারত। চাওয়া বদলালে ওজন বদলায়, তীর দেখায় কোন ফসল ওপরে উঠল বা নামল।', 'The coloured bar: what each factor (weather, water, soil, income…) added to the score; the number after the slash is the most it could add. Changing priorities changes the weights; the arrows show which crops moved up or down.')}</p>
         <p className="mt-3 text-[12px] leading-5 text-muted">{T('ছবি: উইকিমিডিয়া কমন্স থেকে প্রতিটি ফসলের মাঠের আসল ছবি; ছবিতে আঙুল রাখলে বা চাপলে তোলার মানুষ আর লাইসেন্স দেখা যায়।', 'Photos: real field photos of each crop from Wikimedia Commons; hover or tap a photo for its author and licence.')}</p>
         <p className="mt-1 text-[12.5px] leading-5 text-muted">{T('লাভ = FAOSTAT-এর দেশের গড় ফলন × (কেজিপ্রতি দাম − কেজিপ্রতি সব খরচ)। দাম ও খরচ সরকারি সংগ্রহ মূল্য, কৃষি বিপণন অধিদপ্তর, মন্ত্রণালয় আর মাঠ গবেষণা থেকে; প্রতিটির বছর আলাদা, নিচে লেখা আছে। খরচে বীজ, চাষ, শ্রম, সার, সেচ সব আছে। পানি = FAO-র ফসল-সহগ × এই এলাকার ১৩ মৌসুমের বাষ্পীভবন − কাজে লাগা বৃষ্টি (ধানে জমি কাদা করার ২০০ মিমি সহ)। দাম পড়ার ঝুঁকি পাশের নমুনা কৃষকদের পরিকল্পনা থেকে।', 'Profit = FAOSTAT national average yield × (price per kg − full cost per kg). Prices and costs come from government procurement prices, DAM, the ministries and field studies, each from its own year (listed below). The cost covers seed, ploughing, labour, fertiliser and irrigation. Water = FAO crop coefficients × 13 seasons of local evaporation − usable rain (plus 200 mm to puddle rice). Price-drop risk comes from the sample neighbours’ plans.')} <Tags list={['DEMO']} /></p>
         <ul className="mt-2 grid gap-x-4 gap-y-0.5 text-[12px] leading-5 text-muted sm:grid-cols-2">

@@ -13,7 +13,7 @@ import { fold, foldAll, bestHit, hasAny, tokens, makeT, joinList, num, speakable
 import { CROP_WORDS, YES, NO, INTENTS, SYMPTOM_WORDS, URGENT_WORDS, EMERGENCY_WORDS, ORDINALS } from './lexicon.js';
 import { fmtDate } from '../engine/dates.js';
 
-const FARMER_INTENTS = ['stop', 'repeat', 'langEn', 'langBn', 'help', 'plan', 'when', 'why', 'water', 'weather', 'harvest', 'price', 'next', 'soil', 'problem', 'officer', 'myreq', 'nasa', 'greet'];
+const FARMER_INTENTS = ['stop', 'repeat', 'langEn', 'langBn', 'help', 'compare', 'plan', 'when', 'why', 'water', 'weather', 'harvest', 'price', 'next', 'soil', 'problem', 'officer', 'myreq', 'nasa', 'greet'];
 const OFFICER_INTENTS = ['stop', 'repeat', 'langEn', 'langBn', 'help', 'briefing', 'requests', 'open_req', 'more_photo', 'resolve', 'alerts', 'send_advice', 'escalate', 'supply', 'slots', 'farmers', 'upazila_advice', 'upazila', 'ack', 'radar', 'nasa', 'greet'];
 
 export const KRISHI_CALL_CENTRE = '১৬১২৩'; // Agriculture Information Service helpline; verify before a public launch
@@ -127,7 +127,7 @@ function emergency(session) {
   return out(session, T(`এটা জীবনের ঝুঁকির মতো শোনাচ্ছে। এখনই ${EMERGENCY_NUMBER} নম্বরে ফোন করুন এবং কাছের কাউকে ডাকুন। ফসলের কথা পরে হবে।`, 'That sounds like a danger to life. Call 999 right now and call someone nearby. Crops can wait.'));
 }
 
-const farmerChips = (s) => makeT(s.lang)(['কী লাগাব?', 'আজ সেচ লাগবে?', 'ফসল কবে উঠবে?', 'পরের ফসল কী?', 'সমস্যা জানাতে চাই', 'অফিসারের সঙ্গে কথা'], ['What to plant?', 'Water today?', 'Harvest date?', 'Next crop?', 'Report a problem', 'Talk to my officer']);
+const farmerChips = (s) => makeT(s.lang)(['কী লাগাব?', 'বিকল্পগুলোর তুলনা', 'আজ সেচ লাগবে?', 'ফসল কবে উঠবে?', 'পরের ফসল কী?', 'সমস্যা জানাতে চাই', 'অফিসারের সঙ্গে কথা'], ['What to plant?', 'Compare the options', 'Water today?', 'Harvest date?', 'Next crop?', 'Report a problem', 'Talk to my officer']);
 const officerChips = (s) => (s.role === 'uao'
   ? makeT(s.lang)(['আজকের অবস্থা', 'ইউনিয়ন র‍্যাংকিং', 'মাঠকর্মীরা কী জানিয়েছে?', 'কবে কত ফসল উঠবে?', 'রোপণ রাডার', 'পুরো উপজেলায় পরামর্শ'], ['Today’s briefing', 'Union ranking', 'What was sent up?', 'Harvest timing', 'Ropan Radar', 'Advise the whole upazila'])
   : makeT(s.lang)(['আজকের অবস্থা', 'জরুরি অনুরোধ', 'এলাকার সতর্কতা', 'কবে কত ফসল উঠবে?', 'লাগানোর পালা', 'রোপণ রাডার'], ['Today’s briefing', 'Urgent requests', 'Area alerts', 'Harvest timing', 'Planting slots', 'Ropan Radar']));
@@ -162,8 +162,9 @@ function farmerTurn(text, raw, snap, session, intent) {
 
     case 'plan': {
       if (crop && crop !== p.crop.id && snap.alts?.[crop]) return out(session, altCrop(snap.alts[crop], lang), { chips: farmerChips(session) });
-      return out(session, planSay(snap, session) + provenance(snap, session, 'plan'), { chips: T(['কেন?', 'কবে লাগাব?', 'ফসল কবে উঠবে?', 'পরের ফসল কী?'], ['Why?', 'When to plant?', 'Harvest date?', 'Next crop?']), rows: planRows(snap, lang) });
+      return out(session, planSay(snap, session) + provenance(snap, session, 'plan'), { chips: T(['কেন?', 'বিকল্পগুলোর তুলনা', 'কবে লাগাব?', 'পরের ফসল কী?'], ['Why?', 'Compare the options', 'When to plant?', 'Next crop?']), rows: planRows(snap, lang) });
     }
+    case 'compare': return out(session, compareSay(snap, session), { chips: T(['কেন?', 'অফিসারের সঙ্গে কথা', 'কবে লাগাব?'], ['Why?', 'Talk to my officer', 'When to plant?']), rows: (snap.compare?.cols ?? []).map((c) => `${L(c.crop, lang)}: ${num(c.score, lang)}`) });
     case 'when': {
       const g = p.glut.level === 'High' || p.glut.level === 'Medium'
         ? T(` তবে আপনার ইউনিয়নে অনেকেই কাছাকাছি সময়ে লাগাচ্ছেন, তাই দাম পড়ার ঝুঁকি ${riskWord(p.glut.level, lang)}। কয়েক দিন আগে বা পরে লাগালে ভালো।`, ` But many farmers in your union plant around then, so the price-drop risk is ${riskWord(p.glut.level, lang)}. Planting a few days earlier or later helps.`)
@@ -207,7 +208,7 @@ function farmerTurn(text, raw, snap, session, intent) {
     }
     case 'soil': {
       const s = snap.soil;
-      return out(session, T(`আপনার ইউনিয়নের মাটির পিএইচ ${num(s.ph, lang, 1)}, জৈব পদার্থ ${num(s.om, lang, 1)} শতাংশ। ${s.notes.slice(0, 2).map((x) => L(x, lang)).join('। ')}।${s.sample ? ' এটা নমুনা মাটির তথ্য, এসআরডিআই-এর আসল তথ্য বসলে বদলাতে পারে।' : ''} সারের নির্দিষ্ট মাত্রা উপজেলা কৃষি অফিস থেকে জেনে নিন।`, `Soil pH in your union is ${num(s.ph, lang, 1)} with ${num(s.om, lang, 1)} percent organic matter. ${s.notes.slice(0, 2).map((x) => L(x, lang)).join('. ')}.${s.sample ? ' This is sample soil data until real SRDI values are loaded.' : ''} Ask the upazila agriculture office for exact fertiliser amounts.`));
+      return out(session, T(`আন্তর্জাতিক মাটির মানচিত্রের আনুমানিক হিসাবে (মাটি পরীক্ষা নয়) আপনার জমির মাটির পিএইচ ${num(s.ph, lang, 1)}, জৈব পদার্থ ${num(s.om, lang, 1)} শতাংশ। ${s.notes.slice(0, 2).map((x) => L(x, lang)).join('। ')}।${s.sample ? ' এটা নমুনা মাটির তথ্য, এসআরডিআই-এর আসল তথ্য বসলে বদলাতে পারে।' : ''} সারের নির্দিষ্ট মাত্রা উপজেলা কৃষি অফিস থেকে জেনে নিন।`, `By a global soil map’s estimate (not a soil test), your field’s soil pH is ${num(s.ph, lang, 1)} with ${num(s.om, lang, 1)} percent organic matter. ${s.notes.slice(0, 2).map((x) => L(x, lang)).join('. ')}.${s.sample ? ' This is sample soil data until real SRDI values are loaded.' : ''} Ask the upazila agriculture office for exact fertiliser amounts.`));
     }
     case 'officer': {
       return out(session, T(`আপনার কৃষি কর্মকর্তা ${L(f.upazila, lang)} উপজেলা কৃষি অফিসার ${L(f.uao, lang)}। আমাকে সমস্যাটা বললে আমি সরাসরি তাঁর কাছে পাঠিয়ে দিতে পারি। জরুরি হলে কৃষি কল সেন্টারে ${KRISHI_CALL_CENTRE} নম্বরে ফোন করুন।`, `Your agriculture officer is ${L(f.uao, lang)}, the ${L(f.upazila, lang)} upazila agriculture officer. Tell me the problem and I will send it straight to them. For urgent help call the Krishi Call Centre on ${KRISHI_CALL_CENTRE}.`), { chips: T(['সমস্যা জানাতে চাই', 'আমার অনুরোধের অবস্থা'], ['Report a problem', 'My requests']) });
@@ -224,7 +225,7 @@ function farmerTurn(text, raw, snap, session, intent) {
     case 'nasa': {
       const real = snap.prov.climate === 'REAL';
       return out(session, real
-        ? T('আবহাওয়ার হিসাব নাসা পাওয়ারের গত ২৫ বছরের দৈনিক তাপমাত্রা ও বৃষ্টির তথ্য থেকে এসেছে। প্রতিটি ফসল আর তারিখ আমি সেই ২৫টি মৌসুমে আবার চালিয়ে দেখি কতবার আবহাওয়া ঠিক ছিল। মাটি, দাম আর খরচ এখনো নমুনা, তাই চূড়ান্ত সিদ্ধান্তের আগে উপজেলা কৃষি অফিসে কথা বলুন।', 'The weather numbers come from 25 years of daily NASA POWER temperature and rain. For each crop and date I replay those 25 seasons to see how often the weather was fine. Soil, prices and costs are still samples, so talk to the upazila agriculture office before you commit.')
+        ? T('আবহাওয়ার হিসাব নাসা পাওয়ারের গত ২৫ বছরের দৈনিক তাপমাত্রা ও বৃষ্টি থেকে, যা উপগ্রহ আর মডেল মিলিয়ে তৈরি, উপজেলার প্রায় ৫০ কিলোমিটারের ঘরের; তাপমাত্রা আবহাওয়া অধিদপ্তরের স্টেশনের সঙ্গে মেলানো। প্রতিটি ফসল আর তারিখ আমি সেই ২৫টি মৌসুমে আবার চালিয়ে দেখি কতবার আবহাওয়া ঠিক ছিল। মাটি একটা আন্তর্জাতিক মানচিত্রের আনুমানিক হিসাব, মাটি পরীক্ষা নয়; দাম আর খরচ সরকারি প্রকাশিত তথ্য; ফলন দেশের গড়। পাশের কৃষকদের পরিকল্পনা নমুনা। তাই চূড়ান্ত সিদ্ধান্তের আগে মাটি পরীক্ষা করান আর কৃষি অফিসে কথা বলুন।', 'The weather numbers come from 25 years of daily NASA POWER temperature and rain, built from satellites and a model, for a cell of about 50 km round the upazila; temperatures are matched to the Meteorological Department’s station. For each crop and date I replay those 25 seasons to see how often the weather was fine. The soil is an estimate from a global map, not a soil test; prices and costs are published government figures; yields are national averages. The neighbours’ plans are samples. So test your soil and talk to the agriculture office before you commit.')
         : T('আবহাওয়ার পদ্ধতি নাসা পাওয়ারের গত ২৫ বছরের তথ্যের জন্য তৈরি, কিন্তু এখন তার জায়গায় নমুনা তথ্য বসানো আছে। আসল তথ্য বসালে সব সংখ্যা নিজে থেকে বদলে যাবে। মাটি, দাম আর খরচও নমুনা।', 'The method is built for 25 years of NASA POWER data, but sample data is loaded right now. Every number will change by itself once the real data is loaded. Soil, prices and costs are samples too.'));
     }
     case 'problem': return startProblem(text, raw, snap, session, symptom, crop);
@@ -251,6 +252,22 @@ function planSay(snap, session) {
   const caution = p.caution ? T(' তবে এই ফসলের জন্য আপনার জমির অবস্থা খুব ভালো নয়, তাই সাবধানে এগোন।', ' This crop is only a modest fit for your field, so go carefully.') : '';
   const glut = p.glut.level !== 'Low' ? T(` কাছাকাছি সবাই একই সময়ে লাগালে দাম পড়ার ঝুঁকি ${riskWord(p.glut.level, lang)}।`, ` Price-drop risk is ${riskWord(p.glut.level, lang)} if everyone nearby plants then.`) : '';
   return T(`${L(f.name, lang)}, এই রবিতে আপনার জমির জন্য আমার হিসাব: ${head} ${date} তারিখে ${act}।${caution}${glut}`, `${L(f.name, lang)}, for your field this Rabi: ${head} ${act} on ${date}.${caution}${glut}`);
+}
+
+// The options side by side, then how sure that order is, then how to reach a person.
+function compareSay(snap, session) {
+  const lang = session.lang;
+  const T = makeT(lang);
+  const c = snap.compare;
+  if (!c || !c.cols.length) return T('এখনো তুলনা করার মতো হিসাব নেই। আগে মৌসুমের পরিকল্পনা দেখুন।', 'There is nothing to compare yet. Open the season plan first.');
+  const role = (r) => ({ now: T('এখন যা করেন', 'what you grow now'), rec: T('পরামর্শ', 'recommended'), alt: T('বিকল্প', 'alternative') }[r]);
+  const line = (x) => T(`${L(x.crop, lang)} (${role(x.role)}): নম্বর ${num(x.score, lang)}, ${num(x.n, lang)}টির মধ্যে ${num(x.safe, lang)} মৌসুম ঠিকঠাক${x.waterMm != null ? `, পানি ${num(x.waterMm, lang)} মিলিমিটার` : ''}${x.profit != null ? `, বিঘায় লাভ ${num(x.profit, lang)} টাকা` : ''}`,
+    `${L(x.crop, lang)} (${role(x.role)}): score ${x.score}, ${x.safe} of ${x.n} seasons fine${x.waterMm != null ? `, ${x.waterMm} mm of water` : ''}${x.profit != null ? `, profit ${x.profit} taka a bigha` : ''}`);
+  const sure = c.close
+    ? T(`প্রথম দুটির ব্যবধান মাত্র ${num(c.gap, lang)} নম্বর, তাই কার্যত সমান: নিজের অভিজ্ঞতা আর বাজার দেখে বাছুন।`, `The first two are only ${c.gap} points apart, so practically a tie: choose by your own experience and the market.`)
+    : T(`প্রথমটি ${num(c.gap, lang)} নম্বর এগিয়ে। তবু হিসাবটা উপজেলার আবহাওয়া, মাটির আনুমানিক মানচিত্র আর দেশের গড় ফলনে, নিশ্চয়তা নয়।`, `The first leads by ${c.gap} points. Still, it rests on the upazila’s weather, an estimated soil map and national yields: not a certainty.`);
+  const human = T(` মানুষের সঙ্গে কথা বলতে "অফিসার" বলুন, বা কৃষি কল সেন্টারে ${KRISHI_CALL_CENTRE} নম্বরে ফোন করুন।`, ` To talk to a person, say "officer", or call the Krishi Call Centre on ${KRISHI_CALL_CENTRE}.`);
+  return `${T('পাশাপাশি: ', 'Side by side: ')}${c.cols.map(line).join(T('। ', '. '))}${T('। ', '. ')}${sure}${human}`;
 }
 
 function planRows(snap, lang) {
