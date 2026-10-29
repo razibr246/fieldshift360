@@ -47,9 +47,9 @@ export default function StepSoil() {
 
   return (
     <div>
-      <StepHeader kicker={T('ধাপ ৩, মাটি', 'Step 3, soil')} title={T('আপনার জমির মাটি কেমন', 'What your soil is like')}
+      <StepHeader kicker={T('ধাপ ৩, মাটি', 'Step 3, soil')} title={T('আপনার জমির মাটি কেমন হতে পারে', 'What your soil is likely to be')}
         sub={T(`${where}। আন্তর্জাতিক মাটির মানচিত্র (SoilGrids) আর মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউটের (SRDI) ইউনিয়নের মাটি পরীক্ষার তথ্য থেকে। কোনো সংখ্যা বানানো নয়।`, `${where}. From the global soil map (SoilGrids) and the Soil Resource Development Institute’s (SRDI) union soil tests. No number is made up.`)}
-        tags={['REAL', 'RULE']} />
+        tags={['MODEL', 'RECORD', 'RULE']} />
 
       {/* ---- the soil itself ---- */}
       <Card className="p-5">
@@ -108,7 +108,7 @@ export default function StepSoil() {
       <Card className="mt-4 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-[17px] font-bold"><FlaskConical size={18} className="text-primary-600" />{T('কতটা সার দেবেন (SRDI)', 'How much fertiliser (SRDI)')}</h3>
-          <Tags list={['REAL']} />
+          <Tags list={['RECORD']} />
         </div>
         <p className="mt-1 text-[13.5px] text-muted">{T(`মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট ${L(union.meta.full)}-এর মাটি পরীক্ষা থেকে এই মাত্রা ঠিক করেছে। আপনার ${num(area, 'bn')} শতক জমির জন্য হিসাব করা।`, `SRDI set these doses from its soil tests in ${L(union.meta.full)}, worked out for your ${area} decimal.`)}</p>
         <div className="mt-3 flex flex-wrap gap-1.5" role="radiogroup" aria-label={T('ফসল', 'Crop')}>

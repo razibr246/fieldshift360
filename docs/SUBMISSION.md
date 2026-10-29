@@ -8,7 +8,7 @@ Checked against the official challenge statement (rotation strategies for soil h
 ## Project description (for the Space Apps project page)
 
 **FieldShift 360 helps Bangladesh's smallholder farmers choose crop rotations that rebuild their soil, save water
-and hold up as the climate changes, using NASA Earth observations, their field's own soil, crop characteristics
+and hold up as the climate changes, using NASA Earth observations, a model estimate of their field's soil (ISRIC SoilGrids, 250 m; not a soil test), crop characteristics
 and their own priorities.**
 
 The crop calendar farmers inherited no longer fits the weather. On the Barind around Godagari the risk is drought,
@@ -42,7 +42,7 @@ farmers' problem reports and reply from the same numbers; upazila officers see R
 when the rains set in each year (GPM IMERG) and when Aman was actually transplanted (Sentinel-1 radar), for every
 upazila of seven districts; the rain-onset rule agrees with BMD station-based onsets within a week. The full engine
 covers seven upazilas, one in each division of Bangladesh; sample farms in India, Pakistan, Nepal, Bhutan and Myanmar
-get ten-year rotation options on their own soil and their country's yields, with GRACE and SMAP water.
+get ten-year rotation options on their SoilGrids soil estimate and their country's yields, with GRACE and SMAP water.
 
 Everything is honest about its data: every number is tagged real, rule, AI or sample. Climate, rain, radar, soil,
 prices and yields are real; the farmers are sample people; crop thresholds are stated starting values for an
@@ -145,7 +145,7 @@ Record the "3-minute demo story" on the home page; each scene is one step. Subti
 3. **Who it is for.** 16.88 million farm households (Agriculture Census 2019) and 4.85 million ha of Boro; the farmer
    (Bangla, voice, phone, SMS), union officer (SAAO), upazila officer (UAO). 2.51 million people in the seven
    upazilas today; SEDAC shows which of them lie below 10 m.
-4. **How it decides.** Field soil (SoilGrids) + 25 seasons of NASA POWER + crop characteristics + the farmer's
+4. **How it decides.** The field's estimated soil (SoilGrids, a 250 m model, not a soil test) + 25 seasons of NASA POWER + crop characteristics + the farmer's
    priorities → every rotation run for ten years → soil carbon, NRCS soil health, water, profit, risk, pests.
 5. **The soil time machine.** One field, three rotations, a living soil profile season by season.
 6. **Water and climate.** Irrigation per rotation, AWD, Rabi soil wetness since 2002, methane against soil carbon.

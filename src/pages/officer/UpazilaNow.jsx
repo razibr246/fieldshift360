@@ -58,7 +58,7 @@ function UpazilaNowPage() {
       {/* What is happening in the fields now */}
       <div id="up-now" className="grid gap-6 xl:grid-cols-3">
         <Card className="p-5 sm:p-6">
-          <Head icon={Satellite} tags={['REAL', 'RULE']}>{T(`এখন মাঠে: ${yr(LATEST)}-এর আমন`, `In the fields now: Aman ${LATEST}`)}</Head>
+          <Head icon={Satellite} tags={['SAT', 'RULE']}>{T(`এখন মাঠে: ${yr(LATEST)}-এর আমন`, `In the fields now: Aman ${LATEST}`)}</Head>
           {se.reliable && se.transplantDoy ? (
             <>
               <p className="mt-3 text-[15px] leading-7">{T(`সেন্টিনেল-১ রাডারে রোপণ ধরা পড়েছে ${day(se.transplantDoy)} নাগাদ`, `Sentinel-1 radar saw transplanting around ${day(se.transplantDoy)}`)}{' '}<Badge tone={cat.tone}>{L(cat)}</Badge></p>
@@ -74,7 +74,7 @@ function UpazilaNowPage() {
         </Card>
 
         <Card className="p-5 sm:p-6">
-          <Head icon={Sprout} tags={['REAL']}>{T(`এ মৌসুমের আবাদ (সরকারি হিসাব)`, 'This season’s area (official)')}</Head>
+          <Head icon={Sprout} tags={['RECORD']}>{T(`এ মৌসুমের আবাদ (সরকারি হিসাব)`, 'This season’s area (official)')}</Head>
           {facts.season ? (
             <>
               <div className="mt-3 space-y-2">
@@ -107,7 +107,7 @@ function UpazilaNowPage() {
         </Card>
 
         <Card className="p-5 sm:p-6">
-          <Head icon={Layers} tags={['REAL']}>{T('জমি কীভাবে বদলাচ্ছে', 'How the land is changing')}</Head>
+          <Head icon={Layers} tags={['SAT']}>{T('জমি কীভাবে বদলাচ্ছে', 'How the land is changing')}</Head>
           {lc && crop && built ? (
             <>
               {[[crop, '#d9a93b'], [built, '#6e6e6e'], [trees, '#2f6b3a']].filter(([c]) => c).map(([c, color]) => {
@@ -157,7 +157,7 @@ function UpazilaNowPage() {
 
       <div id="up-crops" className="grid gap-6 xl:grid-cols-2">
         <Card className="p-5 sm:p-6">
-          <Head icon={Wheat} tags={['REAL']}>{T(`${upz.name.bnOf} ফসল`, `${upz.name.en}'s crops`)}</Head>
+          <Head icon={Wheat} tags={['RECORD']}>{T(`${upz.name.bnOf} ফসল`, `${upz.name.en}'s crops`)}</Head>
           <h4 className="mt-3 text-[13px] font-semibold text-muted">{T('প্রধান ফসল', 'Main crops')}</h4>
           <div className="mt-1.5 flex flex-wrap gap-1.5">{L(facts.profile.crops).map((c) => <span key={c} className="rounded-full bg-primary-50 px-3 py-1 text-[13.5px] font-semibold text-primary-800">{c}</span>)}</div>
           <h4 className="mt-3 text-[13px] font-semibold text-muted">{T('প্রধান ফল', 'Main fruits')}</h4>
@@ -173,7 +173,7 @@ function UpazilaNowPage() {
         </Card>
 
         <Card className="p-5 sm:p-6">
-          <Head icon={Wheat} tags={['REAL']}>{T(`${upz.district.bn} জেলায় ধানের আবাদ`, `Rice in ${upz.district.en} district`)}</Head>
+          <Head icon={Wheat} tags={['RECORD']}>{T(`${upz.district.bn} জেলায় ধানের আবাদ`, `Rice in ${upz.district.en} district`)}</Head>
           {dRice ? (
             <>
               <p className="mt-1 text-[13.5px] text-muted">{T('২০২২–২৩ সাল, তিন মৌসুম মিলিয়ে', '2022–23, the three seasons')}</p>
@@ -194,7 +194,7 @@ function UpazilaNowPage() {
 
       <Card id="up-prices" className="overflow-x-auto">
         <div className="px-5 pt-5 sm:px-6">
-          <Head icon={Store} tags={['REAL']}>{T('বাজারদর (সরকারি, সাপ্তাহিক)', 'Market prices (official, weekly)')}</Head>
+          <Head icon={Store} tags={['RECORD']}>{T('বাজারদর (সরকারি, সাপ্তাহিক)', 'Market prices (official, weekly)')}</Head>
           <p className="mt-1 text-[13.5px] text-muted">{T(`ঢাকা মহানগরীর ৪টি বাজারের গড় খুচরা দাম, ${fmtDate(Date.parse(MARKET.week), 'bn')} ${yr(+MARKET.week.slice(0, 4))}; আগের সপ্তাহ আর গত বছরের একই সপ্তাহের সঙ্গে তুলনা। গ্রামের হাটে দাম সাধারণত এর চেয়ে কম।`, `Average retail price in four Dhaka city markets, week of ${fmtDate(Date.parse(MARKET.week), 'en')} ${MARKET.week.slice(0, 4)}; against last week and the same week last year. Village markets are usually cheaper.`)}</p>
         </div>
         <table className="mt-3 w-full min-w-[560px] text-left text-[14px]">

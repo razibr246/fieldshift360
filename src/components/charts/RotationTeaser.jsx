@@ -45,7 +45,7 @@ export default function RotationTeaser() {
       <div className="page-shell">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="max-w-2xl">
-            <p className="text-[13.5px] font-semibold text-primary-700">{T(`${farmer.villageBn}, ${L(upazila.name)} · নাসার আবহাওয়া, জমির নিজের মাটি`, `${farmer.village}, ${upazila.name.en} · NASA weather, the field’s own soil`)}</p>
+            <p className="text-[13.5px] font-semibold text-primary-700">{T(`${farmer.villageBn}, ${L(upazila.name)} · নাসার আবহাওয়া, জমির আনুমানিক মাটি (SoilGrids)`, `${farmer.village}, ${upazila.name.en} · NASA weather, the field’s own soil`)}</p>
             <h2 className="mt-1 text-[30px] font-bold leading-tight sm:text-[38px]">{T('এক মৌসুম নয়, দশ বছরের ফসলচক্র', 'Not one season: ten years of rotation')}</h2>
             <p className="mt-2 text-[16px] leading-7 text-muted">{T(`এই জমিতে ${num(ff.count, 'bn')}টি ফসলচক্র দশ বছর করে চালিয়ে দেখা হয়েছে: মাটির স্বাস্থ্য, সেচের পানি, লাভ, আবহাওয়ার ঝুঁকি, আর নাসার ৮টি জলবায়ু মডেলে ২০৪০-এর দশক। ক্রম ঠিক হয় কৃষকের নিজের চাওয়ায়।`, `${ff.count} rotations run for ten years on this field: soil health, irrigation water, profit, weather risk, and the 2040s in NASA’s eight climate models. The ranking follows the farmer’s own priorities.`)}</p>
           </div>

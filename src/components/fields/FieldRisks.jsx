@@ -31,7 +31,7 @@ export default function FieldRisks({ parcel, tm: tmIn, upazilaId }) {
             ? T(`সবচেয়ে বড় ঝুঁকি: ${high.map((r) => L(r.title)).join(', ')}। নিচে প্রতিটির পেছনের নাসার তথ্য।`, `Biggest risks: ${high.map((r) => L(r.title)).join(', ')}. The NASA data behind each is below.`)
             : T('বড় কোনো ঝুঁকি দেখা যাচ্ছে না। নিচে প্রতিটির পেছনের নাসার তথ্য।', 'No high risk shows. The NASA data behind each is below.')}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['SAT', 'MODEL', 'RULE']} />
       </div>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {risks.map((r) => {

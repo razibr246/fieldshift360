@@ -35,7 +35,7 @@ export default function ImpactReach() {
             <h2 className="text-[32px] font-bold sm:text-[40px]">{T('কারা উপকার পাবে, কতজন', 'Who it is for, and how many')}</h2>
             <p className="mt-3 text-[16.5px] leading-8 text-muted">{T('প্রতিটি হিসাবের উপকরণ সারা দেশের জন্য খোলা (নাসার উপগ্রহ, বিশ্বের মাটির মানচিত্র, সরকারি পরিসংখ্যান), তাই নতুন উপজেলা যোগ করা মানে একই স্ক্রিপ্ট আবার চালানো। নিচের সারণির শেষ তিন ঘর নাসার SEDAC থেকে, প্রতিটি উপজেলার নিজের সীমানার ভেতরে মাপা।', 'Every input is open for the whole country (NASA satellites, the global soil map, official statistics), so adding an upazila means running the same scripts again. The last three columns below are from NASA SEDAC, measured inside each upazila’s own boundary.')}</p>
           </div>
-          <Tags list={['REAL']} />
+          <Tags list={['RECORD']} />
         </div>
 
         <div className="mt-7 grid gap-4 md:grid-cols-3" data-stagger>

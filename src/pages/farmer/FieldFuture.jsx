@@ -18,6 +18,8 @@ import FieldStory from '../../components/story/FieldStory';
 import RotationPoster from '../../components/story/RotationPoster';
 import StrategyBriefs from '../../components/future/StrategyBriefs';
 import LandFromSpace from '../../components/future/LandFromSpace';
+import SoilVerdict from '../../components/future/SoilVerdict';
+import { runnerUp, soilVerdict } from '../../engine/explain';
 import { fieldTerrain } from '../../engine/briefs';
 import { useSeenRotation } from '../../components/fields/useSeenRotation';
 import { num, bnDigits, fmtDate } from '../../engine/dates';
@@ -64,6 +66,7 @@ export default function FieldFuture() {
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
   const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities, exclude: s.exclude ?? [] }),
     [ctx, lastCrop, planRabi, planK1, s.priorities, s.exclude]);
+  const second = useMemo(() => runnerUp(ff.top, ff.best), [ff]);
   const ownRot = own ?? ff.plan?.rot ?? ff.best.rot;
   const ownE = useMemo(() => ff.evaluateOwn(ownRot), [ff, ownRot]);
   const w = world === 'fut' && ctx.climF ? 'fut' : 'now';
@@ -82,13 +85,14 @@ export default function FieldFuture() {
     <div>
       <PageHeader eyebrow={T(`${farmer.villageBn}, ${L(upazila.name)} · ${num(farmer.area_dec, 'bn')} শতক`, `${farmer.village}, ${upazila.name.en} · ${farmer.area_dec} decimal`)}
         title={T('জমির ভবিষ্যৎ: ১০ বছরের ফসলচক্র', 'Field future: ten years of rotation')}
-        subtitle={T(`আপনার জমির নিজের মাটি, এলাকার নাসা আবহাওয়া আর নাসার জলবায়ু মডেল দিয়ে ${num(ff.count, 'bn')}টি ফসলচক্র দশ বছর করে চালিয়ে দেখা হয়েছে: মাটির জৈব পদার্থ, সেচের পানি, আয়, আবহাওয়ার ঝুঁকি আর রোগ-পোকা।`,
-          `${ff.count} rotations run for ten years each on your field's own soil, your area's NASA weather and NASA's climate models: soil organic matter, irrigation water, income, weather risk and pests.`)}
-        tags={['REAL', 'RULE']} />
+        subtitle={T(`আপনার জমির মাটির আনুমানিক হিসাব (SoilGrids মডেল, মাটি পরীক্ষা নয়), এলাকার নাসা আবহাওয়া আর নাসার জলবায়ু মডেল দিয়ে ${num(ff.count, 'bn')}টি ফসলচক্র দশ বছর করে চালিয়ে দেখা হয়েছে: মাটির জৈব পদার্থ, সেচের পানি, আয়, আবহাওয়ার ঝুঁকি আর রোগ-পোকা।`,
+          `${ff.count} rotations run for ten years each on your field's estimated soil (the SoilGrids model, not a soil test), your area's NASA weather and NASA's climate models: soil organic matter, irrigation water, income, weather risk and pests.`)}
+        tags={['MODEL', 'SAT', 'RULE']} />
       <SectionNav label={T('পাতার অংশ', 'Page sections')} sections={[
         { id: 'ff-time', label: T('মাটির টাইম মেশিন', 'Soil time machine') },
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
+        { id: 'ff-verdict', label: T('মাটির রায়', 'Soil verdict') },
         { id: 'ff-why', label: T('কেন ও কী ঝুঁকি', 'Why and risks') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
         { id: 'ff-land', label: T('মহাকাশ থেকে', 'From space') },
@@ -118,7 +122,8 @@ export default function FieldFuture() {
       </div>
       {show === 'story' && <FieldStory ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
-      <Compare ff={ff} ownE={ownE} sumOf={sumOf} ctx={ctx} rotName={rotName} />
+      <Compare ff={ff} ownE={ownE} second={second} sumOf={sumOf} ctx={ctx} rotName={rotName} />
+      <SoilVerdict ff={ff} second={second} sumOf={sumOf} rotName={rotName} />
       <StrategyBriefs sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} list={[
         { id: 'habit', kind: 'habit', e: ff.habit, name: T('এখনকার মতো', 'As now') },
         ...(ff.plan && ff.plan !== ff.habit ? [{ id: 'plan', kind: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা', 'This season’s plan') }] : []),
@@ -187,7 +192,7 @@ function TimeMachine({ cols, rowsOf, sumOf, ctx, w }) {
           <h2 className="text-[20px] font-bold">{T('মাটির টাইম মেশিন', 'Soil time machine')}</h2>
           <p className="text-[14px] leading-6 text-muted">{T('একই জমি, তিন রকম চাষ। উপরে সেই মৌসুমের ফসল, নিচে আপনার জমির ০–৩০ সেমি মাটির কাটা অংশ: স্তর, শিকড়, কেঁচো আর জৈব পদার্থ, সবই হিসাব আর জমির SoilGrids তথ্য থেকে আঁকা।', 'One field, three ways of farming it. On top, that season’s crop; below, a cut through your field’s top 30 cm: its layers, roots, earthworms and organic matter, all drawn from the model and the field’s SoilGrids profile.')}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['MODEL', 'RULE']} />
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button type="button" onClick={() => { if (t >= N - 1) setT(0); setPlaying(!playing); }} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary-700 text-white shadow hover:bg-primary-800" aria-label={playing ? T('থামান', 'Pause') : T('চালান', 'Play')}>
@@ -372,13 +377,16 @@ function FirstStep({ rot }) {
 }
 
 // ───────── side by side ─────────
-function Compare({ ff, ownE, sumOf, ctx, rotName }) {
-  const { s, T } = useStore();
+// The parts of a rotation's score (engine/soilfuture.js rank): weight × its 0–100 place on each measure.
+const PART = { soil: { bn: 'মাটি', en: 'soil' }, water: { bn: 'পানি', en: 'water' }, money: { bn: 'আয়', en: 'income' }, risk: { bn: 'ঝুঁকি', en: 'risk' }, pest: { bn: 'রোগ-পোকা', en: 'pests' }, fodder: { bn: 'গোখাদ্য', en: 'fodder' }, cover: { bn: 'মাটি ঢাকা', en: 'cover' } };
+function Compare({ ff, ownE, second, sumOf, ctx, rotName }) {
+  const { s, T, L } = useStore();
   const lang = s.lang;
   const list = [
     { id: 'habit', e: ff.habit, name: T('এখনকার মতো', 'As now'), tone: SLATE },
     ff.plan && keyOf(ff.plan.rot) !== keyOf(ff.habit.rot) && { id: 'plan', e: ff.plan, name: T('এবারের পরিকল্পনা প্রতি বছর', 'This season’s plan, every year'), tone: TEAL },
     { id: 'best', e: ff.best, name: T('সেরা ফসলচক্র', 'Best rotation'), tone: GREEN },
+    second && { id: 'second', e: second, name: T('পরের বিকল্প', 'Next alternative'), tone: TEAL },
     { id: 'own', e: ownE, name: T('আপনার বানানো', 'Your own'), tone: GOLD },
   ].filter(Boolean);
   const pestWord = (p) => (p < 25 ? T('কম', 'Low') : p < 60 ? T('মাঝারি', 'Medium') : T('বেশি', 'High'));
@@ -396,6 +404,8 @@ function Compare({ ff, ownE, sumOf, ctx, rotName }) {
   return (
     <Card id="ff-compare" className="mt-5 scroll-mt-40 p-4 sm:p-5">
       <h2 className="text-[20px] font-bold">{T('পাশাপাশি, দশ বছরের গড়ে', 'Side by side, ten-year averages')}</h2>
+      <p className="mt-0.5 text-[13.5px] leading-6 text-muted">{T('এখনকার চাষ, সেরা আর পরের বিকল্প: একই জমি, একই দশ বছরের আবহাওয়া, একই দাম। গাঢ় সবুজ: সেই সারিতে সবচেয়ে ভালো।', 'Farming as now, the best and the next alternative: the same field, the same ten years of weather, the same prices. Bold green: the best in that row.')}</p>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12.5px] text-ink/75">{list.filter((c) => c.e.parts).map((c) => <span key={c.id}><b style={{ color: c.tone }}>{c.name}</b>: {T('মোট নম্বর', 'score')} {num(c.e.score, lang, { dp: 0 })} ({Object.entries(ff.weights).filter(([, x]) => x > 0).map(([k, x]) => `${PART[k] ? L(PART[k]) : k} ${num(x * c.e.parts[k], lang, { dp: 0 })}`).join(' + ')})</span>)}</div>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[620px] text-[14px]">
           <thead>
@@ -513,7 +523,7 @@ function SoilWater({ ff, sumOf }) {
           <h2 className="flex items-center gap-2 text-[20px] font-bold"><Droplets size={20} className="text-sky-700" />{T(`${bnOf(upazila.name.bn)} জমির পানি: ওপরের মাটি থেকে মাটির নিচে`, `${upazila.name.en}’s water: from the topsoil to underground`)}</h2>
           <p className="text-[14px] leading-6 text-muted">{T('রবি ফসল বাঁচে বর্ষার পর মাটিতে থেকে যাওয়া পানি আর সেচে। নাসার হিসাবে প্রতি রবি মৌসুমে (নভেম্বর–মার্চ) ওপরের এক মিটার মাটি কতটা ভেজা ছিল: ০% একদম শুকনো, ১০০% পানিতে ভরা।', 'Rabi crops live on the water the monsoon leaves in the soil, and on irrigation. NASA’s record of how wet the top metre of soil was in each Rabi season (November–March): 0% bone dry, 100% saturated.')}</p>
         </div>
-        <Tags list={['REAL']} />
+        <Tags list={['MODEL', 'SAT']} />
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <Big icon={Droplets} tone="text-sky-700" label={T(`আগে, ${bnDigits(r.first)}–২০১২`, `Before, ${r.first}–2012`)} value={`${pc(r.then)}%`} sub={T('রবি মৌসুমের গড় ভেজা ভাব', 'mean Rabi wetness')} />
@@ -580,7 +590,7 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
           <h2 className="flex items-center gap-2 text-[20px] font-bold"><ShieldCheck size={20} className="text-primary-700" />{T('৮টি জলবায়ু মডেলে আলাদা পরীক্ষা', 'Tested under each of the eight climate models')}</h2>
           <p className="text-[14px] leading-6 text-muted">{T('ওপরের ২০৪০-এর হিসাব মডেলগুলোর মাঝামাঝি পরিবর্তনে। কিন্তু কোন মডেল ঠিক হবে কেউ জানে না। তাই প্রতিটি ভালো ফসলচক্র প্রতিটি মডেলের ভবিষ্যতে আলাদা করে চালানো হলো, ফলনের ভালো-খারাপ বছরসহ: যেটা যেকোনো ভবিষ্যতে টেকে, সেটাই নিরাপদ বাছাই।', 'The 2040s above use the middle of the models’ change. No one knows which model will be right, so each good rotation is run again in each model’s future on its own, with good and bad yield years: the one that holds up whatever happens is the safe choice.')}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['MODEL', 'RULE']} />
       </div>
       {!res ? (
         <div className="mt-4 flex items-center gap-2 text-[14px] text-muted"><Loader2 size={16} className="animate-spin" />{T('৮টি মডেলে চালানো হচ্ছে…', 'Running the eight models…')}</div>
@@ -593,6 +603,7 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
             ? T(`সেরা ফসলচক্রটিই সবচেয়ে টেকসই: ${of(bestRow.keepsSoil, res.n)} মডেলে মাটির কার্বন ধরে রাখে, ${of(bestRow.wins, res.n)} মডেলে সবার সেরা।`, `The best rotation is also the most robust: it keeps the soil carbon in ${of(bestRow.keepsSoil, res.n)} models and comes first in ${of(bestRow.wins, res.n)}.`)
             : T(`সেরা ফসলচক্রে ${num(res.runs, 'bn')}টি ভবিষ্যতের ${pct(bestRow?.pKeep ?? 0)}-এ মাটির কার্বন টেকে; নিচের প্রথমটিতে ${pct(res.robust.pKeep)}-এ (${of(res.robust.keepsSoil, res.n)} মডেলে, ঝুঁকি বাড়ে না ${of(res.robust.safer, res.n)} মডেলে)। জলবায়ু আর ফলন যেদিকেই যাক, মাটির জন্য সেটি বেশি নিরাপদ বাছাই।`, `With the best rotation the soil carbon holds in ${pct(bestRow?.pKeep ?? 0)} of the ${res.runs} futures; with the first one below, in ${pct(res.robust.pKeep)} (${of(res.robust.keepsSoil, res.n)} models, no added risk in ${of(res.robust.safer, res.n)}). Whichever way the climate and the yields go, it is the safer choice for the soil.`)}
         </Note>
+        <RobustSays bestRow={bestRow} ff={ff} sumOf={(e) => e.sNow} />
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[880px] text-[13.5px]">
             <thead>
@@ -633,6 +644,32 @@ function Robust({ ff, ownE, base, scen, rotName, onEdit }) {
         <p className="mt-2 text-[12.5px] leading-5 text-muted">{T(`প্রতিটি মডেলের নিজের মাসিক পরিবর্তন (নাসা NEX-GDDP-CMIP6, ২০৪১–২০৫০) আপনার এলাকার আসল দিনে বসিয়ে দশ বছর চালানো। "ঝুঁকি বাড়ে না": এখনকার চাষের চেয়ে খারাপ মৌসুম বেশি নয়। পদ্ধতি: রোবাস্ট ডিসিশন মেকিং (Lempert ও অন্যরা ২০০৬)।`, `Each model’s own monthly change (NASA NEX-GDDP-CMIP6, 2041–2050) laid on your area’s real days and run for ten years. “Risk no higher”: no more bad seasons than farming as now. Method: robust decision making (Lempert et al. 2006).`)}</p>
       </>}
     </Card>
+  );
+}
+
+// What holds whichever model is right, and what rests on one assumption (engine/explain.js soilVerdict).
+function RobustSays({ bestRow, ff, sumOf }) {
+  const { T } = useStore();
+  if (!bestRow) return null;
+  const v = soilVerdict({ best: sumOf(ff.best), habit: sumOf(ff.habit), pBeat: bestRow.pBeat });
+  const word = { robust: T('টেকসই সিদ্ধান্ত', 'A robust conclusion'), mostly: T('বেশিরভাগ ক্ষেত্রে টেকে', 'Holds in most futures'), sensitive: T('ধরে নেওয়া কথার ওপর নির্ভর করে', 'Depends on the assumptions') }[v.robust];
+  return (
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="rounded-2xl bg-primary-50/70 p-3.5 ring-1 ring-primary-200">
+        <div className="text-[14px] font-bold text-primary-900">{T('যা যেকোনো মডেলেই টেকে', 'What holds in any model')} · {word}</div>
+        <p className="mt-1 text-[13.5px] leading-6 text-ink/85">{v.robust === 'sensitive'
+          ? T('"সেরা ফসলচক্র মাটির জন্য এখনকার চেয়ে ভালো" কথাটা অর্ধেকের কম ভবিষ্যতে সত্যি: মডেল আর ফলনের বছর বদলালে এই ক্রম বদলায়। একে নিশ্চিত ধরবেন না।', '“The best rotation is better for the soil than as now” is true in under half the futures: the order changes with the model and the yield year. Do not treat it as certain.')
+          : T('ডাল বা পাট ঢোকালে আর খড় ফেরালে মাটির কার্বন এখনকার চেয়ে ভালো থাকে: এটা বেশিরভাগ মডেল আর ফলনের বছরে একই দিকে যায়।', 'Adding pulses or jute and returning straw keeps more soil carbon than as now: that goes the same way in most models and yield years.')}</p>
+      </div>
+      <div className="rounded-2xl bg-amber-50/70 p-3.5 ring-1 ring-amber-200">
+        <div className="text-[14px] font-bold text-amber-900">{T('যা একটা ধরে নেওয়া কথার ওপর দাঁড়িয়ে', 'What rests on an assumption')}</div>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13.5px] leading-6 text-ink/85">
+          <li>{T('লাভের ক্রম: আজকের দাম আর দেশের গড় ফলন ধরে; দাম বদলালে বদলায়।', 'The profit order: at today’s prices and national yields; it moves with prices.')}</li>
+          <li>{T('কত কার্বন (মাপ): শুরুর মাটি SoilGrids-এর আনুমানিক হিসাব।', 'How much carbon (the size): the starting soil is SoilGrids’ estimate.')}</li>
+          <li>{T('খারাপ মৌসুম: ফসলের তাপ-বৃষ্টির সীমা, যা কৃষিবিদের যাচাই বাকি।', 'Bad seasons: the crops’ heat and rain limits, still to be reviewed by agronomists.')}</li>
+        </ul>
+      </div>
+    </div>
   );
 }
 
@@ -798,7 +835,7 @@ function Climate({ change, ctx, ff, ownE, scen }) {
           <h2 className="text-[20px] font-bold">{T(`নাসার জলবায়ু মডেলে ${L(upazila.name)}, ২০৪১–২০৫০`, `${upazila.name.en} in NASA’s climate models, 2041–2050`)}</h2>
           <p className="text-[14px] leading-6 text-muted">{T(`নাসা NEX-GDDP-CMIP6-এর ${num(change.n, 'bn')}টি মডেল, ${L(SCEN[scen])}; ২০০৫–২০১৪-এর তুলনায়। আপনার এলাকার আসল দিনগুলো এই পরিবর্তনে সরিয়ে আগামীর আবহাওয়া বানানো হয়েছে।`, `${change.n} models from NASA NEX-GDDP-CMIP6, ${SCEN[scen].en}; against 2005–2014. Your area’s real days are shifted by this change to make the coming weather.`)}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['MODEL', 'RULE']} />
       </div>
       {change.prov.nearestCell?.includes(upazila.id) && <Note tone="gold" className="mt-3">{T(`${L(upazila.name)}-এর নিজের ০.২৫° ঘরের তথ্য এখনো নামানো শেষ হয়নি, তাই কাছের ঘরের (${bnDigits(change.cell.join(', '))}) মডেল-পরিবর্তন দেখানো হচ্ছে। জলবায়ু পরিবর্তনের মাপ শত কিলোমিটারে বদলায়, তবু এটি জেনে রাখুন।`, `${upazila.name.en}'s own 0.25° cell has not finished downloading, so the models' change at the nearest cell (${change.cell.join(', ')}) is shown. Climate change varies over hundreds of kilometres, but note it.`)}</Note>}
       <div className="mt-4 grid gap-2 sm:grid-cols-3">

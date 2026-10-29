@@ -74,7 +74,7 @@ export default function RadarBrief({ view, row, year, mine, district }) {
           <h2 className="text-[21px] font-bold leading-tight">{T('এক নজরে: কৃষকদের কী বলবেন', 'At a glance: what to tell the farmers')}</h2>
           <p className="mt-0.5 text-[13.5px] text-muted">{T(`${row.bn} উপজেলা, ${district.bn} জেলা। নিচের অংশগুলোর আসল উপগ্রহ তথ্য থেকে।`, `${row.en} upazila, ${district.en} district. From the real satellite data in the sections below.`)}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['SAT', 'RULE']} />
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">

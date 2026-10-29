@@ -120,27 +120,46 @@ export function Card({ className = '', children, ...p }) {
 // ---- data provenance tags ----
 const TAG_STYLE = {
   REAL: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200',
+  SAT: 'bg-indigo-50 text-indigo-800 ring-1 ring-indigo-200',
+  STATION: 'bg-cyan-50 text-cyan-800 ring-1 ring-cyan-200',
+  MODEL: 'bg-teal-50 text-teal-800 ring-1 ring-teal-200',
+  RECORD: 'bg-sky-50 text-sky-800 ring-1 ring-sky-200',
   RULE: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200',
   AI: 'bg-violet-50 text-violet-800 ring-1 ring-violet-200',
   DEMO: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200',
   PLACEHOLDER: 'bg-red-50 text-red-700 ring-1 ring-red-200',
 };
 const TAG_LABEL = {
-  REAL: { bn: 'আসল তথ্য', en: 'Real data' }, RULE: { bn: 'নিয়মে হিসাব', en: 'Rule-based' }, AI: { bn: 'AI', en: 'AI' },
+  REAL: { bn: 'আসল তথ্য', en: 'Real data' }, SAT: { bn: 'উপগ্রহে দেখা', en: 'Satellite' }, STATION: { bn: 'স্টেশনের মাপ', en: 'Station' },
+  MODEL: { bn: 'মডেলের হিসাব', en: 'Model estimate' }, RECORD: { bn: 'প্রকাশিত রেকর্ড', en: 'Published record' }, RULE: { bn: 'নিয়মে হিসাব', en: 'Rule-based' }, AI: { bn: 'AI', en: 'AI' },
   DEMO: { bn: 'নমুনা তথ্য', en: 'Demo data' }, PLACEHOLDER: { bn: 'অস্থায়ী তথ্য', en: 'Placeholder' },
 };
 const TAG_HELP = {
   REAL: { bn: 'আসল উৎস থেকে নেওয়া (নাসা বা আবহাওয়া সেবা)', en: 'From a real source (NASA or a weather service)' },
+  SAT: { bn: 'উপগ্রহ সরাসরি মেপেছে (সেন্টিনেল, MODIS, GPM, GRACE, SRTM)', en: 'Measured from space by a satellite (Sentinel, MODIS, GPM, GRACE, SRTM)' },
+  STATION: { bn: 'মাটিতে বসানো আবহাওয়া স্টেশনের মাপ (BMD)', en: 'Measured on the ground by a weather station (BMD)' },
+  MODEL: { bn: 'মাপ থেকে মডেল দিয়ে আনুমানিক হিসাব (নাসা POWER, SoilGrids, CMIP6): সরাসরি মাপ নয়', en: 'Estimated by a model from measurements (NASA POWER, SoilGrids, CMIP6): not a direct measurement' },
+  RECORD: { bn: 'সরকার বা FAO-র প্রকাশিত রেকর্ড (দাম, খরচ, ফলন, শুমারি)', en: 'Published by the government or FAO (prices, costs, yields, census)' },
   RULE: { bn: 'খোলা নিয়ম বা সূত্র দিয়ে হিসাব করা, যে কেউ যাচাই করতে পারে', en: 'Worked out with an open rule or formula anyone can check' },
   AI: { bn: 'মেশিন লার্নিং দিয়ে বের করা', en: 'Produced by machine learning' },
   DEMO: { bn: 'দেখানোর জন্য বানানো নমুনা, আসল কৃষকের তথ্য নয়', en: 'Made-up sample for the demo, not real farmers' },
   PLACEHOLDER: { bn: 'আসল নাসা তথ্য আসার আগ পর্যন্ত অস্থায়ী তথ্য', en: 'Temporary data until the real NASA data is loaded' },
 };
-export const climateTag = () => (clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER');
-export const soilTag = () => (soilData.provenance.status === 'REAL' ? 'REAL' : 'DEMO');
+// NASA POWER weather and SoilGrids soil are real data, but model estimates, not measurements: they wear the MODEL label.
+export const climateTag = () => (clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER');
+export const soilTag = () => (soilData.provenance.status === 'REAL' ? 'MODEL' : 'DEMO');
 export function Tag({ t }) {
   const { L } = useStore();
   return <span className={`chip ${TAG_STYLE[t]}`} title={L(TAG_HELP[t])}>{L(TAG_LABEL[t])}</span>;
+}
+// What each label means, spelled out (the label's own tooltip does not show on a phone).
+export function TagLegend({ kinds = ['SAT', 'STATION', 'MODEL', 'RECORD', 'RULE', 'AI', 'DEMO'], className = '' }) {
+  const { L } = useStore();
+  return (
+    <dl className={`grid gap-x-4 gap-y-1.5 text-[13px] leading-5 sm:grid-cols-2 ${className}`}>
+      {kinds.map((k) => <div key={k} className="flex items-start gap-2"><dt className="shrink-0"><Tag t={k} /></dt><dd className="text-ink/75">{L(TAG_HELP[k])}</dd></div>)}
+    </dl>
+  );
 }
 export function Tags({ list }) {
   // Climate and soil can both resolve to REAL; show each kind once.

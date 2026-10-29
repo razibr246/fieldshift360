@@ -29,7 +29,7 @@ export default function PriceSeason({ crop, cropLabel }) {
     <div>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-[19px] font-bold">{T('দাম কখন কমে', 'When prices fall')}</h2>
-        <Tags list={['REAL']} />
+        <Tags list={['RECORD']} />
       </div>
       <p className="mt-1 text-[13px] leading-5 text-muted">
         {T(`${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, সারা দেশের মাসিক গড়, ${bnDigits(yrs[0])}–${bnDigits(yrs[yrs.length - 1])}। প্রতি বছরের স্বাভাবিক দাম = ১০০।`, `${cropLabel}, ${L(PRICE_TYPE[c.priceType])}, national monthly average, ${yrs[0]}–${yrs[yrs.length - 1]}. Each year's normal price = 100.`)}

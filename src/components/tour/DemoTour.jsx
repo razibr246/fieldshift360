@@ -1,4 +1,4 @@
-// The 3-minute demo story for a judge or a visitor: the existing pages in order, with a short line on what to look
+// The 3-minute demo story for a judge or a visitor: one farmer's decision first, then the existing pages in order, with a short line on what to look
 // at in each. Each step sets who is signed in (a Godagari or Dhamrai farmer, the union officer, the upazila officer)
 // and opens the page; nothing here computes anything of its own.
 import { useEffect } from 'react';
@@ -7,12 +7,21 @@ import { ArrowLeft, ArrowRight, Clapperboard, X } from 'lucide-react';
 import { useStore } from '../../store';
 
 export const TOUR = [
+  // One farmer, one field, one decision first; the evidence and what is real; the ten-year view; then the rest.
+  { path: '/farmer/plan', farmer: 'RAHIM', step: 4, hash: 'season-compare', title: { bn: 'একজন কৃষক, একটা জমি, একটা সিদ্ধান্ত', en: 'One farmer, one field, one decision' },
+    say: { bn: 'গোদাগাড়ীর রহিম উদ্দিন, বরেন্দ্রের একটা জমি। এই রবিতে কী লাগাবেন? এখন যা করেন আর দুটি বিকল্প পাশাপাশি: একই ২৫ মৌসুমের নাসা আবহাওয়া, একই দাম, একই জমি। রঙিন দাগে দেখা যায় কেন কোনটা ওপরে।', en: 'Rahim Uddin, one field on Godagari’s Barind. What should he sow this Rabi? What he grows now and two alternatives side by side: the same 25 seasons of NASA weather, the same prices, the same field. The coloured bar shows why each ranks where it does.' } },
+  { path: '/farmer/plan', farmer: 'RAHIM', step: 4, hash: 'first-step', title: { bn: 'প্রথম কাজ, আর তার আগে মাঠে কী দেখবেন', en: 'The first step, and what to check in the field first' },
+    say: { bn: 'কোন ফসল, কোন সপ্তাহে। তার আগে: মাটি পরীক্ষা (মাটির সংখ্যা মডেলের আনুমানিক), বীজ, সেচের পালা, পানি জমে কি না। এক চাপে পুরো তুলনাটা উপসহকারী কৃষি কর্মকর্তার কাছে যায়।', en: 'Which crop, which week. Before that: a soil test (the soil figures are a model estimate), seed, the irrigation turn, whether water stands. One tap sends the whole comparison to the union’s agriculture officer.' } },
+  { path: '/farmer/plan', farmer: 'RAHIM', step: 4, hash: 'how-made', title: { bn: 'পরামর্শটা কীভাবে তৈরি, কতটা পাকা', en: 'How the advice was made, and how firm it is' },
+    say: { bn: 'কোন তথ্য হিসাবে ঢুকেছে আর কোনটা শুধু পাশে দেখানো; ফসলের নিয়ম আর তার যাচাই এখনো বাকি; আর ওজন বা আবহাওয়া বদলালেও একই ফসল প্রথম থাকে কি না। ব্যবধান কম হলে অ্যাপ নিজেই বলে "কাছাকাছি, নিশ্চিত নয়"।', en: 'What went into the calculation and what is only context; the crop rules, still awaiting local review; and whether the same crop stays first under other weights and weather. When the lead is small the app says “a close call” itself.' } },
+  { path: '/science', hash: 'coverage', title: { bn: 'কোনটা আসল, কোনটা মডেল, কোনটা নমুনা', en: 'What is real, what is modelled, what is sample' },
+    say: { bn: 'প্রতিটি উৎস: উপগ্রহে দেখা, স্টেশনের মাপ, মডেলের হিসাব, প্রকাশিত রেকর্ড, নিয়ম না নমুনা; কোন বছর, কত বড় এলাকা, আর এই জমির জন্য আছে, পুরোনো না নেই। কৃষকেরা নমুনা; আবহাওয়া, উপগ্রহ, দাম আর ফলন আসল।', en: 'Every source: seen by satellite, measured at a station, estimated by a model, a published record, a rule or sample; which years, how large an area, and whether it is here, out of date or missing for this field. The farmers are sample; the weather, satellites, prices and yields are real.' } },
   { path: '/', hash: 'climate-shift', title: { bn: 'আবহাওয়া বদলেছে, পুরোনো ফসলচক্র টেকে না', en: 'The weather has moved; the old rotation no longer holds' },
     say: { bn: 'ফাটা মাটি আর ডোবা জমি: বরেন্দ্রের গোদাগাড়ীতে খরা, নিচু ধামরাইয়ে বন্যা। পাশে নাসা পাওয়ারের ২৫ মৌসুমে তাপ, বৃষ্টি আর খুব গরম দিন কতটা বদলেছে।', en: 'Cracked earth and drowned fields: drought on Godagari’s Barind, floods in low-lying Dhamrai. Beside it, how 25 seasons of NASA POWER heat, rain and hot days have changed.' } },
   { path: '/', hash: 'impact', title: { bn: 'প্রায় ১.৭ কোটি কৃষক পরিবারের সিদ্ধান্ত', en: 'A choice nearly 17 million farm households make' },
     say: { bn: 'সারা দেশে ১.৬৯ কোটি কৃষক পরিবার (কৃষি শুমারি ২০১৯), ৪৮.৫ লাখ হেক্টর বোরো। নিচের সারণিতে সাত উপজেলার মানুষ আর নাসা SEDAC-এর মাপ: কতটা ঘন বসতি, কতটা জমি ১০ মিটারের নিচে, কতটা ফসলি।', en: '16.88 million farm households (Agriculture Census 2019) and 4.85 million ha of Boro. Below, the seven upazilas’ people and NASA SEDAC’s measures: how crowded, how much lies below 10 m, how much is cropland.' } },
   { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-time', title: { bn: 'একই জমি, তিন রকম ফসলচক্র, দশ বছর', en: 'One field, three rotations, ten years' },
-    say: { bn: 'রহিমের জমির নিজের মাটি (SoilGrids) থেকে শুরু। প্রতিটি মৌসুমে মাটির কাটা অংশ: জৈব পদার্থ, শক্ত তলা, শিকড়, কেঁচো। এখনকার বোরো-আমন মাটি ধরে রাখে না; ডাল আর পাট ঢোকালে মাটি ভালো হয়।', en: 'It starts from Rahim’s own soil (SoilGrids). Each season, a cut through the field: organic matter, the plough pan, roots, earthworms. Boro–Aman as now does not build the soil; pulses and jute in the rotation do.' } },
+    say: { bn: 'রহিমের জমির ২৫০ মিটার ঘরের আনুমানিক মাটি (SoilGrids মডেল, মাটি পরীক্ষা নয়) থেকে শুরু। প্রতিটি মৌসুমে মাটির কাটা অংশ: জৈব পদার্থ, শক্ত তলা, শিকড়, কেঁচো। এখনকার বোরো-আমন মাটি ধরে রাখে না; ডাল আর পাট ঢোকালে মাটি ভালো হয়।', en: 'It starts from Rahim’s own soil (SoilGrids). Each season, a cut through the field: organic matter, the plough pan, roots, earthworms. Boro–Aman as now does not build the soil; pulses and jute in the rotation do.' } },
   { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-best', title: { bn: 'কৃষকের চাওয়া মিলিয়ে সেরা ফসলচক্র', en: 'The best rotation for what the farmer wants' },
     say: { bn: 'কয়েকশো ফসলচক্র দশ বছর করে চালানো: মাটির স্বাস্থ্য, সেচের পানি, লাভ, আবহাওয়ার ঝুঁকি আর রোগ-পোকা। কৃষক "কম পানি" বা "বেশি আয়" বেছে নিলে ক্রম বদলায়।', en: 'Several hundred rotations run for ten years each: soil health, irrigation water, profit, weather risk and pests. When the farmer picks “less water” or “more income”, the ranking changes.' } },
   { path: '/farmer/future', farmer: 'RAHIM', hash: 'ff-ledger', title: { bn: 'পানি আর জলবায়ুর খাতা', en: 'Water and the climate account' },
@@ -33,6 +42,7 @@ export function startTour(dispatch, navigate) { dispatch({ type: 'set', patch: {
 
 function go(step, dispatch, navigate) {
   if (step.farmer) dispatch({ type: 'chooseFarmer', id: step.farmer });
+  if (step.step != null) dispatch({ type: 'set', patch: { step: step.step } });
   if (step.officer) dispatch({ type: 'set', patch: { officerUpazila: step.officer[0], officerUnion: step.officer[1] } });
   navigate(step.path);
 }

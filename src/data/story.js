@@ -8,7 +8,7 @@ export const WRONG_TOOL = { crop: -2, money: -200 };
 
 // Each tool is a real feature of the app; `to` opens it.
 export const TOOLS = {
-  plan: { bn: 'মৌসুমের পরিকল্পনা', en: 'Season planner', note: { bn: '২৫ বছরের নাসা আবহাওয়া আর মাটি মিলিয়ে ফসল ও তারিখ', en: '25 years of NASA weather plus your soil: crop and date' }, to: '/farmer/plan' },
+  plan: { bn: 'মৌসুমের পরিকল্পনা', en: 'Season planner', note: { bn: '২৫ বছরের নাসা আবহাওয়া আর মাটির আনুমানিক হিসাব মিলিয়ে ফসল ও তারিখ', en: '25 years of NASA weather plus an estimate of your soil: crop and date' }, to: '/farmer/plan' },
   glut: { bn: 'দাম পড়ার সতর্কতা', en: 'Price-drop warning', note: { bn: 'পাশের সবাই কী, কবে লাগাচ্ছে', en: 'What neighbours plant, and when' }, to: '/farmer/plan' },
   doctor: { bn: 'ফসলের ডাক্তার', en: 'Crop doctor', note: { bn: 'পাতার ছবি তুলে রোগের প্রাথমিক ধারণা', en: 'A leaf photo gives a first idea of the disease' }, to: '/farmer/doctor' },
   today: { bn: 'আজকের সেচ', en: "Today's irrigation", note: { bn: 'আজ সেচ লাগবে কিনা, মাটি আর বৃষ্টি দেখে', en: 'Whether to water today, from soil and rain' }, to: '/farmer/today' },

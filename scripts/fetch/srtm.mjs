@@ -75,10 +75,10 @@ function tilt(pts) {
 }
 const out = {
   provenance: {
-    status: 'REAL', dataset: 'NASA SRTM 1 arc-second global (SRTMGL1, about 30 m), via Open Topo Data', url: 'https://www.opentopodata.org/datasets/srtm/',
-    nasa: 'https://lpdaac.usgs.gov/products/srtmgl1v003/', retrieved: new Date().toISOString().slice(0, 10),
-    method: 'height at the field; relief = field height − mean of 8 points 500 m round it; slope = steepest fall to 8 points 150 m round it',
-    caveat: 'SRTM is the surface in February 2000 (crop, tree and roof tops included) with a few metres of error: coarse classes for local review, not a survey',
+    status: 'REAL', dataset: 'NASA SRTM 1 arc-second (SRTMGL1, February 2000) and NASA/METI ASTER GDEM v3 (2000–2013), both about 30 m, via Open Topo Data',
+    url: 'https://www.opentopodata.org/', nasa: ['https://lpdaac.usgs.gov/products/srtmgl1v003/', 'https://lpdaac.usgs.gov/products/astgtmv003/'], retrieved: new Date().toISOString().slice(0, 10),
+    method: 'each point is the mean of the two models; elev = centre and 4 points 30 m round it; relief = elev − mean of 8 points 500 m round it; slope = tilt of a least-squares plane through all 25 points out to 500 m; spread = mean disagreement of the two models',
+    caveat: 'both models see the surface (crop, tree and roof tops) with metres of error, shown per field as spread: coarse classes for local review, not a survey',
   },
   fields: Object.fromEntries(Object.entries(fields).map(([id, f]) => [id, {
     elev: Math.round(mean(f.c) * 10) / 10,

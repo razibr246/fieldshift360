@@ -32,7 +32,7 @@ export default function LandFromSpace({ upazila, place }) {
           <h2 className="text-[20px] font-bold">{T(`মহাকাশ থেকে ${L(place)}, ${yr(d.years[0])}–${yr(d.years[1])}`, `${L(place)} from space, ${d.years[0]}–${d.years[1]}`)}</h2>
           <p className="mt-0.5 text-[13.5px] leading-6 text-muted">{T('নাসার MODIS উপগ্রহে প্রতি মাসে এলাকা কতটা সবুজ আর মাটির উপরিতল কতটা গরম, আর নাসার MERRA-2-এ জমি থেকে কতটা পানি বাতাসে যায়। এই জায়গার চারপাশের প্রায় ৫ কিলোমিটার: এলাকার জমিগুলো, একটা জমি নয়।', 'How green the area is each month and how hot its ground surface, from NASA’s MODIS satellites, and how much water the land gives back to the air, from NASA’s MERRA-2. About 5 km round this place: the area’s fields, not one field.')}</p>
         </div>
-        <Tags list={['REAL']} />
+        <Tags list={['SAT', 'MODEL']} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">

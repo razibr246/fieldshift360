@@ -57,7 +57,7 @@ function RadarPage() {
       <PageHeader eyebrow={T(`রোপণ রাডার · বৃষ্টি ও ফসল রোপণ · ${district.bn} জেলা`, `Ropan Radar · Rain and crop planting · ${district.en} district`)}
         title={T(`${row.bn}: এবার ফসল রোপণ সময়মতো হচ্ছে কি?`, `${row.en}: is planting on time this year?`)}
         subtitle={T('মেঘের নিচেও সেন্টিনেল-১ রাডার দেখে কোন জমিতে কবে পানি দিয়ে চারা রোপণ হলো (এখন বর্ষার আমন ধান মাপা হয়, কারণ রোপণের সময় জমিতে পানি থাকে); নাসার জিপিএম আইমার্জ উপগ্রহ মাপে বৃষ্টি। প্রতিটি উপজেলাকে তার নিজের গত বছরগুলোর সঙ্গে মেলানো হয়; নিচে জেলার অন্য উপজেলার সঙ্গে তুলনা।', 'Sentinel-1 radar sees through monsoon cloud when each field is flooded and transplanted (it measures monsoon Aman rice for now, because its fields stand in water at planting); NASA’s GPM IMERG satellites measure the rain. Each upazila is compared with its own past seasons, and with the rest of the district below.')}
-        tags={['REAL', 'RULE']} />
+        tags={['SAT', 'RULE']} />
 
       <div className="mb-5 flex flex-wrap gap-2 text-[12.5px]">
         <span className="chip bg-sky-100 text-sky-900"><Satellite size={13} />{T(`সেন্টিনেল-১ রাডার · ${fmtDate(Date.parse(THROUGH), 'bn')} পর্যন্ত`, `Sentinel-1 radar · to ${fmtDate(Date.parse(THROUGH), 'en')}`)}</span>
@@ -144,7 +144,7 @@ function RadarPage() {
             <h2 className="text-[20px] font-bold">{T(`জেলার চোখে রোপণ রাডার: ${district.bn}`, `Ropan Radar through the district: ${district.en}`)}</h2>
             <p className="text-[14px] leading-6 text-muted">{T('প্রথম রোপণ রাডারের আটটি দৃশ্য, নমুনা রংপুরের বদলে আপনার জেলার আসল উপগ্রহ তথ্যে। নিজে থেকে চলে; দৃশ্যে চাপ দিয়ে বা তীর দিয়ে বদলান।', 'The first Ropon Radar\'s eight scenes, on your district\'s real satellite data instead of sample Rangpur data. It plays by itself; tap a scene or use the arrows.')}</p>
           </div>
-          <Tags list={['REAL', 'RULE']} />
+          <Tags list={['SAT', 'RULE']} />
         </div>
         <RadarStory district={district} row={row} detail={ready ? detail.data : null} home={view} />
       </Card>
@@ -362,7 +362,7 @@ function OnsetCard({ upazila, name }) {
           <h3 className="flex items-center gap-2 text-[17px] font-bold"><CloudRain size={17} className="text-sky-700" />{T(`${name.bn}: বর্ষার বৃষ্টি কবে থেকে টানা নামে`, `${name.en}: when the rains set in`)}</h3>
           <p className="mt-1 max-w-[70ch] text-[13.5px] leading-6 text-muted">{T('প্রতি বছরের বৃষ্টি শুরুর তারিখ, নাসা-জাক্সার জিপিএম আইমার্জ দৈনিক বৃষ্টি থেকে, ২০০১ থেকে।', 'The date the rains set in each year, from NASA/JAXA GPM IMERG daily rain, since 2001.')}{!o.imergOnly && T(' ধূসর ফাঁপা বিন্দু: নাসা পাওয়ারের নিজস্ব বৃষ্টি-হিসাবে একই নিয়ম।', ' Hollow grey dots: the same rule on NASA POWER’s own rain estimate.')}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['SAT', 'RULE']} />
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <Stat icon={CalendarClock} tone="#2f8a8f" label={T('সাধারণত (২০০১–২০২৫-এর মধ্যমা)', 'Usually (2001–2025 median)')} value={usualDay(o.usual)} note={o.atStartYears ? T(`${num(o.refYears, 'bn')} বছরের ${num(o.atStartYears, 'bn')}টিতে ১৫ মে বা তার আগেই শুরু; সবচেয়ে দেরিতে ${usualDay(o.latestDoy)}`, `In ${o.atStartYears} of ${o.refYears} years by 15 May or earlier; latest ${usualDay(o.latestDoy)}`) : T(`সবচেয়ে আগে ${usualDay(o.earliest)}, সবচেয়ে দেরিতে ${usualDay(o.latestDoy)}`, `Earliest ${usualDay(o.earliest)}, latest ${usualDay(o.latestDoy)}`)} />

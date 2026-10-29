@@ -204,7 +204,7 @@ function AbroadShift({ c, data, chips }) {
               </dl>
               <p className="mt-3 flex flex-wrap items-center gap-2 text-[12.5px] leading-6 text-muted">
                 {T(`উৎস: ERA5 দৈনিক তথ্য (ECMWF), ${c.farmer.village.bn}-এর নমুনা খামার, ২০০১–২০২৫ মৌসুম। এখানে নাসা পাওয়ারের বৃষ্টির রেকর্ড ভাঙা, তাই ERA5 — “জমির ভবিষ্যৎ” পাতায় তিন উৎসের যাচাই দেখুন।`, `Source: ERA5 daily data (ECMWF) at the ${c.farmer.village.en} sample farm, seasons 2001–2025. NASA POWER’s rain record breaks at this cell, hence ERA5 — see the three-source check on the Field future page.`)}
-                <Tags list={['REAL']} />
+                <Tags list={['MODEL']} />
               </p>
               <Link to={`/abroad/${c.id}`} className="lift mt-4 inline-flex h-11 touch-manipulation items-center gap-2 rounded-full px-5 text-[14.5px] font-semibold text-white" style={{ background: c.tone }}>
                 {T(`${c.farmer.name.bn}-এর খামার দেখুন`, `Open ${c.farmer.name.en}’s farm`)} →

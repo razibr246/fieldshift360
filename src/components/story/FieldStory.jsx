@@ -75,12 +75,12 @@ export default function FieldStory({ ff, ctx: fctx, onClose }) {
 
   // Each scene: how long, what is said, and how it is drawn at t from 0 to 1.
   const scenes = [
-    { ms: 4000, say: T(`এটা ${s.lang === 'bn' ? bnOf(who) : who} জমি, ${placeSaid}। … নাসার পঁচিশ বছরের আবহাওয়া আর জমির নিজের মাটি দিয়ে দেখি, আগামী দশ বছরে এর মাটির কী হয়।`, `This is ${who}'s field, in ${placeSaid}. … With twenty-five years of NASA weather and the field's own soil, let's see what happens to it over the next ten years.`),
+    { ms: 4000, say: T(`এটা ${s.lang === 'bn' ? bnOf(who) : who} জমি, ${placeSaid}। … নাসার পঁচিশ বছরের আবহাওয়া আর জমির মাটির আনুমানিক হিসাব দিয়ে দেখি, আগামী দশ বছরে এর মাটির কী হয়।`, `This is ${who}'s field, in ${placeSaid}. … With twenty-five years of NASA weather and the field's own soil, let's see what happens to it over the next ten years.`),
       draw: (g, t) => {
         g.fillStyle = C.green; g.font = `700 54px ${FONT}`; g.globalAlpha = ease(t * 2); g.fillText(T('আমার জমির ১০ বছর', 'My field’s ten years'), 90, 420);
         g.fillStyle = C.ink; g.font = `800 92px ${FONT}`; wrap(g, who, 90, 540, 900, 110);
         g.fillStyle = C.muted; g.font = `500 46px ${FONT}`; g.fillText(place, 90, 680);
-        g.font = `500 38px ${FONT}`; wrap(g, T('নাসার ২৫ বছরের আবহাওয়া · জমির নিজের মাটি · নাসার জলবায়ু মডেল', '25 years of NASA weather · the field’s own soil · NASA climate models'), 90, 800, 900, 56);
+        g.font = `500 38px ${FONT}`; wrap(g, T('নাসার ২৫ বছরের আবহাওয়া · জমির আনুমানিক মাটি (SoilGrids) · নাসার জলবায়ু মডেল', '25 years of NASA weather · the field’s estimated soil (SoilGrids) · NASA climate models'), 90, 800, 900, 56);
         g.globalAlpha = 1;
       } },
     { ms: 5000, say: T(`আগে দেখি এখনকার চাষ: ${d.habitSaid}। এভাবে চললে, দশ বছরে মাটির জৈব পদার্থ ${change(d.habitD)}।`, `First, farming as now: ${d.habitSaid}. Carry on like this, and in ten years the soil's organic matter ${change(d.habitD)}.`),

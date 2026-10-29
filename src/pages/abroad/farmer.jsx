@@ -286,7 +286,7 @@ export function Future() {
       <Section icon={Telescope} title={T('২০৪০-এর দশকে এই খামার', 'This farm in the 2040s')} sub={T('আটটি জলবায়ু মডেল, দুই পথে', 'Eight climate models, two paths')} tag={<SourceTag>NASA NEX-GDDP-CMIP6</SourceTag>}>
         <FuturePanel id={c.id} />
       </Section>
-      <Section icon={Sprout} title={T('ফসলচক্র আর মাটি, ১০ বছর', 'Rotations and the soil, ten years')} sub={T('এই খামারের নিজের মাটি আর দেশের ফলনে, বাংলাদেশের একই মডেলে', 'On this farm’s own soil and its country’s yields, with the same model as Bangladesh')} tag={<SourceTag>SoilGrids · FAOSTAT · CMIP6</SourceTag>}>
+      <Section icon={Sprout} title={T('ফসলচক্র আর মাটি, ১০ বছর', 'Rotations and the soil, ten years')} sub={T('এই খামারের আনুমানিক মাটি (SoilGrids) আর দেশের ফলনে, বাংলাদেশের একই মডেলে', 'On this farm’s estimated soil (SoilGrids) and its country’s yields, with the same model as Bangladesh')} tag={<SourceTag>SoilGrids · FAOSTAT · CMIP6</SourceTag>}>
         <AbroadRotations id={c.id} normals={data.points.farm.normals} />
       </Section>
       <Section icon={Waves} title={T('মাটির নিচের পানি আর শিকড়ের মাটি', 'Water underground and in the root zone')} sub={T('নাসার GRACE ও SMAP উপগ্রহ, এই খামারের অঞ্চলে', 'NASA’s GRACE and SMAP satellites, over this farm’s region')} tag={<SourceTag>NASA GRACE · SMAP</SourceTag>}>

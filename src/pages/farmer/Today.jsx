@@ -79,7 +79,7 @@ function FieldNow({ parcel, crop, dToday }) {
         <div className="p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-[18px] font-bold"><Satellite size={18} className="text-sky-700" />{T('উপগ্রহে আপনার জমি', 'Your field from space')}</h2>
-            <Tags list={['REAL']} />
+            <Tags list={['SAT']} />
           </div>
           {r ? (
             <>
@@ -239,7 +239,7 @@ export default function Today() {
           <Card className="spotlight-card lift p-5 sm:p-6" data-tour="today-weather">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-[20px] font-bold">{T('আপনার জমির আবহাওয়া', 'Weather at your field')}</h2>
-              {liveWeather ? <Tags list={['REAL']} /> : null}
+              {liveWeather ? <Tags list={['MODEL']} /> : null}
             </div>
             {wx ? (
               <>

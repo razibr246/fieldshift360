@@ -4,11 +4,18 @@
 // methods sit behind each answer, with their uncertainty and where local knowledge has to check them.
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Satellite, Ruler, Layers, Scale, Users, ArrowRight, Droplets, Leaf, Thermometer, CloudRain, Mountain, Waves, Sprout, Wind, Snowflake, FlaskConical } from 'lucide-react';
+import { BookOpen, Satellite, Ruler, Layers, Scale, Users, ArrowRight, Tag as TagIcon, Database, GitCompare, ClipboardCheck, Droplets, Leaf, Thermometer, CloudRain, Mountain, Waves, Sprout, Wind, Snowflake, FlaskConical } from 'lucide-react';
 import { useStore } from '../../store';
-import { Tags } from '../../components/ui';
+import { Tags, TagLegend } from '../../components/ui';
 import { num } from '../../engine/dates';
 import { rainCrossCheck } from '../../engine/climate';
+import { disagreements, modelSpread } from '../../engine/provenance';
+import { fieldTerrain } from '../../engine/briefs';
+import { fieldGreen } from '../../engine/landsat';
+import { RABI_CROPS, ROTATION_CROPS } from '../../engine/crops';
+import { reviewOf } from '../../data/reviews';
+import deltas from '../../data/climate/cmip6_deltas.json';
+import DataCoverage from '../../components/explain/DataCoverage';
 
 const t = (bn, en) => ({ bn, en });
 const TERMS = [
@@ -34,7 +41,8 @@ const SCALES = [
   ['SMAP L4', t('৯ কিমি, দিনে কয়েকবার', '9 km, several times a day'), t('মাসে দুই দিনের নমুনা, মাসের গড়', 'Two days a month sampled, averaged per month')],
   ['GRACE / GRACE-FO', t('প্রায় ৩০০ কিমি (ম্যাসকন), মাসিক', 'about 300 km (mascons), monthly'), t('অঞ্চলের প্রবণতা, জমির নয়', 'A regional trend, not the field’s')],
   ['NEX-GDDP-CMIP6', t('০.২৫°, মাসিক পরিবর্তন', '0.25°, monthly change'), t('প্রতিটি মডেলের মাসিক পরিবর্তন জমির ২৫ বছরের আবহাওয়ায় যোগ (delta পদ্ধতি)', 'Each model’s monthly change added to the field’s own 25 years (the delta method)')],
-  ['SRTM', t('৩০ মিটার, একবার (২০০০)', '30 m, once (2000)'), t('জমি আর তার চারপাশের উচ্চতা থেকে নিচু জমি আর ঢাল', 'Height at the field and round it: hollows and slopes')],
+  ['SRTM + ASTER', t('৩০ মিটার, ২০০০–২০১৩', '30 m, 2000–2013'), t('দুই মডেলের গড়: জমি আর তার চারপাশের উচ্চতা থেকে নিচু জমি আর ঢাল; দুটোর অমিলই জমির অনিশ্চয়তা', 'The mean of two models: height at the field and round it, for hollows and slopes; their disagreement is the field’s uncertainty')],
+  ['MODIS MOD13Q1', t('২৫০ মিটার, ১৬ দিনে একবার', '250 m, every 16 days'), t('জমির কেন্দ্রের পিক্সেল, প্রতি রবির জানুয়ারি-ফেব্রুয়ারি: কোন বছর ফসল চাপে ছিল', 'The pixel at the field’s centre, each Rabi’s January–February: the years the crop was stressed')],
   ['Sentinel-2 / HLS', t('১০–৩০ মিটার, ৫ দিনে একবার', '10–30 m, every 5 days'), t('জমির সীমানার ভেতরের পিক্সেল: কোন ফসল, কতটা সবুজ', 'The pixels inside the field boundary: which crop, how green')],
   ['ISRIC SoilGrids', t('২৫০ মিটার, একবার', '250 m, once'), t('জমির ঘরের মাটি: কার্বন, pH, বুনট, ঘনত্ব', 'The field’s cell: carbon, pH, texture, density')],
 ];
@@ -48,9 +56,11 @@ const METHODS = [
 ];
 
 export default function Science() {
-  const { T, L, s, clim } = useStore();
+  const { T, L, s, clim, upazila, activeParcel } = useStore();
   const lang = s.lang;
   const cross = useMemo(() => (clim ? rainCrossCheck(clim) : null), [clim]);
+  const terrain = fieldTerrain(activeParcel?.id);
+  const dis = useMemo(() => disagreements({ cross, terrain, field: fieldGreen(activeParcel?.id, upazila.id), spread: modelSpread(deltas, upazila.id) }), [cross, terrain, activeParcel?.id, upazila.id]);
   return (
     <div className="page-shell pb-24 pt-[110px] sm:pt-[124px]">
       <div className="hero-rise max-w-3xl">
@@ -92,8 +102,8 @@ export default function Science() {
           </ul>
           {cross && (
             <div className="mt-4 rounded-2xl bg-sky-50 p-4 text-[14.5px] leading-7 text-sky-950">
-              {T(`এখনই, গোদাগাড়ীর ২৫ রবি মৌসুমে নাসা POWER আর GPM IMERG উপগ্রহের বৃষ্টির মিল r = ${num(cross.rabi.r, 'bn', { dp: 2 })}; বর্ষায় r = ${num(cross.monsoon.r, 'bn', { dp: 2 })}। গড় রবির বৃষ্টি: POWER ${num(cross.rabi.power, 'bn')} মিমি, IMERG ${num(cross.rabi.imerg, 'bn')} মিমি।`, `Right now, over Godagari’s 25 Rabi seasons, NASA POWER and GPM IMERG satellite rain agree at r = ${cross.rabi.r.toFixed(2)}; in the monsoon r = ${cross.monsoon.r.toFixed(2)}. Mean Rabi rain: POWER ${Math.round(cross.rabi.power)} mm, IMERG ${Math.round(cross.rabi.imerg)} mm.`)}
-              <span className="ml-1 inline-block align-middle"><Tags list={['REAL']} /></span>
+              {T(`এখনই, ${upazila.name.bnOf ?? upazila.name.bn} ২৫ রবি মৌসুমে নাসা POWER আর GPM IMERG উপগ্রহের বৃষ্টির মিল r = ${num(cross.rabi.r, 'bn', { dp: 2 })}; বর্ষায় r = ${num(cross.monsoon.r, 'bn', { dp: 2 })}। গড় রবির বৃষ্টি: POWER ${num(cross.rabi.power, 'bn')} মিমি, IMERG ${num(cross.rabi.imerg, 'bn')} মিমি।`, `Right now, over ${upazila.name.en}’s 25 Rabi seasons, NASA POWER and GPM IMERG satellite rain agree at r = ${cross.rabi.r.toFixed(2)}; in the monsoon r = ${cross.monsoon.r.toFixed(2)}. Mean Rabi rain: POWER ${Math.round(cross.rabi.power)} mm, IMERG ${Math.round(cross.rabi.imerg)} mm.`)}
+              <span className="ml-1 inline-block align-middle"><Tags list={['MODEL', 'SAT']} /></span>
             </div>
           )}
         </div>
@@ -111,6 +121,49 @@ export default function Science() {
         </div>
       </section>
 
+      <section id="labels" className="mt-12 scroll-mt-28">
+        <h2 className="flex items-center gap-2 text-[24px] font-bold"><TagIcon size={20} className="text-primary-700" />{T('প্রতিটি সংখ্যার পাশের লেবেল', 'The label beside every number')}</h2>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('উপগ্রহে দেখা, স্টেশনে মাপা, মডেলে আনুমানিক, প্রকাশিত রেকর্ড, নিয়মে ধরা আর নমুনা: সারা অ্যাপে একই লেবেল, যাতে বোঝা যায় কোন সংখ্যা কতটা সরাসরি মাপ।', 'Seen by satellite, measured at a station, estimated by a model, a published record, assumed by a rule, or sample: the same labels across the app, so you can tell how direct each number is.')}</p>
+        <TagLegend className="mt-4 rounded-[22px] border border-border bg-white p-4" />
+      </section>
+
+      <section id="coverage" className="mt-12 scroll-mt-28">
+        <h2 className="flex items-center gap-2 text-[24px] font-bold"><Database size={20} className="text-primary-700" />{T('কোন তথ্য আছে, কোনটা নেই', 'Data coverage and gaps')}</h2>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('প্রতিটি উৎস: কী ধরনের প্রমাণ, হিসাবে ঢোকে না শুধু পাশে দেখানো, কোন বছর, কত বড় এলাকার, আর এই জমির জন্য আছে কি না, পুরোনো কি না।', 'Every source: what kind of evidence, whether it enters the calculation or is only shown beside it, which years, over how large an area, and whether it is here, and current, for this field.')}</p>
+        <div className="mt-4"><DataCoverage /></div>
+      </section>
+
+      <section id="disagree" className="mt-12 scroll-mt-28">
+        <h2 className="flex items-center gap-2 text-[24px] font-bold"><GitCompare size={20} className="text-primary-700" />{T('যেখানে উৎসগুলো মেলে না', 'Where the sources disagree')}</h2>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('একই জিনিস দুই উৎসে মাপলে পুরো মেলে না। কতটা অমিল, আর তাতে উত্তর কতটা কম নিশ্চিত, তা এখানে খোলাখুলি।', 'The same thing measured by two sources never agrees exactly. How far they differ, and how much less certain that makes the answer, is set out here.')}</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {dis.map((x) => <Disagree key={x.k} x={x} />)}
+        </div>
+      </section>
+
+      <section id="rules" className="mt-12 scroll-mt-28">
+        <h2 className="flex items-center gap-2 text-[24px] font-bold"><ClipboardCheck size={20} className="text-primary-700" />{T('ফসলের নিয়ম আর তাদের যাচাই', 'The crop rules and who has checked them')}</h2>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('প্রতিটি নিয়ম প্রকাশিত গবেষণা থেকে নেওয়া শুরুর মান (উৎস docs/THRESHOLDS.md-এ)। স্থানীয় কৃষিবিদ বা কৃষি কর্মকর্তা যাচাই করলে কে, কবে, কী বদলালেন তা এখানে আর docs/REVIEW_LOG.md-এ লেখা হবে। এখন পর্যন্ত কেউ যাচাই করেননি।', 'Each rule is a starting value from published research (sources in docs/THRESHOLDS.md). When a local agronomist or agriculture officer reviews them, who, when and what changed is recorded here and in docs/REVIEW_LOG.md. So far no one has.')}</p>
+        <div className="mt-4 overflow-x-auto rounded-[22px] border border-border bg-white">
+          <table className="w-full min-w-[640px] text-left text-[13.5px]">
+            <thead className="bg-canvas text-[12.5px] text-muted"><tr><th className="px-3 py-2.5 font-semibold">{T('ফসল', 'Crop')}</th><th className="px-3 py-2.5 font-semibold">{T('নিয়ম', 'Rules')}</th><th className="px-3 py-2.5 font-semibold">{T('কারণ', 'Rationale')}</th><th className="px-3 py-2.5 font-semibold">{T('স্থানীয় যাচাই', 'Local review')}</th></tr></thead>
+            <tbody>
+              {[...Object.values(RABI_CROPS), ...Object.values(ROTATION_CROPS)].filter((c) => c.rules?.length).map((c) => {
+                const rv = reviewOf(c.id);
+                return (
+                  <tr key={c.id} className="border-t border-border align-top">
+                    <td className="px-3 py-2.5 font-semibold">{L(c.name)}</td>
+                    <td className="px-3 py-2.5 tabular">{num(c.rules.length, lang)}</td>
+                    <td className="px-3 py-2.5 text-[12.5px] text-ink/80">{c.rules.map((r) => L(r)).join(' · ')}</td>
+                    <td className="px-3 py-2.5 text-[12.5px]">{rv.length ? rv.map((r) => `${r.who}, ${r.when}`).join('; ') : <span className="font-semibold text-amber-800">{T('এখনো হয়নি', 'Not yet')}</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section className="mt-12 rounded-[28px] bg-primary-950 p-7 text-white sm:p-9">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><Users size={22} className="text-paddy-300" />{T('যেখানে আপনার বিচারই শেষ কথা', 'Where your judgement has the last word')}</h2>
         <ul className="mt-3 grid gap-2.5 text-[15.5px] leading-7 text-white/85 sm:grid-cols-2">
@@ -122,5 +175,46 @@ export default function Science() {
         <Link to="/farmer/future" className="mt-6 inline-flex items-center gap-2 rounded-full bg-paddy-300 px-6 py-3 text-[16px] font-semibold text-primary-950">{T('আপনার জমির ১০ বছর দেখুন', 'See your field’s ten years')}<ArrowRight size={17} /></Link>
       </section>
     </div>
+  );
+}
+
+const LEVEL = {
+  small: { bn: 'অমিল কম', en: 'Small difference', cls: 'bg-primary-50 text-primary-800 ring-primary-200' },
+  some: { bn: 'কিছুটা অমিল', en: 'Some difference', cls: 'bg-paddy-50 text-paddy-800 ring-paddy-200' },
+  big: { bn: 'বড় অমিল', en: 'Large difference', cls: 'bg-red-50 text-red-800 ring-red-200' },
+};
+function Disagree({ x }) {
+  const { T, L, s } = useStore();
+  const n = (v, dp = 0) => num(v, s.lang, { dp });
+  const pm = (v, dp = 0) => { const r = Math.round(v * 10 ** dp) / 10 ** dp; return `${r > 0 ? '+' : r < 0 ? '−' : ''}${n(Math.abs(r), dp)}`; };
+  const body = {
+    rain: {
+      h: T('রবির বৃষ্টি: নাসা POWER বনাম GPM IMERG উপগ্রহ', 'Rabi rain: NASA POWER against the GPM IMERG satellite'),
+      v: T(`গড় রবিতে POWER ${n(x.a)} মিমি, IMERG ${n(x.b)} মিমি (${x.pct != null ? pm(x.pct) : '–'}%); বছর থেকে বছরে মিল r = ${n(x.r, 2)}।`, `In an average Rabi, POWER ${n(x.a)} mm, IMERG ${n(x.b)} mm (${x.pct != null ? pm(x.pct) : '–'}%); year-to-year agreement r = ${n(x.r, 2)}.`),
+      e: T('ফসলের বৃষ্টির নিয়ম POWER-এ চলে। অমিল বেশি হলে "বৃষ্টিতে ক্ষতি" কোন বছর হয়েছে তা নিয়ে কম নিশ্চিত হোন।', 'The crops’ rain rules run on POWER. The larger the gap, the less sure the “rain damage” years are.'),
+    },
+    terrain: {
+      h: T('জমির উচ্চতা: SRTM বনাম ASTER', 'Field height: SRTM against ASTER'),
+      v: T(`এই জমিতে দুই মডেল গড়ে ${n(x.spread, 1)} মিটার আলাদা; জমি চারপাশের চেয়ে ${n(Math.abs(x.relief), 1)} মিটার ${x.relief < 0 ? 'নিচু' : 'উঁচু'}।`, `At this field the two models differ by ${n(x.spread, 1)} m on average; the field sits ${n(Math.abs(x.relief), 1)} m ${x.relief < 0 ? 'below' : 'above'} the land round it.`),
+      e: T('অমিল নিচুর মাপের চেয়ে বড় হলে "পানি জমে" বলা যায় না: মাঠে দেখে নিন।', 'When the disagreement is larger than the hollow, “water stands here” cannot be claimed: look in the field.'),
+    },
+    green: {
+      h: T('রবির সবুজ: জমির ২৫০ মিটার পিক্সেল বনাম এলাকা', 'Rabi greenness: the field’s 250 m pixel against the area'),
+      v: T(`জমি NDVI ${n(x.a, 2)}, এলাকা ${n(x.b, 2)} (${pm(x.diff, 2)})।`, `Field NDVI ${n(x.a, 2)}, area ${n(x.b, 2)} (${pm(x.diff, 2)}).`),
+      e: T('বড় ফারাক মানে এলাকার গড় এই জমির কথা বলে না: জমির নিজের মাপকে বেশি গুরুত্ব দেওয়া হয়।', 'A large gap means the area average does not describe this field: the field’s own record is given more weight.'),
+    },
+    models: {
+      h: T('২০৪০-এর দশক: ৮টি জলবায়ু মডেল', 'The 2040s: eight climate models'),
+      v: T(`বছরের বৃষ্টির পরিবর্তন ${pm(x.rainMin)}% থেকে ${pm(x.rainMax)}%; রবির দিনের তাপ ${pm(x.heatMin, 1)}° থেকে ${pm(x.heatMax, 1)}°।`, `Change in yearly rain from ${pm(x.rainMin)}% to ${pm(x.rainMax)}%; Rabi daytime heat from ${pm(x.heatMin, 1)}° to ${pm(x.heatMax, 1)}°.`),
+      e: T('মডেলগুলো একমত নয়, তাই এদের গড় নয়, প্রতিটি আলাদা চালানো হয় (জমির ভবিষ্যতে ৮ মডেলের পরীক্ষা)।', 'The models do not agree, so each is run on its own rather than averaged (Field Future’s eight-model test).'),
+    },
+  }[x.k];
+  const lv = LEVEL[x.level];
+  return (
+    <article className="rounded-[22px] border border-border bg-white p-4">
+      <div className="flex items-start justify-between gap-2"><h3 className="text-[15.5px] font-bold">{body.h}</h3><span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-bold ring-1 ${lv.cls}`}>{L(lv)}</span></div>
+      <p className="mt-1.5 text-[14px] font-semibold leading-6 text-ink/85">{body.v}</p>
+      <p className="mt-1 text-[13.5px] leading-6 text-muted">{body.e}</p>
+    </article>
   );
 }

@@ -133,7 +133,7 @@ export const FARMER_TOUR = [
     try: { bn: 'চার্টের ওপরের বোতামে চেপে অন্য মাপ দেখুন (গরম দিন, বৃষ্টি, শীত)।', en: 'Tap the buttons above the chart for other measures (hot days, rain, cold).' } },
   { chapter: 'plan', path: '/farmer/plan', step: 2, at: 'plan-body',
     title: { bn: 'ধাপ ৩: মাটি আর সার', en: 'Step 3: soil and fertiliser' },
-    say: { bn: 'আপনার মাটির pH, জৈব পদার্থ, বুনট; মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউটের (SRDI) নির্দেশিকা ধরে আপনার জমির মাপে কোন সার কত কেজি আর আনুমানিক খরচ।', en: 'Your soil’s pH, organic matter and texture; from the SRDI guide, how many kilos of each fertiliser your field needs and the rough cost.' },
+    say: { bn: 'আপনার জমির মাটির আনুমানিক pH, জৈব পদার্থ, বুনট (SoilGrids মডেল, মাটি পরীক্ষা নয়); মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউটের (SRDI) নির্দেশিকা ধরে আপনার জমির মাপে কোন সার কত কেজি আর আনুমানিক খরচ।', en: 'Your field’s estimated soil pH, organic matter and texture (the SoilGrids model, not a soil test); from the SRDI guide, how many kilos of each fertiliser your field needs and the rough cost.' },
     why: { bn: 'বেশি সারে টাকা নষ্ট, কমে ফলন কম; ঠিক মাপে দুটোই বাঁচে।', en: 'Too much fertiliser wastes money, too little loses yield; the right dose saves both.' },
     try: { bn: 'যেকোনো সংখ্যার পাশে "কেন?" চাপলে দেখবেন হিসাবটা কোথা থেকে এল।', en: 'Tap "Why?" beside any number to see where it came from.' } },
   { chapter: 'plan', path: '/farmer/plan', step: 3, at: 'plan-body',

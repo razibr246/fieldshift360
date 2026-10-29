@@ -29,7 +29,7 @@ export default function StrategyBriefs({ list, sumOf, world, terrain, rotName })
           <h2 className="text-[20px] font-bold">{T('প্রতিটি পথ: কেন, কোন তথ্যে, কী ঝুঁকি', 'Each strategy: why, on what evidence, with what risks')}</h2>
           <p className="mt-0.5 text-[13.5px] leading-6 text-muted">{T('প্রতিটি ফসলচক্র কেন এসেছে, কোন তথ্য তা বলছে, কী লাভ হতে পারে, কোথায় তথ্যের ঘাটতি, আর কোন ঝুঁকি আপনার কৃষি কর্মকর্তা বা অভিজ্ঞ কৃষকের সঙ্গে মিলিয়ে নেওয়া দরকার।', 'Why each rotation came up, what evidence supports it, what it may offer, where information is missing, and which risks to review with your agriculture officer or experienced farmers.')}</p>
         </div>
-        <Tags list={['REAL', 'RULE']} />
+        <Tags list={['SAT', 'MODEL', 'RULE']} />
       </div>
       <Segmented className="mt-3" value={c.id} onChange={setAt} options={list.map((x) => ({ value: x.id, label: x.name }))} />
       <p className="mt-2 text-[13px] text-muted">{rotName(c.e.rot)}</p>

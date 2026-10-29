@@ -54,8 +54,8 @@ export default function Home() {
               <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('ঠিক সময়ে।', 'At the right time.')}</span>
             </h1>
             <p className="mt-5 max-w-[33rem] text-[18px] leading-[1.65] tracking-[-0.005em] text-ink/70 sm:text-[20px]">
-              {T(<>আপনার জমির মাটি, <span className="font-medium text-ink">২৫ বছরের নাসার আবহাওয়া</span> আর পাশের কৃষকেরা কী লাগাচ্ছেন — সব মিলিয়ে {PROJECT_NAME} বলে দেয় কোন ফসল, কবে লাগালে <span className="font-medium text-ink">লাভ বেশি, ঝুঁকি কম</span>।</>,
-                <>Your soil, <span className="font-medium text-ink">25 years of NASA weather</span> and what your neighbours are planting — {PROJECT_NAME} weighs it all and tells you which crop to sow, and when, for <span className="font-medium text-ink">more profit and less risk</span>.</>)}
+              {T(<>আপনার জমির মাটির আনুমানিক হিসাব, <span className="font-medium text-ink">২৫ বছরের নাসার আবহাওয়া</span> আর পাশের কৃষকেরা কী লাগাচ্ছেন — সব মিলিয়ে {PROJECT_NAME} বলে দেয় কোন ফসল, কবে লাগালে <span className="font-medium text-ink">লাভ বেশি, ঝুঁকি কম</span>।</>,
+                <>An estimate of your soil, <span className="font-medium text-ink">25 years of NASA weather</span> and what your neighbours are planting — {PROJECT_NAME} weighs it all and tells you which crop to sow, and when, for <span className="font-medium text-ink">more profit and less risk</span>.</>)}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button to="/farmer/plan" className="btn-gloss !rounded-full px-6 py-3 text-[16px]"><Sprout size={19} />{T('আমার জমির হিসাব দেখুন', 'Work out my field')}</Button>
@@ -231,7 +231,7 @@ export default function Home() {
                   [T('নাসা SEDAC', 'NASA SEDAC'), T('প্রায় ১ কিলোমিটার', 'about 1 km'), T('উপজেলার জনঘনত্ব, ১০ মিটারের নিচের নিচু জমি, ফসলি জমির ভাগ (ওপরে)', 'Each upazila’s population density, low land below 10 m, cropland share (above)')],
                   [T('নাসার ছবির ভান্ডার', 'NASA Images'), '—', T('মহাকাশ থেকে ব-দ্বীপ, সুন্দরবন আর রূপগঞ্জ (ওপরে)', 'The delta, the Sundarbans and Rupganj from space (above)')],
                   [T('কোপার্নিকাস সেন্টিনেল-১ ও ২', 'Copernicus Sentinel-1 and 2'), T('১০ মিটার', '10 m'), T('আমন রোপণের তারিখ (রাডার); প্রতিটি জমির সবুজ, আর্দ্রতা আর আসল ফসলচক্র', 'Aman transplanting dates (radar); each field’s green cover, moisture and actual rotation')],
-                  [T('ISRIC SoilGrids, মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট', 'ISRIC SoilGrids, SRDI soil guide'), T('২৫০ মিটার · ইউনিয়ন', '250 m · union'), T('জমির মাটির কার্বন, pH, বুনট; ইউনিয়নের সার সুপারিশ', 'The field’s soil carbon, pH and texture; the union’s fertiliser doses')],
+                  [T('ISRIC SoilGrids, মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট', 'ISRIC SoilGrids, SRDI soil guide'), T('২৫০ মিটার · ইউনিয়ন', '250 m · union'), T('জমির ঘরের আনুমানিক কার্বন, pH, বুনট (মডেল, মাটি পরীক্ষা নয়); ইউনিয়নের সার সুপারিশ', 'The field’s soil carbon, pH and texture; the union’s fertiliser doses')],
                   [T('আবহাওয়া অধিদপ্তর, বিবিএস, FAOSTAT, কৃষি বিপণন অধিদপ্তর', 'BMD, BBS, FAOSTAT, DAM'), T('স্টেশন · জেলা · দেশ', 'station · district · country'), T('তাপ সংশোধন আর বর্ষা শুরুর যাচাই; জমি, ফলন, দাম, জনসংখ্যা', 'Temperature correction and the onset check; areas, yields, prices, population')],
                   ['Open-Meteo', T('প্রায় ১০ কিলোমিটার', 'about 10 km'), T('লাইভ আবহাওয়া, ৮ দিনের পূর্বাভাস আর আজকের সেচের পরামর্শ (ইন্টারনেট থাকলে)', 'Live weather, the 8-day forecast and today’s irrigation advice (when online)')],
                   [T('নমুনা কৃষক ও পরিকল্পনা', 'Sample farmers and plans'), '—', T('দাম পড়ার সতর্কতা, কর্মকর্তার কাজ দেখানো', 'Price-drop warning and the officer workflow')],
