@@ -95,7 +95,7 @@ function Dream({ id, onExit }) {
         if (alive) setXr({ vr, ar });
       }
     });
-    return () => { alive = false; clearInterval(pumpTimer.current); w.scene?.dispose(); w.scene = null; snd.dispose(); window.speechSynthesis?.cancel(); };
+    return () => { alive = false; clearInterval(pumpTimer.current); w.scene?.dispose(); w.scene = null; snd.dispose(); if (speech.current?.stopSpeaking) speech.current.stopSpeaking(); else window.speechSynthesis?.cancel(); };
   }, [id, dream]);
 
   // music and the people follow the mood
@@ -115,7 +115,11 @@ function Dream({ id, onExit }) {
     if (line.mood === 'joy' && line.who === 'child') sc.burst('confetti', 'child');
   }, [line, ready, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // read each line aloud (when the device has a voice for the language)
+  // read each line aloud: the natural Gemini voice from voice/speech.js when that version is there (it falls back to
+  // the browser's voice by itself), otherwise the browser's voice directly
+  const speech = useRef(null);
+  useEffect(() => { import('../../voice/speech').then((m) => { speech.current = m; }).catch(() => {}); }, []);
+  const hush = () => { if (speech.current?.stopSpeaking) speech.current.stopSpeaking(); else window.speechSynthesis?.cancel(); };
   const [noVoice, setNoVoice] = useState(false);
   useEffect(() => {
     const check = () => { const v = window.speechSynthesis?.getVoices() ?? []; setNoVoice(lang === 'bn' && v.length > 0 && !v.some((x) => /^bn/i.test(x.lang))); };
@@ -123,11 +127,14 @@ function Dream({ id, onExit }) {
     return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', check);
   }, [lang]);
   useEffect(() => {
-    if (!read || !line || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
+    if (!read || !line) return;
+    hush();
+    const pitch = line.who === 'child' ? 1.35 : line.who === 'tara' ? 1.2 : line.who === 'frog' ? 1.6 : 0.95;
+    if (speech.current?.speakNatural) { speech.current.speakNatural(L(line), lang, { rate: 0.92, pitch }); return; }
+    if (!window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(L(line));
     u.lang = lang === 'bn' ? 'bn-BD' : 'en-GB';
-    u.rate = 0.92; u.pitch = line.who === 'child' ? 1.35 : line.who === 'tara' ? 1.2 : line.who === 'frog' ? 1.6 : 0.95;
+    u.rate = 0.92; u.pitch = pitch;
     window.speechSynthesis.speak(u);
   }, [line, read, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -172,7 +179,7 @@ function Dream({ id, onExit }) {
   }
 
   function next() {
-    window.speechSynthesis?.cancel();
+    hush();
     if (phase === 'lines' && n < scene.lines.length - 1) { setN(n + 1); return; }
     if (phase === 'lines' && scene.action) { if (scene.action.kind === 'find') world.current.scene?.holdEarth(true); setPhase('action'); return; }
     if (phase === 'lines' && scene.kind === 'game') {
