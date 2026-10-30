@@ -133,3 +133,33 @@ test('each field’s Rabi greenness a generation ago (Landsat) sits beside today
   assert.equal(r.direction, Math.abs(r.change) <= 0.05 ? 'similar' : r.change > 0 ? 'greener' : 'browner');
   assert.equal(landsatThenNow('nope', 'dacope'), null);
 });
+
+test('the machine-learning results are honest: tested on unseen seasons, compared with the base rate, verdicts per place', async () => {
+  const { MODEL, placeVerdict, bestApproach, treeQuestions } = await import('./stressModel.js');
+  assert.match(MODEL.provenance.validation, /leave one season out/);
+  assert.equal(MODEL.features.length, 6);
+  for (const k of ['ridge', 'logistic', 'tree', 'base']) assert.ok(MODEL.area.stressed[k], k);
+  assert.ok(MODEL.area.n >= 150 && MODEL.field.n >= 400);
+  const v = ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat'].map(placeVerdict);
+  assert.ok(v.every((x) => x && ['explains', 'little', 'other'].includes(x.kind)));
+  assert.ok(v.some((x) => x.kind === 'explains') && v.some((x) => x.kind !== 'explains'), 'some places follow the weather, some do not');
+  assert.ok(bestApproach()[1].auc > 0.5, 'the best approach beats chance on unseen seasons');
+  assert.ok(treeQuestions().length >= 1 && treeQuestions()[0].feature.en);
+  assert.equal(placeVerdict('nowhere'), null);
+});
+
+test('the trend map has years and values for every place on every layer, with a diverging colour', async () => {
+  const { trendLayer, trendColor, TREND_LAYERS } = await import('./trends.js');
+  const { readFileSync } = await import('node:fs');
+  const ws = JSON.parse(readFileSync(new URL('../data/water/water_sat.json', import.meta.url)));
+  const places = ['godagari', 'dhamrai', 'sitakunda', 'dacope', 'bakerganj', 'gangachara', 'gowainghat', 'india', 'pakistan', 'nepal', 'bhutan', 'myanmar'];
+  for (const k of Object.keys(TREND_LAYERS)) {
+    const t = trendLayer(k, ws, places);
+    assert.ok(t.years.length >= 8, `${k} years`);
+    assert.ok(places.filter((p) => Object.keys(t.values[p]).length).length >= 7, `${k}: most places have values`);
+  }
+  assert.ok(trendLayer('grace', ws, ['godagari']).years[0] <= 2003);
+  assert.equal(trendColor(0, 10), 'rgb(245,245,240)');
+  assert.notEqual(trendColor(-10, 10), trendColor(10, 10));
+  assert.equal(trendColor(null, 10), '#9aa59e');
+});

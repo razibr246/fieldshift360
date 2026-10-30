@@ -13,10 +13,13 @@ import { rainCrossCheck } from '../../engine/climate';
 import { disagreements, modelSpread } from '../../engine/provenance';
 import { fieldTerrain } from '../../engine/briefs';
 import { fieldGreen, stressMethods, landRecord } from '../../engine/landsat';
+import { MODEL, placeVerdict, treeQuestions } from '../../engine/stressModel';
+import { UPAZILAS } from '../../data/upazilas';
 import { RABI_CROPS, ROTATION_CROPS } from '../../engine/crops';
 import { reviewOf } from '../../data/reviews';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import DataCoverage from '../../components/explain/DataCoverage';
+import TrendMap from '../../components/map/TrendMap';
 
 const t = (bn, en) => ({ bn, en });
 const TERMS = [
@@ -128,6 +131,12 @@ export default function Science() {
         <TagLegend className="mt-4 rounded-[22px] border border-border bg-white p-4" />
       </section>
 
+      <section id="trends" className="mt-12 scroll-mt-28">
+        <h2 className="flex items-center gap-2 text-[24px] font-bold"><Satellite size={20} className="text-primary-700" />{T('বছরের পর বছর: মানচিত্রে দীর্ঘ ধারা', 'Year after year: long-term trends on a map')}</h2>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('সাত উপজেলা আর প্রতিবেশী পাঁচ দেশের খামারে মাটির নিচের পানি, রবির সবুজ আর মাটির ভেজা ভাব কীভাবে বদলেছে। চালু করে বছরগুলো চলতে দেখুন।', 'How water underground, Rabi greenness and soil water have changed at the seven upazilas and the five neighbouring farms. Press play and watch the years go by.')}</p>
+        <div className="mt-4 rounded-[22px] border border-border bg-white p-4"><TrendMap /></div>
+      </section>
+
       <section id="coverage" className="mt-12 scroll-mt-28">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><Database size={20} className="text-primary-700" />{T('কোন তথ্য আছে, কোনটা নেই', 'Data coverage and gaps')}</h2>
         <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T('প্রতিটি উৎস: কী ধরনের প্রমাণ, হিসাবে ঢোকে না শুধু পাশে দেখানো, কোন বছর, কত বড় এলাকার, আর এই জমির জন্য আছে কি না, পুরোনো কি না।', 'Every source: what kind of evidence, whether it enters the calculation or is only shown beside it, which years, over how large an area, and whether it is here, and current, for this field.')}</p>
@@ -143,6 +152,8 @@ export default function Science() {
       </section>
 
       <MethodsCompare />
+
+      <MachineLearning />
 
       <section id="rules" className="mt-12 scroll-mt-28">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><ClipboardCheck size={20} className="text-primary-700" />{T('ফসলের নিয়ম আর তাদের যাচাই', 'The crop rules and who has checked them')}</h2>
@@ -266,6 +277,58 @@ function MethodsCompare() {
         ))}
       </div>
       <p className="mt-2 text-[12.5px] text-muted">{T('একটা পিক্সেল প্রায় ১৫ বিঘা: জমি আর তার পাশের জমি একসঙ্গে। মেঘলা দিনে MODIS-এর মান কম আসে; প্রতি মাসের সবচেয়ে বেশি মানটা রাখা হয়।', 'One pixel is about 15 bigha: the field and its neighbours together. Clouds pull MODIS values down; each month keeps its highest composite.')}</p>
+    </section>
+  );
+}
+
+// Machine learning on NASA data, tested on seasons it never saw (engine/stressModel.js, scripts/build/train_stress_model.mjs):
+// which approach did best, where the weather explains the crop's year and where it does not, and what that means.
+const APPROACH = { base: { bn: 'সবসময় গড় ধরা', en: 'Always the average' }, ridge: { bn: 'রিজ রিগ্রেশন', en: 'Ridge regression' }, logistic: { bn: 'লজিস্টিক রিগ্রেশন', en: 'Logistic regression' }, tree: { bn: 'সিদ্ধান্ত-গাছ (দুই ধাপ)', en: 'Decision tree (two levels)' } };
+const VERDICT = {
+  explains: { bn: 'আবহাওয়া কিছুটা ব্যাখ্যা করে', en: 'Weather explains part of it', cls: 'bg-primary-50 text-primary-800 ring-primary-200' },
+  little: { bn: 'আবহাওয়া প্রায় কিছুই বলে না', en: 'Weather adds almost nothing', cls: 'bg-paddy-50 text-paddy-800 ring-paddy-200' },
+  other: { bn: 'অন্য কিছু ঠিক করে (সেচ, জোয়ার, লবণ)', en: 'Something else decides (irrigation, tides, salt)', cls: 'bg-sky-50 text-sky-900 ring-sky-200' },
+};
+function MachineLearning() {
+  const { T, L, s } = useStore();
+  const n = (v, dp = 2) => num(Math.abs(v) < 0.005 ? 0 : v, s.lang, { dp }); // no "−0"
+  const st = MODEL.area.stressed;
+  const places = Object.keys(MODEL.perPlace).map((id) => ({ id, ...placeVerdict(id) }));
+  const q = treeQuestions()[0];
+  return (
+    <section id="ml" className="mt-12 scroll-mt-28">
+      <h2 className="flex items-center gap-2 text-[24px] font-bold"><Layers size={20} className="text-primary-700" />{T('মেশিন লার্নিং: নাসার তথ্য কী বলতে পারে, কী পারে না', 'Machine learning: what NASA data can and cannot predict')}</h2>
+      <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">{T(`প্রশ্ন: একটা রবি মৌসুমের আবহাওয়া (বৃষ্টি, ভারী বৃষ্টি, ঠান্ডা রাত, গরম দিন, মাটির ভেজা ভাব, আগের বর্ষা) দেখে কি বলা যায় সেবার ফসল কতটা সবুজ বা চাপে থাকবে? সাত উপজেলার ${n(MODEL.area.seasons, 0)} মৌসুমে (${n(MODEL.area.n, 0)}টি উদাহরণ) চারটি পদ্ধতি শেখানো হয়েছে, আর প্রতিটি বছর এমন মডেল দিয়ে পরীক্ষা করা হয়েছে যা সেই বছর কখনো দেখেনি।`, `The question: from a Rabi season’s weather (rain, heavy rain, cold nights, warm days, soil wetness, the monsoon before), can we tell how green or stressed the crops will be? Four approaches were trained on ${MODEL.area.seasons} seasons in seven upazilas (${MODEL.area.n} examples), and every year was tested by a model that never saw it.`)}</p>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="overflow-x-auto rounded-[22px] border border-border bg-white">
+          <table className="w-full min-w-[420px] text-left text-[13.5px]">
+            <thead className="bg-canvas text-[12.5px] text-muted"><tr><th className="px-3 py-2.5 font-semibold">{T('পদ্ধতি', 'Approach')}</th><th className="px-3 py-2.5 font-semibold">{T('চাপের বছর চেনা (AUC)', 'Spots stressed seasons (AUC)')}</th><th className="px-3 py-2.5 font-semibold">{T('গড়ের চেয়ে ভালো', 'Better than the average')}</th></tr></thead>
+            <tbody>{Object.entries(APPROACH).map(([k, a]) => st[k] && (
+              <tr key={k} className="border-t border-border"><td className="px-3 py-2.5 font-semibold">{L(a)}</td><td className="px-3 py-2.5 tabular">{k === 'base' ? T('— (তুলনার ভিত্তি)', '— (the floor)') : st[k].auc == null ? '–' : n(st[k].auc)}</td><td className="px-3 py-2.5 tabular">{st[k].skill == null ? T('—', '—') : `${st[k].skill >= 0 ? '+' : '−'}${n(Math.abs(st[k].skill * 100), 0)}%`}</td></tr>
+            ))}</tbody>
+          </table>
+          <p className="border-t border-border px-3 py-2 text-[12px] leading-5 text-muted">{T('AUC ০.৫ মানে আন্দাজের সমান, ১ মানে নিখুঁত। "গড়ের চেয়ে ভালো" ভুলের পরিমাণ (Brier) দিয়ে মাপা; রিজ সবুজের মাত্রা আন্দাজ করে, তাই তার AUC আছে, Brier নেই।', 'AUC 0.5 is no better than chance, 1 is perfect. “Better than the average” is measured by the error (Brier score); ridge estimates how green, so it has an AUC but no Brier score.')}</p>
+        </div>
+        <div className="rounded-[22px] border border-border bg-white p-4">
+          <h3 className="text-[15.5px] font-bold">{T('জায়গা ভেদে: আবহাওয়া কি ফসলের বছর ব্যাখ্যা করে?', 'Place by place: does the weather explain the crop’s year?')}</h3>
+          <ul className="mt-2 space-y-1.5">{places.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 text-[13.5px]">
+              <span className="font-semibold">{L(UPAZILAS[p.id].name)}</span>
+              <span className="flex items-center gap-2"><span className="tabular text-muted">r {n(p.r)}</span><span className={`rounded-full px-2.5 py-0.5 text-[12px] font-bold ring-1 ${VERDICT[p.kind].cls}`}>{L(VERDICT[p.kind])}</span></span>
+            </li>
+          ))}</ul>
+        </div>
+      </div>
+      <div className="mt-4 rounded-[22px] bg-primary-950 p-5 text-[15px] leading-7 text-white/90">
+        <p className="font-bold text-white">{T('এর মানে কী', 'What this means')}</p>
+        <ul className="mt-2 list-disc space-y-1.5 pl-5">
+          <li>{T('যেখানে রবির ফসল বৃষ্টির ওপর নির্ভর করে (সীতাকুণ্ড, গোয়াইনঘাট), সেখানে আবহাওয়া ফসলের বছরের কিছুটা আগে থেকে বলে দেয়। সেচের বোরো, জোয়ার বা লবণের এলাকায় আবহাওয়া প্রায় কিছুই বলে না: সেখানে সেচ, পানি আর ব্যবস্থাপনাই ঠিক করে।', 'Where the Rabi crop depends on rain (Sitakunda, Gowainghat), the weather foretells part of the crop’s year. In irrigated Boro, tidal or salty areas it says almost nothing: irrigation, water and management decide there.')}</li>
+          <li>{T(`একটা জমির পর্যায়ে আবহাওয়া চাপের বছর প্রায় চেনেই না (AUC ${n(MODEL.field.stressed.ridge.auc)}): জমির চাপ আসে বোনার দিন, সেচ, পোকা আর ফসল বদলানো থেকে, যা উপগ্রহ দেখে না, কৃষক জানেন।`, `At a single field the weather barely recognises stressed seasons (AUC ${n(MODEL.field.stressed.ridge.auc)}): a field’s stress comes from sowing date, irrigation, pests and changes of crop, which the satellites do not see and the farmer knows.`)}</li>
+          <li>{T('তাই এই অ্যাপ কালো বাক্সের ভবিষ্যদ্বাণী দেয় না: খোলা নিয়ম, ২৫ মৌসুমের তথ্য আর মাঠে যাচাই। মাত্র ২৪টি মৌসুম আর সাতটি জায়গা: মডেল পথ দেখায়, ভবিষ্যৎ বলে না।', 'That is why this app gives no black-box forecast: open rules, 25 seasons of records and checks in the field. With only 24 seasons and seven places, the models point the way; they do not foretell.')}</li>
+          {q && <li>{T(`সিদ্ধান্ত-গাছের প্রথম প্রশ্ন: "${q.feature.bn} কি স্বাভাবিকের চেয়ে কম?" — চাপের বছর আলাদা করতে এটাই সবচেয়ে কাজের।`, `The decision tree’s first question: “Is the ${q.feature.en.toLowerCase()} below normal?” — the single most useful question for telling stressed seasons apart.`)}</li>}
+        </ul>
+      </div>
+      <p className="mt-2 text-[12px] leading-5 text-muted">{T('শেখানোর তথ্য: নাসা POWER দৈনিক আবহাওয়া (BMD-তে মেলানো) আর মাটির ভেজা ভাব, MODIS-এর রবির সবুজ। কোড: scripts/build/train_stress_model.mjs; ফল: src/data/models/stress_model.json।', 'Training data: NASA POWER daily weather (matched to BMD) and soil wetness, MODIS Rabi greenness. Code: scripts/build/train_stress_model.mjs; results: src/data/models/stress_model.json.')}</p>
     </section>
   );
 }

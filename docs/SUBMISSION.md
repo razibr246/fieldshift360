@@ -81,6 +81,10 @@ risks and what needs local review, and the app says plainly that the farmer and 
   there are less certain); SMAP L4 against POWER root-zone wetness, r = 0.89–0.96 over 128 months, a consistency
   check rather than independent validation since both draw on NASA's GEOS land modelling; SRTM against ASTER at the
   19 registered fields, 1.0–11.9 m apart, shown per field. Details: `docs/EVIDENCE.md`.
+- **Machine learning, tested honestly:** ridge, logistic and decision-tree models trained on NASA POWER weather and
+  soil wetness and tested on seasons they never saw. They find part of the crop's year in the weather only where
+  Rabi crops follow the rain (Sitakunda, Gowainghat), and nothing at a single field; so the app keeps open rules and
+  local review instead of a black-box forecast (`/science#ml`).
 - **Checked against the ground:** the rain-onset rule agrees with Bangladesh Meteorological Department station-based
   onsets (Han et al. 2024) within a week at Rajshahi, Barishal and Dinajpur; POWER temperatures are corrected to the
   nearest BMD station's 1991–2020 normals.

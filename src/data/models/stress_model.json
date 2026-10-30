@@ -1,0 +1,407 @@
+{
+ "provenance": {
+  "status": "REAL",
+  "method": "scripts/build/train_stress_model.mjs",
+  "area": "each upazila’s Rabi (Jan–Feb) MODIS NDVI z-score against its own trend (engine/landsat.js landSummary)",
+  "field": "a registered field’s MODIS 250 m Rabi NDVI one standard deviation or more below its own trend (fieldGreen)",
+  "clues": "NASA POWER daily weather (station-corrected) and GWETROOT root-zone soil wetness (MERRA-2), each as the difference from that place’s own 2002–2025 normal",
+  "validation": "leave one season out: each season is predicted by models that never saw it",
+  "caveat": "seven places and 24 seasons: a guide to which weather matters, not a forecast of a field’s crop",
+  "built": "2026-10-30"
+ },
+ "features": [
+  {
+   "k": "rabiRain",
+   "bn": "রবির বৃষ্টি (নভেম্বর-ফেব্রুয়ারি, মিমি)",
+   "en": "Rabi rain (Nov–Feb, mm)"
+  },
+  {
+   "k": "burst",
+   "bn": "সবচেয়ে ভারী টানা তিন দিনের বৃষ্টি (মিমি)",
+   "en": "Heaviest three-day rain (mm)"
+  },
+  {
+   "k": "coldNights",
+   "bn": "ঠান্ডা রাত (ডিসেম্বর-জানুয়ারি, ১০° বা নিচে)",
+   "en": "Cold nights (Dec–Jan, 10 °C or below)"
+  },
+  {
+   "k": "warmDays",
+   "bn": "গরম দিন (জানুয়ারি-ফেব্রুয়ারি, ২৮° বা বেশি)",
+   "en": "Warm days (Jan–Feb, 28 °C or more)"
+  },
+  {
+   "k": "soilWet",
+   "bn": "শিকড়ের মাটির ভেজা ভাব (নভেম্বর-ফেব্রুয়ারি)",
+   "en": "Root-zone soil wetness (Nov–Feb)"
+  },
+  {
+   "k": "monsoon",
+   "bn": "আগের বর্ষার বৃষ্টি (জুন-সেপ্টেম্বর, মিমি)",
+   "en": "Previous monsoon rain (Jun–Sep, mm)"
+  }
+ ],
+ "area": {
+  "n": 168,
+  "positives": 21,
+  "seasons": 24,
+  "greenness": {
+   "r": 0.15,
+   "skill": -0.017
+  },
+  "stressed": {
+   "ridge": {
+    "auc": 0.583
+   },
+   "logistic": {
+    "auc": 0.54,
+    "brier": 0.1167,
+    "skill": -0.024
+   },
+   "tree": {
+    "auc": 0.467,
+    "brier": 0.1247,
+    "skill": -0.094
+   },
+   "base": {
+    "auc": 0.059,
+    "brier": 0.114,
+    "skill": 0
+   }
+  }
+ },
+ "field": {
+  "n": 456,
+  "positives": 67,
+  "seasons": 24,
+  "greenness": {
+   "r": 0.03,
+   "skill": -0.035
+  },
+  "stressed": {
+   "ridge": {
+    "auc": 0.526
+   },
+   "logistic": {
+    "auc": 0.435,
+    "brier": 0.1296,
+    "skill": -0.023
+   },
+   "tree": {
+    "auc": 0.354,
+    "brier": 0.1345,
+    "skill": -0.061
+   },
+   "base": {
+    "auc": 0.238,
+    "brier": 0.1267,
+    "skill": 0
+   }
+  }
+ },
+ "perPlace": {
+  "godagari": {
+   "n": 24,
+   "r": 0.258,
+   "skill": 0.01,
+   "rain": 0.354,
+   "warm": -0.186
+  },
+  "dhamrai": {
+   "n": 24,
+   "r": 0.017,
+   "skill": -0.089,
+   "rain": 0.412,
+   "warm": 0.24
+  },
+  "sitakunda": {
+   "n": 24,
+   "r": 0.403,
+   "skill": 0.147,
+   "rain": 0.551,
+   "warm": 0.054
+  },
+  "dacope": {
+   "n": 24,
+   "r": -0.556,
+   "skill": -0.357,
+   "rain": 0.143,
+   "warm": 0.164
+  },
+  "bakerganj": {
+   "n": 24,
+   "r": -0.003,
+   "skill": -0.084,
+   "rain": 0.083,
+   "warm": 0.317
+  },
+  "gangachara": {
+   "n": 24,
+   "r": -0.642,
+   "skill": -0.199,
+   "rain": 0.076,
+   "warm": 0.081
+  },
+  "gowainghat": {
+   "n": 24,
+   "r": 0.436,
+   "skill": 0.172,
+   "rain": 0.539,
+   "warm": -0.031
+  }
+ },
+ "ridge": {
+  "b": 0.0013,
+  "w": [
+   0.26,
+   0.0608,
+   -0.0581,
+   0.2206,
+   0.2559,
+   -0.1024
+  ]
+ },
+ "logistic": {
+  "b": -2.3941,
+  "w": [
+   0.0634,
+   -1.111,
+   -0.2473,
+   -0.2411,
+   -0.7568,
+   0.448
+  ],
+  "mu": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "sd": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ]
+ },
+ "tree": {
+  "feature": "rabiRain",
+  "below": -0.3,
+  "left": {
+   "feature": "monsoon",
+   "below": -0.45,
+   "left": {
+    "p": 0.114,
+    "n": 42
+   },
+   "right": {
+    "p": 0.318,
+    "n": 42
+   },
+   "n": 84
+  },
+  "right": {
+   "feature": "burst",
+   "below": 0.12,
+   "left": {
+    "p": 0.148,
+    "n": 25
+   },
+   "right": {
+    "p": 0.033,
+    "n": 59
+   },
+   "n": 84
+  },
+  "n": 168
+ },
+ "normal": {
+  "godagari": [
+   [
+    33.462,
+    26.154
+   ],
+   [
+    16.175,
+    14.241
+   ],
+   [
+    22.792,
+    8.803
+   ],
+   [
+    20.625,
+    6.499
+   ],
+   [
+    0.533,
+    0.07
+   ],
+   [
+    899.842,
+    142.865
+   ]
+  ],
+  "dhamrai": [
+   [
+    72.276,
+    59.166
+   ],
+   [
+    39.357,
+    30.328
+   ],
+   [
+    10.125,
+    6.604
+   ],
+   [
+    18.833,
+    6.823
+   ],
+   [
+    0.612,
+    0.076
+   ],
+   [
+    1296.788,
+    375.113
+   ]
+  ],
+  "sitakunda": [
+   [
+    98.405,
+    93.167
+   ],
+   [
+    59.68,
+    64.988
+   ],
+   [
+    1.042,
+    1.338
+   ],
+   [
+    13.708,
+    6.636
+   ],
+   [
+    0.644,
+    0.083
+   ],
+   [
+    2307.497,
+    1107.055
+   ]
+  ],
+  "dacope": [
+   [
+    91.242,
+    84.553
+   ],
+   [
+    55.382,
+    56.921
+   ],
+   [
+    11.458,
+    6.646
+   ],
+   [
+    31.958,
+    8.59
+   ],
+   [
+    0.694,
+    0.045
+   ],
+   [
+    1411.481,
+    446.445
+   ]
+  ],
+  "bakerganj": [
+   [
+    120.005,
+    116.003
+   ],
+   [
+    76.146,
+    80.498
+   ],
+   [
+    1.208,
+    2.958
+   ],
+   [
+    13.917,
+    6.429
+   ],
+   [
+    0.674,
+    0.075
+   ],
+   [
+    2103.99,
+    929.256
+   ]
+  ],
+  "gangachara": [
+   [
+    28.451,
+    20.621
+   ],
+   [
+    13.546,
+    11.626
+   ],
+   [
+    17.958,
+    10.33
+   ],
+   [
+    13.333,
+    6.128
+   ],
+   [
+    0.554,
+    0.048
+   ],
+   [
+    1590.571,
+    376.211
+   ]
+  ],
+  "gowainghat": [
+   [
+    83.503,
+    62.714
+   ],
+   [
+    41.393,
+    33.45
+   ],
+   [
+    4.125,
+    3.644
+   ],
+   [
+    3.167,
+    3.567
+   ],
+   [
+    0.711,
+    0.041
+   ],
+   [
+    2535.442,
+    859.57
+   ]
+  ]
+ },
+ "baseRate": 0.125
+}

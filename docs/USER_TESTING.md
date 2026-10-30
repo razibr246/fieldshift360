@@ -4,6 +4,9 @@ A protocol and record for testing the main flow with Bangladeshi farmers and agr
 reports that farmer and officer validation has been completed.** The date, place, participant counts, tasks,
 findings and resulting fixes have not yet been added to this record; do not infer them from the protocol below.
 
+**Run it with the kit in the app: `/testkit`.** It reads the consent, times the four tasks, records the three
+questions and the problems seen (never a name), and exports a CSV and ready-made rows for the results table below.
+
 ## Who
 
 - 6–8 farmers across two upazilas, including at least two who read little or no Bangla, at least two women, and at
