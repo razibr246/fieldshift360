@@ -1,16 +1,14 @@
-import { Component, lazy, Suspense, useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Component, lazy, Suspense } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
 import Home from './pages/public/Home';
 import { WhyDrawer, DataInfo, Toast } from './components/Overlays';
 import { MotionManager } from './components/Motion';
 import DemoTour from './components/tour/DemoTour';
 
-// Every page except Home loads on first visit, so the landing page does not download the whole app. Once the home
-// page has settled, the rest are fetched quietly in the background (skipped on Data Saver or 2G), which also lets the
-// offline cache hold every page.
-const loaders = [];
-const load = (f, pick) => { loaders.push(f); return lazy(() => f().then((m) => (pick ? { default: m[pick] } : m))); };
+// Every page except Home loads on first visit, so the landing page does not download the whole app. The service
+// worker caches each route's assets when that route is first opened instead of downloading every page up front.
+const load = (f, pick) => lazy(() => f().then((m) => (pick ? { default: m[pick] } : m)));
 // the farmer, officer and neighbouring-country shells too: the landing page needs none of them (or their charts)
 const FarmerLayout = load(() => import('./layouts/FarmerLayout'));
 const OfficerLayout = load(() => import('./layouts/OfficerLayout'));
@@ -66,7 +64,8 @@ const AbPlanting = load(() => import('./pages/abroad/officer'), 'Planting');
 // A quiet placeholder while a page's code arrives (usually a fraction of a second).
 function PageLoading() {
   return (
-    <div className="page-shell py-10" aria-busy="true" aria-label="Loading">
+    <div className="page-shell py-10" role="status" aria-live="polite" aria-busy="true">
+      <span className="sr-only">পাতা খোলা হচ্ছে · Loading page</span>
       <div className="skeleton h-7 w-56" style={{ animationDelay: '0ms' }} />
       <div className="skeleton mt-3 h-4 w-80 max-w-full" style={{ animationDelay: '80ms' }} />
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -95,21 +94,13 @@ class PageError extends Component {
     );
   }
 }
-const page = (el) => <PageError><Suspense fallback={<PageLoading />}>{el}</Suspense></PageError>;
-
-function usePrefetchPages() {
-  useEffect(() => {
-    if (!import.meta.env.PROD) return undefined;
-    const c = navigator.connection;
-    if (c && (c.saveData || /2g/.test(c.effectiveType || ''))) return undefined;
-    const idle = window.requestIdleCallback || ((f) => setTimeout(f, 2500));
-    const t = setTimeout(() => idle(() => loaders.forEach((f) => f().catch(() => {}))), 4000);
-    return () => clearTimeout(t);
-  }, []);
+function RouteErrorBoundary({ children }) {
+  const { pathname } = useLocation();
+  return <PageError key={pathname}>{children}</PageError>;
 }
+const page = (el) => <RouteErrorBoundary><Suspense fallback={<PageLoading />}>{el}</Suspense></RouteErrorBoundary>;
 
 export default function App() {
-  usePrefetchPages();
   return (
     <>
       <Routes>

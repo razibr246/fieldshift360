@@ -8,7 +8,11 @@ export default class AppError extends Component {
   componentDidCatch(err) { console.error('FieldShift 360 stopped:', err); } // eslint-disable-line no-console
   render() {
     if (!this.state.failed) return this.props.children;
-    const reset = () => { try { Object.keys(localStorage).filter((k) => k.includes('.demo.')).forEach((k) => localStorage.removeItem(k)); } catch { /* storage unavailable */ } window.location.replace(window.location.pathname); };
+    const reset = () => {
+      if (!window.confirm('নমুনা তথ্য মুছে শুরু করবেন? আপনার সংরক্ষিত কাজও মুছে যাবে।\nClear saved demo data and restart? Your saved work will also be deleted.')) return;
+      try { Object.keys(localStorage).filter((k) => k.includes('.demo.')).forEach((k) => localStorage.removeItem(k)); } catch { /* storage unavailable */ }
+      window.location.replace(window.location.pathname);
+    };
     return (
       <div role="alert" style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 520, margin: '12vh auto', padding: 24, textAlign: 'center', lineHeight: 1.6 }}>
         <p style={{ fontSize: 22, fontWeight: 700 }}>কিছু একটা ঠিকমতো চলেনি</p>
@@ -17,7 +21,7 @@ export default class AppError extends Component {
         <p style={{ color: '#55615a' }}>Reload the page. If it keeps happening, reset the demo data to the start.</p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => window.location.reload()} style={{ height: 44, padding: '0 22px', borderRadius: 999, border: 0, background: '#2f6b33', color: '#fff', fontWeight: 600, fontSize: 15 }}>আবার খুলুন · Reload</button>
-          <button type="button" onClick={reset} style={{ height: 44, padding: '0 22px', borderRadius: 999, border: '1px solid #c9d3cc', background: '#fff', fontWeight: 600, fontSize: 15 }}>শুরু থেকে · Reset</button>
+          <button type="button" onClick={reset} style={{ height: 44, padding: '0 22px', borderRadius: 999, border: '1px solid #c9d3cc', background: '#fff', fontWeight: 600, fontSize: 15 }}>নমুনা তথ্য মুছুন · Reset</button>
         </div>
       </div>
     );
