@@ -72,7 +72,7 @@ risks and what needs local review, and the app says plainly that the farmer and 
 
 ## How we know it works (validity)
 
-- **A working prototype:** on 29 October 2026 a clean checkout of the committed code ran 148 automated tests
+- **A working prototype:** on 30 October 2026 a clean checkout of the committed code ran 204 automated tests
   (`npm test`: the engine, explanations and data coverage, voice and SMS, radar onset, the farmer tour and the game),
   all passing, and the production build succeeded. The team also reports completed farmer and officer validation;
   its date, participant counts, tasks and findings still need to be recorded in `docs/USER_TESTING.md`.
