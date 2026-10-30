@@ -6,6 +6,7 @@ __pycache__
 .env.local
 .env.*.local
 .cache
+.playwright-mcp/
 .DS_Store
 *.log
 .vercel
@@ -13,3 +14,4 @@ __pycache__
 **/.claude/
 .env*
 !.env.example
+tools/night-agent/memory/
