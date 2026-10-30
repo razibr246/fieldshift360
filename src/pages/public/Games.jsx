@@ -1,6 +1,6 @@
 // The games hub: two ways to learn FieldShift by playing.
 import { Link } from 'react-router-dom';
-import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy } from 'lucide-react';
+import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy, Sparkles } from 'lucide-react';
 import Photo from '../../components/Photo';
 import { useStore } from '../../store';
 
@@ -9,8 +9,10 @@ export default function Games() {
   const games = [
     { to: '/stories', icon: MapPinned, photo: 'droughtFlood', badge: T('৭ স্তর', '7 levels'), title: T('সাত বিভাগ, সাত কৃষক', 'Seven divisions, seven farmers'), kind: T('মিশনের খেলা · আসল নাসা আবহাওয়ায়', 'Mission game · on real NASA weather'),
       text: T('সিলেটের পাহাড়ি ঢল, খুলনার লবণ, বরিশালের জোয়ার, রংপুরের কুয়াশা-ব্লাইট, চট্টগ্রামের মেঘভাঙা বৃষ্টি। আপনার সিদ্ধান্ত চলে সেই এলাকার একটি আসল পুরোনো বছরে।', 'Sylhet’s flash floods, Khulna’s salt, Barishal’s tides, Rangpur’s fog and blight, Chattogram’s cloudbursts. Your choices are played through a real past year of that place.') },
-    { to: '/farm', icon: Gamepad2, photo: 'farmGame', badge: T('নতুন', 'New'), title: T('মাঠের মানুষ', 'Field Folk'), kind: T('3D খামারের খেলা · ১২ জন কৃষক', '3D farm game · 12 farmers'),
+    { to: '/farm', icon: Gamepad2, photo: 'farmGame', badge: T('নতুন', 'New'), title: T('মাঠের মানুষ', 'Field Folk'), kind: T('বড়দের 3D খামারের খেলা · ১২ জন কৃষক', '3D farm game for grown-ups · 12 farmers'),
       text: T('বাংলাদেশের সাত বিভাগ আর প্রতিবেশী পাঁচ দেশের বারোজন কৃষকের যেকোনো একজন হয়ে উপগ্রহ থেকে তাঁর নিজের মাঠে নামুন — নিজের পোশাক, নিজের ফসল, নিজের বিপদ। গরম, পোকা, ঝড়ের নিরাপদ বৃত্ত আর দাম পড়া পার করে মৌসুম জিতুন।', 'Be one of twelve farmers from Bangladesh’s seven divisions and five neighbouring countries and drop from orbit onto their own field — their clothes, their crops, their dangers. Win the season through heat, pests, the storm’s safe circle and the price crash.') },
+    { to: '/kids', icon: Sparkles, photo: 'heroDawn', badge: T('ছোটদের', 'For children'), title: T('স্বপ্নের মাঠ', 'The Dream Field'), kind: T('ছোটদের 3D স্বপ্ন · VR আর AR-এ', 'A 3D dream for children · in VR and AR'),
+      text: T('কৃষক বাবা-মায়ের চিন্তা শুনে ঘুমিয়ে পড়া শিশু স্বপ্নে নাসার উপগ্রহ "তারা"-র সঙ্গে আকাশে ওড়ে: মেঘ ধরে, খালি মাটিতে সবুজ কম্বল দেয়, ঠিক মাপে পানি দেয়, আর দুই দরজা পেরিয়ে দেখে আগে জানলে কী বদলায়। হাসি, কান্না আর সকালের আনন্দ।', 'A child falls asleep hearing the family worry, and in a dream flies with Tara, a NASA satellite: catching clouds, giving bare soil a green blanket, watering just right, and walking through two doors to see what changes when you know in time. Laughter, tears and a happy morning.') },
     { to: '/play', icon: Swords, photo: 'farmer', title: T('মাঠের লড়াই', 'Field Fight'), kind: T('গল্পের খেলা · ৬টি অধ্যায়', 'Story game · 6 chapters'),
       text: T('এক রবি মৌসুমের ছয়টি সত্যিকারের বিপদ। প্রতিবার বেছে নিন — আগের অভ্যাস, নাকি FieldShift-এর ঠিক হাতিয়ার।', 'Six real problems across one Rabi season. Each time choose — the old habit, or the right FieldShift tool.') },
   ];
@@ -22,7 +24,7 @@ export default function Games() {
           <span className="block">{T('খেলতে খেলতে', 'Learn the field')}</span>
           <span className="block bg-[linear-gradient(100deg,#245a28_0%,#43863a_45%,#237479_100%)] bg-clip-text pb-2 text-transparent">{T('মাঠ চিনুন।', 'by playing.')}</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-ink/70">{T('চারটি খেলা, একটাই শিক্ষা: বিপদ আসার আগে জানলে ফসল বাঁচে। খেলে দেখুন FieldShift কোন সমস্যায় কীভাবে পাশে থাকে।', 'Four games, one lesson: know before trouble arrives and the crop survives. Play and see how FieldShift helps with each problem.')}</p>
+        <p className="mt-3 max-w-2xl text-[18px] leading-[1.65] text-ink/70">{T('পাঁচটি খেলা, একটাই শিক্ষা: বিপদ আসার আগে জানলে ফসল বাঁচে। খেলে দেখুন FieldShift কোন সমস্যায় কীভাবে পাশে থাকে।', 'Five games, one lesson: know before trouble arrives and the crop survives. Play and see how FieldShift helps with each problem.')}</p>
       </div>
       <ol className="mt-7 grid gap-2 sm:grid-cols-3" aria-label={T('খেলার ধাপ', 'How the games work')}>
         {[
