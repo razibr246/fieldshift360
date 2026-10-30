@@ -73,6 +73,6 @@ Kinds: **SAT** observed by satellite · **STATION** reported by a weather statio
 | Landsat then against MODIS now, 19 fields | All 19 fields are greener in the Rabi now than in 1988–91 (e.g. GDG-DP-0311: 0.29 → 0.57), consistent with irrigated Boro spreading; within Landsat alone Dacope's two fields fell from 0.27–0.28 to 0.16 between 1988–91 and 1998–2001, the years shrimp farming and salinity spread there. Part of the then-now gap may be the instruments |
 | Crop thresholds by local agronomists | **not done yet** |
 | Plausibility of the crop limits | **A known problem.** Boro's flowering-heat limit (3+ days ≥ 35 °C, 75–95 days after transplanting) is crossed in 12–13 of 13 seasons 2013–2025 at Godagari and Dacope (depending on the sowing date), 11 of 13 at Dhamrai and Gangachara, 5 of 13 at Bakerganj, 2 at Sitakunda and 1 at Gowainghat, although Boro is the main crop in all of them. The limit almost certainly over-warns for local varieties and pulls Boro's weather score down; the app flags this beside the comparison and in “How this recommendation was made”. First item for local review |
-| Farmer and officer usability test | **not done yet** (protocol: `docs/USER_TESTING.md`) |
+| Farmer and officer usability test | **Reported complete by the team; session details and results not recorded yet** (`docs/USER_TESTING.md`) |
 
 The rain and model-spread figures are recomputed live from the committed data on the Science page (`/science#disagree`, `src/engine/provenance.js`); the onset check is `scripts/onset/compare_bmd.mjs`.

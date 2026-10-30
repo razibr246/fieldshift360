@@ -9,7 +9,7 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
   extreme weather and declining soil health: drought and a falling water table on the Barind (Godagari, Rajshahi),
   floods and waterlogging on the low land (Dhamrai, Dhaka), salt, flash floods and cold waves elsewhere. The crop
   calendar their parents trusted no longer holds.
-- **What it does.** For one real field, FieldShift 360 runs every feasible one- and two-year rotation (several
+- **What it does.** For a selected demo field, FieldShift 360 runs every feasible one- and two-year rotation (several
   hundred) for ten years and ranks them by the farmer's own priorities: soil carbon and the four NRCS soil-health
   principles, irrigation water, profit, weather risk and pest pressure, in today's weather and in NASA's 2040s. It
   then tests the best ones in each of eight climate models on their own, and weighs paddy methane against the carbon
@@ -31,13 +31,13 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 - **Run it.** `npm install`, then `npm run dev`; `npm test` runs the engine, voice, radar and game tests; `npm run
   build` makes the static site. Data needs no network: every file is committed. The AI crop doctor needs
   `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`) on the server (see `.env.example`); without it the app says so and photos go to the officer.
-- **Guided demo.** "3-minute demo story" on the home page walks through it in ten steps: the changed weather and who it is for, then rotations.
+- **Guided demo.** "3-minute demo story" on the home page walks through 13 steps with keyboard controls and a progress bar; the timed Bangla narration and English subtitle script is in `docs/DEMO_SCRIPT.md`.
 
 ## The challenge, line by line
 
 | The challenge statement | How FieldShift 360 answers it | Where |
 | --- | --- | --- |
-| A **decision-support tool** | Field Future ranks every feasible rotation for the field, starting from the rotation Sentinel-2 actually saw on it, and names the best and the most robust (with its chance over 40 futures), with its first year dated (the Rabi's best sowing day still ahead, the radar's Aman day) and planned in one tap; the season plan turns this year's step into KEEP, ADJUST or SHIFT; officers see the upazila-wide effect of a switch | `/farmer/future`, `/farmer/plan`, `/officer/upazila` |
+| A **decision-support tool** | Field Future ranks feasible rotations for a selected demo field, using a likely crop sequence inferred from Sentinel-2 green-cover observations when available (not verified crop history); it names the best and most robust options, dates the first year, and lets the user plan; the season plan turns this year's step into KEEP, ADJUST or SHIFT; officers see the upazila-wide effect of a switch | `/farmer/future`, `/farmer/plan`, `/officer/upazila` |
 | Uses **NASA Earth observations** | NASA POWER (weather, root-zone soil wetness), GPM IMERG rain, SMAP L4 soil moisture, MODIS (NDVI at 250 m per field and monthly, land surface temperature), MERRA-2 evaporation, GRACE/GRACE-FO water storage, SRTM and ASTER elevation, Landsat (WELD 30 m NDVI per field, 1988–2001), NEX-GDDP-CMIP6 projections, SEDAC, GIBS HLS imagery, FIRMS fires. Not used: ECOSTRESS (needs an Earthdata login; ready to add once a token is set) and GEDI (it measures tree and forest biomass, which says little about paddy rotations) | Every screen; `/science#coverage` lists each with its years, scale and use |
 | **Local soil information** | ISRIC SoilGrids 2.0 at each field and union (organic carbon, pH, texture, bulk density, drainage); the ten-year carbon run starts from the field's estimated carbon (a 250 m model, not a soil test); SRDI fertilizer doses per union | `src/data/soil/soil_*.json`, Field Future soil column |
 | **Crop characteristics** | Per crop: duration, sowing windows, water need (FAO-56 coefficients), weather failure rules, family, legume nitrogen, harvest index and root-to-shoot ratio for carbon | `src/engine/crops.js`, `src/engine/soilfuture.js` |
@@ -59,7 +59,8 @@ characteristics and the farmer's priorities.** NASA Space Apps 2026. Live: https
 | **Who benefits, and how many** | 16.88 million farm households (Agriculture Census 2019); 4.85 million ha of Boro; 2.51 million people in the seven upazilas (Census 2022), each measured with NASA SEDAC: population density, land below 10 m (LECZ), cropland share | Home "Who it is for" |
 | Reaching every farmer | Bangla voice and typing; an SMS mode for feature phones (keywords or everyday Bangla, answered by the same engine in 70-character parts) | `/farmer/voice`, `/farmer/sms` |
 | Children and families | “স্বপ্নের মাঠ” (`/kids`): a farmer’s child falls asleep hearing the family worry about the coming storm and dreams of Tara, a NASA satellite: catching rain clouds (GPM), giving bare soil a green blanket (MODIS bare months), watering just right (SMAP), then walking through two doors, the season without the data and with it, and running to tell the parent in the morning. Tara’s facts are each place’s real MODIS record; the people are made up; rigged, animated CC0 people; read-aloud for children who do not read yet; VR and AR where the device supports it | `/kids`, `src/game/dream.js` |
-| Farmers **around the world** | Full engine for seven upazilas, one in each division of Bangladesh. Sample farms in India, Pakistan, Nepal, Bhutan and Myanmar with the season plan, risks, the 2040s, GRACE and SMAP water, and ten-year rotation options on the farm's own SoilGrids soil and the country's FAOSTAT yields (the same soil-carbon, nitrogen and methane model). Every input is global | `/abroad/*/future` |
+| Farmers **around the world** | Full engine for seven upazilas, one in each division of Bangladesh. Sample farms in India, Pakistan, Nepal, Bhutan and Myanmar with the season plan, risks, the 2040s, GRACE and SMAP water, and ten-year rotation options on the farm's own SoilGrids soil and the country's FAOSTAT yields (the same soil-carbon, nitrogen and methane model), with each option's irrigation (FAO-56 on GPM IMERG rain) and harvest value (FAOSTAT producer prices). Every input is global | `/abroad/*/future` |
+| Learn by **playing** | In the 3D game মাঠের মানুষ, each of the twelve farmers farms their real place, and the village's FieldShift kiosk opens the same tool for it: that place from space (MODIS NDVI bare months and stressed seasons, MODIS ground heat, MERRA-2 ET, SMAP, GRACE, GPM monsoon onset or rain, frost and heat, satellite against ground), at least three rotation strategies from the same engines with why, evidence, benefits, gaps and risks under the player's priorities and limits, and what-if sliders that also replay the season. In play, a repeated crop draws the pests, legumes enrich the soil, bare soil washes away in the storm, and the satellite view shows crop health, water-stress hotspots and soil health | `/farm` |
 
 ## What was built before and during the event
 
@@ -78,6 +79,9 @@ After the challenge statement was read (22 October 2026):
   the printable poster; SMS mode.
 - The rain-onset rule checked against BMD station-based onsets (`scripts/onset/compare_bmd.mjs`); the search now
   opens on 15 May instead of 15 April, and every upazila's onset was re-worked.
+- The game's FieldShift station (`src/game/fieldshift.js`, `src/components/game/FieldStation.jsx`), rotation
+  lessons in play, satellite layers, AR and VR; irrigation and harvest value for the neighbouring farms' rotations
+  (`scripts/build/build_abroad_prices.py`).
 
 The commit history shows each change with its date.
 

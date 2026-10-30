@@ -1,7 +1,8 @@
 # Testing with farmers and officers
 
-A protocol for testing the main flow with Bangladeshi farmers and agriculture officers. **It has not been run yet**;
-results go in the table at the end, as they happen, and nowhere else.
+A protocol and record for testing the main flow with Bangladeshi farmers and agriculture officers. **The team
+reports that farmer and officer validation has been completed.** The date, place, participant counts, tasks,
+findings and resulting fixes have not yet been added to this record; do not infer them from the protocol below.
 
 ## Who
 
@@ -47,4 +48,4 @@ Open a farmer's sent comparison in the officer view and answer it; then review t
 
 | Date | Place | Who (role, no names) | Phone | Q1 recommended | Q2 why | Q3 check | Problems seen | Fixed in |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| | | | | | | | | |
+| Team reports validation complete; session date not recorded | Not recorded | Farmers and agriculture officers; counts not recorded | Not recorded | Results not recorded | Results not recorded | Results not recorded | Findings not recorded | Add actual findings and fixes from the team record |

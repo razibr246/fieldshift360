@@ -74,8 +74,8 @@ risks and what needs local review, and the app says plainly that the farmer and 
 
 - **A working prototype:** on 29 October 2026 a clean checkout of the committed code ran 148 automated tests
   (`npm test`: the engine, explanations and data coverage, voice and SMS, radar onset, the farmer tour and the game),
-  all passing, and the production build succeeded. This is code-level checking, not farmer or officer usability
-  testing, which has not yet been run (see below and `docs/USER_TESTING.md`).
+  all passing, and the production build succeeded. The team also reports completed farmer and officer validation;
+  its date, participant counts, tasks and findings still need to be recorded in `docs/USER_TESTING.md`.
 - **Sources checked against each other:** NASA POWER rain against GPM IMERG over 25 seasons, r = 0.67–0.82 in the
   Rabi across the seven upazilas but only 0.10–0.76 in the monsoon (weak in the wet south, so monsoon-rain rules
   there are less certain); SMAP L4 against POWER root-zone wetness, r = 0.89–0.96 over 128 months, a consistency
@@ -89,13 +89,15 @@ risks and what needs local review, and the app says plainly that the farmer and 
 - **Honest about the rest:** crop thresholds are starting values awaiting an agriculture officer's review
   (THRESHOLDS.md, `docs/REVIEW_LOG.md`, still empty); the farmers are sample people, labelled so on every screen.
 
-## Not validated yet, and the plan
+## Remaining validation gaps and follow-up
 
-None of the following has happened; nothing in the app or this kit claims it has.
+The team reports that farmer and officer validation is complete, but its supporting details are not yet in this
+submission kit. The following agronomic and field-measurement gaps remain; nothing in the app or this kit claims
+they have been resolved.
 
 | Gap | Plan (about four weeks, one upazila) |
 | --- | --- |
-| Farmers and officers have not used it | Week 1–2: the protocol in `docs/USER_TESTING.md` with 6–8 farmers (including low-literacy users and low-end phones) and 2–3 SAAOs; record whether each can say what is recommended, why, and what to check first |
+| Validation record is incomplete | Add the actual date, place, number and roles of participants, tasks completed, findings, and fixes to `docs/USER_TESTING.md`; do not report unrecorded outcomes |
 | Crop thresholds not reviewed locally | Week 1: an upazila agriculture officer or BARI/BRRI agronomist goes through `docs/THRESHOLDS.md`, starting with Boro's flowering-heat limit, which is crossed in nearly every recent season in four upazilas where Boro is the main crop and so almost certainly over-warns; each change is recorded in `docs/REVIEW_LOG.md` and `src/data/reviews.js` |
 | Soil is a model estimate | Week 2–3: soil tests (SRDI mobile lab) on 10 registered fields; compare pH and organic carbon with SoilGrids and publish the difference |
 | Yields are national averages | Week 3–4: farmers' recorded harvests for the same fields against FAOSTAT; the season's backtest "bad years" against farmers' recall of bad seasons |
@@ -147,21 +149,12 @@ Fill in before submitting (Teamwork is scored on roles):
 
 Full list with dates and where each is used: [DATA_SOURCES.md](DATA_SOURCES.md).
 
-## Demo video script (about 3 minutes, Bangla speech with English subtitles)
+## Demo video script (3 minutes, Bangla narration with English subtitles)
 
-One farmer, one field, one decision first; the evidence; what is real; then the ten-year view and the rest. The
-"3-minute demo story" on the home page follows this order; timings, words and the fallback recording plan are in
-`docs/DEMO_SCRIPT.md`.
-
-| Time | Screen | Say (subtitle) |
-| --- | --- | --- |
-| 0:00–0:20 | Season plan: what Rahim grows now beside two alternatives (Godagari) | "One field, one decision. What he grows now and two alternatives, on the same 25 seasons of NASA weather and the same prices; the bar shows why each ranks where it does." |
-| 0:20–0:40 | The first step and what to check first | "Which crop, which week, and what to check in the field: a soil test, because the soil numbers are a model estimate. One tap sends it to his officer." |
-| 0:40–1:05 | How this recommendation was made | "What went into the calculation and what is only context; rules not yet reviewed locally; and how firm it is. When the options are close, it says so." |
-| 1:05–1:25 | Science page: data coverage and where sources disagree | "Every source labelled: satellite, station, model, record, rule or sample. GRACE is regional, never this field." |
-| 1:25–2:05 | Field Future: three rotations side by side, then the soil verdict | "As now, the best and the next alternative: why, evidence, benefits, unknowns, risks and what to check locally. And whether any rotation really helps this soil." |
-| 2:05–2:30 | Field Future: the eight-model test | "Eight NASA climate models times five real yield years: what holds in any model and what rests on an assumption." |
-| 2:30–3:00 | Voice "বিকল্পগুলোর তুলনা", then the officer view | "The same comparison by voice or SMS, with how sure it is and how to reach a person. Real data; sample farmers; open rules." |
+The timed shot list, Bangla narration, English subtitle copy and recording checklist are maintained in
+[the demo script](DEMO_SCRIPT.md). It starts with a sample farmer's decision, shows the rotation trade-offs and
+evidence limits, and ends by making clear that local farmer and agriculture-officer review is still needed. Use
+that file as the single script source so the submission kit and recording do not drift apart.
 
 ## Slide notes (short deck)
 

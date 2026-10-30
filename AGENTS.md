@@ -43,8 +43,13 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 - `scripts/`: `fetch/`, `build/`, `onset/` (the rain-onset rule, also imported by `src/radar/onset.test.js`),
   `photos/`, `lib/`; index in `scripts/README.md`. Do not hand-edit generated data: change the script and re-run it.
   Moving a script changes its depth, so check its `ROOT` path and relative imports.
-- `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`); `vite.config.js`
+- `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`, `agent` with
+  `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`, `tts` (natural Bangla / British English voice) with `GEMINI_API_KEY`); `vite.config.js`
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
+- চক্র এজেন্ট (Chakra Agent), in the farmer and officer headers: rules, permission policy and hash-chained audit log in
+  `src/engine/chakra.js` (pure, tested), UI and agent loop in `src/components/chakra/`, conversation through `api/agent.js`
+  (Claude may only propose actions) with `src/voice/brain.js` as the offline fallback. Anything sent in the office's
+  name needs an officer's approval in every mode; keep it that way.
 - `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
   project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in
   `services/voice-agent/lib/agent/field/shared/` are generated, never edit them. `public/radar/` is the original Ropon
@@ -52,7 +57,14 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
 - `src/components/`: shared UI (`ui.jsx`, `Motion.jsx`, `SectionNav.jsx` with `LazyMount`), charts in `charts/`, maps in
   `map/`, and the guided tours in `tour/` (demo, farmer, officer; the farmer tour's steps are `src/data/farmer_tour.js`).
 - `src/game/`: "মাঠের মানুষ", the 3D farm game (three.js in `game/three/`). Its simulation (`sim.js`) and story
-  campaign (`saga.js`) are pure and tested like the engine; keep rendering out of them.
+  campaign (`saga.js`) are pure and tested like the engine; keep rendering out of them. `three/stage.js` runs the
+  loop through `renderer.setAnimationLoop` (WebXR needs it), so an exception in a frame stops the game rather than
+  being skipped; it also holds the AR/VR modes. People (`people.js`, shared by farmers and villagers) are built facing
+  +z, so an opening for the face is centred at `phi = π/2` in a `SphereGeometry` and `theta = 0` in a
+  `CylinderGeometry`. In dev, `window.__fsGame` (`{ g, buy, answerQuiz, stage() }`) lets a script or headless browser
+  drive and inspect a running game. The children's version "স্বপ্নের মাঠ" (`/kids`) is separate: its story and
+  rules are `game/dream.js` (pure, tested), its 3D world `game/three/dreamScene.js`, with rigged CC0 people in
+  `public/models/people/` (see the LICENSE there).
 
 ## Rules of this project
 

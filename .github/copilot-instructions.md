@@ -23,19 +23,21 @@ There is no linter or formatter script. The validation path is `npm test` plus `
 - `src/App.jsx` is the route shell; it lazy-loads page modules so the landing page stays light and the rest of the app loads on demand.
 - `src/store.jsx` is the app-wide state container. It holds the selected farmer, field, priorities, requests, officer context, and derived season/rotation decisions. It also lazily loads upazila climate data and normalizes it against BMD station files before the rest of the app consumes it.
 - `src/engine/` is the core calculation layer. This is where crop/soil/water/climate logic lives, and it is intentionally pure and testable with Node's runner. Keep numeric calculations here instead of embedding them in pages/components.
-- `src/data/` contains committed datasets grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `market/`, `geo/`, etc.) alongside maintained JavaScript data modules such as `demo.js` and `upazilas.js`. Regenerate generated datasets through their scripts rather than hand-editing their outputs.
+- `src/data/` contains committed datasets grouped by kind (`climate/`, `water/`, `soil/`, `radar/`, `market/`, `geo/`, etc.) alongside maintained JavaScript data modules such as `demo.js` and `upazilas.js`. Regenerate generated datasets through their scripts rather than hand-editing their outputs. The build only bundles climate series listed in `CLIMATE_IN_APP` in `vite.config.js`.
 - `scripts/` owns the generation pipeline for the data and photos that feed the app. The scripts in `scripts/fetch/`, `scripts/build/`, and `scripts/onset/` write to `src/data/`, `public/`, and other committed outputs. If a dataset changes, update the script that generates it rather than editing generated JSON by hand.
-- `api/` contains the Vercel serverless endpoints (`plans`, `messages`, `abroad`, `doctor`). In local dev, Vite serves in-memory stand-ins, so the app can still render without a live backend.
-- `src/voice/` and `services/voice-agent/` share the same logic for voice/SMS flows; keep changes consistent across both when needed.
+- `api/` contains the Vercel serverless endpoints (`plans`, `messages`, `abroad`, `doctor`, `agent`). In local dev, Vite serves in-memory stand-ins, so the app can still render without a live backend.
+- Chakra Agent policy and the hash-chained audit log live in `src/engine/chakra.js`; its UI and agent loop are in `src/components/chakra/`, with `api/agent.js` for online proposals and `src/voice/brain.js` as the offline fallback.
+- `src/voice/` and `services/voice-agent/` share the same logic for voice/SMS flows. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the corresponding files in `services/voice-agent/` are generated.
 
 ## Key conventions
 
-- Real vs. sample data is an intentional product rule: climate, rain, radar, soil, prices and yields are real; farmers, requests and registry owners are sample. Keep labels truthful and do not blur that boundary.
+- Real vs. sample data is an intentional product rule: climate, rain, radar, soil, prices and yields are real; farmers, requests and registry owners are sample. Keep provenance labels truthful (`SAT`, `STATION`, `MODEL`, `RECORD`, `RULE`, `AI`, `DEMO`) and do not blur that boundary; NASA POWER weather and SoilGrids soil are model estimates, not field measurements.
 - User-facing strings are bilingual and Bangla-first. Use `T(bn, en)` / `L({ bn, en })` for text, and `num()` / `bnDigits()` for numbers instead of hard-coded display logic.
 - Calculations belong in `src/engine/`, not in pages or UI components. If it affects a value shown to the user, it should usually live in the engine layer and be covered by a test when practical.
 - Preferred data workflow: regenerate the relevant data with the matching `npm run fetch:*` / `npm run data:*` script, then commit the generated output. Do not hand-edit generated data files.
 - Before changing behaviour, check the relevant docs: `docs/THRESHOLDS.md`, `docs/DATA_SOURCES.md`, `docs/RADAR.md`, `docs/VOICE.md`, and `docs/MERGE.md`.
 - Keep the app's UI thin and orchestration-driven. Route-level components and layout shells should compose engine outputs and existing data, rather than reimplementing agronomic logic.
+- Anything sent in the office's name requires an officer's approval in every mode; the AI may propose actions but must not execute them.
 - This repo uses ES modules and JSX conventions consistent with the surrounding code. Follow the existing naming and quoting patterns already in the project.
 - Commit subjects should be short, user-visible, and mention generated data/config changes when relevant.
 
