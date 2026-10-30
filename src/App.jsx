@@ -19,6 +19,7 @@ const Login = load(() => import('./pages/public/Login'));
 const Play = load(() => import('./pages/public/Play'));
 const Saga = load(() => import('./pages/public/Saga'));
 const KidsDream = load(() => import('./pages/public/KidsDream'));
+const People = load(() => import('./pages/public/People'));
 const Science = load(() => import('./pages/public/Science'));
 const Games = load(() => import('./pages/public/Games'));
 const Stories = load(() => import('./pages/public/Stories'));
@@ -112,7 +113,7 @@ export default function App() {
   return (
     <>
       <Routes>
-        <Route element={<PublicLayout />}><Route path="/" element={<Home />} /><Route path="/play" element={page(<Play />)} /><Route path="/games" element={page(<Games />)} /><Route path="/farm" element={page(<FarmGame />)} /><Route path="/saga" element={page(<Saga />)} /><Route path="/kids" element={page(<KidsDream />)} /><Route path="/science" element={page(<Science />)} /><Route path="/stories" element={page(<Stories />)} /><Route path="/stories/:id" element={page(<StoryLevel />)} /></Route>
+        <Route element={<PublicLayout />}><Route path="/" element={<Home />} /><Route path="/play" element={page(<Play />)} /><Route path="/games" element={page(<Games />)} /><Route path="/farm" element={page(<FarmGame />)} /><Route path="/saga" element={page(<Saga />)} /><Route path="/kids" element={page(<KidsDream />)} /><Route path="/people" element={page(<People />)} /><Route path="/science" element={page(<Science />)} /><Route path="/stories" element={page(<Stories />)} /><Route path="/stories/:id" element={page(<StoryLevel />)} /></Route>
         <Route path="/login" element={page(<Login />)} />
         <Route path="/farmer" element={page(<FarmerLayout />)}>
           <Route index element={page(<FarmerDashboard />)} />

@@ -1,6 +1,6 @@
 // The games hub: two ways to learn FieldShift by playing.
 import { Link } from 'react-router-dom';
-import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy, Sparkles } from 'lucide-react';
+import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy, Sparkles, Users } from 'lucide-react';
 import Photo from '../../components/Photo';
 import { useStore } from '../../store';
 
@@ -13,6 +13,8 @@ export default function Games() {
       text: T('বাংলাদেশের সাত বিভাগ আর প্রতিবেশী পাঁচ দেশের বারোজন কৃষকের যেকোনো একজন হয়ে উপগ্রহ থেকে তাঁর নিজের মাঠে নামুন — নিজের পোশাক, নিজের ফসল, নিজের বিপদ। গরম, পোকা, ঝড়ের নিরাপদ বৃত্ত আর দাম পড়া পার করে মৌসুম জিতুন।', 'Be one of twelve farmers from Bangladesh’s seven divisions and five neighbouring countries and drop from orbit onto their own field — their clothes, their crops, their dangers. Win the season through heat, pests, the storm’s safe circle and the price crash.') },
     { to: '/kids', icon: Sparkles, photo: 'heroDawn', badge: T('ছোটদের', 'For children'), title: T('স্বপ্নের মাঠ', 'The Dream Field'), kind: T('ছোটদের 3D স্বপ্ন · VR আর AR-এ', 'A 3D dream for children · in VR and AR'),
       text: T('কৃষক বাবা-মায়ের চিন্তা শুনে ঘুমিয়ে পড়া শিশু স্বপ্নে নাসার উপগ্রহ "তারা"-র সঙ্গে আকাশে ওড়ে: মেঘ ধরে, খালি মাটিতে সবুজ কম্বল দেয়, ঠিক মাপে পানি দেয়, আর দুই দরজা পেরিয়ে দেখে আগে জানলে কী বদলায়। হাসি, কান্না আর সকালের আনন্দ।', 'A child falls asleep hearing the family worry, and in a dream flies with Tara, a NASA satellite: catching clouds, giving bare soil a green blanket, watering just right, and walking through two doors to see what changes when you know in time. Laughter, tears and a happy morning.') },
+    { to: '/people', icon: Users, photo: 'farmer', badge: T('3D', '3D'), title: T('মাঠের মানুষেরা', 'Meet the people'), kind: T('বারোজন কৃষক আর তাঁদের সন্তান', 'Twelve farmers and their children'),
+      text: T('প্রত্যেক কৃষক নিজের পোশাকে, নিজের সন্তানের পাশে, মঞ্চের আলোয়: কোথায় চাষ করেন, কোন ঝড়ের ভয়। এখান থেকেই বড়দের খেলা বা শিশুর স্বপ্ন শুরু করুন।', 'Each farmer in their own clothes, beside their own child, under stage lights: where they farm and which storm they fear. Start the grown-ups’ game or the child’s dream from here.') },
     { to: '/play', icon: Swords, photo: 'farmer', title: T('মাঠের লড়াই', 'Field Fight'), kind: T('গল্পের খেলা · ৬টি অধ্যায়', 'Story game · 6 chapters'),
       text: T('এক রবি মৌসুমের ছয়টি সত্যিকারের বিপদ। প্রতিবার বেছে নিন — আগের অভ্যাস, নাকি FieldShift-এর ঠিক হাতিয়ার।', 'Six real problems across one Rabi season. Each time choose — the old habit, or the right FieldShift tool.') },
   ];

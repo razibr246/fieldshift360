@@ -55,10 +55,13 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
   scene.add(sun, amb, lamp);
   scene.fog = new THREE.Fog(0x9fd3f2, 18, 70);
 
+  // soft round dots and thin streaks for stars, rain and fireflies
+  const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.7)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(c); return t; })();
+  const streakTex = (() => { const c = document.createElement('canvas'); c.width = 16; c.height = 64; const g = c.getContext('2d'); const l = g.createLinearGradient(0, 0, 0, 64); l.addColorStop(0, 'rgba(220,235,255,0)'); l.addColorStop(1, 'rgba(220,235,255,.9)'); g.fillStyle = l; g.fillRect(6, 0, 4, 64); return new THREE.CanvasTexture(c); })();
   // ── places ──
   const places = { night: new THREE.Group(), space: new THREE.Group(), field: new THREE.Group() };
   Object.values(places).forEach((g) => scene.add(g));
-  const stars = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 2400 }, () => (Math.random() - 0.5) * 300), 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 }));
+  const stars = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 2400 }, () => (Math.random() - 0.5) * 300), 3)), new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, map: dotTex, transparent: true, depthWrite: false }));
   scene.add(stars);
 
   // night courtyard: a mud-and-tin house, a lantern, a cot
@@ -179,11 +182,11 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
   const place = (role, x, z, ry = 0) => { const p = people[role]; if (p) { p.root.position.set(x, 0, z); p.root.rotation.y = ry; p.root.visible = true; } };
   const hide = (role) => { if (people[role]) people[role].root.visible = false; };
 
-  // ── weather: rain, fireflies ──
+  // ── weather: rain, fireflies (soft round dots and thin streaks, not square points) ──
   const rainGeo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 3000 }, (_, i) => (i % 3 === 1 ? Math.random() * 14 : (Math.random() - 0.5) * 24)), 3));
-  const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: 0xaecbe8, size: 0.06, transparent: true, opacity: 0.8 }));
+  const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: 0xaecbe8, size: 0.22, map: streakTex, transparent: true, opacity: 0.75, depthWrite: false }));
   rain.visible = false; scene.add(rain);
-  const flies = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 300 }, (_, i) => (i % 3 === 1 ? Math.random() * 3 + 0.3 : (Math.random() - 0.5) * 10)), 3)), new THREE.PointsMaterial({ color: 0xfff1a0, size: 0.09 }));
+  const flies = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 300 }, (_, i) => (i % 3 === 1 ? Math.random() * 3 + 0.3 : (Math.random() - 0.5) * 10)), 3)), new THREE.PointsMaterial({ color: 0xffe680, size: 0.16, map: dotTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   flies.visible = false; scene.add(flies);
 
   // ── mini-game objects ──
@@ -221,10 +224,12 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
   }
   function show(placeName) { for (const [k, g] of Object.entries(places)) g.visible = k === placeName; }
   const camTo = new THREE.Vector3(), lookTo = new THREE.Vector3(), look = new THREE.Vector3();
-  function frame(pos, at) { camTo.set(...pos); lookTo.set(...at); }
+  const baseCam = new THREE.Vector3(), baseLook = new THREE.Vector3();
+  function frame(pos, at) { camTo.set(...pos); lookTo.set(...at); baseCam.copy(camTo); baseLook.copy(lookTo); }
 
   function setScene(id, m) {
-    mood = m ?? mood;
+    mood = m ?? mood; focus = null;
+    for (const sp of [...fxGroup.children]) { fxGroup.remove(sp); sp.material.dispose(); } // a new place starts clean
     rain.visible = false; flies.visible = false; frog.visible = false; goat.visible = false;
     for (const c of clouds) places.field.remove(c); clouds.length = 0;
     game.kind = null;
@@ -293,6 +298,55 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
     rig.add(ctl);
   }
 
+  // ── a speech bubble in the world (the page's bubbles cannot be seen inside a VR headset) ──
+  const FONT = '"Noto Sans Bengali Variable", "Kohinoor Bangla", system-ui, sans-serif';
+  const bubbleCanvas = document.createElement('canvas'); bubbleCanvas.width = 1024; bubbleCanvas.height = 320;
+  const bubbleTex = new THREE.CanvasTexture(bubbleCanvas); bubbleTex.colorSpace = THREE.SRGBColorSpace;
+  const bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: bubbleTex, depthTest: false, transparent: true }));
+  bubble.scale.set(2.4, 0.75, 1); bubble.renderOrder = 10; bubble.visible = false; scene.add(bubble);
+  let bubbleRole = null, alwaysBubble = false;
+  function drawBubble(text, who) {
+    const g = bubbleCanvas.getContext('2d'), W = 1024, H = 320;
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = { tara: '#fff6c2', child: '#dff1ff', frog: '#e3f7dc' }[who] ?? '#fff1dc';
+    g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 6;
+    g.beginPath(); g.roundRect(8, 8, W - 16, H - 60, 48); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(W / 2 - 30, H - 54); g.lineTo(W / 2, H - 8); g.lineTo(W / 2 + 30, H - 54); g.fill();
+    g.fillStyle = '#1b2620'; g.font = `600 44px ${FONT}`; g.textBaseline = 'top';
+    const words = String(text).split(' '), lines = []; let cur = '';
+    for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (g.measureText(t).width > W - 90 && cur) { lines.push(cur); cur = w; } else cur = t; }
+    lines.push(cur);
+    lines.slice(0, 4).forEach((l, i) => g.fillText(l, 44, 34 + i * 56));
+    bubbleTex.needsUpdate = true;
+  }
+  function anchorOf(role) {
+    if (role === 'tara' || role === 'frog') return (role === 'tara' ? tara : frog).position.clone().add(new THREE.Vector3(0, role === 'tara' ? 0.9 : 0.8, 0));
+    const p = people[role]; if (!p) return null;
+    return p.root.position.clone().add(new THREE.Vector3(0, role === 'child' ? 1.75 : 2.55, 0));
+  }
+
+  // ── feelings you can see: hearts, tears, confetti ──
+  const fxGroup = new THREE.Group(); scene.add(fxGroup);
+  const emojiTex = {};
+  const texOf = (ch) => { if (!emojiTex[ch]) { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'); g.font = '100px system-ui, "Apple Color Emoji", "Noto Color Emoji"'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, 64, 70); emojiTex[ch] = new THREE.CanvasTexture(c); emojiTex[ch].colorSpace = THREE.SRGBColorSpace; } return emojiTex[ch]; };
+  function burst(kind, role = 'child') {
+    const at = anchorOf(role) ?? new THREE.Vector3(0, 1.5, 0);
+    const spec = { hearts: ['💗', 12, 1.2], tears: ['💧', 8, -1.2], confetti: ['🎉', 6, 1.6], stars: ['⭐', 10, 1.4], sparkle: ['✨', 10, 1] }[kind];
+    if (!spec) return;
+    const [ch, n, up] = spec;
+    for (let i = 0; i < n; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: texOf(ch), transparent: true, depthTest: false }));
+      sp.scale.setScalar(kind === 'tears' ? 0.12 : 0.3);
+      sp.position.copy(at).add(new THREE.Vector3((Math.random() - 0.5) * (kind === 'tears' ? 0.15 : 0.8), kind === 'tears' ? -0.45 : 0, (Math.random() - 0.5) * 0.3));
+      sp.userData = { v: new THREE.Vector3((Math.random() - 0.5) * 0.6, up * (0.6 + Math.random() * 0.6), 0), life: 1.6 + Math.random() * 0.8, delay: kind === 'tears' ? i * 0.35 : 0 };
+      fxGroup.add(sp);
+    }
+  }
+
+  // ── a close-up on whoever speaks a line that matters ──
+  let focus = null;
+  function closeUp(role) { focus = role; }
+
   // ── the loop ──
   const clock = new THREE.Clock();
   look.set(0, 1, 0);
@@ -327,6 +381,19 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
       }
       goat.position.y = Math.abs(Math.sin(t * 8)) * 0.05;
     }
+    const showBubble = (renderer.xr.isPresenting || alwaysBubble) && bubbleRole;
+    bubble.visible = !!showBubble;
+    if (showBubble) { const a = anchorOf(bubbleRole); if (a) bubble.position.lerp(a, 0.2); }
+    for (const sp of [...fxGroup.children]) {
+      const u = sp.userData;
+      if (u.delay > 0) { u.delay -= dt; sp.visible = false; continue; }
+      sp.visible = true; u.life -= dt; sp.position.addScaledVector(u.v, dt); sp.material.opacity = Math.min(1, u.life);
+      if (u.life <= 0) { fxGroup.remove(sp); sp.material.dispose(); }
+    }
+    if (focus && !renderer.xr.isPresenting) {
+      const a = anchorOf(focus);
+      if (a) { lookTo.lerp(a.clone().add(new THREE.Vector3(0, -0.25, 0)), 0.08); camTo.lerp(a.clone().add(new THREE.Vector3(0.6, 0.1, 2.6)), 0.05); }
+    } else { camTo.lerp(baseCam, 0.05); lookTo.lerp(baseLook, 0.05); }
     renderer.render(scene, camera);
   });
 
@@ -337,6 +404,10 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
     renderer,
     async cast(parentSpec, kidSpec) { await Promise.all([addPerson('parent', parentSpec), addPerson('child', kidSpec)]); },
     setScene, startGame, stopGame, setWater, blanketState, play,
+    say(line) { if (!line) { bubbleRole = null; return; } drawBubble(line.text, line.who); bubbleRole = line.who; },
+    showBubbles(on) { alwaysBubble = on; },
+    burst, closeUp,
+    wide() { focus = null; },
     holdEarth(on) { earth.userData.hold = on; if (on) earth.rotation.y %= Math.PI * 2; },
     shooGoat() { if (game.kind === 'blanket') { goat.position.set(8, 0, -3); game.goatTarget = null; game.goatT = 0; } },
     cloudsLeft() { return clouds.filter((c) => !c.userData.gone && c.position.x < 14).length; },

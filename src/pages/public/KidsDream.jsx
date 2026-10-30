@@ -3,7 +3,7 @@
 // doors (the season without the data and with it), and the morning. Story and rules: game/dream.js; the 3D world,
 // people and VR/AR: game/three/dreamScene.js. Lines can be read aloud for children who do not read yet.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Volume2, VolumeX, Mic, Star, Heart, Glasses, Smartphone, RotateCcw, Sparkles, Droplets } from 'lucide-react';
 import { useStore } from '../../store';
 import { REGIONS } from '../../game/regions';
@@ -21,7 +21,8 @@ const FACE = { tara: '🛰️', frog: '🐸' };
 const GAME_SECONDS = { clouds: 26, blanket: 30 };
 
 export default function KidsDream() {
-  const [who, setWho] = useState(null);
+  const [params] = useSearchParams(); // /kids?who=rahimu opens that child's dream straight away
+  const [who, setWho] = useState(() => (CHILDREN[params.get('who')] ? params.get('who') : null));
   return who ? <Dream id={who} onExit={() => setWho(null)} /> : <Picker onPick={setWho} />;
 }
 
@@ -84,6 +85,7 @@ function Dream({ id, onExit }) {
       if (!alive) return;
       const sc = createDreamScene(host.current, { onTap: (e) => w.tap(e) });
       w.scene = sc;
+      window.__fsDream = sc; // lets a script or headless browser drive the dream, like window.__fsGame
       await sc.cast(bodyFor(id, REGIONS[id]), kidBody(CHILDREN[id], REGIONS[id]));
       if (!alive) return;
       sc.setScene(dream.scenes[0].id, dream.scenes[0].mood);
@@ -101,7 +103,25 @@ function Dream({ id, onExit }) {
   useEffect(() => { sound.current?.setMuted(muted); }, [muted]);
   useEffect(() => { if (ready) world.current.scene?.setScene(scene.id, scene.mood); }, [k, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // read each line aloud
+  // each line: the 3D bubble (for VR), a close-up when it matters, and the feeling made visible
+  useEffect(() => {
+    const sc = world.current.scene;
+    if (!sc || !line) return;
+    sc.say({ text: L(line), who: line.who });
+    const strong = (line.mood === 'sad' || line.mood === 'joy') && (line.who === 'parent' || line.who === 'child');
+    if (strong) sc.closeUp(line.who); else sc.wide();
+    if (line.mood === 'sad' && line.who === 'child') sc.burst('tears', 'child');
+    if (line.mood === 'sad' && line.who === 'parent') sc.burst('tears', 'parent');
+    if (line.mood === 'joy' && line.who === 'child') sc.burst('confetti', 'child');
+  }, [line, ready, lang]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // read each line aloud (when the device has a voice for the language)
+  const [noVoice, setNoVoice] = useState(false);
+  useEffect(() => {
+    const check = () => { const v = window.speechSynthesis?.getVoices() ?? []; setNoVoice(lang === 'bn' && v.length > 0 && !v.some((x) => /^bn/i.test(x.lang))); };
+    check(); window.speechSynthesis?.addEventListener?.('voiceschanged', check);
+    return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', check);
+  }, [lang]);
   useEffect(() => {
     if (!read || !line || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -147,6 +167,7 @@ function Dream({ id, onExit }) {
     sc?.stopGame();
     setStars((x) => ({ ...x, [scene.game]: st }));
     sound.current.fx('cheer');
+    sc?.burst(st >= 3 ? 'stars' : 'sparkle', 'child');
     setWinLine(say); setPhase('won');
   }
 
@@ -163,10 +184,10 @@ function Dream({ id, onExit }) {
   }
   function act() {
     const a = scene.action, sc = world.current.scene;
-    if (a.kind === 'hug') { sc?.play('child', 'Walk'); setTimeout(() => sc?.play('parent', 'StandUp', { once: true }), 300); sound.current.fx('ting'); setWinLine(a.after); setPhase('won'); return; }
-    if (a.kind === 'comfort') { sc?.play('child', 'PickUp', { once: true }); sound.current.fx('sad'); }
-    if (a.kind === 'dance') { sc?.play('child', 'Jump'); sc?.play('parent', 'Victory'); sound.current.fx('cheer'); }
-    if (a.kind === 'run') { sc?.play('child', 'Run'); setTimeout(() => sc?.play('parent', 'Victory'), 600); sound.current.fx('cheer'); }
+    if (a.kind === 'hug') { sc?.burst('hearts', 'child'); sc?.burst('hearts', 'parent'); sc?.play('child', 'Walk'); setTimeout(() => sc?.play('parent', 'StandUp', { once: true }), 300); sound.current.fx('ting'); setWinLine(a.after); setPhase('won'); return; }
+    if (a.kind === 'comfort') { sc?.play('child', 'PickUp', { once: true }); sc?.burst('hearts', 'parent'); sound.current.fx('sad'); }
+    if (a.kind === 'dance') { sc?.burst('confetti', 'parent'); sc?.burst('stars', 'child'); sc?.play('child', 'Jump'); sc?.play('parent', 'Victory'); sound.current.fx('cheer'); }
+    if (a.kind === 'run') { sc?.burst('hearts', 'parent'); sc?.play('child', 'Run'); setTimeout(() => sc?.play('parent', 'Victory'), 600); sound.current.fx('cheer'); }
     if (a.kind === 'find') { sound.current.fx('ting'); world.current.scene?.holdEarth(false); next(); return; } // or taps the Earth itself
     setTimeout(next, 1400);
   }
@@ -196,7 +217,7 @@ function Dream({ id, onExit }) {
           <div className="rounded-full bg-white/90 px-4 py-2 text-[15px] font-bold shadow">{L(dream.child.name)} · {L(scene.title)}</div>
           <div className="ml-auto flex items-center gap-2">
             <span className="flex items-center gap-1 rounded-full bg-white/90 px-3 py-2 text-[15px] font-bold shadow"><Star size={17} className="fill-yellow-400 text-yellow-500" />{lang === 'bn' ? String(totalStars(stars)).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]) : totalStars(stars)}</span>
-            <button type="button" onClick={() => setRead(!read)} aria-pressed={read} className="grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow" aria-label={T('পড়ে শোনাও', 'Read aloud')}>{read ? <Mic size={19} /> : <Mic size={19} className="opacity-40" />}</button>
+            <button type="button" onClick={() => setRead(!read)} aria-pressed={read} className="grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow" aria-label={T('পড়ে শোনাও', 'Read aloud')} title={noVoice ? T('এই যন্ত্রে বাংলা কণ্ঠ নেই; বড়দের পড়ে শোনাতে বলো', 'This device has no Bangla voice; ask a grown-up to read aloud') : undefined}>{read ? <Mic size={19} /> : <Mic size={19} className="opacity-40" />}</button>
             <button type="button" onClick={() => setMuted(!muted)} aria-pressed={muted} className="grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow" aria-label={T('গান বন্ধ/চালু', 'Music on or off')}>{muted ? <VolumeX size={19} /> : <Volume2 size={19} />}</button>
             {xr.vr && <button type="button" onClick={() => vrEnter('immersive-vr')} className="flex h-11 items-center gap-1.5 rounded-full bg-primary-700 px-4 font-bold text-white shadow"><Glasses size={18} />VR</button>}
             {xr.ar && <button type="button" onClick={() => vrEnter('immersive-ar')} className="flex h-11 items-center gap-1.5 rounded-full bg-primary-700 px-4 font-bold text-white shadow"><Smartphone size={18} />AR</button>}
