@@ -135,7 +135,10 @@ function Scene({ scene, voice, onDone }) {
   useEffect(() => { if (voice) speak(text, s.lang, { rate: 0.95 }); return () => stopSpeaking(); }, [text, voice, s.lang]);
   const go = useCallback(() => { if (n + 1 < scene.lines.length) setN(n + 1); else onDone(); }, [n, scene.lines.length, onDone]);
   useEffect(() => {
-    const k = (e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); go(); } };
+    const k = (e) => {
+      if (e.target instanceof Element && e.target.closest('button, a, input, textarea, select, [role="tab"], [role="menuitem"], [contenteditable="true"]')) return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') { e.preventDefault(); go(); }
+    };
     window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k);
   }, [go]);
   return (

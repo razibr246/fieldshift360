@@ -128,7 +128,9 @@ export function createField(scene, g) {
   const tint = C('#c9a65a');
   return {
     root,
-    update(t, wind, sat, scanner) {
+    // layer: what the satellite view shows: 'health' (NDVI-style greenness), 'water' (water-stress hotspots, SMAP-style)
+    // or 'soil' (each plot's soil health, raised by legumes and lost when bare soil washes away)
+    update(t, wind, sat, scanner, layer = 'health') {
       for (const im of buckets.values()) im.count = 0;
       const lim = ripeAt(g);
       g.plots.forEach((p, i) => {
@@ -140,9 +142,19 @@ export function createField(scene, g) {
         P.ring.visible = scanner && !!p.crop && !p.dead; if (P.ring.visible) P.ring.material.color.set(p.moist > 0.4 ? '#3aa0e0' : p.moist > 0.15 ? '#e0b43a' : '#e04a3a');
         P.ndvi.visible = sat;
         if (sat) {
-          const h = !p.crop ? -1 : p.dead ? 0 : p.health * (p.moist > 0.12 ? 1 : 0.6) * (p.pests ? 0.5 : 1);
-          P.ndvi.material.color.set(h < 0 ? '#8a7a5a' : h > 0.7 ? '#2e9d3a' : h > 0.4 ? '#c9c23a' : '#d6452f');
-          P.ndvi.material.opacity = h < 0 ? 0.25 : 0.6;
+          if (layer === 'water') {
+            const growing = p.crop && !p.dead; // a hotspot is a crop short of water; bare soil stays neutral
+            P.ndvi.material.color.set(!growing ? '#8a7a5a' : p.moist > 0.5 ? '#2f7fd0' : p.moist > 0.25 ? '#c9c23a' : '#d6452f');
+            P.ndvi.material.opacity = growing ? 0.62 : 0.25;
+          } else if (layer === 'soil') {
+            const f = p.fert / 0.6;
+            P.ndvi.material.color.set(f > 0.5 ? '#2e9d3a' : f > 0.15 ? '#c9a23a' : '#8a5a3a');
+            P.ndvi.material.opacity = 0.6;
+          } else {
+            const h = !p.crop ? -1 : p.dead ? 0 : p.health * (p.moist > 0.12 ? 1 : 0.6) * (p.pests ? 0.5 : 1);
+            P.ndvi.material.color.set(h < 0 ? '#8a7a5a' : h > 0.7 ? '#2e9d3a' : h > 0.4 ? '#c9c23a' : '#d6452f');
+            P.ndvi.material.opacity = h < 0 ? 0.25 : 0.6;
+          }
         }
         P.swarm.visible = p.pests > 0;
         if (P.swarm.visible) P.swarm.children.forEach((b, k) => { const ph = b.userData.ph + t * 3; b.position.set(Math.cos(ph + k) * 1.2, 0.5 + Math.sin(ph * 1.7) * 0.3, Math.sin(ph * 0.8 + k) * 1.2); });

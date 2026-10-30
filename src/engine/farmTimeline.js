@@ -26,6 +26,23 @@ export const AMAN_TRANSPLANT_STAGES = [
   { id: 'finish', at: 0.94, label: { bn: 'রোপণ শেষ করা', en: 'Finishing the transplanting' } },
 ];
 
+export const WHEAT_HARVEST_STAGES = [
+  { id: 'check', at: 0, label: { bn: 'পাকা শিষ ঘষে দেখা', en: 'Rubbing an ear to check the grain' } },
+  { id: 'grab', at: 0.14, label: { bn: 'মুঠো করে গাছ ধরা', en: 'Gathering a handful of stalks' } },
+  { id: 'cut', at: 0.25, label: { bn: 'কাস্তে দিয়ে গোড়ার কাছে কাটা', en: 'Cutting low with the sickle' } },
+  { id: 'lay', at: 0.45, label: { bn: 'কাটা গাছ বিছিয়ে রাখা', en: 'Laying the cut stalks down' } },
+  { id: 'bundle', at: 0.6, label: { bn: 'খড়ের দড়িতে আঁটি বাঁধা', en: 'Tying a sheaf with a straw band' } },
+  { id: 'stack', at: 0.82, label: { bn: 'আঁটি সরিয়ে সামনে এগোনো', en: 'Setting the sheaf aside, moving on' } },
+];
+
+export const SESAME_SOWING_STAGES = [
+  { id: 'clods', at: 0, label: { bn: 'ঢেলা ভেঙে মাটি ঝুরঝুরে করা', en: 'Breaking clods for a fine bed' } },
+  { id: 'mix', at: 0.2, label: { bn: 'ছোট বীজ বালুর সাথে মেশানো', en: 'Mixing the tiny seed with dry sand' } },
+  { id: 'sow', at: 0.36, label: { bn: 'ছিটিয়ে বোনা', en: 'Broadcasting the mix' } },
+  { id: 'cover', at: 0.6, label: { bn: 'ডাল টেনে বীজ ঢাকা', en: 'Dragging a leafy branch to cover the seed' } },
+  { id: 'sprout', at: 0.84, label: { bn: 'চারা গজানো দেখা', en: 'Checking the seedlings' } },
+];
+
 export const clampProgress = (progress) => Math.max(0, Math.min(1, Number(progress) || 0));
 
 export function dateAtProgress(from, to, progress) {

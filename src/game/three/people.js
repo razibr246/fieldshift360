@@ -9,6 +9,7 @@
 // and skin with a soft sheen, and a painted face on every head — in their likeness for a farmer drawn from a real
 // person (look.face). The walk sways the hips and counter-turns the shoulders.
 import * as THREE from 'three';
+import { blink } from '../../engine/motion.js';
 
 const geo = {
   sphere: (r, w = 14, h = 10, ...rest) => new THREE.SphereGeometry(r, w, h, ...rest),
@@ -32,6 +33,16 @@ const cloth = (color, o = {}) => mat(color, { sheen: 0.55, sheenRough: 0.8, ...o
 // A limb hanging from its joint: radius r0 at the top, r1 at the bottom, a slight muscle swell, rounded ends that
 // close over the joints when it bends. Shared between figures.
 const shapes = new Map();
+function smoothProfile(points, steps = Math.max(12, (points.length - 1) * 5)) {
+  // Preserve the authored silhouette but interpolate between rings so the profile
+  // reads as a continuous body instead of a stack of low-poly cylinders.
+  return new THREE.SplineCurve(points.map(([r, y]) => new THREE.Vector2(r, y))).getPoints(steps);
+}
+function torsoDepth(female, y) {
+  const waist = Math.exp(-(((y - 0.13) / 0.13) ** 2));
+  const chest = Math.exp(-(((y - 0.4) / 0.19) ** 2));
+  return female ? 1 - 0.1 * waist + 0.015 * chest : 1 - 0.1 * waist + 0.055 * chest;
+}
 function limb(r0, r1, len, swell = 1.07) {
   const k = `limb${r0}|${r1}|${len}|${swell}`;
   if (shapes.has(k)) return shapes.get(k);
@@ -39,16 +50,37 @@ function limb(r0, r1, len, swell = 1.07) {
   for (let i = 0; i <= 5; i++) { const a = (i / 5) * (Math.PI / 2); pts.push(new THREE.Vector2(r1 * Math.sin(a), -len - r1 * Math.cos(a) * 0.85)); }
   pts.push(new THREE.Vector2((r1 + (r0 - r1) * 0.35) * swell, -len * 0.62), new THREE.Vector2((r1 + (r0 - r1) * 0.78) * swell, -len * 0.3));
   for (let i = 0; i <= 5; i++) { const a = (i / 5) * (Math.PI / 2); pts.push(new THREE.Vector2(r0 * Math.cos(a), r0 * Math.sin(a) * 0.85)); }
-  const g = new THREE.LatheGeometry(pts, 16); shapes.set(k, g); return g;
+  const profile = smoothProfile(pts.map((p) => [p.x, p.y]), 28);
+  const g = new THREE.LatheGeometry(profile, 24); shapes.set(k, g); return g;
 }
-// The torso from the waist to the base of the neck, turned on a lathe and flattened front to back.
+// The torso from the waist to the base of the neck, lofted through elliptical cross-sections.
 function torsoShape(female) {
   const k = `torso${female}`;
   if (shapes.has(k)) return shapes.get(k);
+  // A more human silhouette under every outfit: a gently shaped pelvis, narrow waist,
+  // rib cage, and shoulders tapering into the neck. Extra profile rings keep the
+  // transition smooth instead of making the torso read as a single tapered tube.
   const prof = female
-    ? [[0.162, -0.04], [0.15, 0.06], [0.148, 0.12], [0.163, 0.22], [0.178, 0.3], [0.17, 0.37], [0.178, 0.44], [0.17, 0.5], [0.135, 0.545], [0.085, 0.575], [0.052, 0.59]]
-    : [[0.168, -0.04], [0.162, 0.06], [0.168, 0.15], [0.186, 0.26], [0.198, 0.35], [0.205, 0.43], [0.198, 0.49], [0.158, 0.54], [0.095, 0.572], [0.058, 0.59]];
-  const g = new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 24); g.userData.prof = prof; shapes.set(k, g); return g;
+    ? [[0.153, -0.04], [0.17, 0.0], [0.178, 0.06], [0.161, 0.13], [0.154, 0.2], [0.167, 0.27], [0.187, 0.34], [0.194, 0.4], [0.184, 0.46], [0.163, 0.51], [0.13, 0.55], [0.082, 0.58], [0.052, 0.59]]
+    : [[0.155, -0.04], [0.166, 0.01], [0.168, 0.08], [0.15, 0.15], [0.158, 0.22], [0.178, 0.3], [0.2, 0.38], [0.211, 0.445], [0.202, 0.49], [0.174, 0.53], [0.13, 0.56], [0.058, 0.59]];
+  const profile = smoothProfile(prof, 60);
+  const segments = 40, positions = [], uvs = [], indices = [];
+  profile.forEach((p, row) => {
+    for (let col = 0; col <= segments; col++) {
+      const angle = (col / segments) * Math.PI * 2;
+      positions.push(p.x * Math.cos(angle), p.y, p.x * torsoDepth(female, p.y) * Math.sin(angle));
+      uvs.push(col / segments, row / (profile.length - 1));
+      if (row < profile.length - 1 && col < segments) {
+        const a = row * (segments + 1) + col, b = a + 1, c = a + segments + 1, d = c + 1;
+        indices.push(a, c, b, b, c, d);
+      }
+    }
+  });
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  g.setIndex(indices); g.computeVertexNormals();
+  g.userData.prof = profile.map((p) => [p.x, p.y]); shapes.set(k, g); return g;
 }
 // how far forward the torso's surface is at height y, x to the side: where buttons, plackets and sashes sit
 function frontOf(female) {
@@ -56,7 +88,7 @@ function frontOf(female) {
   return (y, x = 0) => {
     let i = 0; while (i < prof.length - 2 && prof[i + 1][1] < y) i++;
     const [r0, y0] = prof[i], [r1, y1] = prof[i + 1], r = r0 + (r1 - r0) * Math.max(0, Math.min(1, (y - y0) / (y1 - y0)));
-    return 0.78 * Math.sqrt(Math.max(0, r * r - x * x));
+    return 0.86 * torsoDepth(female, y) * Math.sqrt(Math.max(0, r * r - x * x));
   };
 }
 const capsule = (r, l) => { const k = `cap${r}|${l}`; if (!shapes.has(k)) shapes.set(k, new THREE.CapsuleGeometry(r, l, 3, 8)); return shapes.get(k); };
@@ -117,53 +149,115 @@ const turbanTex = (a, b) => canvasTex(`turban${a}${b}`, 64, 64, (c, w, h) => {
   for (let k = -h; k < w; k += 9) { c.beginPath(); c.moveTo(k, h); c.lineTo(k + h * 0.6, 0); c.stroke(); }
 }, [3, 1]);
 
-// Painted game faces, drawn from a person's photo: Razib's thick straight brows, dark almond eyes, light moustache and
-// chin beard. The paint sits on a patch of sphere just over the front of the head; face() turns a point on the head
-// (x across, y up, in model units) into a pixel on that patch, so features land where the 3D nose and ears are.
-const FACES = { razib: { brow: '#16100d', iris: '#3b2416', lid: '#2a1a12', lip: '#9e5a4c', lipLo: '#b8766a', beard: '#1e1611', shade: '#9c6a4c', goatee: true, browW: 9 } };
-// everyone else: a face from their look — brow colour from the hair or beard, softer brows and fuller lashes for women
+// Painted game faces, drawn from each farmer's portrait: distinct skin undertones, almond eyes with limbal rings,
+// dual corneal catch-lights, authentic eyebrows, facial contours, lip highlights and healthy cheek warmth.
+const FACES = {
+  razib: { brow: '#16100d', iris: '#3b2416', lid: '#22150f', lip: '#9e5a4c', lipLo: '#b8766a', beard: '#1e1611', shade: '#9c6a4c', blush: '#c76e5b', goatee: true, browW: 8.5 },
+};
 function faceFor(look) {
-  if (look.face) return look.face;
-  const female = isFemale(look), k = `auto${female ? 'f' : 'm'}${look.skin}${look.hair}${look.beard ?? ''}`;
+  if (look.face && FACES[look.face]) return look.face;
+  const female = isFemale(look), k = `auto${female ? 'f' : 'm'}_${look.skin}_${look.hair}_${look.beard ?? ''}_${look.moustache ?? ''}`;
   if (!FACES[k]) {
-    const sk = new THREE.Color(look.skin), shade = '#' + sk.clone().multiplyScalar(0.78).getHexString();
-    FACES[k] = { brow: look.beard ?? look.moustache ?? look.hair, iris: '#2e1c12', lid: '#22150f', lip: female ? '#a55a55' : '#' + sk.clone().lerp(new THREE.Color('#7a3a30'), 0.45).getHexString(), lipLo: female ? '#bd6f68' : '#' + sk.clone().lerp(new THREE.Color('#9a5048'), 0.4).getHexString(), beard: look.hair, shade, female, browW: female ? 5.5 : 8, stubble: !female && !look.beard && !look.moustache };
+    const sk = new THREE.Color(look.skin);
+    const shade = '#' + sk.clone().multiplyScalar(0.74).getHexString();
+    const blush = '#' + sk.clone().lerp(new THREE.Color('#e06a55'), 0.28).getHexString();
+    FACES[k] = {
+      brow: look.beard ?? look.moustache ?? look.hair,
+      iris: female ? '#2f1a10' : '#2b1b12',
+      lid: '#1c120c',
+      lip: female ? '#aa504a' : '#' + sk.clone().lerp(new THREE.Color('#7a3a30'), 0.45).getHexString(),
+      lipLo: female ? '#c26b64' : '#' + sk.clone().lerp(new THREE.Color('#9a5048'), 0.4).getHexString(),
+      beard: look.beard ?? look.hair,
+      shade,
+      blush,
+      female,
+      browW: female ? 5.5 : 8,
+      stubble: !female && !look.beard && !look.moustache,
+      goatee: look.face === 'razib',
+    };
   }
   return k;
 }
 const FACE_R = 0.1195, FACE_RX = FACE_R * 0.95, FACE_RY = FACE_R * 1.08, FACE_P = (72 * Math.PI) / 180;
 const FACE_T0 = Math.acos(0.064 / FACE_RY), FACE_T1 = Math.acos(-0.112 / FACE_RY);
-const faceTex = (k) => canvasTex(`face${k}`, 256, 256, (c, W, H) => {
+const faceTex = (k) => canvasTex(`face${k}`, 512, 512, (c, W, H) => {
   const F = FACES[k];
-  const px = (x, y) => { const th = Math.acos(Math.max(-1, Math.min(1, y / FACE_RY))); return [((Math.asin(Math.max(-1, Math.min(1, x / (FACE_RX * Math.sin(th))))) + FACE_P) / (2 * FACE_P)) * W, ((th - FACE_T0) / (FACE_T1 - FACE_T0)) * H]; };
-  const blob = (x, y, rx, ry, col, a = 1, rot = 0) => { const [u, v] = px(x, y), [u1] = px(x + rx, y), [, v1] = px(x, y - ry); c.globalAlpha = a; c.fillStyle = col; c.beginPath(); c.ellipse(u, v, Math.abs(u1 - u), Math.abs(v1 - v), rot, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; };
-  const line = (pts, col, w, a = 1) => { c.globalAlpha = a; c.strokeStyle = col; c.lineWidth = w; c.lineCap = c.lineJoin = 'round'; c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](...px(x, y))); c.stroke(); c.globalAlpha = 1; };
-  // soft shading: under the cap peak, beside the nose, under the lower lip
-  const g = c.createLinearGradient(0, 0, 0, H * 0.16); g.addColorStop(0, 'rgba(70,40,25,.35)'); g.addColorStop(1, 'rgba(70,40,25,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H * 0.16);
-  blob(0, -0.017, 0.022, 0.008, F.shade, 0.45);
-  blob(0, -0.058, 0.016, 0.006, F.shade, 0.35);
-  // stubble: a short chin beard and a light moustache, or a day's growth
-  if (F.goatee) { blob(0, -0.08, 0.018, 0.016, F.beard, 0.34); blob(0, -0.064, 0.008, 0.006, F.beard, 0.3); line([[-0.021, -0.034], [-0.007, -0.03], [0.007, -0.03], [0.021, -0.034]], F.beard, 5, 0.6); }
-  if (F.stubble) { blob(0, -0.075, 0.03, 0.024, F.beard, 0.1); blob(0, -0.035, 0.018, 0.004, F.beard, 0.18); }
-  if (F.female) for (const s of [-1, 1]) blob(s * 0.048, -0.02, 0.016, 0.01, '#d9776a', 0.12); // a little colour on the cheeks
-  // lips
-  blob(0, -0.044, 0.02, 0.0045, F.lip);
-  blob(0, -0.05, 0.016, 0.0055, F.lipLo);
-  line([[-0.02, -0.045], [0, -0.0465], [0.02, -0.045]], '#5e2f25', 1.6, 0.9);
-  // nostrils
-  for (const s of [-1, 1]) blob(s * 0.009, -0.021, 0.0045, 0.003, '#4a2a1c', 0.8);
+  const px = (x, y) => {
+    const th = Math.acos(Math.max(-1, Math.min(1, y / FACE_RY)));
+    return [
+      ((Math.asin(Math.max(-1, Math.min(1, x / (FACE_RX * Math.sin(th))))) + FACE_P) / (2 * FACE_P)) * W,
+      ((th - FACE_T0) / (FACE_T1 - FACE_T0)) * H,
+    ];
+  };
+  const blob = (x, y, rx, ry, col, a = 1, rot = 0) => {
+    const [u, v] = px(x, y), [u1] = px(x + rx, y), [, v1] = px(x, y - ry);
+    c.globalAlpha = a; c.fillStyle = col; c.beginPath();
+    c.ellipse(u, v, Math.max(0.5, Math.abs(u1 - u)), Math.max(0.5, Math.abs(v1 - v)), rot, 0, Math.PI * 2);
+    c.fill(); c.globalAlpha = 1;
+  };
+  const line = (pts, col, w, a = 1) => {
+    c.globalAlpha = a; c.strokeStyle = col; c.lineWidth = w * 1.6; c.lineCap = c.lineJoin = 'round';
+    c.beginPath(); pts.forEach(([x, y], i) => c[i ? 'lineTo' : 'moveTo'](...px(x, y))); c.stroke(); c.globalAlpha = 1;
+  };
+  // Soft ambient shading: forehead shadow, orbital sockets, nose bridge, under lip
+  const g = c.createLinearGradient(0, 0, 0, H * 0.18);
+  g.addColorStop(0, 'rgba(60,30,18,.42)');
+  g.addColorStop(1, 'rgba(60,30,18,0)');
+  c.fillStyle = g; c.fillRect(0, 0, W, H * 0.18);
+
+  for (const s of [-1, 1]) blob(s * 0.039, 0.026, 0.024, 0.014, F.shade, 0.28);
+  blob(0, -0.017, 0.022, 0.009, F.shade, 0.42);
+  blob(0, -0.058, 0.018, 0.007, F.shade, 0.36);
+
+  // Stubble / Goatee / Beard
+  if (F.goatee) {
+    blob(0, -0.08, 0.02, 0.017, F.beard, 0.38);
+    blob(0, -0.064, 0.01, 0.007, F.beard, 0.32);
+    line([[-0.022, -0.034], [-0.007, -0.03], [0.007, -0.03], [0.022, -0.034]], F.beard, 4.5, 0.7);
+  }
+  if (F.stubble) {
+    blob(0, -0.076, 0.032, 0.026, F.beard, 0.14);
+    blob(0, -0.035, 0.02, 0.005, F.beard, 0.22);
+  }
+  // Cheeks warmth & glow
+  const cheekCol = F.blush ?? '#d9776a';
+  for (const s of [-1, 1]) blob(s * 0.052, -0.018, 0.022, 0.013, cheekCol, F.female ? 0.24 : 0.14);
+  blob(0, -0.008, 0.012, 0.008, cheekCol, 0.12);
+
+  // Lips: vermilion border, upper lip, fuller lower lip
+  blob(0, -0.043, 0.022, 0.0055, F.lip);
+  blob(0, -0.051, 0.018, 0.0065, F.lipLo);
+  line([[-0.022, -0.045], [-0.007, -0.047], [0, -0.046], [0.007, -0.047], [0.022, -0.045]], '#482018', 1.8, 0.95);
+  blob(0, -0.052, 0.009, 0.0025, '#ffffff', 0.18);
+
+  // Nostrils
+  for (const s of [-1, 1]) blob(s * 0.009, -0.021, 0.005, 0.0035, '#3e1e12', 0.85);
+
+  // Almond eyes: detailed anatomical structure with sclera shading, limbal ring, and dual catch-lights
   for (const s of [-1, 1]) {
-    // almond eyes: white, a large dark-brown iris, pupil, a catch-light, a heavy upper lid
     const ex = s * 0.039, ey = 0.026;
-    blob(ex, ey, 0.019, 0.009, '#f6f1ea');
-    blob(ex + s * -0.002, ey - 0.0005, 0.0088, 0.0088, F.iris);
-    blob(ex + s * -0.002, ey - 0.0005, 0.0042, 0.0042, '#0b0806');
-    blob(ex + s * -0.002 + 0.0035, ey + 0.0035, 0.002, 0.002, '#ffffff');
-    line([[ex - s * 0.021, ey - 0.001], [ex - s * 0.009, ey + 0.0095], [ex + s * 0.009, ey + 0.009], [ex + s * 0.021, ey + 0.001]], F.lid, F.female ? 5 : 4);
-    if (F.female) line([[ex + s * 0.019, ey + 0.002], [ex + s * 0.025, ey + 0.006]], F.lid, 2.4);
-    line([[ex - s * 0.014, ey - 0.006], [ex + s * 0.014, ey - 0.005]], F.shade, 1.2, 0.6);
-    // thick, nearly straight brows
-    line(F.female ? [[s * 0.016, 0.046], [s * 0.036, 0.052], [s * 0.058, 0.046]] : [[s * 0.015, 0.045], [s * 0.035, 0.049], [s * 0.06, 0.045]], F.brow, F.browW ?? 8);
+    blob(ex, ey, 0.0205, 0.0098, '#f7f3ec');
+    blob(ex + s * -0.014, ey, 0.006, 0.007, '#e4d3c5', 0.45);
+    blob(ex + s * 0.014, ey, 0.006, 0.007, '#e4d3c5', 0.45);
+
+    const irisX = ex + s * -0.002, irisY = ey - 0.0005;
+    blob(irisX, irisY, 0.0094, 0.0094, F.lid, 0.85); // limbal ring
+    blob(irisX, irisY, 0.0086, 0.0086, F.iris); // rich iris
+    blob(irisX, irisY, 0.0058, 0.0058, '#4a2816', 0.4);
+    blob(irisX, irisY, 0.0042, 0.0042, '#070504'); // pupil
+
+    // Dual corneal catch-lights
+    blob(irisX + 0.0032, irisY + 0.0035, 0.0022, 0.0022, '#ffffff', 0.95);
+    blob(irisX - 0.0024, irisY - 0.0022, 0.0014, 0.0014, '#ffffff', 0.4);
+
+    line([[ex - s * 0.022, ey - 0.0015], [ex - s * 0.01, ey + 0.01], [ex + s * 0.01, ey + 0.0095], [ex + s * 0.022, ey + 0.0015]], F.lid, F.female ? 4.2 : 3.6);
+    if (F.female) line([[ex + s * 0.02, ey + 0.002], [ex + s * 0.026, ey + 0.007]], F.lid, 2.4);
+    line([[ex - s * 0.015, ey - 0.0065], [ex + s * 0.015, ey - 0.0055]], F.shade, 1.2, 0.55);
+
+    const browPts = F.female
+      ? [[s * 0.016, 0.046], [s * 0.036, 0.053], [s * 0.058, 0.047]]
+      : [[s * 0.014, 0.045], [s * 0.035, 0.050], [s * 0.061, 0.045]];
+    line(browPts, F.brow, (F.browW ?? 8) * 0.95);
   }
 }, [1, 1]);
 // a polo shirt's woven chest stripes: a lattice band under the collar, then a gold line and a dark one
@@ -212,12 +306,16 @@ function hair(head, color, r = 0.123, nape = 0.68) {
 export function buildFarmer(look) {
   const b = look.build ?? 1;
   const root = new THREE.Group();
-  const body = group(root); body.scale.setScalar(b);
+  const body = group(root);
+  // `build` now shapes the frame horizontally as well as scaling stature, so the
+  // roster has subtle height/build differences instead of twelve scaled copies.
+  const frame = 1 + (b - 1) * 1.15;
+  body.scale.set(b * frame, b, b * frame);
   const skin = mat(look.skin, { rough: 0.6, sheen: 0.3, sheenRough: 0.55, sheenColor: '#ffe2cf' });
   const female = isFemale(look);
   const hips = group(body, [0, 0.92, 0]);
   const torso = group(hips, [0, 0.02, 0]);
-  const P = { root, body, hips, torso, look };
+  const P = { root, body, hips, torso, look, seed: ((look.skin ? look.skin.charCodeAt(1) : 3) + (look.hair ? look.hair.charCodeAt(1) : 7)) % 100 };
   const lower = look.lower;
   const skirted = lower === 'ghagra' || lower === 'kira' || lower === 'longyi' || lower === 'sari';
   const kneeSkirt = lower === 'lungi' || lower === 'dhoti';
@@ -232,6 +330,7 @@ export function buildFarmer(look) {
     const thigh = group(hips, [side * 0.092, 0, 0]);
     if (!skirted) mesh(limb(0.076 * wide, 0.056 * wide, 0.44, 1.04), legM, thigh); // a long skirt hides the thigh
     const knee = group(thigh, [0, -0.44, 0]);
+    mesh(geo.sphere(0.042 * wide, 14, 10), legM, knee, [0, 0, 0], [0, 0, 0], [1, 0.9, 0.92]);
     mesh(limb(0.058 * wide, lower === 'shalwar' ? 0.048 : wide > 1 ? 0.046 * wide : 0.036, 0.42, wide > 1 ? 1.02 : 1.12), legM, knee);
     if (lower === 'shalwar') mesh(geo.cyl(0.05, 0.05, 0.05), mat(look.lowB), knee, [0, -0.4, 0]); // gathered cuff
     if (lower === 'cargo') {
@@ -240,6 +339,7 @@ export function buildFarmer(look) {
       mesh(geo.box(0.04, 0.035, 0.108), mat(look.lowB), thigh, [side * 0.082, -0.225, 0.005]);
       mesh(geo.cyl(0.06, 0.06, 0.03), mat(look.lowB), knee, [0, -0.4, 0]);
     }
+    mesh(geo.sphere(0.032 * wide, 12, 8), legM, knee, [0, -0.405, 0], [0, 0, 0], [0.88, 1.1, 0.9]);
     const foot = group(knee, [0, -0.44, 0.03]);
     const fm = mat(look.feetA);
     const shoeG = capsule(0.05, 0.12);
@@ -255,45 +355,53 @@ export function buildFarmer(look) {
       for (const s of [-1, 1]) mesh(geo.box(0.004, 0.025, 0.1), mat(look.feetB ?? '#7b4a2e'), foot, [s * 0.051, 0.01, 0.03], [0, 0, 0]);
     } else {
       mesh(capsule(0.042, 0.11), skin, foot, [0, 0.0, 0.035], [Math.PI / 2, 0, 0], [1, 1, 0.62]); // the bare foot
+      mesh(geo.sphere(0.031, 14, 10), skin, foot, [0, -0.002, 0.12], [0, 0, 0], [1.12, 0.72, 1.25]); // rounded toe line
       mesh(geo.cyl(0.05, 0.05, 0.018, 16), fm, foot, [0, -0.03, 0.035], [0, 0, 0], [1.05, 1, 2.3]); // the sandal's sole
       mesh(geo.torus(0.04, 0.007, 5, 12, Math.PI), fm, foot, [0, -0.02, 0.07], [0, 0, 0], [1.1, 0.9, 1]); // and its strap
     }
     legs.push({ thigh, knee, foot });
   }
   P.legs = legs;
+  // A rounded pelvic bridge joins the waist to both upper legs. The waistband and
+  // skirts sit over it, while trousers inherit the same fabric as their thighs.
+  mesh(geo.sphere(0.12, 20, 14), legM, hips, [0, -0.105, 0], [0, 0, 0], [1.68, 0.88, 1.28]);
   if (lower === 'cargo') mesh(geo.cyl(0.162, 0.16, 0.16, 16), mat(look.lowA, { rough: 0.95 }), hips, [0, -0.05, 0], [0, 0, 0], [1, 1, 0.85]);
   P.skirt = skirted ? 0.45 : longTop || kneeSkirt ? 0.75 : 1;
 
-  // skirts and the hems of long shirts
+  // skirts and the hems of long shirts, grouped for organic cloth inertia and sway
+  const skirtGroup = group(hips, [0, 0, 0]);
+  P.skirtGroup = skirtGroup;
   if (lower === 'ghagra') {
-    mesh(geo.cyl(0.17, 0.3, 0.86, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, false) }), hips, [0, -0.42, 0]);
+    mesh(geo.cyl(0.17, 0.3, 0.86, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, false) }), skirtGroup, [0, -0.42, 0]);
   } else if (lower === 'kira') {
-    mesh(geo.cyl(0.18, 0.24, 0.88, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, true) }), hips, [0, -0.42, 0]);
+    mesh(geo.cyl(0.18, 0.24, 0.88, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, true) }), skirtGroup, [0, -0.42, 0]);
   } else if (lower === 'lungi') {
     // folded up to the knee for field work, with the tuck at the waist
-    mesh(geo.cyl(0.17, 0.235, 0.52, 20), cloth('#fff', { map: check(look.lowA, look.lowB) }), hips, [0, -0.25, 0], [0, 0, 0], [1, 1, 0.86]);
+    mesh(geo.cyl(0.17, 0.235, 0.52, 20), cloth('#fff', { map: check(look.lowA, look.lowB) }), skirtGroup, [0, -0.25, 0], [0, 0, 0], [1, 1, 0.86]);
     if (!coversWaist) {
       mesh(geo.cyl(0.175, 0.175, 0.07, 16), cloth(look.lowA), hips, [0, 0.0, 0]);
       mesh(geo.sphere(0.045, 10, 8), cloth(look.lowA), hips, [0.03, -0.02, 0.165], [0, 0, 0], [1.1, 1, 0.6]);
     }
   } else if (lower === 'dhoti') {
-    mesh(geo.cyl(0.17, 0.24, 0.6, 16), cloth(look.lowA), hips, [0, -0.29, 0]);
-    mesh(geo.box(0.07, coversWaist ? 0.46 : 0.56, 0.03), cloth(look.lowB), hips, [0, coversWaist ? -0.34 : -0.28, 0.2], [0.1, 0, 0]); // the front pleats
+    mesh(geo.cyl(0.17, 0.24, 0.6, 16), cloth(look.lowA), skirtGroup, [0, -0.29, 0]);
+    mesh(geo.box(0.07, coversWaist ? 0.46 : 0.56, 0.03), cloth(look.lowB), skirtGroup, [0, coversWaist ? -0.34 : -0.28, 0.2], [0.1, 0, 0]); // the front pleats
   } else if (lower === 'sari') {
-    mesh(geo.cyl(0.17, 0.27, 0.9, 18), cloth('#fff', { map: bandTex(look.lowA, [look.lowB, look.gold ?? '#e2b84a'], false) }), hips, [0, -0.43, 0]);
+    mesh(geo.cyl(0.17, 0.27, 0.9, 18), cloth('#fff', { map: bandTex(look.lowA, [look.lowB, look.gold ?? '#e2b84a'], false) }), skirtGroup, [0, -0.43, 0]);
     // the front pleats, lying on the skirt's flare
     const pl = cloth(look.lowA, { rough: 0.7 });
-    for (let k = -2; k <= 1; k++) mesh(geo.box(0.032, 0.8, 0.012), pl, hips, [k * 0.03 + 0.015, -0.45, 0.226 + (k % 2) * 0.004], [-0.11, 0, 0]);
-    mesh(geo.box(0.14, 0.018, 0.012), cloth('#fff', { map: bandTex(look.lowA, [look.lowB, look.gold ?? '#e2b84a'], false) }), hips, [0, -0.84, 0.266], [-0.11, 0, 0]);
+    for (let k = -2; k <= 1; k++) mesh(geo.box(0.032, 0.8, 0.012), pl, skirtGroup, [k * 0.03 + 0.015, -0.45, 0.226 + (k % 2) * 0.004], [-0.11, 0, 0]);
+    mesh(geo.box(0.14, 0.018, 0.012), cloth('#fff', { map: bandTex(look.lowA, [look.lowB, look.gold ?? '#e2b84a'], false) }), skirtGroup, [0, -0.84, 0.266], [-0.11, 0, 0]);
   } else if (lower === 'longyi') {
-    mesh(geo.cyl(0.175, 0.22, 0.86, 16), cloth('#fff', { map: check(look.lowA, look.lowB, 8, [4, 3]) }), hips, [0, -0.42, 0]);
-    mesh(geo.sphere(0.05, 10, 8), cloth(look.lowA), hips, [0.0, -0.02, 0.18], [0, 0, 0], [1, 1.2, 0.8]); // the paso knot
+    mesh(geo.cyl(0.175, 0.22, 0.86, 16), cloth('#fff', { map: check(look.lowA, look.lowB, 8, [4, 3]) }), skirtGroup, [0, -0.42, 0]);
+    mesh(geo.sphere(0.05, 10, 8), cloth(look.lowA), skirtGroup, [0.0, -0.02, 0.18], [0, 0, 0], [1, 1.2, 0.8]); // the paso knot
   }
   const topM = look.top === 'polo' ? cloth('#fff', { map: poloTex(look.topA, look.topB, look.topC, look.topD) }) : look.top === 'sweater' ? cloth('#fff', { map: canvasTex(`knit${look.topA}`, 32, 32, (c, w, h) => { c.fillStyle = look.topA; c.fillRect(0, 0, w, h); c.strokeStyle = look.topB; c.lineWidth = 2; for (let x = 0; x < w; x += 4) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } }, [6, 3]) }) : look.top === 'shirt' ? cloth('#fff', { map: check(look.topA, look.topB, 10, [3, 2]) }) : cloth(look.topA);
   if (longTop) mesh(geo.cyl(0.18, 0.27, 0.52, 28, true), topM, hips, [0, -0.24, 0], [0, 0, 0], [1, 1, 0.9]);
 
   // upper body
-  mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.78]);
+  // The chest has a little more depth than the old flattened mannequin profile.
+  // Keep this in sync with frontOf(), which positions buttons and trim on the cloth.
+  mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.86]);
   const fz = frontOf(female);
   const plainTop = look.top === 'polo' ? cloth(look.topA) : topM;
   if (look.top === 'kurta' || look.top === 'kameez' || look.top === 'eingyi') {
@@ -369,6 +477,19 @@ export function buildFarmer(look) {
     const f = mesh(new THREE.SphereGeometry(FACE_R, 32, 24, Math.PI / 2 - FACE_P, FACE_P * 2, FACE_T0, FACE_T1 - FACE_T0), fm, head, [0, 0, 0], [0, 0, 0], [0.95, 1.08, 1]);
     f.castShadow = false;
   }
+  // 3D dynamic eyelids for biological real-time blinking
+  const eyelids = [];
+  const lidM = mat(look.skin, { rough: 0.72, sheen: 0.25 });
+  const lashM = mat('#1a120c', { rough: 0.85 });
+  for (const s of [-1, 1]) {
+    const eyePivot = group(head, [s * 0.039, 0.026, 0.1102]);
+    const lid = group(eyePivot, [0, 0.009, 0]);
+    mesh(geo.sphere(0.0125, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.52), lidM, lid, [0, 0, 0], [0.2, 0, 0], [1.12, 0.95, 0.45]);
+    mesh(geo.torus(0.012, 0.0016, 4, 12, Math.PI * 0.85), lashM, lid, [0, -0.001, 0.003], [0, 0, s * -0.08]);
+    lid.scale.set(1, 0.02, 1);
+    eyelids.push(lid);
+  }
+  P.eyelids = eyelids;
   const eyeM = mat('#16100c', { rough: 0.3 });
   const browM = mat(look.beard ?? look.moustache ?? (look.head === 'gaungbaung' ? '#3a3330' : look.hair));
   for (const s of []) {
@@ -468,19 +589,29 @@ export function buildFarmer(look) {
   const arms = [];
   const sleeve = look.top === 'choli' || look.top === 'shirt' ? 'short' : look.top === 'genji' ? 'none' : 'long';
   for (const side of [-1, 1]) {
-    const shoulder = group(torso, [side * (female ? 0.186 : 0.2), 0.47, 0]);
+    const shoulder = group(torso, [side * (female ? 0.19 : 0.205), 0.465, 0]);
     const upperM = sleeve === 'none' ? skin : look.top === 'polo' ? cloth(look.topA) : topM;
-    mesh(geo.sphere(sleeve === 'long' ? 0.064 : 0.06, 14, 10), upperM, torso, [side * (female ? 0.175 : 0.188), 0.48, 0], [0, 0, 0], [1, 0.9, 0.95]); // the round of the shoulder
+    // Rounded deltoid, blending the chest into the upper arm instead of a ball joint.
+    mesh(geo.sphere(sleeve === 'long' ? 0.069 : 0.064, 20, 14), upperM, torso, [side * (female ? 0.174 : 0.19), 0.475, 0], [0, 0, side * -0.12], [1.12, 0.9, 0.94]);
     if (sleeve === 'short') { mesh(limb(0.05, 0.04, 0.28), skin, shoulder); mesh(limb(0.06, 0.054, 0.13, 1), upperM, shoulder); }
     else mesh(limb(sleeve === 'long' ? 0.058 : 0.053, sleeve === 'long' ? 0.048 : 0.04, 0.28), upperM, shoulder);
     const elbow = group(shoulder, [0, -0.28, 0]);
     const lowerM = sleeve === 'long' ? topM : skin;
     mesh(limb(sleeve === 'long' ? 0.048 : 0.041, sleeve === 'long' ? 0.042 : 0.031, 0.25, 1.1), lowerM, elbow);
+    // A small soft elbow volume keeps the bend closed when the arm swings or reaches.
+    mesh(geo.sphere(sleeve === 'long' ? 0.045 : 0.038, 14, 10), lowerM, elbow, [0, 0.006, 0], [0, 0, 0], [1, 0.86, 0.95]);
+    mesh(geo.sphere(0.032, 12, 8), skin, elbow, [0, -0.244, 0], [0, 0, 0], [0.9, 1, 0.92]); // wrist transition
     if (look.cuff) mesh(geo.cyl(0.052, 0.052, 0.07), mat(look.cuff), elbow, [0, -0.2, 0]);
     const hand = group(elbow, [0, -0.27, 0]);
     // palm, four slightly curled fingers and a thumb
-    mesh(geo.sphere(0.04, 12, 8), skin, hand, [0, -0.03, 0.004], [0, 0, 0], [0.52, 1, 0.92]);
-    for (let f = 0; f < 4; f++) mesh(capsule(0.0085, 0.04 - Math.abs(f - 1.5) * 0.006), skin, hand, [side * -0.004, -0.083 + Math.abs(f - 1.5) * 0.003, -0.022 + f * 0.0145], [0, 0, side * 0.28]);
+    mesh(geo.sphere(0.041, 16, 12), skin, hand, [0, -0.03, 0.004], [0, 0, 0], [0.58, 1, 0.9]);
+    for (let f = 0; f < 4; f++) {
+      const fingerLen = 0.052 - Math.abs(f - 1.5) * 0.007;
+      const fingerX = (f - 1.5) * 0.006;
+      const fingerZ = -0.023 + f * 0.015;
+      mesh(capsule(0.009, fingerLen), skin, hand, [fingerX, -0.082 - fingerLen * 0.14 + Math.abs(f - 1.5) * 0.003, fingerZ], [0, 0, side * (0.12 + (f - 1.5) * 0.08)]);
+      mesh(geo.sphere(0.009, 8, 6), skin, hand, [fingerX, -0.056, fingerZ], [0, 0, 0], [0.9, 1, 0.9]); // knuckle
+    }
     mesh(capsule(0.0095, 0.032), skin, hand, [side * -0.012, -0.045, 0.034], [0.7, 0, side * 0.35]);
     if (look.bangle) for (let k = 0; k < 3; k++) mesh(geo.torus(0.04, 0.007, 6, 14), mat(look.bangle, { rough: 0.25, metal: 0.6 }), elbow, [0, -0.22 - k * 0.015, 0], [Math.PI / 2, 0, 0]);
     if (look.kara && side === 1) mesh(geo.torus(0.042, 0.009, 6, 16), mat('#c9ced3', { rough: 0.2, metal: 0.9 }), elbow, [0, -0.23, 0], [Math.PI / 2, 0, 0]);
@@ -543,28 +674,78 @@ function personMat(m) {
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
-// Pose for this frame. st: { speed, run, act: {type,p,dur} | null, down, t, carrying }
+// Pose for this frame. st: { speed, run, act: {type,p,dur} | null, down, t, carrying, bank, turnRate }
 export function animate(P, st, dt) {
   const { hips, torso, head, legs, arms, tools } = P;
   const speed = st.speed ?? 0;
   const a = Math.min(1, speed / 3.2);
-  P.phase += dt * (2.4 + speed * 1.55);
+  P.phase += dt * (st.run ? 7.6 + speed * 0.55 : 4.2 + speed * 1.35);
   const ph = P.phase, s = Math.sin(ph);
   const sk = P.skirt;
-  let hipY = 0.92 + Math.abs(Math.cos(ph)) * 0.045 * a;
-  let lean = st.run ? 0.22 * a : 0.05 * a;
-  const L = [s * 0.62 * a * sk, -s * 0.62 * a * sk];
-  const K = [Math.max(0, -Math.cos(ph)) * a * (0.5 + sk * 0.5), Math.max(0, Math.cos(ph)) * a * (0.5 + sk * 0.5)];
-  const A = [-s * 0.55 * a, s * 0.55 * a];
-  const E = [-(0.2 + (st.run ? 0.9 : 0.25) * a), -(0.2 + (st.run ? 0.9 : 0.25) * a)];
-  let az = [0.08, -0.08];
+
+  // Stride kinematics: double-sinusoidal pelvic bounce
+  const bounce = (st.run ? 0.075 : 0.038) * Math.sin(ph * 2 - Math.PI * 0.5) * a;
+  let hipY = 0.92 + bounce;
+
+  // Aerodynamic forward lean and dynamic turn banking
+  let lean = (st.run ? 0.28 : 0.07) * a;
+  const bank = (st.bank ?? 0) * a;
+
+  // Stride amplitude & leg poses
+  const stride = (st.run ? 0.88 : 0.58) * a * sk;
+  const L = [s * stride, -s * stride];
+
+  // Knee shock-absorption during stance + dynamic swing lift
+  const swing0 = Math.max(0, -Math.cos(ph));
+  const swing1 = Math.max(0, Math.cos(ph));
+  const K = [
+    (st.run ? 1.15 : 0.58) * swing0 * a + (1 - swing0) * 0.12 * a,
+    (st.run ? 1.15 : 0.58) * swing1 * a + (1 - swing1) * 0.12 * a,
+  ];
+
+  // Heel-strike dorsiflexion, flat mid-stance, and toe-off plantarflexion
+  const footRoll = [
+    -L[0] * 0.65 - K[0] * 0.22,
+    -L[1] * 0.65 - K[1] * 0.22,
+  ];
+
+  // Athletic contralateral arm swing
+  const armSwing = (st.run ? 0.96 : 0.54) * a;
+  const A = [-s * armSwing, s * armSwing];
+  const E = [
+    -(st.run ? 1.25 : 0.35) - Math.max(0, -A[0]) * (st.run ? 0.55 : 0.42),
+    -(st.run ? 1.25 : 0.35) - Math.max(0, -A[1]) * (st.run ? 0.55 : 0.42),
+  ];
+  let az = [
+    0.08 + (st.run ? 0.14 : 0.04) * a,
+    -0.08 - (st.run ? 0.14 : 0.04) * a,
+  ];
+
   let headX = 0, headY = 0, bodyY = 0;
   for (const t of Object.values(tools)) t.visible = false;
   if (st.carrying) tools.sack.visible = true;
+
+  // Breathing and idle micro-movements
   if (a < 0.05 && !st.act) {
-    torso.scale.y = 1 + Math.sin(st.t * 2.2) * 0.012;
-    headY = Math.sin(st.t * 0.35) * 0.35 * Math.max(0, Math.sin(st.t * 0.21));
-  } else torso.scale.y = 1;
+    const breathe = Math.sin(st.t * 2.2);
+    torso.scale.set(1 + breathe * 0.012, 1 + breathe * 0.018, 1 + breathe * 0.014);
+    headY = Math.sin(st.t * 0.35) * 0.32 * Math.max(0, Math.sin(st.t * 0.21));
+    headX = Math.sin(st.t * 0.5) * 0.05;
+  } else {
+    const exertion = 1 + (st.run ? 0.025 : 0.012) * Math.sin(st.t * 6);
+    torso.scale.set(exertion, 1, exertion);
+  }
+
+  // 3D Biological Blinking
+  const bVal = blink(st.t ?? 0, P.seed ?? 1);
+  if (P.eyelids) {
+    for (const lid of P.eyelids) {
+      lid.scale.y = 0.02 + bVal * 0.98;
+      lid.position.y = (1 - bVal) * 0.009;
+      lid.position.z = bVal * 0.0025;
+    }
+  }
+
   const act = st.act;
   if (act) {
     const p = act.p / act.dur, e = Math.sin(Math.min(1, p) * Math.PI);
@@ -574,7 +755,7 @@ export function animate(P, st, dt) {
         A[1] = -1.1 * e; E[1] = -0.25; A[0] = -0.6 * e; break;
       case 'harvest':
         lean = 0.9 * e; hipY -= 0.14 * e; K[0] = K[1] = 0.6 * e; L[0] = L[1] = -0.5 * e;
-        tools.sickle.visible = true; A[1] = -1.0 * e; az[1] = -0.2 + Math.sin(p * Math.PI * 4) * 0.6 * e; E[1] = -0.5; A[0] = -0.9 * e; break;
+        tools.sickle.visible = true; A[1] = -1.0 * e; az[1] = -0.2 + Math.sin(p * Math.PI * 4) * 0.65 * e; E[1] = -0.5; A[0] = -0.9 * e; break;
       case 'water':
         tools.can.visible = true; A[1] = -1.15 * e; E[1] = -0.2; lean = 0.25 * e; headX = 0.35 * e;
         tools.can.rotation.x = 0.9 * e; break;
@@ -597,6 +778,8 @@ export function animate(P, st, dt) {
       default:
     }
   }
+  // Let the head anticipate a turn slightly, rather than rotating as one rigid block.
+  headY += Math.max(-0.2, Math.min(0.2, (st.turnRate ?? 0) * 0.035));
   if (st.down > 0) { hipY = 0.3; L[0] = L[1] = -1.45; K[0] = K[1] = 1.5; lean = 0.25; A[1] = -2.4; E[1] = -1.8; A[0] = -0.5; headX = 0.35; }
   const k = Math.min(1, dt * 14);
   hips.position.y = lerp(hips.position.y, hipY, k);
@@ -604,20 +787,33 @@ export function animate(P, st, dt) {
   torso.rotation.x = lerp(torso.rotation.x, lean, k);
   head.rotation.x = lerp(head.rotation.x, headX - lean * 0.5, k);
   head.rotation.y = lerp(head.rotation.y, headY, k * 0.5);
-  // the walk: hips turn with the stepping leg and dip to the standing one, the shoulders turn against them; at rest
-  // the weight shifts slowly from foot to foot
+
+  // The walk & run: pelvic list and yaw, thoracic counter-rotation, dynamic turn banking
   const still = a < 0.05 && !act;
-  hips.rotation.y = lerp(hips.rotation.y, act ? 0 : s * 0.11 * a, k);
-  hips.rotation.z = lerp(hips.rotation.z, act ? 0 : still ? Math.sin(st.t * 0.5) * 0.025 : Math.cos(ph) * 0.045 * a, k);
-  torso.rotation.y = lerp(torso.rotation.y, act ? 0 : -s * 0.2 * a, k);
-  torso.rotation.z = lerp(torso.rotation.z, act ? 0 : -hips.rotation.z * 0.8, k);
+  const hipYaw = act ? 0 : s * (st.run ? 0.14 : 0.09) * a;
+  const hipRoll = act ? 0 : still ? Math.sin(st.t * 0.5) * 0.025 : Math.cos(ph) * (st.run ? 0.065 : 0.045) * a;
+
+  hips.rotation.y = lerp(hips.rotation.y, hipYaw, k);
+  hips.rotation.z = lerp(hips.rotation.z, hipRoll + bank * 0.65, k);
+  torso.rotation.y = lerp(torso.rotation.y, act ? 0 : -hipYaw * 1.35, k);
+  torso.rotation.z = lerp(torso.rotation.z, act ? 0 : -hipRoll * 0.8 + bank * 0.45, k);
+
   for (let i = 0; i < 2; i++) {
     legs[i].thigh.rotation.x = lerp(legs[i].thigh.rotation.x, -L[i], k);
     legs[i].knee.rotation.x = lerp(legs[i].knee.rotation.x, K[i], k);
-    legs[i].foot.rotation.x = lerp(legs[i].foot.rotation.x, -K[i] * 0.3, k);
+    legs[i].foot.rotation.x = lerp(legs[i].foot.rotation.x, footRoll[i], k);
     arms[i].shoulder.rotation.x = lerp(arms[i].shoulder.rotation.x, A[i], k);
     arms[i].shoulder.rotation.z = lerp(arms[i].shoulder.rotation.z, az[i], k);
     arms[i].elbow.rotation.x = lerp(arms[i].elbow.rotation.x, E[i], k);
   }
+
+  // Secondary cloth inertia and sway for skirts, dhotis, saris, and long garments
+  if (P.skirtGroup) {
+    const sway = Math.sin(ph) * 0.075 * a;
+    const billow = -speed * 0.026;
+    P.skirtGroup.rotation.z = lerp(P.skirtGroup.rotation.z, -hips.rotation.z * 0.65 + sway, k);
+    P.skirtGroup.rotation.x = lerp(P.skirtGroup.rotation.x, billow - lean * 0.35, k);
+  }
+
   if (!act || act.type !== 'water') tools.can.rotation.x = 0;
 }

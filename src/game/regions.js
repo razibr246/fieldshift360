@@ -453,21 +453,54 @@ export const FARMER_IDS = Object.keys(REGIONS);
 export const BD_IDS = Object.keys(REGIONS_BD), ABROAD_IDS = Object.keys(ABROAD);
 
 // The season, in order. A step with `quiz` asks that region's question first (if it has one).
+// The season's missions: each one a problem the challenge names, solved the way FieldShift's NASA data shows. `need`
+// counts what the player does (sim.js g.count); a mission with several needs moves on when all are met. `problem` says
+// what goes wrong on a real farm and `how` which NASA record, read in FieldShift, answers it.
+const m = (bn, en) => ({ bn, en });
 export const QUESTS = [
-  { id: 'buy', need: { bought: 3 }, bn: 'দোকান থেকে ৩টি বীজ কিনুন', en: 'Buy 3 seeds at the shop', go: 'shed' },
-  { id: 'plant', quiz: 'plant', need: { planted: 3 }, bn: '৩টি জমিতে বীজ বুনুন', en: 'Sow 3 plots', go: 'field' },
-  { id: 'water', quiz: 'water', need: { watered: 3 }, bn: '৩টি চারায় পানি দিন', en: 'Water 3 seedlings', go: 'field' },
-  { id: 'harvest', need: { harvested: 3 }, bn: '৩টি পাকা ফসল তুলুন', en: 'Harvest 3 ripe crops', go: 'field' },
-  { id: 'sell', need: { sold: 1 }, bn: 'হাটে ফসল বিক্রি করুন', en: 'Sell your harvest at the market', go: 'market' },
-  { id: 'heat', quiz: 'heat', event: 'heat', bn: 'তাপপ্রবাহ পার করুন — চারা বাঁচিয়ে রাখুন', en: 'Get through the heatwave — keep the seedlings alive', go: 'field' },
-  { id: 'pests', quiz: 'pests', event: 'pests', bn: 'আক্রান্ত সব জমি সারিয়ে তুলুন', en: 'Deal with every affected plot', go: 'field' },
-  { id: 'storm', quiz: 'storm', event: 'storm', bn: 'পাকা ফসল তুলে নিরাপদ জায়গায় পৌঁছান', en: 'Bring in the ripe crop and reach safety', go: 'safe' },
-  { id: 'profit', quiz: 'profit', need: { earned: 1000 }, event: 'glut', bn: 'মৌসুমে মোট {cur}১,০০০ বিক্রি করুন', en: 'Sell {cur}1,000 in total this season', go: 'market' },
+  { id: 'scan', need: { satViews: 1 }, go: 'field', bn: 'উপগ্রহের চোখে মাঠ দেখুন', en: 'See your field through the satellite’s eyes',
+    problem: m('কোন জমি খালি, কোনটা চাপে আছে, চোখে বোঝা যায় না।', 'By eye you cannot tell which plots are bare or under stress.'),
+    how: m('Landsat ও MODIS-এর NDVI: সবুজ মানে সুস্থ ফসল, বাদামি মানে খালি মাটি। উপগ্রহ বোতাম বা N চাপুন।', 'Landsat and MODIS NDVI: green is a healthy crop, brown is bare soil. Press the satellite button or N.') },
+  { id: 'buy', need: { advised: 1, bought: 3 }, go: 'kiosk', bn: 'FieldShift দেখে ঠিক বীজ কিনুন (৩টি)', en: 'Check FieldShift, then buy the right seeds (3)',
+    problem: m('অভ্যাসে প্রতি বছর একই ফসল: মাটি ক্লান্ত হয়, পানি বেশি লাগে।', 'Habit grows the same crop every year: the soil tires and it needs more water.'),
+    how: m('কিয়স্কের "ফসলচক্র": নাসার ২৫ মৌসুমের আবহাওয়ায় প্রতিটি পথের পানি, আয় আর মাটির হিসাব। তারপর দোকানে বীজ।', 'The kiosk’s Rotations: each option’s water, income and soil on 25 seasons of NASA weather. Then buy seed at the shop.') },
+  { id: 'plant', quiz: 'plant', need: { planted: 3 }, go: 'field', bn: 'খালি জমি ঢাকুন: ৩টি জমিতে বুনুন', en: 'Cover the bare soil: sow 3 plots',
+    problem: m('খালি জমির ওপরের উর্বর মাটি বৃষ্টি আর ঝড়ে ধুয়ে যায়।', 'Bare soil loses its rich top layer to rain and storms.'),
+    how: m('MODIS NDVI যে মাসে জমি খালি দেখায়, সেটাই নতুন ফসল বা আবরণ ফসলের সুযোগ।', 'The months MODIS NDVI shows the land bare are the chance for a new or cover crop.') },
+  { id: 'water', quiz: 'water', need: { waterLayer: 1, watered: 3 }, go: 'field', bn: 'পানির চাপ খুঁজে ৩টি চারায় পানি দিন', en: 'Find the water stress, then water 3 seedlings',
+    problem: m('পানি কম, পাম্পের খরচ বেশি: সব জমিতে নয়, যেখানে দরকার সেখানেই পানি।', 'Water is short and pumping is costly: water where it is needed, not everywhere.'),
+    how: m('SMAP মাটির আর্দ্রতা: উপগ্রহ দৃশ্যে "পানির চাপ" স্তর খুলুন; লাল জমি সবচেয়ে শুকনো।', 'SMAP soil moisture: open the Water stress layer in the satellite view; red plots are driest.') },
+  { id: 'harvest', need: { harvested: 3, rotated: 1 }, go: 'field', bn: 'ফসল তুলে সেই জমিতে অন্য ফসল বুনুন', en: 'Harvest 3, then sow a different crop where one grew',
+    problem: m('একই জমিতে একই ফসল বারবার: সেই ফসলের রোগ-পোকা জমে থাকে, মাটির খাদ্য ফুরায়।', 'The same crop on the same plot again and again: its pests wait in the soil and its food runs out.'),
+    how: m('উপগ্রহের "মাটির স্বাস্থ্য" স্তর: ফসল বদলালে আর ডাল বুনলে জমি সবুজ হয়।', 'The satellite’s Soil health layer: changing the crop and sowing pulses turns the plot green.') },
+  { id: 'sell', need: { sold: 1 }, go: 'market', bn: 'হাটে ফসল বিক্রি করুন', en: 'Sell your harvest at the market',
+    problem: m('ফসল ঘরে পড়ে থাকলে নষ্ট হয়, টাকা আটকে থাকে।', 'A harvest left at home spoils and ties up the money.'),
+    how: m('FieldShift কিয়স্কে আজকের বাজারদর দেখে বেচুন।', 'Check today’s prices at the FieldShift kiosk before you sell.') },
+  { id: 'heat', quiz: 'heat', event: 'heat', go: 'field', bn: 'তাপপ্রবাহ পার করুন: চারা বাঁচিয়ে রাখুন', en: 'Get through the heatwave: keep the seedlings alive',
+    problem: m('তাপমাত্রা বাড়ছে; গরমে মাটি দ্রুত শুকায়, ফুল আসা ফসল পুড়ে যায়।', 'Temperatures are rising; heat dries the soil fast and burns a flowering crop.'),
+    how: m('MODIS ভূপৃষ্ঠের তাপ: কিয়স্কের "উপগ্রহ থেকে" দেখায় কোন মাস সবচেয়ে গরম। সতর্কতা এলে ঘন ঘন পানি দিন।', 'MODIS ground heat: the kiosk’s From space shows the hottest months. When the warning comes, water often.') },
+  { id: 'pests', quiz: 'pests', event: 'pests', go: 'field', bn: 'আক্রান্ত সব জমি সারিয়ে তুলুন', en: 'Deal with every affected plot',
+    problem: m('পোকা আগে আসে যে জমিতে একই ফসল আবার বোনা হয়েছে।', 'Pests strike first where the same crop was sown again.'),
+    how: m('উপগ্রহের "ফসলের স্বাস্থ্য" স্তরে হলুদ-লাল জমি খুঁজুন; ফসল বদলালে পরের বার কম আসে।', 'Find the yellow and red plots on the satellite’s Crop health layer; rotating crops brings fewer next time.') },
+  { id: 'storm', quiz: 'storm', event: 'storm', go: 'safe', bn: 'পাকা ফসল তুলে নিরাপদ জায়গায় পৌঁছান', en: 'Bring in the ripe crop and reach safety',
+    problem: m('বৃষ্টি অনিশ্চিত, চরম আবহাওয়া বাড়ছে: মাঠের পাকা ফসল আর খালি জমির মাটি দুটোই যায়।', 'Rain is less predictable and extremes are rising: ripe crop and bare soil are both lost.'),
+    how: m('GPM IMERG-এর বৃষ্টি আর FieldShift-এর আগাম সতর্কতা: সময় থাকতে ফসল তুলুন, জমি ঢেকে রাখুন।', 'GPM IMERG rain and FieldShift’s early warning: harvest in time and keep the soil covered.') },
+  { id: 'profit', quiz: 'profit', need: { earned: 1000 }, event: 'glut', go: 'market', bn: 'মৌসুমে মোট {cur}১,০০০ বিক্রি করুন', en: 'Sell {cur}1,000 in total this season',
+    problem: m('সবাই একই ফসল একসঙ্গে বেচলে দাম পড়ে যায়।', 'When everyone sells the same crop at once, the price falls.'),
+    how: m('FieldShift-এর ফসলচক্র: আলাদা ফসল, আলাদা সময়ে তুললে দাম বাঁচে।', 'FieldShift’s rotations: different crops, harvested at different times, keep the price.') },
 ];
 
-// Satellite crop-health view (NDVI-style): what each colour means.
-export const NDVI_LEGEND = [
-  { c: '#2e9d3a', bn: 'সুস্থ', en: 'Healthy' },
-  { c: '#c9c23a', bn: 'চাপে আছে', en: 'Stressed' },
-  { c: '#d6452f', bn: 'বিপদে', en: 'In danger' },
+
+// Each mission step as the player reads it on the mission card, beside a tick when it is done.
+export const STEP_LABEL = {
+  satViews: m('উপগ্রহ দৃশ্য খুলুন', 'Open the satellite view'), advised: m('FieldShift দেখুন', 'Check FieldShift'), bought: m('বীজ কিনুন', 'Buy seed'),
+  planted: m('জমিতে বুনুন', 'Sow plots'), waterLayer: m('"পানির চাপ" স্তর খুলুন', 'Open the Water stress layer'), watered: m('চারায় পানি দিন', 'Water seedlings'),
+  harvested: m('পাকা ফসল তুলুন', 'Harvest ripe crops'), rotated: m('অন্য ফসল বুনুন', 'Sow a different crop'), sold: m('হাটে বিক্রি', 'Sell at the market'), earned: m('মোট বিক্রি', 'Total sold'),
+};
+
+// The satellite view's layers, each named for the NASA record it stands for, and what each colour means.
+export const SAT_LAYERS = [
+  { id: 'health', sat: 'Landsat / MODIS NDVI', bn: 'ফসলের স্বাস্থ্য', en: 'Crop health', legend: [['#2e9d3a', 'সুস্থ', 'Healthy'], ['#c9c23a', 'চাপে আছে', 'Stressed'], ['#d6452f', 'বিপদে', 'In danger']] },
+  { id: 'water', sat: 'SMAP', bn: 'পানির চাপ', en: 'Water stress', legend: [['#2f7fd0', 'ভেজা', 'Moist'], ['#c9c23a', 'শুকাচ্ছে', 'Drying'], ['#d6452f', 'পানির চাপের জায়গা', 'Water-stress hotspot']] },
+  { id: 'soil', sat: 'SoilGrids', bn: 'মাটির স্বাস্থ্য', en: 'Soil health', legend: [['#2e9d3a', 'উর্বর', 'Rich'], ['#c9a23a', 'মাঝারি', 'Middling'], ['#8a5a3a', 'ক্ষয়ে যাওয়া', 'Worn out']] },
 ];

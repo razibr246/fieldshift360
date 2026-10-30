@@ -15,7 +15,7 @@ import { createWorld } from './world';
 import { createField } from './field';
 import { buildFarmer, animate, personLight } from './people';
 import { createLife } from './life';
-import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS } from '../sim';
+import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS, note } from '../sim';
 import { QUESTS, FIELD_W, FIELD_D, WORLD_R } from '../regions';
 
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
@@ -54,11 +54,19 @@ const GRADE = {
 };
 
 export const QUALITY_KEY = 'fs360.game.quality';
+// Light graphics unless the player chose otherwise: on by default for a phone that reports little memory or few cores.
+export function lightGraphics() {
+  try { const v = localStorage.getItem(QUALITY_KEY); if (v) return v === 'light'; } catch { /* storage unavailable */ }
+  if (typeof navigator === 'undefined' || !isTouch()) return false;
+  return (navigator.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
+}
+// The drop from orbit is a sweeping camera move; a player who asks for less motion gets a short fade-in instead.
+const lessMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 export function createStage({ canvas, overlay, minimap, compass, g, lang, onEvent }) {
   needWebGL();
   const touch = isTouch();
   // 'light' graphics (chosen on the farmer picker, for weaker phones and laptops): no post effects, fewer pixels
-  const light = (() => { try { return localStorage.getItem(QUALITY_KEY) === 'light'; } catch { return false; } })();
+  const light = lightGraphics();
   // smooth edges everywhere except 'light' graphics: the world is low-poly, so a phone can afford them
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !light, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, light ? 1 : touch ? 1.5 : 2));
@@ -92,10 +100,11 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const L = g.L;
 
   // ---- particles: water, soil, sparks, coins ----
-  const MAXP = 600;
+  const MAXP = light ? 260 : 600;
   const pGeo = new THREE.BufferGeometry();
   const pPos = new Float32Array(MAXP * 3), pCol = new Float32Array(MAXP * 3);
   pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+  pGeo.setDrawRange(0, 0);
   const pts = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.14, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false }));
   pts.frustumCulled = false; scene.add(pts);
   const parts = [];
@@ -123,19 +132,23 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
   // ---- camera and input ----
   // over the shoulder: close, low, and a little to the side so the farmer stands left of centre
-  const cam = { yaw: -2.4, pitch: 0.32, dist: touch ? 5 : 5.4, look: 0, sat: false, intro: 1, introT: 0, side: 0 };
+  const cam = { layer: 'health', yaw: -2.4, pitch: 0.32, dist: touch ? 5 : 5.4, look: 0, sat: false, intro: 1, introT: lessMotion() ? 4.7 : 0, side: 0 };
   const keys = new Set();
   const joy = { x: 0, y: 0 };
   let runHeld = false, runToggle = false;
   const onKey = (e, down) => {
-    if (e.target.closest?.('input, textarea, select')) return;
+    if (e.target.closest?.('input, textarea, select, button, a, [role="button"], [contenteditable="true"]')) return;
     const k = e.code;
     if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'Space'].includes(k)) e.preventDefault();
     if (down) keys.add(k); else keys.delete(k);
     if (k === 'ShiftLeft' || k === 'ShiftRight') runHeld = down;
   };
   const kd = (e) => onKey(e, true), ku = (e) => onKey(e, false);
+  const clearInput = () => { keys.clear(); runHeld = false; joy.x = 0; joy.y = 0; };
+  const onVisibility = () => { if (document.hidden) clearInput(); };
   window.addEventListener('keydown', kd); window.addEventListener('keyup', ku);
+  window.addEventListener('blur', clearInput);
+  document.addEventListener('visibilitychange', onVisibility);
   const drags = new Map();
   const pd = (e) => { canvas.setPointerCapture?.(e.pointerId); drags.set(e.pointerId, [e.clientX, e.clientY]); cam.look = 1.5; };
   const pm = (e) => {
@@ -175,11 +188,14 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const station = (id) => [g.S[id].x, g.S[id].z];
     const ripe = g.plots.find((p) => p.crop && !p.dead && p.g >= ripeAt(g));
     const pick = (fn) => { const p = g.plots.filter(fn).sort((a, b) => Math.hypot(a.x - g.me.x, a.z - g.me.z) - Math.hypot(b.x - g.me.x, b.z - g.me.z))[0]; return p ? [p.x, p.z] : null; };
+    if (q.id === 'buy' && !g.count.advised) return station('kiosk');
+    if (q.id === 'scan') return null;
     if (q.id === 'buy' || (!Object.values(g.seeds).some(Boolean) && !g.plots.some((p) => p.crop && !p.dead) && ['plant', 'water', 'harvest'].includes(q.id))) return station('shed');
     if (q.go === 'market' && Object.values(g.basket).some(Boolean) && (q.id === 'sell' || !ripe)) return station('market');
     if (g.can <= 0 && g.plots.some((p) => p.crop && !p.dead && p.moist < 0.5)) return station('water');
     if (g.plots.some((p) => p.pests)) return pick((p) => p.pests);
     if (q.id === 'plant') return pick((p) => !p.crop);
+    if (q.id === 'harvest' && g.count.harvested >= 3 && !g.count.rotated) { const e = pick((p) => !p.crop && p.last); if (e) return e; }
     if (ripe && ['harvest', 'sell', 'storm', 'profit'].includes(q.id)) return pick((p) => p.crop && !p.dead && p.g >= ripeAt(g));
     const thirsty = pick((p) => p.crop && !p.dead && p.moist < 0.35 && p.g < ripeAt(g));
     if (thirsty) return thirsty;
@@ -369,12 +385,27 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     // the farmer
     const me = g.me, gy = L.ground(me.x, me.z) + (g.ev.flood > 0.3 && Math.abs(me.x) < FIELD_W / 2 + 4 && Math.abs(me.z) < FIELD_D / 2 + 4 ? -0.15 : 0);
     P.root.position.set(me.x, gy, me.z); P.root.rotation.y = me.yaw;
-    animate(P, { speed: me.speed, run: me.run, act: me.act, down: me.down, t, carrying: Object.values(g.basket).reduce((a, b) => a + b, 0) > 0 }, dt);
-    // camera: the drop from orbit, then over the shoulder
-    focus.set(me.x, gy + 1.45, me.z);
+    if (me.slopeZ !== undefined && me.slopeX !== undefined) {
+      P.root.rotation.x += (me.slopeZ * 0.45 - P.root.rotation.x) * Math.min(1, dt * 8);
+      P.root.rotation.z += (-me.slopeX * 0.45 - P.root.rotation.z) * Math.min(1, dt * 8);
+    }
+    animate(P, {
+      speed: me.speed,
+      run: me.run,
+      act: me.act,
+      down: me.down,
+      t,
+      carrying: Object.values(g.basket).reduce((a, b) => a + b, 0) > 0,
+      bank: me.bank ?? 0,
+      turnRate: me.turnRate ?? 0,
+    }, dt);
+    // camera: dynamic follow with velocity look-ahead and speed pull-back
+    const runShare = me.run ? Math.min(1, me.speed / 4.8) : 0;
+    const leadX = (me.vx ?? 0) * 0.22, leadZ = (me.vz ?? 0) * 0.22;
+    focus.set(me.x + leadX, gy + 1.45, me.z + leadZ);
     if (cam.look > 0) cam.look -= dt;
     else if (me.speed > 1 && !cam.sat) { let d = (me.yaw + Math.PI) - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 2.2) cam.yaw += d * Math.min(1, dt * 0.9); }
-    const dist = cam.sat ? 46 : cam.dist, pitch = cam.sat ? 1.35 : cam.pitch;
+    const dist = (cam.sat ? 46 : cam.dist) * (1 + runShare * 0.15), pitch = cam.sat ? 1.35 : cam.pitch;
     cam.side += ((cam.sat ? 0 : 0.55) - cam.side) * Math.min(1, dt * 3);
     const rx = Math.cos(cam.yaw) * cam.side, rz = -Math.sin(cam.yaw) * cam.side;
     focus.x += rx; focus.z += rz;
@@ -389,6 +420,14 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       camPos.y = Math.max(camPos.y, L.ground(camPos.x, camPos.z) + 0.6);
       camera.position.lerp(camPos, Math.min(1, dt * (cam.sat ? 4 : 10)));
       camera.lookAt(focus);
+      if (!cam.sat) {
+        const baseFov = touch ? 60 : 52;
+        const targetFov = baseFov + runShare * 4;
+        if (Math.abs(camera.fov - targetFov) > 0.05) {
+          camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);
+          camera.updateProjectionMatrix();
+        }
+      }
     }
     const goalPos = cam.intro ? null : goal();
     const onIt = goalPos && Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z) < 1.8;
@@ -400,13 +439,18 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     fill.position.copy(eye).add(tmpV.set(0, 2, 0)); fill.target.position.copy(focus);
     const { wind } = world.update(t, dt, ph, g.ev, eye, focus);
     if (xr.mode === 'ar') { scene.fog.near = 1e4; scene.fog.far = 2e4; } // the room is the horizon
-    field.update(t, wind, g.ndvi || cam.sat, g.F.scanner);
+    field.update(t, wind, g.ndvi || cam.sat, g.F.scanner, cam.layer);
     life.update(t, paused || cam.intro ? 0 : dt, project, eye);
     if (sign.visible) { signT -= dt; sign.position.set(me.x, gy + (xr.mode === 'ar' ? 8 : 3.3), me.z); if (signT <= 0 || !xrOn) sign.visible = false; }
     // particles
     for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vy -= 9 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.life <= 0 || p.y < -1) parts.splice(i, 1); }
-    for (let i = 0; i < MAXP; i++) { const p = parts[i]; if (p) { pPos[i * 3] = p.x; pPos[i * 3 + 1] = p.y; pPos[i * 3 + 2] = p.z; pCol[i * 3] = p.c.r; pCol[i * 3 + 1] = p.c.g; pCol[i * 3 + 2] = p.c.b; } else pPos[i * 3 + 1] = -999; }
-    pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      pPos[i * 3] = p.x; pPos[i * 3 + 1] = p.y; pPos[i * 3 + 2] = p.z;
+      pCol[i * 3] = p.c.r; pCol[i * 3 + 1] = p.c.g; pCol[i * 3 + 2] = p.c.b;
+    }
+    pGeo.setDrawRange(0, parts.length);
+    if (parts.length) { pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true; }
     if (composer && !xrOn) composer.render(dt); else renderer.render(scene, camera);
     // overlay
     for (const l of labels) {
@@ -448,8 +492,9 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     setJoy(x, y) { joy.x = x; joy.y = y; },
     setRun(on) { runToggle = on; },
     act() { if (cam.intro === 0) simAct(g); },
-    toggleSat() { cam.sat = !cam.sat; g.ndvi = cam.sat; return cam.sat; },
+    toggleSat() { cam.sat = !cam.sat; g.ndvi = cam.sat; if (cam.sat) note(g, 'satViews'); if (cam.sat && cam.layer === 'water') note(g, 'waterLayer'); return cam.sat; },
     get sat() { return cam.sat; },
+    setLayer(l) { cam.layer = l; if (l === 'water' && cam.sat) note(g, 'waterLayer'); },
     skipIntro() { if (cam.intro) cam.introT = Math.max(cam.introT, 4.6); },
     setPaused(p) { paused = p; },
     setLang(l) { lang = l; setNames(); life.setLang(l); },
@@ -459,7 +504,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     get xr() { return xr.mode; },
     dispose() {
       alive = false; renderer.xr.getSession()?.end().catch(() => {}); renderer.setAnimationLoop(null); ro.disconnect(); signTex.dispose(); life.dispose(); composer?.dispose(); gtao?.dispose?.(); gradPass?.dispose?.();
-      window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku);
+      window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); window.removeEventListener('blur', clearInput); document.removeEventListener('visibilitychange', onVisibility);
       overlay.replaceChildren();
       scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
       renderer.dispose();

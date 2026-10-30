@@ -4,6 +4,7 @@
 import { DAY, PLOT, GAP, FCOLS, FROWS, FIELD_W, FIELD_D, REGIONS, QUESTS } from './regions.js';
 import { layoutFor, resolve, inWater } from './layout.js';
 import { PLACES, spot } from './places.js';
+import { num } from '../engine/dates.js';
 
 const CELL = PLOT + GAP;
 export const plotCenter = (c, r) => [-FIELD_W / 2 + PLOT / 2 + c * CELL, -FIELD_D / 2 + PLOT / 2 + r * CELL];
@@ -34,18 +35,18 @@ export function createGame(id, mods = {}) {
   const plots = [];
   for (let r = 0; r < FROWS; r++) for (let c = 0; c < FCOLS; c++) {
     const [x, z] = plotCenter(c, r);
-    plots.push({ i: plots.length, c, r, x, z, crop: null, g: 0, moist: 0.35, health: 1, wilt: 0, dead: false, pests: 0, pestT: 0, fert: 0, mulch: false });
+    plots.push({ i: plots.length, c, r, x, z, crop: null, g: 0, moist: 0.35, health: 1, wilt: 0, dead: false, pests: 0, pestT: 0, fert: 0, mulch: false, last: null, repeat: false });
   }
   const seeds = Object.fromEntries(Object.keys(R.crops).map((k) => [k, 0]));
   const g = {
     id, R, F, L, S: L.S, t: 0, paused: false, ndvi: false,
     me: { x: L.S.start.x, z: L.S.start.z, yaw: 0.6, vx: 0, vz: 0, speed: 0, act: null, stamina: 1, down: 0, idle: -5, run: false },
     can: F.can, seeds, sel: Object.keys(R.crops)[0], basket: { ...seeds }, money: 150,
-    count: { bought: 0, planted: 0, watered: 0, harvested: 0, sold: 0, earned: 0, pestsCleared: 0, lost: 0, hurt: 0 },
+    count: { bought: 0, planted: 0, watered: 0, harvested: 0, sold: 0, earned: 0, pestsCleared: 0, lost: 0, hurt: 0, rotated: 0, repeats: 0, legumes: 0, eroded: 0, satViews: 0, advised: 0, waterLayer: 0 },
     quest: 0, questStarted: false, nextQuestAt: 1.5, perks: {}, answers: [], ev: { heat: 0, storm: 0, glut: 0, done: {}, zone: null, flood: 0 },
     waitFor: null, timers: [], plots, out: [], won: false, broke: false, alerts: ALERT(R),
     home: PLACES[id], seen: [], phase: 0.06,
-    mods: { heat: 1, storm: 1, pests: 1, ...mods },
+    mods: { heat: 1, storm: 1, pests: 1, dry: 1, ...mods },
   };
   g.out.push({ type: 'say', text: R.lines.hello });
   return g;
@@ -84,7 +85,10 @@ export function target(g) {
     else if (g.can <= 0) what = 'nowater';
     else if (p.moist > 0.9) what = 'wet';
     else what = 'water';
-    return { kind: 'plot', p, what, crop: p.crop ? C[p.crop] : C[g.sel] };
+    // what sowing here would mean for the rotation, told before the player acts: the seed plotAction would use
+    const sow = g.seeds[g.sel] > 0 ? g.sel : Object.keys(g.seeds).find((k) => g.seeds[k] > 0) ?? g.sel;
+    const rot = what === 'plant' && p.last ? (p.last === sow ? 'repeat' : 'rotate') : null;
+    return { kind: 'plot', p, what, rot, last: p.last, crop: p.crop ? C[p.crop] : C[sow] };
   }
   let best = null;
   for (const id of STATIONS) { const s = g.S[id], d = dist(me, s); if (d < s.r + 1.4 && (!best || d < best.d)) best = { kind: 'station', id, d }; }
@@ -116,10 +120,13 @@ function plotAction(g, p) {
     if (g.seeds[g.sel] <= 0) { const alt = Object.keys(g.seeds).find((k) => g.seeds[k] > 0); if (alt) g.sel = alt; else { say(g, 'seeds'); emit(g, { type: 'hint', what: 'shed' }); return; } }
     g.seeds[g.sel]--; Object.assign(p, { crop: g.sel, g: 0, health: 1, wilt: 0, dead: false, mulch: !!g.perks.mulch });
     g.count.planted++; startAct(g, 'plant'); fx(g, 'plant', p.x, p.z); sound(g, 'plant');
-    floater(g, { bn: `${C[p.crop].bn} বোনা হলো`, en: `${C[p.crop].en} sown` }, p.x, p.z, 'info'); return;
+    // rotation: the same crop again on this plot keeps its pests fed; a different one breaks their cycle
+    p.repeat = p.last === p.crop;
+    if (p.repeat) g.count.repeats++; else if (p.last) g.count.rotated++;
+    floater(g, p.repeat ? { bn: `আবার ${C[p.crop].bn}: পোকা জমে উঠবে`, en: `${C[p.crop].en} again: pests build up` } : p.last ? { bn: `${C[p.crop].bn} বোনা হলো · ফসল বদল`, en: `${C[p.crop].en} sown · crop rotated` } : { bn: `${C[p.crop].bn} বোনা হলো`, en: `${C[p.crop].en} sown` }, p.x, p.z, p.repeat ? 'bad' : 'info'); return;
   }
   if (p.g >= ripeAt(g)) {
-    const k = p.crop; g.basket[k]++; g.count.harvested++;
+    const k = p.crop; g.basket[k]++; g.count.harvested++; p.last = k; if (C[k].soil) g.count.legumes++;
     p.fert = C[k].soil ? Math.min(0.6, p.fert + 0.35) : Math.max(0, p.fert - (g.F.soilKeeper ? 0 : 0.1));
     Object.assign(p, { crop: null, g: 0, health: 1, wilt: 0 });
     startAct(g, 'harvest'); fx(g, 'harvest', p.x, p.z); sound(g, 'harvest');
@@ -135,7 +142,7 @@ function plotAction(g, p) {
 function useStation(g, id) {
   const s = g.S[id];
   if (id === 'shed') { emit(g, { type: 'open', panel: 'shop' }); sound(g, 'tap'); return; }
-  if (id === 'kiosk') { emit(g, { type: 'open', panel: 'kiosk' }); sound(g, 'tap'); return; }
+  if (id === 'kiosk') { note(g, 'advised'); emit(g, { type: 'open', panel: 'kiosk' }); sound(g, 'tap'); return; }
   if (id === 'water') {
     g.can = canMax(g); startAct(g, 'pump'); sound(g, 'pump'); fx(g, 'pump', s.x, s.z);
     floater(g, { bn: 'বালতি ভরা হলো', en: 'Can refilled' }, s.x, s.z, 'info'); return;
@@ -149,6 +156,10 @@ function useStation(g, id) {
     floater(g, { bn: `+${g.R.cur}${total}`, en: `+${g.R.cur}${total}` }, s.x, s.z, 'money');
   }
 }
+
+// The player used FieldShift's data: opened the satellite view ('satViews'), the kiosk or phone ('advised'), or the
+// satellite's water-stress layer ('waterLayer'). Missions count these like any other step.
+export function note(g, k) { g.count[k] = (g.count[k] ?? 0) + 1; }
 
 export function buy(g, k, n) {
   const cost = g.R.crops[k].cost * n;
@@ -190,7 +201,10 @@ function beginEvent(g, q) {
   if (q.event === 'pests') g.waitFor = { n: 3, then: () => {
     emit(g, { type: 'alert', ...A.pestSoon });
     at(g, 8 + lead, () => {
-      growing(g).filter((p) => !p.pests).sort(() => Math.random() - 0.5).slice(0, Math.max(1, Math.round(3 * g.mods.pests))).forEach((p) => { p.pests = 1; p.pestT = 0; });
+      // the wave strikes a few plots at random, and every plot that grows the same crop as last time
+      const free = growing(g).filter((p) => !p.pests), hit = free.sort(() => Math.random() - 0.5).slice(0, Math.max(1, Math.round(3 * g.mods.pests)));
+      for (const p of free) if (p.repeat && !hit.includes(p)) hit.push(p);
+      hit.forEach((p) => { p.pests = 1; p.pestT = 0; });
       g.ev.pestsLeft = true; emit(g, { type: 'alert', ...A.pestOn }); say(g, 'pest'); sound(g, 'alarm');
     });
   } };
@@ -249,13 +263,15 @@ function stepFarmer(g, dt, input) {
   const z = g.ev.zone, outside = g.ev.storm > 0 && z && Math.hypot(me.x - z.x, me.z - z.z) > z.r;
   const top = (me.run ? F.run : F.speed) * (outside ? 0.65 : 1) * (g.ev.flood > 0.3 && Math.abs(me.x) < 16 && Math.abs(me.z) < 10 ? 0.55 : 1);
   const tx = l > 0.05 ? (ix / Math.max(l, 1e-6)) * top * l : 0, tz = l > 0.05 ? (iz / Math.max(l, 1e-6)) * top * l : 0;
-  const k = Math.min(1, dt * (l > 0.05 ? 9 : 12));
+  const k = Math.min(1, dt * (l > 0.05 ? 13 : 16));
   me.vx += (tx - me.vx) * k; me.vz += (tz - me.vz) * k;
   me.speed = Math.hypot(me.vx, me.vz);
   if (me.speed > 0.15) {
     const want = Math.atan2(me.vx, me.vz);
     let d = want - me.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
-    me.yaw += d * Math.min(1, dt * 12);
+    me.yaw += d * Math.min(1, dt * 15);
+    me.turnRate = d / Math.max(1e-4, dt);
+    me.bank = Math.max(-0.25, Math.min(0.25, -d * Math.min(1, me.speed / 3.5) * 0.4));
     me.idle = 0;
     let nx = me.x + me.vx * dt, nz = me.z + me.vz * dt;
     if (inWater(g.L, nx, nz)) { if (!inWater(g.L, nx, me.z)) nz = me.z; else if (!inWater(g.L, me.x, nz)) nx = me.x; else { nx = me.x; nz = me.z; } }
@@ -264,8 +280,14 @@ function stepFarmer(g, dt, input) {
     const blocked = Math.hypot(rx - (me.x + me.vx * dt), rz - (me.z + me.vz * dt));
     if (blocked > 0.02 && me.speed > 2.6 && g.t - (me.bumpAt ?? -9) > 0.7) { me.bumpAt = g.t; me.vx *= 0.25; me.vz *= 0.25; sound(g, 'bump'); }
     [me.x, me.z] = [rx, rz];
+    const gl = g.L?.ground;
+    if (gl) {
+      me.slopeX = (gl(me.x + 0.35, me.z) - gl(me.x - 0.35, me.z)) / 0.7;
+      me.slopeZ = (gl(me.x, me.z + 0.35) - gl(me.x, me.z - 0.35)) / 0.7;
+    }
     return;
   }
+  me.bank = 0; me.turnRate = 0;
   // a habit of their own when left alone
   me.idle += dt;
   if (me.idle > 8) { me.idle = -10; startAct(g, F.idle); if (Math.random() < 0.6) say(g, 'idle'); }
@@ -288,7 +310,7 @@ function stepPlots(g, dt) {
   for (const p of g.plots) {
     if (!p.crop || p.dead) { p.moist = wet ? 1 : Math.max(0.2, p.moist - dt * 0.01); continue; }
     const c = g.R.crops[p.crop];
-    const rate = 0.03 * c.thirst * (heat ? ((p.mulch || g.perks.cool) ? 1.4 : 2.6) * (g.F.heatHardy ? 0.75 : 1) : 1) * (g.perks.drip ? 0.7 : 1);
+    const rate = 0.03 * c.thirst * (heat ? ((p.mulch || g.perks.cool) ? 1.4 : 2.6) * (g.F.heatHardy ? 0.75 : 1) : 1) * (g.perks.drip ? 0.7 : 1) * g.mods.dry;
     p.moist = wet ? 1 : Math.max(0, p.moist - rate * dt);
     if (p.moist > 0.12) {
       p.wilt = Math.max(0, p.wilt - dt * 2);
@@ -354,6 +376,11 @@ function stepEvents(g, dt) {
       const lim = g.R.storm.kind === 'flood' ? 0.8 : 1;
       let k = 0;
       for (const p of g.plots) if (p.crop && !p.dead && p.g >= lim && !(g.perks.drains && k++ % 2 === 0)) kill(g, p, 'storm');
+      // bare soil, with no roots to hold it, loses its richest top layer to the rain or the flood
+      const bare = g.plots.filter((p) => !p.crop || p.dead);
+      for (const p of bare) p.fert = Math.max(0, p.fert - 0.15);
+      g.count.eroded += bare.length;
+      if (bare.length) emit(g, { type: 'toast', text: { bn: `ঝড়ে ${num(bare.length, 'bn')}টি খালি জমির ওপরের মাটি ধুয়ে গেল: জমি ঢেকে রাখলে মাটি থাকে।`, en: `The storm washed the topsoil off ${bare.length} bare plots: covered soil stays put.` } });
       g.ev.done.storm = true; g.ev.zone = null; emit(g, { type: 'alert', ...A.stormOff });
     }
   } else if (g.ev.flood > 0) g.ev.flood = Math.max(0, g.ev.flood - dt / 8);
