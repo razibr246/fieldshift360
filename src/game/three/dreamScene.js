@@ -348,10 +348,10 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
   function closeUp(role) { focus = role; }
 
   // ── the loop ──
-  const clock = new THREE.Clock();
+  const clock = new THREE.Timer(); // THREE.Clock is deprecated
   look.set(0, 1, 0);
   renderer.setAnimationLoop(() => {
-    const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+    clock.update(); const dt = Math.min(clock.getDelta(), 0.05), t = clock.getElapsed();
     for (const p of Object.values(people)) p.mixer.update(dt);
     if (!renderer.xr.isPresenting) {
       // a tall phone screen sees less from side to side: step back so everyone stays in the picture

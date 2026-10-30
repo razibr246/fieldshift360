@@ -11,9 +11,7 @@ import { T as AMAN_T, SEAM as AMAN_SEAM } from './aman';
 import { T as WHEAT_T } from './wheat';
 import { T as SESAME_T, SEAM as SESAME_SEAM } from './sesame';
 
-// Which scene each crop's bar opens: a Rabi crop shows its harvest, the next crop its sowing.
-export const RABI_SCENE = { tomato: 'tomato', wheat: 'wheat' };
-export const NEXT_SCENE = { mungbean: 'mungbean', sesame: 'sesame' };
+export { RABI_SCENE, NEXT_SCENE } from './sceneFor'; // which scene each crop's bar opens
 
 export const SCENES = {
   wheat: {

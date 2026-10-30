@@ -16,7 +16,7 @@ export function createCharacterStage(host) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap; // PCFSoftShadowMap was removed from three.js
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
@@ -80,10 +80,10 @@ export function createCharacterStage(host) {
     spin = -0.6;
   }
 
-  const clock = new THREE.Clock();
+  const clock = new THREE.Timer(); // THREE.Clock is deprecated
   let spin = 0, angle = 0.35;
   renderer.setAnimationLoop(() => {
-    const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
+    clock.update(); const dt = Math.min(clock.getDelta(), 0.05), t = clock.getElapsed();
     for (const p of cast) p.mixer.update(dt);
     spin *= 0.97; angle += dt * 0.12 + spin * dt;
     const r = camera.aspect < 1 ? 9.2 : 5.6;

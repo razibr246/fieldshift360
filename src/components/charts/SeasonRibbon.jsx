@@ -3,13 +3,21 @@
 // Layout: a fixed label column on the left, the timeline on the right. "Today" sits in its own lane above the months
 // with the current month tinted down the whole chart; key dates are spelled out as chips underneath. A bar opens a
 // small card with its dates on hover, focus or tap (so it works by touch too), and the chips light up their own bar.
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Sprout, Wheat, ArrowRight, CloudRain } from 'lucide-react';
 import { useStore } from '../../store';
 import { BN_MONTHS, BN_MONTHS_EN, banglaMonthStart, banglaDate, fmtDate, fmtBangla, addDays, daysBetween, num, bnDigits } from '../../engine/dates';
 import { PLAN_SEASON } from '../../engine/climate';
-import FarmworkScene from '../farmwork/FarmworkScene';
-import { RABI_SCENE, NEXT_SCENE } from '../farmwork/scenes';
+import { RABI_SCENE, NEXT_SCENE } from '../farmwork/sceneFor';
+
+// The farm-work animations (about 150 kB of drawings) load only when a bar opens one, not with the home page.
+const FarmworkSceneLazy = lazy(() => import('../farmwork/FarmworkScene'));
+const SceneSpace = () => (
+  <div aria-hidden="true" className="overflow-hidden rounded-[22px] border border-primary-100 bg-[#f6f8ef] px-3 pb-3 pt-[74px] sm:px-4">
+    <div className="aspect-[3/1] animate-pulse rounded-[17px] bg-white/70" />
+  </div>
+);
+const FarmworkScene = (props) => <Suspense fallback={<SceneSpace />}><FarmworkSceneLazy {...props} /></Suspense>;
 
 const Y0 = PLAN_SEASON - 1; // Bangla year that starts on 14 April 2026
 const MONTHS = [
