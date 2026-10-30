@@ -1,0 +1,33 @@
+{
+  // A tidy explorer: caches and build output hidden (they are rebuilt on demand and never committed),
+  // and each helper file tucked under the file it belongs to.
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/__pycache__": true,
+    ".cache": true,
+    ".vercel": true,
+    ".playwright-mcp": true,
+    "dist": true,
+    "dist-single": true
+  },
+  "search.exclude": {
+    "node_modules": true,
+    "dist": true,
+    "dist-single": true,
+    ".cache": true,
+    "public/aman": true,
+    "src/data/**/*.json": true,
+    "package-lock.json": true
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "AGENTS.md": "CLAUDE.md, GEMINI.md",
+    "README.md": "LICENSE",
+    "package.json": "package-lock.json, vite.config.js, vercel.json, index.html, .mcp.json",
+    ".env.example": ".env.local, .env",
+    ".gitignore": ".gitattributes",
+    "*.js": "${capture}.test.js",
+    "*.mjs": "${capture}.test.mjs"
+  }
+}
