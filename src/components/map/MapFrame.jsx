@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Circle, Marker, useMap, useMapEvents } from 'react-leaflet';
+import StopOnLeave from './StopOnLeave';
 import 'leaflet/dist/leaflet.css';
 import { Layers, X, LocateFixed, Locate, Maximize2, Minimize2, ZoomIn, Sparkles, Loader2 } from 'lucide-react';
 import { useStore } from '../../store';
@@ -342,6 +343,7 @@ export default function MapFrame({ center, zoom = 15, height = 400, className = 
       )}
       <MapContainer center={center} zoom={zoom} maxZoom={MAX_ZOOM} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false} attributionControl
         wheelPxPerZoomLevel={90} wheelDebounceTime={25} inertiaDeceleration={2600} easeLinearity={0.2} zoomAnimationThreshold={6}>
+        <StopOnLeave />
         {base.google
           ? <GoogleSatelliteLayer labels={labels} maxZoom={MAX_ZOOM} nativeZoom={googleMax} onMaxZoom={setGoogleMax} onError={() => setType('satellite')} />
           : base.s2 ? <Sentinel2Layer bbox={s2Box} win={s2Wins[s2Win]} onError={() => setType('satellite')} onSearch={setS2Sid} />

@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, CircleMarker, Rectangle, Polygon, Tooltip as LTooltip, useMap } from 'react-leaflet';
+import StopOnLeave from '../../components/map/StopOnLeave';
 import 'leaflet/dist/leaflet.css';
 import { ExternalLink, Info, Map as MapIcon, Flame, Megaphone, BellRing, LifeBuoy, Satellite, Send, CheckCircle2, CloudRain, Thermometer, Sun, Globe2, ArrowRight, Phone, UserRound } from 'lucide-react';
 import { useStore } from '../../store';
@@ -55,6 +56,7 @@ function AreaMapBox({ height = 380, full = false, focus = null }) {
   return (
     <div className="overflow-hidden rounded-2xl ring-1 ring-black/5" style={{ height }}>
       <MapContainer bounds={bounds} scrollWheelZoom={full} zoomSnap={0.25} zoomDelta={0.5} className="fs-frac h-full w-full">
+        <StopOnLeave />
         <Settle bounds={focus ? [[focus.lat - 0.03, focus.lon - 0.03], [focus.lat + 0.03, focus.lon + 0.03]] : bounds} key={focus ? `${focus.lat},${focus.lon}` : 'all'} />
         <TileLayer url={ESRI} maxNativeZoom={18} attribution="Imagery © Esri, Maxar, Earthstar Geographics · geoBoundaries · GeoNames" />
         {ring && <Polygon positions={ring} pathOptions={{ color: '#edc067', weight: 3, fillColor: '#edc067', fillOpacity: 0.06, dashArray: '6 5' }} />}
@@ -337,6 +339,7 @@ export function Country() {
         <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
           <div className="h-[420px] overflow-hidden rounded-2xl ring-1 ring-black/5">
             <MapContainer bounds={bounds} scrollWheelZoom={false} zoomSnap={0.25} zoomDelta={0.5} className="fs-frac h-full w-full">
+              <StopOnLeave />
               <Settle bounds={bounds} />
               {base === 'nasa' ? <TileLayer key="nasa" url={GIBS(day)} maxNativeZoom={9} maxZoom={12} attribution="NASA EOSDIS GIBS · NOAA-20 VIIRS" /> : <TileLayer key="esri" url={ESRI} maxNativeZoom={18} attribution="Imagery © Esri, Maxar, Earthstar Geographics" />}
               {zones.flatMap((x) => x.p.fires.points.map(([la, lo], i) => <CircleMarker key={`${x.key}-f${i}`} center={[la, lo]} radius={2.2} pathOptions={{ color: '#ff5a1f', weight: 0, fillOpacity: 0.85 }} />))}
