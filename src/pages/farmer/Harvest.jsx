@@ -84,7 +84,7 @@ export default function Harvest() {
   const fieldName = activeParcel ? L(activeParcel.name) : T('আপনার জমি', 'your field');
 
   return (
-    <div>
+    <div className="farmer-harvest-page">
       <PageHeader eyebrow={T(`ফসল তোলা ও বিক্রি · ${fmtBangla(today, 'bn')} (${fmtDate(today, 'bn')})`, `Harvest and sale · ${fmtDate(today, 'en')}`)} title={T(`${bnOf(crop.name.bn)} ফসল কবে উঠবে`, `When your ${crop.name.en.toLowerCase()} will be ready`)}
         subtitle={T(`${fieldName}, ${bnDigits(farmer.area_dec)} শতক। ${dPlant < 0 ? `${crop.action.bn} ${fmtDate(chosen.t0, 'bn')}; তারিখ এখন গড় আবহাওয়ায়, লাগানোর পর থেকে প্রতিদিনের আসল তাপে বদলাবে।` : `লাগানো হয়েছে ${fmtDate(chosen.t0, 'bn')}, ${bnDigits(dPlant)} দিন আগে; তারিখ প্রতিদিনের আসল তাপমাত্রায় হালনাগাদ হয়।`}`, `${fieldName}, ${farmer.area_dec} decimal. ${dPlant < 0 ? `${crop.action.en} on ${fmtDate(chosen.t0, 'en')}; the date uses average weather for now and follows the real daily warmth from planting on.` : `Planted ${fmtDate(chosen.t0, 'en')}, ${dPlant} days ago; the date updates with the real daily temperature.`}`)}
         tags={[clim.prov.status === 'REAL' ? 'REAL' : 'PLACEHOLDER', 'REAL', 'RULE']} action={<WhyButton payload={why} />} />

@@ -3,13 +3,14 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
 import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle, PlaceholderBanner, ResetDemo, BackButton } from '../components/chrome';
+import { LangToggle, PlaceholderBanner, ResetDemo, BackButton, SkipToMain } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
 import { useStore, demo } from '../store';
 import { IRRIGATION, cropName } from '../engine/crops';
 import { num, bnDigits } from '../engine/dates';
 import FarmerAvatar from '../components/brand/FarmerAvatar';
 import FarmerTour, { startFarmerTour } from '../components/tour/FarmerTour';
+import ChakraAgent from '../components/chakra/ChakraAgent';
 
 export function useFarmerNav() {
   const { T } = useStore();
@@ -91,11 +92,41 @@ function AccountMenu() {
 
 function MoreSheet({ items, onClose }) {
   const { T } = useStore();
+  const panel = useRef(null);
+  const closeButton = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    const focusable = () => [...(panel.current?.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') ?? [])]
+      .filter((el) => el.getClientRects().length > 0);
+    closeButton.current?.focus();
+    const key = (e) => {
+      if (e.key === 'Escape') { onCloseRef.current(); return; }
+      if (e.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !panel.current?.contains(document.activeElement))) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !panel.current?.contains(document.activeElement))) {
+        e.preventDefault(); first.focus();
+      }
+    };
+    const resize = () => { if (window.matchMedia('(min-width: 1024px)').matches) onCloseRef.current(); };
+    document.addEventListener('keydown', key);
+    window.addEventListener('resize', resize);
+    return () => {
+      document.removeEventListener('keydown', key);
+      window.removeEventListener('resize', resize);
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
+  }, []);
   return (
-    <div className="fixed inset-0 z-[1500] lg:hidden" role="dialog" aria-modal="true" aria-label={T('আরও', 'More')}>
+    <div id="farmer-more-dialog" className="fixed inset-0 z-[1500] lg:hidden" role="dialog" aria-modal="true" aria-labelledby="farmer-more-title">
       <div className="sheet-fade absolute inset-0 bg-primary-950/35 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="sheet-up glass absolute inset-x-2 bottom-2 rounded-[28px] !bg-white/80 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <div className="mb-2 flex items-center justify-between"><span className="font-display text-[18px] font-bold">{T('আরও', 'More')}</span><button type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full bg-black/5" aria-label={T('বন্ধ করুন', 'Close')}><X size={18} /></button></div>
+      <div ref={panel} className="sheet-up glass absolute inset-x-2 bottom-2 rounded-[28px] !bg-white/80 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="mb-2 flex items-center justify-between"><span id="farmer-more-title" className="font-display text-[18px] font-bold">{T('আরও', 'More')}</span><button ref={closeButton} type="button" onClick={onClose} className="grid h-10 w-10 place-items-center rounded-full bg-black/5" aria-label={T('বন্ধ করুন', 'Close')}><X size={18} /></button></div>
         <div className="grid grid-cols-2 gap-2">
           {items.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} onClick={onClose} className={({ isActive }) => `flex items-center gap-2.5 rounded-xl border px-3 py-3 text-[15px] font-semibold ${isActive ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-border'}`}><n.icon size={19} />{n.label}</NavLink>
@@ -134,6 +165,7 @@ export default function FarmerLayout() {
   const restActive = rest.some((n) => loc.pathname.startsWith(n.to));
   return (
     <div className="farmer-experience min-h-screen">
+      <SkipToMain />
       <MessagePopup />
       <FarmerTour />
       <header className="farmer-header glass-bar sticky top-0 z-40">
@@ -143,8 +175,9 @@ export default function FarmerLayout() {
             <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
           </div>
           <div className="flex items-center gap-2">
+            <ChakraAgent role="farmer" />
             <button type="button" onClick={() => startFarmerTour()} data-tour="tour-btn"
-              className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-primary-50 hover:text-primary-800 active:scale-95"
+              className="hidden h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-primary-50 hover:text-primary-800 active:scale-95 sm:grid"
               aria-label={T('অ্যাপের পুরো সফর', 'Tour of the whole app')} title={T('অ্যাপের পুরো সফর', 'Tour of the whole app')}>
               <Compass size={18} />
             </button>
@@ -158,7 +191,7 @@ export default function FarmerLayout() {
                 </span>
               )}
             </button>
-            <AccountMenu />
+            <div className="hidden sm:block"><AccountMenu /></div>
             <div data-tour="lang"><LangToggle /></div>
             <NavLink to="/farmer/profile" className={({ isActive }) => `hidden h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-semibold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] lg:inline-flex ${isActive ? 'bg-primary-700 shadow-sm' : 'bg-primary-950 hover:bg-primary-900 shadow-2xs'}`}><UserRound size={16} />{T('আমার প্রোফাইল', 'My profile')}</NavLink>
           </div>
@@ -186,7 +219,7 @@ export default function FarmerLayout() {
         </nav>
       </header>
       <PlaceholderBanner />
-      <main className="page-shell relative py-6 pb-32 lg:py-8 lg:pb-14"><PageOutlet /></main>
+      <main id="main" tabIndex={-1} className="page-shell relative scroll-mt-20 py-6 pb-32 outline-none lg:py-8 lg:pb-14"><PageOutlet /></main>
       <footer className="hidden border-t border-border lg:block">
         <div className="page-shell flex items-center justify-between py-4 text-[13px] text-muted">
           <span>{T('সব সুপারিশ সিদ্ধান্ত নিতে সাহায্যের জন্য। চূড়ান্ত সিদ্ধান্তের আগে কৃষি কর্মকর্তার সঙ্গে কথা বলুন।', 'Recommendations help you decide. Talk to your agriculture officer before you commit.')}</span>
@@ -200,7 +233,7 @@ export default function FarmerLayout() {
               {({ isActive }) => (<><span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-350 ease-[cubic-bezier(.34,1.4,.64,1)] ${isActive ? 'scale-110 bg-primary-600/20 text-primary-800 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_2px_8px_-2px_rgba(67,134,58,0.35)]' : 'scale-100'}`}><n.icon size={19} /></span><span>{n.short ?? n.label}</span></>)}
             </NavLink>
           ))}
-          <button type="button" onClick={() => setMore(true)} className={`relative flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition-all duration-200 active:scale-95 ${restActive ? 'text-primary-950 font-bold' : 'text-ink/70 hover:text-ink'}`} aria-haspopup="dialog">
+          <button type="button" onClick={() => setMore(true)} className={`relative flex flex-col items-center gap-0.5 rounded-[22px] py-1 text-[11.5px] font-semibold transition-all duration-200 active:scale-95 ${restActive ? 'text-primary-950 font-bold' : 'text-ink/70 hover:text-ink'}`} aria-haspopup="dialog" aria-expanded={more} aria-controls="farmer-more-dialog">
             <span className={`grid h-7 w-12 place-items-center rounded-full transition-all duration-350 ease-[cubic-bezier(.34,1.4,.64,1)] ${restActive ? 'scale-110 bg-primary-600/20 text-primary-800 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_2px_8px_-2px_rgba(67,134,58,0.35)]' : 'scale-100'}`}><Ellipsis size={19} /></span>
             <span>{T('আরও', 'More')}</span>
             {unreadAdvisories > 0 && <span className="absolute top-1 right-3 h-2 w-2 rounded-full bg-red-600 ring-2 ring-white" />}

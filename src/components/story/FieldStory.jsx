@@ -10,7 +10,7 @@ import { num, bnDigits } from '../../engine/dates';
 import { cropOf, omPctOf, climateLedger, co2PerBigha, WATER_M3_PER_MM_BIGHA } from '../../engine/soilfuture';
 import { BIGHA_HA } from '../../engine/crops';
 import { bnOf } from '../../engine/text';
-import { speak, stopSpeaking, ttsSupported, loadVoices, pickVoice, isNaturalVoice } from '../../voice/speech';
+import { speakNatural, stopSpeaking, ttsSupported } from '../../voice/speech';
 
 const W = 1080, H = 1350;
 const FONT = '"Noto Sans Bengali Variable", "Kohinoor Bangla", "Inter Variable", sans-serif';
@@ -174,7 +174,8 @@ export default function FieldStory({ ff, ctx: fctx, onClose }) {
     // With the voice, a scene moves on once its words have been said and have had a moment to land (or, if the voice
     // stalls, after three times its length).
     let k = 0, start = performance.now(), saidAt = null;
-    const say = () => speak(scenes[k].say, lang, { rate: 0.92, gap: 380, onEnd: () => { saidAt = performance.now(); } });
+    const say = () => speakNatural(scenes[k].say, lang, { rate: 0.92, gap: 380, onEnd: () => { saidAt = performance.now(); } })
+      .then((result) => { if (!result.ok) saidAt = performance.now(); });
     say();
     const tick = () => {
       const now = performance.now(), t = (now - start) / scenes[k].ms;
@@ -188,9 +189,6 @@ export default function FieldStory({ ff, ctx: fctx, onClose }) {
     };
     tick();
   };
-  // Which voice the device will use, shown under the player with a tip when it is not a natural one.
-  const [voice, setVoice] = useState(undefined);
-  useEffect(() => { if (ttsSupported()) loadVoices().then((v) => setVoice(pickVoice(v, lang))); else setVoice(null); }, [lang]);
   const copyScript = () => {
     const text = scenes.map((x, i) => `${i + 1}. ${x.say}`).join('\n\n');
     navigator.clipboard?.writeText(text).then(() => toast('গল্পের লেখা কপি হয়েছে', 'Script copied'), () => {});
@@ -228,9 +226,7 @@ export default function FieldStory({ ff, ctx: fctx, onClose }) {
         </div>
         <div className="mt-2 space-y-1 px-1 text-[11.5px] leading-4 text-muted">
           <p>{T(`প্রায় ${bnDigits(Math.round(total / 1000))} সেকেন্ড, কণ্ঠসহ একটু বেশি। ভিডিওতে লেখাগুলো থাকে; কণ্ঠ শুধু অ্যাপে চালালে শোনা যায়।`, `About ${Math.round(total / 1000)} seconds, a little longer with the voice. The video carries the words on screen; the voice plays in the app.`)}</p>
-          {voice !== undefined && (voice
-            ? <p>{T(`কণ্ঠ: ${voice.name}`, `Voice: ${voice.name}`)}{isNaturalVoice(voice) ? '' : T('। আরও মানুষের মতো কণ্ঠের জন্য Microsoft Edge-এ খুলুন (বাংলা "Nabanita" বা "Pradeep" কণ্ঠ), বা ফোনের সেটিংসে উন্নত বাংলা কণ্ঠ নামিয়ে নিন।', '. For a more human voice, open this in Microsoft Edge (its natural voices), or download an enhanced voice in the phone’s settings.')}</p>
-            : <p>{T('এই ডিভাইসে বাংলা কণ্ঠ নেই; Microsoft Edge বা Chrome-এ খুলুন।', 'This device has no voice for this language; open it in Microsoft Edge or Chrome.')}</p>)}
+          <p>{T('আগে স্বাভাবিক বাংলাদেশি বাংলা কণ্ঠ ব্যবহার করি; তা না পেলে ডিভাইসের কণ্ঠ। ইংরেজিতে ব্রিটিশ কণ্ঠ পছন্দ।', 'Natural Bangladeshi Bangla is tried first, with your device’s voice as a fallback; British English is preferred.')}</p>
           <button type="button" onClick={copyScript} className="inline-flex items-center gap-1 font-semibold text-primary-700 hover:underline"><Copy size={12} />{T('গল্পের লেখা কপি করুন (অন্য কণ্ঠ-টুলে বসাতে)', 'Copy the script (for a voice tool)')}</button>
         </div>
       </div>

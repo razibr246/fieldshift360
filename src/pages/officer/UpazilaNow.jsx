@@ -57,7 +57,7 @@ function UpazilaNowPage() {
   return (
     <div className="space-y-6">
       {/* What is happening in the fields now */}
-      <div id="up-now" className="grid gap-6 xl:grid-cols-3">
+      <div id="up-now" className="grid items-start gap-6 lg:grid-cols-2">
         <Card className="p-5 sm:p-6">
           <Head icon={Satellite} tags={['SAT', 'RULE']}>{T(`এখন মাঠে: ${yr(LATEST)}-এর আমন`, `In the fields now: Aman ${LATEST}`)}</Head>
           {se.reliable && se.transplantDoy ? (

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore, soilData, demo } from '../store';
 import { createSession, greeting, respond } from './brain.js';
 import { farmerSnapshot, officerSnapshot } from './snapshot.js';
-import { createRecognizer, sttSupported, ttsSupported, speak, stopSpeaking, loadVoices, pickVoice, voiceSupport } from './speech.js';
+import { createRecognizer, sttSupported, ttsSupported, speakNatural, stopSpeaking, loadVoices, pickVoice, voiceSupport } from './speech.js';
 import { replyTemplate as template, advisoryText } from '../engine/advice.js';
 import { useRadar } from '../radar/useRadar';
 import { districtOf } from '../radar/aman';
@@ -72,10 +72,16 @@ export function useVoiceAgent(role) {
   }, []);
 
   const say = useCallback(async (text) => {
-    if (!flags.current.autoSpeak || !ttsSupported()) return;
+    if (!flags.current.autoSpeak || !ttsSupported()) return { ok: false, reason: 'unsupported' };
     setSpeaking(true);
-    const r = await speak(text, sessionRef.current.lang, { onEnd: () => { setSpeaking(false); if (flags.current.handsFree) startListening(); } });
-    if (!r.ok) { setSpeaking(false); if (r.reason === 'no-bangla-voice') setBnVoice(false); }
+    const r = await speakNatural(text, sessionRef.current.lang, { onEnd: () => { setSpeaking(false); if (flags.current.handsFree) startListening(); } });
+    if (sessionRef.current.lang === 'bn') setBnVoice(!!r.voice);
+    if (!r.ok) {
+      setSpeaking(false);
+      if (r.reason === 'no-bangla-voice') setBnVoice(false);
+      if (flags.current.handsFree) startListening();
+    }
+    return r;
   }, [startListening]);
 
   const send = useCallback((text, opts = {}) => {
@@ -96,7 +102,7 @@ export function useVoiceAgent(role) {
   const stopListening = useCallback(() => { try { recRef.current?.stop(); } catch { /* not started */ } setListening(false); }, []);
   const toggleListen = useCallback(() => { if (listening) stopListening(); else startListening(); }, [listening, startListening, stopListening]);
 
-  const replay = useCallback((text) => { say(text); }, [say]);
+  const replay = useCallback((text) => say(text), [say]);
   const silence = useCallback(() => { stopSpeaking(); setSpeaking(false); }, []);
 
   // Greeting appears as text immediately; it is only spoken after the person's first tap (browsers block autoplay audio).

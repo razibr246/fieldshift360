@@ -33,10 +33,13 @@ export default function Plan() {
   const go = (n) => dispatch({ type: 'set', patch: { step: Math.max(0, Math.min(steps.length - 1, n)) } });
   useEffect(() => { scrollToTop(true); }, [i]);
   return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_330px]">
+    <div className="farmer-plan-page grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-8">
       <div className="min-w-0">
-        <div className="mb-4 flex items-baseline justify-between gap-3">
-          <h1 className="text-[24px] font-bold sm:text-[28px]">{T('রবি ২০২৬–২৭ মৌসুমের পরিকল্পনা', 'Plan for Rabi 2026–27')}</h1>
+        <div className="farmer-plan-heading mb-4 flex items-baseline justify-between gap-3">
+          <div className="min-w-0">
+            <p className="mb-1 text-[13px] font-semibold text-primary-700">{T('সহজ সাত ধাপে আপনার চাষের পরিকল্পনা', 'Your crop plan, in seven steps')}</p>
+            <h1 className="text-[24px] font-bold sm:text-[28px]">{T('রবি ২০২৬–২৭ মৌসুমের পরিকল্পনা', 'Plan for Rabi 2026–27')}</h1>
+          </div>
           <span className="shrink-0 text-[14px] text-muted">{T(`${num(steps.length, 'bn')} ধাপের ${num(i + 1, 'bn')} নম্বর`, `Step ${i + 1} of ${steps.length}`)}</span>
         </div>
         {/* Gold progress: a glowing fill that glides on a spring, a light sweeping across it and a bright bead at its tip. */}

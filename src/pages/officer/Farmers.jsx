@@ -106,7 +106,7 @@ function FarmerFields({ f }) {
   const [all, setAll] = useState(true);
   const levels = useMemo(() => Object.fromEntries(mine.map((p) => { const series = seriesNow(p); return [p.id, series.length ? readField({ series }, { today: todayDhaka() }) : null]; })), [mine]);
   if (!mine.length) return null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDhaka();
   return (
     <Card className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 p-5 pb-3">

@@ -98,8 +98,14 @@ function SeasonTimeline({ detail, year, frames, i, onSeek }) {
   const months = monthStarts(year, d0, d1);
   const label = (k, bn, en) => <text x={L - 7} y={ys[k] + bands[k].h / 2 + 4.5} textAnchor="end" fontSize="13" fill={MUTED}>{T(bn, en)}</text>;
   return (
-    <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full cursor-pointer touch-none select-none" role="img"
-      aria-label={T('মৌসুমের সময়রেখা: রাডার সংকেত, রোপণ হওয়া জমি আর বৃষ্টি', 'Season timeline: radar signal, fields transplanted and rain')}
+    <svg ref={ref} viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full cursor-pointer touch-none select-none" role="group" tabIndex={0}
+      aria-label={T(`মৌসুমের সময়রেখা: ${num(i + 1, 'bn')}/${num(doys.length, 'bn')} · ${fmtDate(doyToMs(year, now), 'bn')}। তীরচিহ্ন দিয়ে পাস বদলান।`, `Season timeline: pass ${i + 1} of ${doys.length} · ${fmtDate(doyToMs(year, now), 'en')}. Use arrow keys to change passes.`)}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); onSeek(Math.min(doys.length - 1, i + 1)); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); onSeek(Math.max(0, i - 1)); }
+        else if (e.key === 'Home') { e.preventDefault(); onSeek(0); }
+        else if (e.key === 'End') { e.preventDefault(); onSeek(doys.length - 1); }
+      }}
       onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); seekAt(e.clientX); }} onPointerMove={(e) => { if (e.buttons) seekAt(e.clientX); }}>
       {bands.map((b, k) => <rect key={k} x={L} y={ys[k]} width={W - L - R} height={b.h} rx="6" fill="#f4f6f2" />)}
       {months.map((m) => <g key={m}><line x1={x(m)} x2={x(m)} y1={top} y2={H - 16} stroke={GRID} strokeWidth="1.5" /><text x={x(m) + 3} y={H - 3} fontSize="13" fill={MUTED}>{fmtDate(doyToMs(year, m), lang).replace(/^[০-৯\d]+\s/, '')}</text></g>)}
@@ -169,7 +175,8 @@ export function RadarTimelapse({ detail, row, year }) {
             const on = !never && t <= doyNow;
             const picked = sel === k;
             return (
-              <g key={k} className="cursor-pointer" onClick={() => setSel(picked ? null : k)} role="button" tabIndex={-1}
+              <g key={k} className="aman-field cursor-pointer" onClick={() => setSel(picked ? null : k)} role="button" tabIndex={0} aria-pressed={picked}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setSel(picked ? null : k); } }}
                 aria-label={T(`নমুনা জমি ${num(k + 1, 'bn')}${never ? ', এ মৌসুমে রোপণ ধরা পড়েনি' : on ? `, রোপণ ধরা পড়েছে ${fmtDate(doyToMs(year, t), 'bn')}` : ''}`, `Sample field ${k + 1}${never ? ', no transplanting seen this season' : on ? `, transplanted ${fmtDate(doyToMs(year, t), 'en')}` : ''}`)}>
                 <circle cx={cx} cy={cy} r="20" fill="transparent" />
                 {on && <circle cx={cx} cy={cy} r="22" fill={GOLD} fillOpacity="0.25" className="aman-ping" />}
@@ -228,7 +235,7 @@ export function YearsStrip({ row, year, onPick }) {
   const n = row.transplantNormal;
   const ticks = monthStarts(2025, lo, hi);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={T('প্রতি বছরের রোপণের সময়', 'Transplanting date each year')}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role={onPick ? 'group' : 'img'} aria-label={T('প্রতি বছরের রোপণের সময়', 'Transplanting date each year')}>
       {n !== null && <rect x={x(n - SHIFT_DAYS)} y={top - 8} width={x(n + SHIFT_DAYS) - x(n - SHIFT_DAYS)} height={H - top - 12} fill={GREEN} fillOpacity="0.08" rx="6" />}
       {n !== null && <line x1={x(n)} x2={x(n)} y1={top - 8} y2={H - 20} stroke={MUTED} strokeDasharray="5 4" />}
       {n !== null && <text x={x(n)} y={14} textAnchor="middle" fontSize="12" fill={MUTED}>{T(`স্বাভাবিক ${fmtDate(doyToMs(2025, n), 'bn')}`, `Usual ${fmtDate(doyToMs(2025, n), 'en')}`)}</text>}
@@ -237,8 +244,14 @@ export function YearsStrip({ row, year, onPick }) {
         const cy = top + k * rowH + rowH / 2;
         const cat = CAT[se.shift === null ? 'none' : se.shift < -SHIFT_DAYS ? 'early' : se.shift > SHIFT_DAYS ? 'late' : 'on track'];
         const on = y === year;
+        const yearStatus = se.shift === null ? T('হিসাব নেই', 'no estimate')
+          : se.shift === 0 ? T('স্বাভাবিক দিনে', 'on the usual day')
+            : T(`${num(Math.abs(se.shift), 'bn')} দিন ${se.shift < 0 ? 'আগে' : 'পরে'}`, `${Math.abs(se.shift)} days ${se.shift < 0 ? 'early' : 'late'}`);
         return (
-          <g key={y} onClick={() => onPick(y)} className="cursor-pointer" style={{ animation: `aman-row .7s ${k * 60}ms both cubic-bezier(.22,1,.36,1)` }}>
+          <g key={y} onClick={() => onPick?.(y)} className="aman-year cursor-pointer" role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined} aria-pressed={onPick ? on : undefined}
+            aria-label={onPick ? `${num(y, lang)}: ${yearStatus}` : undefined}
+            onKeyDown={onPick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(y); } } : undefined}
+            style={{ animation: `aman-row .7s ${k * 60}ms both cubic-bezier(.22,1,.36,1)` }}>
             <rect x="0" y={cy - rowH / 2 + 2} width={W} height={rowH - 4} rx="10" fill={on ? '#eef5e8' : 'transparent'} className="transition-colors hover:fill-[#f3f7ef]" />
             <text x="10" y={cy + 4} fontSize="13" fontWeight={on ? 700 : 500} fill={INK}>{num(y, lang).replace(/,/g, '')}</text>
             {se.iqr && <rect x={x(se.iqr[0])} y={cy - 5} width={Math.max(4, x(se.iqr[1]) - x(se.iqr[0]))} height="10" rx="5" fill={GOLD} fillOpacity="0.3" />}
@@ -300,7 +313,7 @@ export function DistrictMap({ district, year, selected, home, onPick }) {
   const W = 600, pad = 12;
   const pr = ([lon, lat]) => [pad + (lon - lon0) * k * sx, pad + (lat1 - lat) * sx];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={T(`${district.bn} জেলার মানচিত্র`, `Map of ${district.en} district`)}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role={onPick ? 'group' : 'img'} aria-label={T(`${district.bn} জেলার মানচিত্র`, `Map of ${district.en} district`)}>
       {district.upazilas.map((u, i) => {
         const se = u.seasons[year];
         const cat = CAT[se?.shift === null || se?.shift === undefined ? 'none' : se.shift < -SHIFT_DAYS ? 'early' : se.shift > SHIFT_DAYS ? 'late' : 'on track'];
@@ -308,7 +321,10 @@ export function DistrictMap({ district, year, selected, home, onPick }) {
         return (
           <polygon key={u.id} points={u.ring.map(pr).map((q) => q.join(',')).join(' ')} onClick={() => onPick?.(u.id)} onMouseEnter={() => setHover(u.id)} onMouseLeave={() => setHover(null)}
             fill={cat.color} fillOpacity={on ? 0.9 : hover === u.id ? 0.72 : 0.5} stroke={on ? INK : '#ffffff'} strokeWidth={on ? 3 : 1.6} strokeLinejoin="round"
-            className={onPick ? 'cursor-pointer' : ''} style={{ transition: 'fill .5s, fill-opacity .3s', animation: `aman-pop .6s ${i * 70}ms both cubic-bezier(.22,1,.36,1)`, transformOrigin: 'center', transformBox: 'fill-box' }} />
+            className={onPick ? 'district-upazila cursor-pointer' : ''} role={onPick ? 'button' : undefined} tabIndex={onPick ? 0 : undefined} aria-pressed={onPick ? on : undefined}
+            aria-label={onPick ? T(`${u.bn}: ${cat.bn}`, `${u.en}: ${cat.en}`) : undefined}
+            onKeyDown={onPick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(u.id); } } : undefined}
+            style={{ transition: 'fill .5s, fill-opacity .3s', animation: `aman-pop .6s ${i * 70}ms both cubic-bezier(.22,1,.36,1)`, transformOrigin: 'center', transformBox: 'fill-box' }} />
         );
       })}
       {district.upazilas.map((u) => {

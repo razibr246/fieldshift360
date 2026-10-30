@@ -2,7 +2,30 @@
 
 ## Try it
 
-`npm run dev`, open `/farmer/voice` or `/officer/voice`. Tap the mic (Chrome, Edge or Android Chrome; Bangla listening needs an internet connection because the browser sends audio to its own recogniser). If the device has no Bangla voice the replies stay as text. You can always type instead.
+`npm run dev`, open `/farmer/voice` or `/officer/voice`. Tap the mic (Chrome, Edge or Android Chrome; Bangla listening needs an internet connection because the browser sends audio to its own recogniser). You can always type instead.
+
+Spoken replies first try `api/tts.js` (Gemini 3.8 Flash TTS). Bangla uses a designed Bangladeshi woman's voice (below; `GEMINI_TTS_VOICE_BN` overrides it); British English filters the catalogue for a female `en-GB` voice. Replies use Bengali digits and localize “NASA POWER” pronunciation while leaving the on-screen transcript unchanged. Set the server-side `GEMINI_API_KEY` to enable it; optional model and voice overrides are in `.env.example`. Spoken reply text is sent to Gemini for audio generation. If the service is unavailable, unconfigured or playback fails, replies fall back to the best matching installed device voice; where the device labels a feminine voice, it is preferred, with a small pause between sentences. The same service is used by the narrated field story.
+
+## Natural Bangladeshi female voice
+
+Google's voice catalogue has only West Bengal (Kolkata) Bangla voices, so the Bangla voice is designed with Gemini voice
+design (`language_code: bn-BD`). In October 2026 six Bangladeshi women's voices were designed from short descriptions
+(Google's guide: one or two sentences with the permanent traits) and each read the same farmer message. A panel of
+Gemini audio judges, asked to listen as native Dhaka listeners, rated each for Bangladeshi accent, human naturalness,
+pronunciation and warmth. The winner, `voice_zajpkutxwrdt` ("a cheerful, expressive young Bangladeshi woman of
+twenty-four … from Dhaka"), scored 9–10 of 10 in every round with no Kolkata or robotic features heard, and is the
+default in `api/tts.js`. Voices described as older, Sylheti or Rajshahi were heard as Kolkata-leaning or flat. A
+judge model is not a person: ask Bangladeshi listeners before a launch.
+
+A designed voice lives in the Google project of the key that made it and expires after a year (this one 2027-10-30).
+With another key, run `npm run design:voice` (it uses the winning description) and set the printed
+`GEMINI_TTS_VOICE_BN=voice_...` in `.env.local` and the Vercel environment; until then the prebuilt `Sulafat` voice
+speaks, steered towards Bangladeshi Bangla by a style line. A designed voice carries its accent itself, so its style
+stays empty. The free Gemini tier allows each TTS model 10 requests a day (and Flash-Lite 3 a minute): the full model
+is tried first, then `gemini-3.8-flash-lite-tts`, then the device voice, where Edge's Nabanita (Bangladesh) is
+preferred. A paid tier lifts the limit.
+
+The voice is generated from a general description, not copied from a real speaker. Replies are sent to Gemini for speech generation.
 
 ## What farmers can ask
 

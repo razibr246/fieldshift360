@@ -74,7 +74,8 @@ export function VoiceChat({ v }) {
 
       <div className="border-t border-border bg-white p-3">
         {v.error ? <Note tone="warn" className="mb-2">{L(ERR[v.error] ?? ERR['stt-error'])}</Note> : supportNote(v.support) && <Note className="mb-2">{L(supportNote(v.support))}</Note>}
-        {v.support.bnVoice === false && v.autoSpeak && <Note className="mb-2">{T('এই ডিভাইসে বাংলা কণ্ঠ নেই, তাই উত্তর শুধু লেখা থাকবে। Android Chrome বা Edge-এ বাংলা কণ্ঠ পাবেন।', 'This device has no Bangla voice, so replies stay as text. Android Chrome or Edge has one.')}</Note>}
+        {v.support.bnVoice === false && v.autoSpeak && <Note className="mb-2">{T('এই ডিভাইসে বাংলা কণ্ঠ নেই। আগে স্বাভাবিক অনলাইন বাংলা কণ্ঠের চেষ্টা হবে; সেটি না চললে ডিভাইসের সেটিংসে বাংলা কণ্ঠ নামিয়ে নিন।', 'This device has no built-in Bangla voice. The assistant first tries natural online speech; if that is unavailable, install a Bengali voice in your device settings.')}</Note>}
+        {v.autoSpeak && v.support.tts && <p className="mb-2 px-1 text-[12px] leading-5 text-muted">{T('আগে স্বাভাবিক বাংলাদেশি বাংলা ও ব্রিটিশ ইংরেজি কণ্ঠ ব্যবহার করি; অনলাইন কণ্ঠ না চললে ডিভাইসের কণ্ঠে ফিরে যাই।', 'The assistant tries natural Bangladeshi Bangla and British English first, then falls back to your device’s voice if online speech is unavailable.')}</p>}
         <div className="flex items-center gap-3">
           <button type="button" onClick={v.listening ? v.toggleListen : v.speaking ? v.silence : v.toggleListen} aria-pressed={v.listening}
             className={`relative grid h-[72px] w-[72px] shrink-0 place-items-center rounded-full text-white shadow-lg transition ${v.listening ? 'bg-red-600' : 'bg-primary-600 hover:bg-primary-700'}`}

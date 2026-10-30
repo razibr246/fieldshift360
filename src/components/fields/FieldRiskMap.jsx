@@ -46,7 +46,7 @@ export default function FieldRiskMap({ upazilaId, highlight = null }) {
         </div>
         <Tags list={['SAT', 'MODEL', 'RULE']} />
       </div>
-      <Segmented className="mt-3" value={kind} onChange={setKind} options={KINDS.map((x) => ({ value: x.k, label: L(x), icon: x.icon }))} />
+      <Segmented className="mt-3 w-full flex-wrap" value={kind} onChange={setKind} options={KINDS.map((x) => ({ value: x.k, label: L(x), icon: x.icon }))} />
       <div className="mt-3 overflow-hidden rounded-2xl">
         <MapView center={[(Math.min(...lat) + Math.max(...lat)) / 2, (Math.min(...lon) + Math.max(...lon)) / 2]} upazila={upazilaId} bounds={[[Math.min(...lat) - pad, Math.min(...lon) - pad], [Math.max(...lat) + pad, Math.max(...lon) + pad]]} basemap="satellite" points={pts} height={340} label={T('জমির ঝুঁকির মানচিত্র', 'Field risk map')} />
       </div>

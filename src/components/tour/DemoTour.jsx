@@ -53,6 +53,18 @@ export default function DemoTour() {
   const { pathname } = useLocation();
   const k = s.tour;
   const step = k == null ? null : TOUR[k];
+  const to = (n) => { dispatch({ type: 'set', patch: { tour: n } }); go(TOUR[n], dispatch, navigate); };
+  const close = () => dispatch({ type: 'set', patch: { tour: null } });
+  useEffect(() => {
+    if (!step) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') close();
+      if (event.key === 'ArrowRight' && k < TOUR.length - 1) to(k + 1);
+      if (event.key === 'ArrowLeft' && k > 0) to(k - 1);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [step, k]);
   // bring the step's section into view once its page is there
   useEffect(() => {
     if (!step?.hash || pathname !== step.path) return undefined;
@@ -70,14 +82,15 @@ export default function DemoTour() {
     return () => clearTimeout(t);
   }, [step, pathname]);
   if (!step) return null;
-  const to = (n) => { dispatch({ type: 'set', patch: { tour: n } }); go(TOUR[n], dispatch, navigate); };
-  const close = () => dispatch({ type: 'set', patch: { tour: null } });
   return (
     <aside role="dialog" aria-label={T('ডেমো গল্প', 'Demo story')}
       className="fixed inset-x-3 bottom-[84px] z-[60] mx-auto max-w-[560px] rounded-[22px] border border-black/10 bg-white/95 p-4 shadow-[0_18px_44px_-14px_rgba(0,0,0,.45)] backdrop-blur sm:bottom-5">
+      <div className="mb-3 flex gap-1" role="progressbar" aria-label={T('ডেমো গল্পের অগ্রগতি', 'Demo story progress')} aria-valuemin={1} aria-valuemax={TOUR.length} aria-valuenow={k + 1}>
+        {TOUR.map((_, i) => <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= k ? 'bg-primary-700' : 'bg-black/10'}`} />)}
+      </div>
       <div className="flex items-start gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary-700 text-white"><Clapperboard size={18} /></span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1" aria-live="polite" aria-atomic="true">
           <p className="text-[11.5px] font-bold uppercase tracking-[.14em] text-primary-700">{T(`ডেমো গল্প · ধাপ ${(k + 1).toLocaleString('bn-BD')}/${TOUR.length.toLocaleString('bn-BD')}`, `Demo story · step ${k + 1}/${TOUR.length}`)}</p>
           <p className="mt-0.5 text-[16px] font-bold leading-snug">{L(step.title)}</p>
           <p className="mt-1 text-[13.5px] leading-6 text-ink/75">{L(step.say)}</p>
@@ -86,7 +99,7 @@ export default function DemoTour() {
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" disabled={k === 0} onClick={() => to(k - 1)} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-semibold text-ink/70 hover:bg-black/5 disabled:opacity-40"><ArrowLeft size={16} />{T('আগে', 'Back')}</button>
-        <div className="flex gap-1" aria-hidden="true">{TOUR.map((_, i) => <i key={i} className={`h-1.5 w-1.5 rounded-full ${i === k ? 'bg-primary-700' : 'bg-black/15'}`} />)}</div>
+        <p className="text-[12px] font-medium tabular-nums text-ink/55">{T('← → চালান · Esc বন্ধ', '← → navigate · Esc close')}</p>
         {k < TOUR.length - 1
           ? <button type="button" onClick={() => to(k + 1)} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('পরের ধাপ', 'Next')}<ArrowRight size={16} /></button>
           : <button type="button" onClick={close} className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary-700 px-4 text-[14px] font-semibold text-white hover:bg-primary-800">{T('শেষ', 'Done')}</button>}

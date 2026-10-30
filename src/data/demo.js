@@ -267,8 +267,9 @@ export function buildDemo({ today = DEMO_TODAY } = {}) {
     { id: 'JALAL', name: { en: 'Jalal Pramanik', bn: 'জালাল প্রামানিক' }, union: 'Rishikul', village: 'Uttarpara', villageBn: 'উত্তরপাড়া',
       lat: 24.5365, lon: 88.5208, area_dec: 66, last_crop: 'boro', irrigation: 'stw', hero: true },
     // Dhamrai: mustard then Boro on a shallow tube well, the usual Chauhat pattern.
+    // His mobile is the demo phone: Chakra Agent's SMS to a button phone go to this number.
     { id: 'RAZIB', name: { en: 'Razib Miah', bn: 'রাজিব মিয়া' }, union: 'Chauhat', village: 'Chauhat', villageBn: 'চৌহাট',
-      lat: 24.0233, lon: 90.079, area_dec: 50, last_crop: 'mustard', irrigation: 'stw', hero: true },
+      lat: 24.0233, lon: 90.079, area_dec: 50, last_crop: 'mustard', irrigation: 'stw', hero: true, mobile: '01927228826' },
     // The five division story farmers (data/stories.js), in real GeoNames villages, on fields that are cropland in
     // the 2025 Esri / Impact Observatory 10 m land cover. The people are composite characters.
     { id: 'DIDARUL', name: { en: 'Md. Didarul Alam', bn: 'মো. দিদারুল আলম' }, union: 'Saidpur', village: 'Jafarnagar', villageBn: 'জাফরনগর',

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Swords } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle, PlaceholderBanner } from '../components/chrome';
+import { LangToggle, PlaceholderBanner, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
 import { PageOutlet, ScrollProgress, scrollToEl, scrollToTop, useScrollOnNavigate } from '../components/Motion';
 
@@ -126,7 +126,7 @@ export default function PublicLayout() {
   );
   return (
     <div className="min-h-screen">
-      <a href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); scrollToId('main'); }} className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-primary-800 focus:px-4 focus:py-2.5 focus:text-white">{T('মূল অংশে যান', 'Skip to main content')}</a>
+      <SkipToMain />
       {/* Floating Liquid Glass capsule: clear like a mirror at the top, frosted once the page scrolls. It only ever
           moves (transform), never changes size, so the shrink on scroll costs nothing. */}
       <header className="fixed inset-x-0 top-0 z-50 pt-3 sm:pt-4">
@@ -168,7 +168,7 @@ export default function PublicLayout() {
         </div>
       </header>
       <ScrollProgress />
-      <main id="main" tabIndex={-1} className="outline-none"><PageOutlet /></main>
+      <main id="main" tabIndex={-1} className="scroll-mt-20 outline-none"><PageOutlet /></main>
       <div className="fixed inset-x-0 bottom-0 z-40"><PlaceholderBanner /></div>
     </div>
   );

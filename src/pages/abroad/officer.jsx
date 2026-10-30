@@ -385,7 +385,9 @@ function ZoneCard({ x, active, onPick }) {
   const dT = r.tmax - r.tmaxNormal;
   const pct = Math.min(300, r.pct ?? 0);
   return (
-    <article onClick={onPick} className={`cursor-pointer rounded-2xl bg-white/75 p-4 ring-1 transition ${active ? 'ring-2 ring-ink/30' : 'ring-white/80'}`}>
+    <article onClick={onPick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(); } }} role="button" tabIndex={0} aria-pressed={active}
+      aria-label={`${L(x.z.name)}: ${L(LEVEL[x.level])}`}
+      className={`cursor-pointer rounded-2xl bg-white/75 p-4 ring-1 transition focus-visible:ring-2 focus-visible:ring-primary-700 ${active ? 'ring-2 ring-ink/30' : 'ring-white/80'}`}>
       <div className="flex items-start justify-between gap-2">
         <div><h3 className="text-[15px] font-bold leading-tight">{L(x.z.name)}</h3><div className="text-[12.5px] text-muted">{L(x.z.crop)} · {L(x.z.line)}</div></div>
         <span className={`chip ${LEVEL[x.level].chip}`}>{L(LEVEL[x.level])}</span>

@@ -5,10 +5,11 @@ import { BackToTop } from '../components/SectionNav';
 import OfficerTour, { startOfficerTour } from '../components/tour/OfficerTour';
 import { Bell, Compass, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton } from '../components/chrome';
+import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
 import { num } from '../engine/dates';
 import { unionsOf } from '../data/demo';
+import ChakraAgent from '../components/chakra/ChakraAgent';
 
 // The white highlight behind the current page's link glides from item to item instead of jumping.
 function useNavThumb(navRef, deps) {
@@ -117,6 +118,8 @@ export default function OfficerLayout() {
   const loc = useLocation();
   const navigate = useNavigate();
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+  const drawerRef = useRef(null);
   useScrollOnNavigate();
   useEffect(() => { setDrawer(false); setShowSearch(false); }, [loc.pathname]);
   // "/" jumps to the farmer search from anywhere (unless you are already typing).
@@ -125,7 +128,7 @@ export default function OfficerLayout() {
       if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, textarea, select, [contenteditable="true"]')) return;
       if (!searchRef.current?.offsetParent) {
         setShowSearch(true);
-        setTimeout(() => searchRef.current?.focus(), 50);
+        setTimeout(() => mobileSearchRef.current?.focus(), 50);
         return;
       }
       e.preventDefault(); searchRef.current.focus();
@@ -135,20 +138,45 @@ export default function OfficerLayout() {
   }, []);
   useEffect(() => {
     if (!drawer) return undefined;
-    const k = (e) => e.key === 'Escape' && setDrawer(false);
+    const previousFocus = document.activeElement;
+    const panel = drawerRef.current;
+    const focusable = () => [...(panel?.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') ?? [])]
+      .filter((el) => el.getClientRects().length > 0);
+    focusable()[0]?.focus();
+    const k = (e) => {
+      if (e.key === 'Escape') { setDrawer(false); return; }
+      if (e.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) { e.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !panel?.contains(document.activeElement))) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !panel?.contains(document.activeElement))) {
+        e.preventDefault(); first.focus();
+      }
+    };
+    const onResize = () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) setDrawer(false);
+    };
     window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('keydown', k);
+      window.removeEventListener('resize', onResize);
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus();
+    };
   }, [drawer]);
   const open = s.requests.filter((r) => r.status === 'open' && r.union === s.officerUnion).length;
   const name = L(upz.officer);
   const search = (e) => { e.preventDefault(); navigate(`/officer/farmers?q=${encodeURIComponent(q.trim())}`); setShowSearch(false); };
   return (
     <div className="officer-experience min-h-screen lg:flex">
+      <SkipToMain />
       <aside className="officer-sidebar-rail sticky top-0 hidden h-screen w-[268px] shrink-0 lg:block"><Sidebar /></aside>
       {drawer && (
         <div className="fixed inset-0 z-[1500] lg:hidden" role="dialog" aria-modal="true" aria-label={T('মেনু', 'Menu')}>
           <div className="sheet-fade absolute inset-0 bg-primary-950/50 backdrop-blur-[2px]" onClick={() => setDrawer(false)} />
-          <div className="officer-drawer drawer-in absolute inset-y-0 left-0 w-[290px] max-w-[86vw] shadow-2xl">
+          <div ref={drawerRef} className="officer-drawer drawer-in absolute inset-y-0 left-0 w-[290px] max-w-[86vw] shadow-2xl">
             <button type="button" onClick={() => setDrawer(false)} className="absolute right-3 top-5 z-10 grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white" aria-label={T('বন্ধ করুন', 'Close')}><X size={18} /></button>
             <Sidebar onNavigate={() => setDrawer(false)} />
           </div>
@@ -168,6 +196,7 @@ export default function OfficerLayout() {
               <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')} aria-expanded={showSearch}>
                 <Search size={18} />
               </button>
+              <ChakraAgent role="officer" />
               {/* The complete guide to the officer pages (components/tour/OfficerTour.jsx). */}
               <button type="button" onClick={() => startOfficerTour(0)} aria-label={T('পুরো অফিসার অংশের গাইড', 'Guide to the officer pages')}
                 className="officer-guide-trigger inline-flex h-10 items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-2.5 text-[14px] font-semibold text-primary-800 transition-all duration-200 hover:scale-105 hover:bg-primary-100 active:scale-95 sm:px-3">
@@ -191,7 +220,7 @@ export default function OfficerLayout() {
             <div className="border-t border-border/80 bg-white/95 p-2.5 backdrop-blur-md md:hidden">
               <form onSubmit={search} className="flex items-center gap-2 rounded-xl border border-primary-300 bg-primary-50/50 px-3 focus-within:border-primary-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/20" role="search">
                 <Search size={17} className="text-primary-600" />
-                <input autoFocus type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন…', 'Search farmer or village…')} />
+                <input ref={mobileSearchRef} autoFocus type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন…', 'Search farmer or village…')} />
                 <button type="submit" className="rounded-lg bg-primary-600 px-2.5 py-1 text-[12px] font-bold text-white">{T('যান', 'Go')}</button>
               </form>
             </div>
@@ -199,7 +228,7 @@ export default function OfficerLayout() {
         </header>
         <PlaceholderBanner />
         {/* Switching union re-plays a soft fade, so the change of data reads as a change, not a flicker. */}
-        <main className="officer-main mx-auto max-w-[1280px] p-4 sm:p-6 lg:p-8"><div key={s.officerUnion} className="union-fade"><PageOutlet /></div></main>
+        <main id="main" tabIndex={-1} className="officer-main mx-auto max-w-[1280px] scroll-mt-20 p-4 outline-none sm:p-6 lg:p-8"><div key={s.officerUnion} className="union-fade"><PageOutlet /></div></main>
         <ScrollProgress />
         <OfficerTour />
       <BackToTop />

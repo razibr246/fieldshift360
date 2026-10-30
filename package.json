@@ -9,7 +9,7 @@
     "build": "vite build",
     "build:single": "vite build --mode single",
     "preview": "vite preview",
-    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/engine/farmTimeline.test.js src/voice/voice.test.js src/game/sim.test.js src/radar/onset.test.js src/data/farmer_tour.test.js src/engine/play.test.js src/game/saga.test.js src/game/dream.test.js src/engine/land.test.js src/engine/explain.test.js",
+    "test": "node --test src/engine/engine.test.js src/engine/fieldwatch.test.js src/engine/abroad.test.js src/engine/farmTimeline.test.js src/voice/voice.test.js src/game/sim.test.js src/radar/onset.test.js src/data/farmer_tour.test.js src/engine/play.test.js src/game/saga.test.js src/game/dream.test.js src/engine/land.test.js src/engine/explain.test.js src/engine/motion.test.js src/components/farmwork/farmwork.test.js src/engine/cropDoctor.test.js src/engine/chakra.test.js api/tts.test.js",
     "fetch:cmip6": "node scripts/fetch/cmip6.mjs",
     "fetch:giovanni": "node scripts/fetch/giovanni.mjs",
     "fetch:land": "node scripts/fetch/gibs-land.mjs",
@@ -34,7 +34,8 @@
     "photos:abroad": ".cache/venv-sr/bin/python scripts/photos/abroad_photos.py",
     "photos:nasa": ".cache/venv-sr/bin/python scripts/photos/nasa_images.py",
     "radar": "python public/radar/serve.py",
-    "sync:voice": "node scripts/sync-voice.mjs"
+    "sync:voice": "node scripts/sync-voice.mjs",
+    "design:voice": "node scripts/design-bangla-voice.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

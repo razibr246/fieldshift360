@@ -93,7 +93,7 @@ export default function FieldFuture() {
   const editFrom = (rot) => { setOwn({ cycle: rot.cycle.map((y) => ({ ...y })), residue: rot.residue }); scrollToEl(builder.current); };
 
   return (
-    <div>
+    <div className="farmer-future-page">
       <PageHeader eyebrow={T(`${farmer.villageBn}, ${L(upazila.name)} · ${num(farmer.area_dec, 'bn')} শতক`, `${farmer.village}, ${upazila.name.en} · ${farmer.area_dec} decimal`)}
         title={T('জমির ভবিষ্যৎ: ১০ বছরের ফসলচক্র', 'Field future: ten years of rotation')}
         subtitle={T(`আপনার জমির মাটির আনুমানিক হিসাব (SoilGrids মডেল, মাটি পরীক্ষা নয়), এলাকার নাসা আবহাওয়া আর নাসার জলবায়ু মডেল দিয়ে ${num(ff.count, 'bn')}টি ফসলচক্র দশ বছর করে চালিয়ে দেখা হয়েছে: মাটির জৈব পদার্থ, সেচের পানি, আয়, আবহাওয়ার ঝুঁকি আর রোগ-পোকা।`,

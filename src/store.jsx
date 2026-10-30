@@ -32,6 +32,7 @@ import amanNormals from './data/radar/aman_normals.json';
 import { loadSharedPlans, sendSharedPlan } from './engine/sharedPlans.js';
 import { loadMessages, postMessage } from './engine/sharedMessages.js';
 import { PLAN_SEASON } from './engine/climate.js';
+import { appendAudit } from './engine/chakra.js';
 
 // One NASA POWER record per upazila (60–100 KB each over the wire), fetched only when a page needs it: Godagari before
 // the first screen (the default farmer and the public pages' `clim` / `tm`), any other upazila when a farmer or officer
@@ -63,7 +64,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies', 'chakra'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 
@@ -97,6 +98,8 @@ const fresh = () => ({
   why: null,
   dataInfo: false,
   toast: null,
+  // Chakra Agent: manual or agent mode per role, task ids already handled (done or dismissed), the hash-chained audit log
+  chakra: { mode: { farmer: 'manual', officer: 'manual' }, handled: [], audit: [] },
 });
 
 function initial() {
@@ -157,6 +160,9 @@ function reducer(s, a) {
     case 'addAdvisory': return { ...s, advisories: [a.adv, ...s.advisories.filter((x) => x.id !== a.adv.id)] };
     case 'escalate': return { ...s, escalations: [a.esc, ...s.escalations.filter((e) => e.id !== a.esc.id)] };
     case 'recordHarvest': return { ...s, harvests: { ...s.harvests, [a.id]: a.value } };
+    case 'chakraMode': return { ...s, chakra: { ...s.chakra, mode: { ...s.chakra.mode, [a.role]: a.mode } } };
+    // One step the agent took or a person decided: the task is handled and the audit log gets an entry.
+    case 'chakraLog': return { ...s, chakra: { ...s.chakra, handled: a.task ? [...new Set([...s.chakra.handled, a.task])].slice(-400) : s.chakra.handled, audit: appendAudit(s.chakra.audit, a.entry) } };
     case 'toast': return { ...s, toast: a.toast ? { ...a.toast, at: Date.now() } : null };
     case 'reset': return { ...fresh(), lang: s.lang, live: s.live, toast: { bn: 'নমুনা তথ্য শুরুর অবস্থায় ফেরানো হয়েছে', en: 'Demo data reset to the start', at: Date.now() } };
     default: return s;
@@ -340,7 +346,8 @@ export function StoreProvider({ children }) {
 
   const value = {
     s, dispatch, T, L, toast, farmer, farmers, farmerOf, soil, union, unions, unionsAll, decision, decisionBase, decisionArgs, chosen, rotation, hotspots,
-    profile: s.profiles[farmer.id] ?? {}, upazila, clim: fclim, tm: tms[upazila.id], officerUpazila, officerClim, upazilaFarmers,
+    // a mobile number on the registry (the demo phone) shows until the farmer saves their own
+    profile: { ...(farmer.mobile ? { mobile: farmer.mobile } : {}), ...s.profiles[farmer.id] }, upazila, clim: fclim, tm: tms[upazila.id], officerUpazila, officerClim, upazilaFarmers,
     today, daysAfter, demoNow: today, weather, liveWeather: !!live, stage, water,
     myAdvisories, unreadMsgs, unreadAdvisories: unreadMsgs.length, markSeen: (ids) => dispatch({ type: 'markSeen', id: farmer.id, ids: ids ?? myAdvisories.map((a) => a.id) }), confirmedPlan, landConfirmed,
     parcels, myParcels, activeParcel, srdiUnion, econ, shared: s.shared, refreshShared, confirmPlan, confirmedAll,

@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useParams, Navigate, useOutletContext } from 'react-router-dom';
 import { ChevronLeft, UserRound, Building2, Home, MapPinned, Sprout, ShieldAlert, Telescope, LifeBuoy, LayoutDashboard, BellRing, UsersRound, Globe2, Map as MapIcon, CalendarRange } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
-import { LangToggle } from '../components/chrome';
+import { LangToggle, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
 import { ABROAD, ABROAD_ORDER } from '../data/abroad';
 import { useScrollOnNavigate } from '../components/Motion';
@@ -89,6 +89,7 @@ function Shell({ c }) {
   const here = tabs.find((t) => (t.end ? pathname === t.to : pathname.startsWith(t.to)));
   return (
     <div className="relative min-h-screen overflow-x-clip bg-canvas">
+      <SkipToMain />
       <div aria-hidden="true" className="pointer-events-none fixed inset-0">
         <div className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full opacity-70 blur-3xl transition-colors duration-700" style={{ background: c.soft }} />
         <div className="absolute -right-32 top-1/3 h-[460px] w-[460px] rounded-full bg-primary-100/60 blur-3xl" />
@@ -121,7 +122,7 @@ function Shell({ c }) {
           <SlidingTabs tabs={tabs} lang={s.lang} label={officer ? T('কর্মকর্তার পাতা', 'Officer pages') : T('কৃষকের পাতা', 'Farmer pages')} />
         </div>
       </header>
-      <main key={pathname} className="page-enter relative z-10 pb-16 pt-6">
+      <main id="main" tabIndex={-1} key={pathname} className="page-enter relative z-10 scroll-mt-32 pb-16 pt-6 outline-none">
         <div>
           {error ? (
             <div className="page-shell rounded-2xl bg-white/70 p-6 text-[15px]">{T('এই দেশের তথ্য খোলা গেল না।', 'This country’s data could not be opened.')} <span className="text-muted">{String(error.message)}</span></div>

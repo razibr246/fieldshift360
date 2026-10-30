@@ -39,3 +39,4 @@ comes from is in [docs/DATA_SOURCES.md](../docs/DATA_SOURCES.md).
 | `photos:abroad` | `photos/abroad_photos.py` | Neighbouring-country photos, `src/assets/images/abroad/` |
 | `photos:nasa` | `photos/nasa_images.py` | NASA Image and Video Library photos, `src/assets/images/nasa/`, `src/data/media/nasa_images.json` |
 | `sync:voice` | `sync-voice.mjs` | The voice brain, into `services/voice-agent/` |
+| `design:voice` | `design-bangla-voice.mjs` | Creates a reusable Gemini voice persona for conversational Bangladeshi female Bangla; saves a preview WAV to `.cache/voice/` and prints the voice ID to configure |

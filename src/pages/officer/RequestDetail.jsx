@@ -26,6 +26,10 @@ export default function RequestDetail() {
 function useFieldWeather(lat, lon) {
   const [w, setW] = useState(null);
   useEffect(() => {
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      setW(false);
+      return undefined;
+    }
     let alive = true;
     // one retry after a short wait, as the main weather card does
     fetchForecast(lat, lon).catch(() => new Promise((ok) => setTimeout(ok, 2500)).then(() => fetchForecast(lat, lon)))

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Layers, Sprout, Plus, X, Satellite, Clock } from 'lucide-react';
+import { CheckCircle2, Layers, Sprout, Plus, X, Satellite, Clock, MapPinned, ArrowRight } from 'lucide-react';
 import { useStore, demo } from '../../store';
 import { Card, Button, Badge, Tags, soilTag } from '../../components/ui';
 import Photo from '../../components/Photo';
@@ -43,12 +43,20 @@ export default function MyFarm() {
 
   return (
     <div className="space-y-6">
-      <section data-tour="farm-hero" className="relative isolate overflow-hidden rounded-[24px] bg-primary-950 text-white">
-        <div className="absolute inset-0 -z-10"><Photo name="landParcels" fill sizes="(min-width: 1200px) 1200px, 100vw" priority /><div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,38,20,.9)_0%,rgba(13,38,20,.65)_50%,rgba(13,38,20,.2)_100%)]" /></div>
-        <div className="max-w-2xl p-6 sm:p-8">
-          <p className="text-[15px] text-white/80">{T('আমার জমি', 'My fields')}</p>
-          <h1 className="mt-1 text-[30px] font-bold leading-tight sm:text-[38px]">{myParcels.length > 1 ? T('আপনার সব জমি, এক মানচিত্রে', 'All your fields on one map') : T('মানচিত্রে আপনার জমি', 'Your field on the map')}</h1>
-          <p className="mt-3 text-[15.5px] leading-7 text-white/85">{myParcels.length
+      <section data-tour="farm-hero" className="my-farm-hero relative isolate overflow-hidden rounded-[26px] border border-white/20 bg-primary-950 text-white">
+        <div className="my-farm-hero-backdrop absolute inset-0 -z-10">
+          <Photo name="landParcels" fill sizes="(min-width: 1200px) 1200px, 100vw" priority decorative className="my-farm-hero-photo" />
+          <div className="my-farm-hero-scrim absolute inset-0" />
+          <div className="my-farm-hero-orb my-farm-hero-orb-one absolute -right-20 -top-32 h-80 w-80 rounded-full" aria-hidden="true" />
+          <div className="my-farm-hero-orb my-farm-hero-orb-two absolute -bottom-48 right-1/4 h-72 w-72 rounded-full" aria-hidden="true" />
+        </div>
+        <div className={`my-farm-hero-content relative grid gap-6 p-5 sm:p-8 ${myParcels.length ? 'lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,.65fr)] lg:items-center' : ''}`}>
+          <div className="max-w-2xl">
+          <p className="my-farm-eyebrow inline-flex items-center gap-2 text-[14px] font-semibold text-white/90">
+            <MapPinned size={15} aria-hidden="true" />{T('আমার জমি', 'My fields')}
+          </p>
+          <h1 className="mt-2 text-[30px] font-bold leading-tight sm:text-[38px]">{myParcels.length > 1 ? T('আপনার সব জমি, এক মানচিত্রে', 'All your fields on one map') : T('মানচিত্রে আপনার জমি', 'Your field on the map')}</h1>
+          <p className="mt-3 max-w-xl text-[15.5px] leading-7 text-white/90">{myParcels.length
             ? T(`${upazila.name.bn} উপজেলা কৃষি অফিসে আপনার নামে ${num(myParcels.length, 'bn')}টি জমি আছে, মোট ${num(totalDec / 33, 'bn', { dp: 1 })} বিঘা, ${num(unionsCount, 'bn')}টি ইউনিয়নে। প্রতিটি জমির এখনকার অবস্থা উপগ্রহের ছবি থেকে দেখুন।`, `The ${upazila.name.en} upazila agriculture office has ${myParcels.length} fields in your name, ${num(totalDec / 33, 'en', { dp: 1 })} bigha in ${unionsCount} union${unionsCount > 1 ? 's' : ''}. See how each one looks now from satellite pictures.`)
             : T('গ্রামের নাম লিখে খুঁজুন, উপগ্রহের ছবিতে নিজের জমি চিনে পিন বসান, তারপর মাপ আর সেচের উৎস দিয়ে নিশ্চিত করুন।', 'Search your village, find your field on the satellite picture and drop the pin, then add the size and water source and confirm.')}</p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -56,6 +64,39 @@ export default function MyFarm() {
             {needLook > 0 && <Badge tone="amber">{T(`${num(needLook, 'bn')}টি জমিতে নজর দরকার`, `${needLook} field${needLook > 1 ? 's' : ''} to look at`)}</Badge>}
             <Tags list={['REAL', 'AI', 'DEMO']} />
           </div>
+          </div>
+          {myParcels.length > 0 && (
+            <aside className="my-farm-summary rounded-[22px] p-4 sm:p-5" aria-label={T('আপনার জমির সারাংশ', 'Your field summary')}>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/15 text-paddy-300 ring-1 ring-white/15"><Sprout size={19} aria-hidden="true" /></span>
+                  <div>
+                    <h2 className="text-[15px] font-bold">{T('জমির এক নজরে', 'Field overview')}</h2>
+                    <p className="text-[12px] text-white/70">{T('আপনার নিবন্ধিত জমি', 'Your registered fields')}</p>
+                  </div>
+                </div>
+                <Satellite size={18} className="text-white/70" aria-hidden="true" />
+              </div>
+              <dl className="grid grid-cols-2 gap-2">
+                <div className="my-farm-summary-stat">
+                  <dt>{T('জমি', 'Fields')}</dt>
+                  <dd>{num(myParcels.length, lang)}</dd>
+                </div>
+                <div className="my-farm-summary-stat">
+                  <dt>{T('মোট আয়তন', 'Total area')}</dt>
+                  <dd>{num(totalDec / 33, lang, { dp: 1 })}<span>{T(' বিঘা', ' bigha')}</span></dd>
+                </div>
+                <div className="my-farm-summary-stat">
+                  <dt>{T('ইউনিয়ন', 'Unions')}</dt>
+                  <dd>{num(unionsCount, lang)}</dd>
+                </div>
+                <div className={`my-farm-summary-stat ${needLook ? 'is-attention' : ''}`}>
+                  <dt>{T('খেয়াল দরকার', 'Needs attention')}</dt>
+                  <dd>{num(needLook, lang)}</dd>
+                </div>
+              </dl>
+            </aside>
+          )}
         </div>
       </section>
 
@@ -64,18 +105,21 @@ export default function MyFarm() {
           <Card className="p-4 sm:p-5" data-tour="farm-map">
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
               <FieldsMap parcels={myParcels} levels={levels} selectedId={selected?.id} focusAll={focusAll} onSelect={pick} onShowAll={() => setFocusAll(true)} height={440} upazila={upazila.id} />
-              <div className="flex min-w-0 flex-col">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-[18px] font-bold">{T(`আমার ${num(myParcels.length, 'bn')}টি জমি`, `My ${myParcels.length} fields`)}</h2>
-                  <span className="text-[13px] text-muted">{T(`মোট ${num(totalDec, 'bn')} শতক`, `${totalDec} decimal in all`)}</span>
+              <div className="my-farm-field-list flex min-w-0 flex-col">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-[18px] font-bold">{T(`আমার ${num(myParcels.length, 'bn')}টি জমি`, `My ${myParcels.length} fields`)}</h2>
+                    <p className="mt-0.5 text-[12.5px] text-muted">{T('মানচিত্রে দেখতে একটি জমি বেছে নিন', 'Choose a field to locate it on the map')}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-primary-50 px-2.5 py-1 text-[12px] font-semibold text-primary-800 ring-1 ring-primary-100">{T(`মোট ${num(totalDec, 'bn')} শতক`, `${totalDec} decimals`)}</span>
                 </div>
-                <ul className="space-y-2" data-stagger>
+                <ul className="my-farm-field-options space-y-2" aria-label={T('নিবন্ধিত জমির তালিকা', 'Registered fields')}>
                   {myParcels.map((p, i) => {
                     const r = readingOf(p.id), look = LEVEL_LOOK[levels[p.id]], on = p.id === selected?.id;
                     return (
                       <li key={p.id}>
                         <button type="button" onClick={() => pick(p.id)} aria-pressed={on}
-                          className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${on ? 'border-primary-400 bg-primary-50' : 'border-border bg-white hover:border-primary-300 hover:bg-primary-50/50'}`}>
+                          className={`my-farm-field-option flex w-full items-center gap-3 rounded-2xl border p-3 text-left ${on ? 'is-selected border-primary-400 bg-primary-50' : 'border-border bg-white hover:border-primary-300 hover:bg-primary-50/50'}`}>
                           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[14px] font-bold text-white" style={{ background: look.color }}>{num(i + 1, lang)}</span>
                           <span className="min-w-0 flex-1">
                             <span className="flex flex-wrap items-center gap-1.5">
@@ -86,6 +130,7 @@ export default function MyFarm() {
                             <span className="block truncate text-[13px] text-muted">{L(demo.unions.find((u) => u.id === p.union)?.full)} · {T(`${num(p.area_dec / 33, 'bn', { dp: 1 })} বিঘা`, `${num(p.area_dec / 33, 'en', { dp: 1 })} bigha`)}{r?.top ? ` · ${L(r.top.pattern.name)}` : ''}</span>
                           </span>
                           <span className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold" style={{ color: look.color }}><look.icon size={14} /><span className="hidden sm:inline">{L(look)}</span></span>
+                          {on && <ArrowRight size={16} className="my-farm-field-arrow shrink-0 text-primary-700" aria-hidden="true" />}
                         </button>
                       </li>
                     );

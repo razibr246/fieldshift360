@@ -57,6 +57,8 @@ export default function SmsMode() {
     if (key?.help) reply = helpReply();
     else if (key?.rot) reply = rotReply();
     else {
+      // The session survives language toggles so conversation context stays, but each reply follows the current UI language.
+      session.current.lang = lang;
       const snap = farmerSnapshot(store, { clim, soilData, unions: demo.unions });
       const r = respond(key?.ask ?? q, snap, session.current);
       session.current = r.session;

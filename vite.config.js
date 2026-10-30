@@ -103,15 +103,16 @@ const devAbroadApi = () => ({
   },
 });
 
-// npm run dev: serves api/doctor.js itself (the real AI call), reading GEMINI_API_KEY (or ANTHROPIC_API_KEY) from .env.local.
+// npm run dev: serves api/doctor.js and api/agent.js themselves (the real AI call), reading GEMINI_API_KEY (or ANTHROPIC_API_KEY) from .env.local.
 // Without a key it answers 503, just like the deployed function, and the page says the AI doctor is off.
 const devDoctorApi = (env) => ({
   name: 'dev-doctor-api',
   apply: 'serve',
   configureServer(server) {
-    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'ANTHROPIC_API_KEY']) if (env[k] && !process.env[k]) process.env[k] = env[k];
-    server.middlewares.use('/api/doctor', async (req, res) => {
-      const { default: handler } = await import('./api/doctor.js');
+    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_AGENT_MODEL', 'GEMINI_TTS_MODEL', 'GEMINI_TTS_VOICE', 'GEMINI_TTS_VOICE_BN', 'GEMINI_TTS_VOICE_EN', 'ANTHROPIC_API_KEY']) if (env[k] && !process.env[k]) process.env[k] = env[k];
+    // api/agent.js (Chakra Agent) and api/tts.js (its natural voice) are served the same way, with the same keys.
+    for (const name of ['doctor', 'agent', 'tts']) server.middlewares.use(`/api/${name}`, async (req, res) => {
+      const { default: handler } = await import(`./api/${name}.js`);
       let raw = '';
       for await (const c of req) raw += c;
       const out = { statusCode: 200, setHeader: (k, v) => res.setHeader(k, v), status(c) { this.statusCode = c; return this; }, json(b) { res.statusCode = this.statusCode; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(b)); } };

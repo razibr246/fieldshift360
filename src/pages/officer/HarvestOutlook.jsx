@@ -110,11 +110,11 @@ export function DistrictAman({ outlook, selected, home, onPick }) {
       <div className="mt-6">
         <h3 className="text-[15px] font-bold">{T('কোন উপজেলায় কবে ধান কাটা', 'Harvest window in each upazila')}</h3>
         <div className="relative mt-3">
-          <div className="space-y-1.5" role="list">
+          <div className="space-y-1.5" role="group" aria-label={T('উপজেলার কাটার সময় বাছুন', 'Choose an upazila harvest window')}>
           {[...rows].sort((a, b) => (a.start ?? 999) - (b.start ?? 999)).map((r) => {
             const on = r.id === selected;
             return (
-              <button key={r.id} type="button" role="listitem" onClick={() => onPick(r.id)}
+              <button key={r.id} type="button" aria-pressed={on} onClick={() => onPick(r.id)}
                 className={`grid w-full grid-cols-[96px_1fr] items-center gap-3 rounded-xl px-2 py-1.5 text-left transition sm:grid-cols-[130px_1fr] ${on ? 'bg-primary-50' : 'hover:bg-black/[.03]'}`}
                 aria-label={r.start === null ? L(r.u) : T(`${r.u.bn}: ${day(r.start)} থেকে ${day(r.end)}`, `${r.u.en}: ${day(r.start)} to ${day(r.end)}`)}>
                 <span className={`truncate text-[13.5px] ${on ? 'font-bold text-primary-800' : 'font-semibold text-ink/80'}`}>{L(r.u)}{r.id === home && <span className="ml-1 text-[11px] text-paddy-700">{T('আপনার', 'yours')}</span>}</span>

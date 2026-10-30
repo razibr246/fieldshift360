@@ -54,7 +54,7 @@ export default function Voice() {
     T('সবাই একসঙ্গে লাগালে দাম পড়বে?', 'Will prices fall if everyone plants together?'), T('এরপর কোন ফসল করব?', 'What comes after this crop?'), T('টমেটোর পাতায় দাগ পড়ছে', 'Brown spots on my tomato leaves'), T('এই হিসাব কোথা থেকে এল?', 'Where do these numbers come from?'),
   ];
   return (
-    <div>
+    <div className="farmer-voice-page">
       <PageHeader eyebrow={T('কথা বলে জানুন', 'Ask by voice')} title={T('মাঠের সহকারী', 'Field assistant')}
         subtitle={T('ফোনের মতো কল করে কথা বলুন বা নম্বর চাপুন, অথবা চ্যাটে মাইক চেপে বা লিখে জিজ্ঞেস করুন। উত্তর আসে আপনার জমি আর ২৫ বছরের নাসা আবহাওয়ার হিসাব থেকে; কিছু পাঠানোর আগে আমি আপনার অনুমতি নিই।', 'Call it like a phone and talk or press keys, or use the chat with the mic or typing. Answers come from your field and 25 years of NASA weather; I always ask before sending anything.')} tags={['RULE']} />
       <div data-tour="voice-mode" className="mb-5 w-full max-w-md"><Segmented value={mode} onChange={setMode} className="grid w-full grid-cols-2"

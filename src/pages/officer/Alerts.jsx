@@ -91,16 +91,27 @@ export default function Alerts() {
   const waterAlerts = s.requests.filter((r) => r.union === union.id && r.type === 'water_alert' && r.status === 'open');
   const sign = T(`উপজেলা কৃষি অফিস, ${officerUpazila.name.bn}`, `Upazila agriculture office, ${officerUpazila.name.en}`);
   // Live forecast at the union centre.
-  const [fc, setFc] = useState({ status: 'loading' });
-  const load = () => {
-    if (union.meta?.lat == null) { setFc({ status: 'error' }); return; }
-    setFc({ status: 'loading' });
-    fetchForecast(union.meta.lat, union.meta.lon).then((d) => setFc({ status: 'ok', d, at: Date.now() })).catch(() => setFc({ status: 'error' }));
-  };
-  useEffect(load, [union.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [fc, setFc] = useState({ status: 'loading', unionId: null });
+  const [forecastAttempt, setForecastAttempt] = useState(0);
+  const load = () => setForecastAttempt((attempt) => attempt + 1);
+  useEffect(() => {
+    let live = true;
+    const unionId = union.id;
+    const { lat, lon } = union.meta ?? {};
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      setFc({ status: 'error', unionId });
+      return () => { live = false; };
+    }
+    setFc({ status: 'loading', unionId });
+    fetchForecast(lat, lon)
+      .then((d) => { if (live) setFc({ status: 'ok', d, at: Date.now(), unionId }); })
+      .catch(() => { if (live) setFc({ status: 'error', unionId }); });
+    return () => { live = false; };
+  }, [union.id, union.meta?.lat, union.meta?.lon, forecastAttempt]);
+  const activeFc = fc.unionId === union.id ? fc : { status: 'loading' };
   const crops = useMemo(() => new Set(union.plans.map((p) => p.crop)), [union.plans]);
   // A crop warning with nobody's crop exposed on those days is dropped: there is no one it would help.
-  const wx = fc.status === 'ok' ? weatherWarnings(fc.d, { crops, month: monthOf(todayDhaka()) }).filter((w) => exposedPlots(w, union.plans).length > 0) : [];
+  const wx = activeFc.status === 'ok' ? weatherWarnings(activeFc.d, { crops, month: monthOf(todayDhaka()) }).filter((w) => exposedPlots(w, union.plans).length > 0) : [];
   // Registered fields in this union whose latest Sentinel-2 reading has a warning.
   const sat = useMemo(() => parcels.filter((p) => p.union === union.id).map((p) => {
     const series = seriesNow(p);
@@ -109,9 +120,10 @@ export default function Alerts() {
     const f = r.findings.find((x) => x.tone === 'warn') ?? r.findings.find((x) => x.tone === 'watch');
     return r.level === 'ok' || !f ? null : { p, r, f };
   }).filter(Boolean).sort((a, b) => (a.r.level === 'warn' ? -1 : 1) - (b.r.level === 'warn' ? -1 : 1)), [parcels, union.id]);
+  const weatherKnown = activeFc.status === 'ok';
   const counts = [
-    [CloudRain, T('আবহাওয়া', 'Weather'), wx.filter((w) => w.kind !== 'disease').length],
-    [Bug, T('রোগের আবহাওয়া', 'Disease weather'), wx.filter((w) => w.kind === 'disease').length],
+    [CloudRain, T('আবহাওয়া', 'Weather'), weatherKnown ? wx.filter((w) => w.kind !== 'disease').length : null],
+    [Bug, T('রোগের আবহাওয়া', 'Disease weather'), weatherKnown ? wx.filter((w) => w.kind === 'disease').length : null],
     [Satellite, T('উপগ্রহে জমি', 'Fields from space'), sat.length],
     [BellRing, T('একই সমস্যার গুচ্ছ', 'Problem clusters'), hs.length],
     [Droplets, T('শুকনো জমি', 'Dry fields'), waterAlerts.length],
@@ -126,21 +138,21 @@ export default function Alerts() {
         {counts.map(([Icon, label, n]) => (
           <div key={label} className={`lift group rounded-xl border p-3.5 transition-all duration-200 hover:shadow-md ${n ? 'border-amber-200 bg-amber-50/70 shadow-2xs hover:border-amber-300' : 'border-border bg-white shadow-2xs hover:border-primary-300'}`}>
             <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-muted"><Icon size={15} className={`transition-transform duration-200 group-hover:scale-110 ${n ? 'text-amber-700' : 'text-primary-700'}`} />{label}</div>
-            <div className={`font-display mt-1 text-[24px] font-bold tabular tracking-tight ${n ? 'text-amber-950' : 'text-ink'}`}>{num(n, lang)}</div>
+            <div className={`font-display mt-1 text-[24px] font-bold tabular tracking-tight ${n ? 'text-amber-950' : 'text-ink'}`}>{n == null ? '—' : num(n, lang)}</div>
           </div>
         ))}
       </div>
       <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-muted">
-        {fc.status === 'loading' && <span className="inline-flex items-center gap-1.5"><Loader2 size={14} className="animate-spin text-primary-600" />{T('আবহাওয়ার পূর্বাভাস আনা হচ্ছে…', 'Fetching the forecast…')}</span>}
-        {fc.status === 'ok' && <span className="inline-flex items-center gap-1.5"><span className="live-dot" />{T(`লাইভ পূর্বাভাস, হালনাগাদ ${clockText(fc.at, 'bn')}`, `Live forecast, updated ${clockText(fc.at, 'en')}`)}{!wx.length && T(' · আগামী ৮ দিনে আবহাওয়ার কোনো সতর্কতা নেই', ' · no weather warnings in the next 8 days')}</span>}
-        {fc.status === 'error' && <span>{T('পূর্বাভাস আনা যায়নি।', 'Could not fetch the forecast.')}</span>}
-        {fc.status !== 'loading' && <button type="button" onClick={load} className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 font-semibold text-primary-700 hover:bg-primary-50 active:scale-95 transition"><RefreshCw size={13} />{T('আবার আনুন', 'Refresh')}</button>}
+        {activeFc.status === 'loading' && <span className="inline-flex items-center gap-1.5"><Loader2 size={14} className="animate-spin text-primary-600" />{T('আবহাওয়ার পূর্বাভাস আনা হচ্ছে…', 'Fetching the forecast…')}</span>}
+        {activeFc.status === 'ok' && <span className="inline-flex items-center gap-1.5"><span className="live-dot" />{T(`লাইভ পূর্বাভাস, হালনাগাদ ${clockText(activeFc.at, 'bn')}`, `Live forecast, updated ${clockText(activeFc.at, 'en')}`)}{!wx.length && T(' · আগামী ৮ দিনে আবহাওয়ার কোনো সতর্কতা নেই', ' · no weather warnings in the next 8 days')}</span>}
+        {activeFc.status === 'error' && <span>{T('পূর্বাভাস আনা যায়নি।', 'Could not fetch the forecast.')}</span>}
+        {activeFc.status !== 'loading' && <button type="button" onClick={load} className="inline-flex min-h-8 items-center gap-1 rounded-lg px-2 font-semibold text-primary-700 hover:bg-primary-50 active:scale-95 transition"><RefreshCw size={13} />{T('আবার আনুন', 'Refresh')}</button>}
       </div>
       <div className="space-y-4">
-        {none && fc.status !== 'loading' && <EmptyState icon={BellRing} title={T('এখন কোনো সতর্কতা নেই', 'No alerts right now')} text={T('নতুন কিছু দেখা দিলে এখানে আসবে।', 'New warnings will appear here.')} />}
-        {wx.filter((w) => w.level === 'high').map((w) => <WeatherCard key={w.id} w={w} union={union} sign={sign} />)}
+        {none && weatherKnown && <EmptyState icon={BellRing} title={T('এখন কোনো সতর্কতা নেই', 'No alerts right now')} text={T('নতুন কিছু দেখা দিলে এখানে আসবে।', 'New warnings will appear here.')} />}
+        {wx.filter((w) => w.level === 'high').map((w) => <WeatherCard key={`${union.id}-${w.id}`} w={w} union={union} sign={sign} />)}
         {hs.map((h) => <ClusterCard key={h.id} h={h} union={union} />)}
-        {wx.filter((w) => w.level !== 'high').map((w) => <WeatherCard key={w.id} w={w} union={union} sign={sign} />)}
+        {wx.filter((w) => w.level !== 'high').map((w) => <WeatherCard key={`${union.id}-${w.id}`} w={w} union={union} sign={sign} />)}
         {sat.length > 0 && (
           <Card className="lift border-l-4 !border-l-sky-700 p-5 transition-all duration-200 hover:shadow-md">
             <div className="flex flex-wrap items-center gap-2"><Satellite size={19} className="text-sky-700" /><h2 className="text-[17px] font-bold">{T(`উপগ্রহে ${num(sat.length, 'bn')}টি জমি দুর্বল বা অস্বাভাবিক দেখাচ্ছে`, `${sat.length} fields look weak or unusual from space`)}</h2><Tags list={['REAL', 'RULE']} /></div>

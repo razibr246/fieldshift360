@@ -33,6 +33,24 @@ export function LangToggle({ dark = false, glass = false }) {
   );
 }
 
+export function SkipToMain() {
+  const { T } = useStore();
+  return (
+    <a
+      href="#main"
+      onClick={(event) => {
+        event.preventDefault();
+        const main = document.getElementById('main');
+        main?.focus({ preventScroll: true });
+        main?.scrollIntoView({ block: 'start' });
+      }}
+      className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-primary-800 focus:px-4 focus:py-2.5 focus:text-white"
+    >
+      {T('মূল অংশে যান', 'Skip to main content')}
+    </a>
+  );
+}
+
 // Back to the previous page, or to the home page when this one was opened directly (no history inside the app).
 export function BackButton({ className = '' }) {
   const { T } = useStore();

@@ -67,7 +67,7 @@ function FieldNow({ parcel, crop, dToday }) {
   const [view, setView] = useState('photo');
   return (
     <Card className="overflow-hidden">
-      <div>
+      <div className="farmer-today-page">
         <div className="p-4 pb-0">
           <Segmented value={view} onChange={setView} className="mb-3 grid w-full grid-cols-3 whitespace-nowrap"
             options={[{ value: 'photo', label: T('পরিষ্কার ছবি', 'Sharp photo') }, { value: 'close', icon: Sparkles, label: T('AI কাছ থেকে', 'AI close-up') }, { value: 'tc', label: T('আজকের ছবি', 'This week') }]} />

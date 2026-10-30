@@ -54,25 +54,29 @@ export function unionGlut(u, crop = 'tomato') {
 export { advisoryText };
 
 export function ClusterCard({ h, union, compact = false }) {
-  const { s, dispatch, T, L, toast, farmerOf } = useStore();
+  const { s, dispatch, T, L, toast, farmerOf, unionsAll } = useStore();
   const lang = s.lang;
-  const villages = [...new Set(h.members.map((m) => m.village))];
-  const recipients = union.plans.filter((p) => p.crop === h.crop && villages.includes(farmerOf(p.plot_id)?.village)).map((p) => p.plot_id);
-  const to = [...new Set([...recipients, ...h.members.map((m) => m.farmerId)])];
+  const members = h.members.filter((m) => unionsAll[m.union]);
+  const scoped = { ...h, members };
+  const villages = [...new Set(members.map((m) => m.village))];
+  const recipients = union.plans.filter((p) => p.crop === h.crop && farmerOf(p.plot_id)?.union === union.id && villages.includes(farmerOf(p.plot_id)?.village)).map((p) => p.plot_id);
+  const to = [...new Set([...recipients, ...members.map((m) => m.farmerId)])];
+  const metas = [...new Set(members.map((m) => m.union))].map((id) => unionsAll[id]?.meta).filter(Boolean);
+  const adviceMeta = { ...union.meta, bn: metas.map((m) => m.bn).join(' ও '), en: metas.map((m) => m.en).join(' and ') };
   const [text, setText] = useState(null);
-  const draft = text ?? advisoryText(h, union.meta, lang);
+  const draft = text ?? advisoryText(scoped, adviceMeta, lang);
   const sent = s.advisories.some((a) => a.cluster === h.id);
   const send = () => {
     dispatch({ type: 'addAdvisory', adv: { id: `ADV-${h.id}`, cluster: h.id, text: draft, to, at: todayDhaka() } });
-    dispatch({ type: 'updateRequest', ids: h.members.map((m) => m.id), patch: { status: 'answered' } });
+    dispatch({ type: 'updateRequest', ids: members.map((m) => m.id), patch: { status: 'answered' } });
     toast(`${num(to.length, 'bn')} জন কৃষকের কাছে পরামর্শ গেছে`, `Advice sent to ${to.length} farmers`);
   };
-  const villageNames = villages.map((v) => (lang === 'bn' ? h.members.find((m) => m.village === v).villageBn : v)).join(T(' ও ', ' and '));
+  const villageNames = villages.map((v) => (lang === 'bn' ? members.find((m) => m.village === v).villageBn : v)).join(T(' ও ', ' and '));
   return (
     <Card className="border-l-4 !border-l-red-500 p-5">
       <div className="flex flex-wrap items-center gap-2">
         <AlertTriangle size={19} className="text-red-600" />
-        <h2 className="text-[18px] font-bold">{T(`কাছাকাছি ${num(h.members.length, 'bn')}টি জমি থেকে একই সমস্যা`, `${h.members.length} nearby fields report the same problem`)}</h2>
+        <h2 className="text-[18px] font-bold">{T(`কাছাকাছি ${num(members.length, 'bn')}টি জমি থেকে একই সমস্যা`, `${members.length} nearby fields report the same problem`)}</h2>
         <Tags list={['AI', 'DEMO']} />
       </div>
       <p className="mt-1 text-[14px] text-muted">{T(`${bnOf(cropName(h.crop, 'bn'))} ${SYMPTOMS[h.symptom].bn}, ${villageNames}। সাত দিনের মধ্যে, দেড় কিলোমিটারের ভেতরে।`, `${SYMPTOMS[h.symptom].en} on ${cropName(h.crop, 'en').toLowerCase()} in ${villageNames}, within seven days and 1.5 km.`)}</p>
