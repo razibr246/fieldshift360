@@ -20,7 +20,7 @@
 // The 2040s: the same 2013–2025 days shifted month by month by NASA NEX-GDDP-CMIP6 v2.0 (eight models, 2041–2050 against
 // 2005–2014, cmip6_deltas.json), the "delta change" method, so the place keeps its real weather and only moves by what
 // the models project. Model numbers below are STARTING VALUES from the literature; an agronomist should check them.
-import { RABI_CROPS, ROTATION_CROPS, BIGHA_HA, WATER_CLASS } from './crops.js';
+import { RABI_CROPS, ROTATION_CROPS, BIGHA_HA, WATER_CLASS, withBoroHeat } from './crops.js';
 import { cropWaterNeed } from './cropwater.js';
 import { evalRule, plantDate, NOW, PLAN_SEASON } from './climate.js';
 import { cropMoney } from './economics.js';
@@ -184,13 +184,14 @@ function k1Window(id, ready, clearBy) {
 }
 // Share of 2013–2025 seasons in which one of the crop's heat or rain limits was crossed, sowing on that day of the
 // year: a warning of weather damage, not a count of lost crops.
-function riskShare(clim, crop, t0) {
+function riskShare(clim, crop, t0, boroHeat = null) {
   if (!clim || !crop.rules?.length || t0 == null) return 0;
+  const rulesCrop = withBoroHeat(crop, boroHeat);
   const m = monthOf(t0), d = dayOf(t0), rabi = !!RABI_CROPS[crop.id];
   let bad = 0, n = 0;
   for (const y of NOW) {
     const t = rabi ? plantDate(crop, y) : ymd(y, m, d);
-    const res = crop.rules.map((r) => evalRule(clim, r, t));
+    const res = rulesCrop.rules.map((r) => evalRule(clim, r, t));
     if (res.some((r) => r.ok === null)) continue;
     n++; if (res.some((r) => !r.ok)) bad++;
   }
@@ -199,7 +200,7 @@ function riskShare(clim, crop, t0) {
 
 // Everything the simulation needs, computed once per field: each slot's dates, water, weather risk and money,
 // for today's weather and, when the projections are in, the 2040s.
-export function fieldContext({ clim, change, soil, plot, amanT, econ }) {
+export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat = null }) {
   const climF = futureClimate(clim, change);
   const aman = amanT ?? ymd(PLAN_SEASON, 7, 15);
   const clearBy = addDays(aman, -AMAN_PREP);
@@ -209,7 +210,7 @@ export function fieldContext({ clim, change, soil, plot, amanT, econ }) {
     const wFut = climF && wNow ? cropWaterNeed(climF, crop, t0) : null;
     return {
       water: { now: crop.id === 'fallow' ? 0 : wNow?.mm ?? null, fut: crop.id === 'fallow' ? 0 : wFut?.mm ?? wNow?.mm ?? null },
-      risk: { now: riskShare(clim, crop, t0), fut: climF ? riskShare(climF, crop, t0) : null },
+      risk: { now: riskShare(clim, crop, t0, boroHeat), fut: climF ? riskShare(climF, crop, t0, boroHeat) : null },
       money: crop.id === 'fallow' ? { net: 0 } : cropMoney(econ, crop),
       tHa: yieldOf(crop.id, econ),
     };
@@ -235,7 +236,7 @@ export function fieldContext({ clim, change, soil, plot, amanT, econ }) {
   }
   const mT = monthlyMeanT(clim);
   return {
-    clim, climF, change, soil, plot, econ, aman, clearBy, rabi, k1,
+    clim, climF, change, soil, plot, econ, boroHeat, aman, clearBy, rabi, k1,
     amanSlot: { risk: { now: 0, fut: 0 }, tHa: YIELDS.aman.tHa },
     temp: { now: 1, fut: tempFactor(mT, change) }, monthlyT: mT,
     soc0: socStock(soil),
@@ -386,6 +387,25 @@ export function rank(evals, priorities, fixed = null) {
     e.score = Object.entries(w).reduce((a, [k, x]) => a + x * e.parts[k], 0);
   }
   return { weights: w, range, evals: evals.sort((a, b) => b.score - a.score) };
+}
+
+// Re-rank an existing ten-year run when only Boro's heat warning changes. Water, soil and income simulations stay
+// fixed, so the sensitivity view does not repeat the expensive rotation model for each exploratory threshold.
+export function rankBoroSensitivity(baseline, ctx, priorities = [], exclude = []) {
+  const riskFor = (rows, world) => mean(rows.map((row) => Math.max(
+    ctx.rabi[row.rabi]?.risk?.[world] ?? 0,
+    ctx.k1[row.rabi]?.[row.k1]?.risk?.[world] ?? 0,
+  )));
+  const adjusted = baseline.all.map((e) => ({
+    ...e,
+    sNow: { ...e.sNow, risk: riskFor(e.now, 'now') },
+    sFut: e.fut ? { ...e.sFut, risk: riskFor(e.fut, 'fut') } : null,
+  }));
+  const { evals } = rank(adjusted, priorities, baseline.range);
+  const can = (e) => !e.rot.cycle.some((y) => exclude.includes(y.rabi) || exclude.includes(y.k1));
+  const keeps = evals.filter((e) => e.sNow.dSoc >= 0 && can(e));
+  const pool = keeps.length ? keeps : evals.filter(can).length ? evals.filter(can) : evals;
+  return { all: evals, best: pool[0], top: pool.slice(0, 5) };
 }
 
 // Every rotation this field can take: one-year and two-year cycles of feasible years, with and without the straw.

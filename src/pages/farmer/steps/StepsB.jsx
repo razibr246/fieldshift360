@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { clockText } from '../../../engine/forecast';
 // Season planner steps 5–7: the recommendation, the next crop, and the price-drop (glut) check.
 import { Info, Droplet, CheckCircle2, CalendarDays, Wheat, ShieldCheck, Coins, CloudSun, MapPin, Layers, FlaskConical, Pencil, Sprout, Telescope } from 'lucide-react';
@@ -11,9 +11,10 @@ import HowMade from '../../../components/explain/HowMade';
 import SeasonCompare from '../../../components/explain/SeasonCompare';
 import ActCard from '../../../components/explain/ActCard';
 import { W_LABEL } from './StepsA.jsx';
-import { cropName, DECIMAL_HA, IRRIGATION } from '../../../engine/crops.js';
+import { cropName, DECIMAL_HA, IRRIGATION, BORO_HEAT_SENSITIVITIES } from '../../../engine/crops.js';
 import { fertilizerPlan, phWord, TEXTURE } from '../../../engine/soil.js';
-import { PRIORITIES } from '../../../engine/decision.js';
+import { PRIORITIES, decide } from '../../../engine/decision.js';
+import BoroSensitivity from '../../../components/future/BoroSensitivity.jsx';
 import { WHAT_IFS, parseWhatIf } from '../../../engine/climate.js';
 import { AMAN_PREP } from '../../../engine/rotation.js';
 import { bnOf } from '../../../engine/text.js';
@@ -146,10 +147,20 @@ function FieldBasis({ rec }) {
 // ---------- 5. Keep / Adjust / Shift ----------
 export function StepDecision() {
   const ctx = useStore();
-  const { s, dispatch, T, L, decision: d, chosen, farmer } = ctx;
+  const { s, dispatch, T, L, decision: d, decisionArgs, decisionBase, chosen, farmer } = ctx;
   const lang = s.lang;
   const st = LABEL_STYLE[d.label];
   const rec = d.rec;
+  const heatSensitivity = useMemo(() => {
+    const summarize = (id, label, result, baseline = false) => ({
+      id, label, baseline,
+      ranks: result.options.slice(0, 3).map((item) => ({ id: item.crop.id, name: L(item.crop.name), score: item.score })),
+    });
+    return [
+      summarize('current', T('বর্তমান সীমা: ৩৫° · ৩ দিন', 'Current rule: 35 °C · 3 days'), decisionBase, true),
+      ...BORO_HEAT_SENSITIVITIES.map((variant) => summarize(variant.id, L(variant), decide({ ...decisionArgs, boroHeat: variant }))),
+    ];
+  }, [decisionArgs, decisionBase, L, T]);
   const when = T(`${fmtBangla(rec.t0, 'bn')} (${fmtDate(rec.t0, 'bn')})`, `${fmtDate(rec.t0, 'en')} (${fmtBangla(rec.t0, 'en')})`);
   const sentence = d.label === 'SHIFT'
     ? T(`এবার ${cropName(farmer.last_crop, 'bn')} না করে ${rec.crop.name.bn} করুন। ${rec.crop.action.bn} ${when}।`, `Grow ${rec.crop.name.en.toLowerCase()} instead of ${cropName(farmer.last_crop, 'en').toLowerCase()}. ${rec.crop.action.en} around ${when}.`)
@@ -208,6 +219,7 @@ export function StepDecision() {
         <div className="mt-4"><WhyButton inverse payload={optionWhy(rec, d, ctx)} /></div>
       </div>
       <SeasonCompare />
+      <BoroSensitivity rows={heatSensitivity} />
       <ActCard />
       <HowMade />
       <FieldBasis rec={rec} />

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { makeClimate, backtest, timeMachine, SEASONS, rainAgrees } from './climate.js';
-import { RABI_CROPS } from './crops.js';
+import { RABI_CROPS, BORO_HEAT_SENSITIVITIES, withBoroHeat } from './crops.js';
 import { decide, weightsFor } from './decision.js';
 import { recommendRotation } from './rotation.js';
 import { waterAdvice, cropStage } from './water.js';
@@ -39,6 +39,14 @@ test('decision returns a label and ranked options', () => {
   assert.ok(rot.best || rot.directAman);
   console.log('label', d.label, 'rec', d.rec.crop.id, d.rec.shift, 'scores', d.options.map((o) => `${o.crop.id}:${o.score.toFixed(0)}`).join(' '));
   console.log('rotation', rot.best?.crop.id, rot.directAman);
+});
+
+test('Boro heat sensitivities leave the default rule intact and only relax the exploratory copy', () => {
+  const rule = RABI_CROPS.boro.rules.find((r) => r.id === 'boro_heat');
+  const relaxed = withBoroHeat(RABI_CROPS.boro, BORO_HEAT_SENSITIVITIES.find((x) => x.id === '37c'));
+  assert.deepEqual([rule.thr, rule.min], [35, 3]);
+  assert.deepEqual([relaxed.rules.find((r) => r.id === 'boro_heat').thr, relaxed.rules.find((r) => r.id === 'boro_heat').min], [37, 3]);
+  assert.deepEqual([RABI_CROPS.boro.rules[0].thr, RABI_CROPS.boro.rules[0].min], [35, 3]);
 });
 
 test('priorities change the ranking weights', () => {
@@ -161,7 +169,7 @@ test('weather warnings follow BMD classes and the Hutton criteria', () => {
 });
 
 // ---- Field Future (soilfuture.js) ----
-import { fieldContext, fieldFuture, cropCarbon, socStock, futureClimate, climateChange, feasible } from './soilfuture.js';
+import { fieldContext, fieldFuture, cropCarbon, socStock, futureClimate, climateChange, feasible, rankBoroSensitivity } from './soilfuture.js';
 
 const ffEcon = { prices: JSON.parse(readFileSync(new URL('../data/market/price_seasons.json', import.meta.url))), costs: JSON.parse(readFileSync(new URL('../data/market/crop_economics.json', import.meta.url))) };
 const ffSoil = { ph: 6.2, soc_g_kg: 12, bulk_density: 1.32, drainage: 'imperfect' };
@@ -175,6 +183,20 @@ test('field future: the usual rotation holds today’s carbon, and Boro leaves n
   for (const x of socs) assert.ok(Math.abs(x - ctx.soc0) < 0.05, `habit drifts: ${x} vs ${ctx.soc0}`);
   assert.ok(ff.best.sNow.dSoc >= 0, 'the best rotation never runs the soil down when one exists');
   assert.ok(ff.count > 100);
+});
+
+test('field future Boro heat scenarios reduce or hold the Boro weather-risk share without changing the baseline', () => {
+  const base = fieldContext({ clim, change: null, soil: ffSoil, plot: { irrigation: 'dtw' }, amanT: null, econ: ffEcon });
+  const warmerLimit = fieldContext({ clim, change: null, soil: ffSoil, plot: { irrigation: 'dtw' }, amanT: null, econ: ffEcon,
+    boroHeat: BORO_HEAT_SENSITIVITIES.find((x) => x.id === '37c') });
+  assert.ok(warmerLimit.rabi.boro.risk.now <= base.rabi.boro.risk.now);
+  assert.equal(RABI_CROPS.boro.rules[0].thr, 35);
+  const ff = fieldFuture({ ctx: base, lastCrop: 'boro', plan: null, priorities: [] });
+  const same = rankBoroSensitivity(ff, base, [], []);
+  const alternate = rankBoroSensitivity(ff, warmerLimit, [], []);
+  assert.deepEqual(same.top.map((x) => x.rot), ff.top.map((x) => x.rot));
+  assert.ok(alternate.all.find((x) => x.rot.cycle.some((y) => y.rabi === 'boro')).sNow.risk <=
+    ff.all.find((x) => x.rot.cycle.some((y) => y.rabi === 'boro')).sNow.risk);
 });
 
 test('field future: straw kept and roots put more carbon in; no irrigation means no Boro', () => {

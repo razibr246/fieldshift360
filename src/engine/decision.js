@@ -1,6 +1,6 @@
 import { bnDigits } from './dates.js';
 // Keep / Adjust / Shift decision engine [RULE on REAL climate + soil + DEMO economics].
-import { RABI_CROPS, IRRIGATION } from './crops.js';
+import { RABI_CROPS, IRRIGATION, withBoroHeat } from './crops.js';
 import { backtest, plantDate, PLAN_SEASON } from './climate.js';
 import { harvestWindow } from './harvest.js';
 import { cropWaterNeed } from './cropwater.js';
@@ -73,7 +73,7 @@ export function rotationFit(crop, lastCropId) {
 // today (UTC ms): a sowing day already gone is not offered; when every day of a crop has gone, its latest stays,
 // marked `late`, so the crop is still shown but never as an on-time choice.
 // exclude: crop ids the farmer cannot grow (no market, machine or seed); kept out unless nothing else is left.
-export function decide({ clim, soil, plot, union, priorities = [], econ = null, today = null, exclude = [] }) {
+export function decide({ clim, soil, plot, union, priorities = [], econ = null, today = null, exclude = [], boroHeat = null }) {
   const weights = weightsFor(priorities);
   const raw = [];
   // the crop grown now stays in, to compare against, even when ruled out; it is just never recommended then
@@ -82,7 +82,7 @@ export function decide({ clim, soil, plot, union, priorities = [], econ = null, 
   for (const crop of ids.map((id) => RABI_CROPS[id])) {
     for (const shift of SHIFTS) {
       const t0 = plantDate(crop, PLAN_SEASON, shift);
-      const bt = backtest(clim, crop, shift);
+      const bt = backtest(clim, withBoroHeat(crop, boroHeat), shift);
       const C = bt.now.n ? (bt.now.safe / bt.now.n) * 100 : 50;
       const water = cropWaterNeed(clim, crop, t0);
       const sf = soilFit(crop, soil);

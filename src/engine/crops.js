@@ -14,6 +14,20 @@ export const MAUND_KG = 37.32;
 
 export const WATER_CLASS = { High: 3, Medium: 2, 'Low-Medium': 1.5, Low: 1 };
 
+// Exploratory alternatives for the known Boro flowering-heat warning. These do not change the default crop rule.
+export const BORO_HEAT_SENSITIVITIES = [
+  { id: '36c', threshold: 36, minDays: 3, bn: '৩৬° সেলসিয়াস, ৩ দিন', en: '36 °C, 3 days' },
+  { id: '37c', threshold: 37, minDays: 3, bn: '৩৭° সেলসিয়াস, ৩ দিন', en: '37 °C, 3 days' },
+  { id: '5days', threshold: 35, minDays: 5, bn: '৩৫° সেলসিয়াস, ৫ দিন', en: '35 °C, 5 days' },
+];
+
+export function withBoroHeat(crop, sensitivity) {
+  if (crop?.id !== 'boro' || !sensitivity) return crop;
+  return { ...crop, rules: crop.rules.map((rule) => rule.id === 'boro_heat'
+    ? { ...rule, thr: sensitivity.threshold, min: sensitivity.minDays }
+    : rule) };
+}
+
 export const RABI_CROPS = {
   boro: {
     id: 'boro', family: 'Poaceae', familyBn: 'ধান-গম গোত্র', familyEn: 'Grass family',

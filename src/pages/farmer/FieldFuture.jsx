@@ -20,6 +20,7 @@ import StrategyBriefs from '../../components/future/StrategyBriefs';
 import LandFromSpace from '../../components/future/LandFromSpace';
 import SoilVerdict from '../../components/future/SoilVerdict';
 import StrategyCompare from '../../components/future/StrategyCompare';
+import BoroSensitivity from '../../components/future/BoroSensitivity';
 import JudgementNote from '../../components/explain/JudgementNote';
 import { runnerUp, soilVerdict } from '../../engine/explain';
 import { fieldTerrain } from '../../engine/briefs';
@@ -28,9 +29,9 @@ import { num, bnDigits, fmtDate } from '../../engine/dates';
 import { scrollToEl } from '../../components/Motion';
 import {
   climateChange, fieldContext, fieldFuture, cropOf, omPctOf, co2PerBigha, ureaSavedKgPerBigha, WATER_M3_PER_MM_BIGHA,
-  RABI_OPTS, K1_OPTS, RESIDUE, YEARS, FIRST_YEAR, YIELDS, ICBM, CH4, climateLedger, modelTest,
+  RABI_OPTS, K1_OPTS, RESIDUE, YEARS, FIRST_YEAR, YIELDS, ICBM, CH4, climateLedger, modelTest, rankBoroSensitivity,
 } from '../../engine/soilfuture';
-import { BIGHA_HA } from '../../engine/crops';
+import { BIGHA_HA, BORO_HEAT_SENSITIVITIES } from '../../engine/crops';
 
 const GREEN = '#2f6e2f', GOLD = '#b8761b', SLATE = '#6b7a72', TEAL = '#2f8a8f', MUTED = '#5d6a63', GRID = '#eef0ec';
 const tick = { fontSize: 11, fill: MUTED };
@@ -69,6 +70,17 @@ export default function FieldFuture() {
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
   const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities, exclude: s.exclude ?? [] }),
     [ctx, lastCrop, planRabi, planK1, s.priorities, s.exclude]);
+  const futureHeatSensitivity = useMemo(() => [
+    { id: 'current', label: T('বর্তমান সীমা: ৩৫° · ৩ দিন', 'Current rule: 35 °C · 3 days'), result: ff },
+    ...BORO_HEAT_SENSITIVITIES.map((variant) => {
+      const changedCtx = fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, boroHeat: variant });
+      return { id: variant.id, label: L(variant), result: rankBoroSensitivity(ff, changedCtx, s.priorities, s.exclude ?? []) };
+    }),
+  ], [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, lastCrop, planRabi, planK1, s.priorities, s.exclude, ff, T, L]);
+  const futureHeatRows = futureHeatSensitivity.map(({ id, label, result }, index) => ({
+    id, label, baseline: index === 0,
+    ranks: result.top.slice(0, 3).map((item) => ({ id: keyOf(item.rot), name: rotName(item.rot, { short: true }), score: item.score })),
+  }));
   const second = useMemo(() => runnerUp(ff.top, ff.best), [ff]);
   const ownRot = own ?? ff.plan?.rot ?? ff.best.rot;
   const ownE = useMemo(() => ff.evaluateOwn(ownRot), [ff, ownRot]);
@@ -126,6 +138,7 @@ export default function FieldFuture() {
       </div>
 
       <JudgementNote className="mb-4" />
+      <BoroSensitivity rows={futureHeatRows} />
       {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
