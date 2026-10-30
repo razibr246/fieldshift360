@@ -1,10 +1,34 @@
 # Documentation
 
+Start with the project [`README`](../README.md): what FieldShift 360 is, the challenge line by line, how to run it.
+Then, by what you need:
+
+## For judges and the submission
+
 | Document | What it covers |
 | --- | --- |
-| [`../README.md`](../README.md) | The project, for judges and developers: challenge checklist, NASA data used, pages, how to run |
-| [`DATA.md`](DATA.md) | Every data file in the app: what it is, where it comes from, its license and how to rebuild it |
-| [`MERGE.md`](MERGE.md) | How FieldShift 360, the Aman radar and the voice agent fit together in one repository |
-| [`VOICE.md`](VOICE.md) | The Bangla voice assistant for farmers and the upazila officer |
-| [`RADAR.md`](RADAR.md) | The Aman rain-onset radar module |
-| [`STORY_VOICE.md`](STORY_VOICE.md) | The field story's narration: script, voice direction, scene timings, a ready voice prompt (SSML) and a quality checklist |
+| [`SUBMISSION.md`](SUBMISSION.md) | The Space Apps submission kit: project description, impact, validity, datasets, demo video script, slide notes |
+| [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) | The three-minute demo, shot by shot, with Bangla narration, subtitles and the fallback recording plan |
+| [`EVIDENCE.md`](EVIDENCE.md) | One-page evidence sheet: every dataset's kind, years and scale, the model assumptions, and the validation done so far |
+
+## Science and data
+
+| Document | What it covers |
+| --- | --- |
+| [`DATA_SOURCES.md`](DATA_SOURCES.md) | Every data file in the app: source, dates, whether it is real, rule or sample, and the script that makes it |
+| [`DATA.md`](DATA.md) | A short overview of the data: what is real, how the soil is built, how to refresh it |
+| [`THRESHOLDS.md`](THRESHOLDS.md) | Every crop limit and assumption the advice rests on, with its source, and the known problems |
+| [`REVIEW_LOG.md`](REVIEW_LOG.md) | Who has reviewed the crop rules and soil assumptions, and what a reviewer should check first |
+| [`USER_TESTING.md`](USER_TESTING.md) | The protocol for testing with farmers and agriculture officers, and where results are recorded |
+| [`RADAR.md`](RADAR.md) | The Aman rain-onset rule and Ropon Radar, and their check against BMD stations |
+
+## The product
+
+| Document | What it covers |
+| --- | --- |
+| [`VOICE.md`](VOICE.md) | The Bangla voice and SMS assistant for farmers and officers |
+| [`STORY_VOICE.md`](STORY_VOICE.md) | The field story's narration: script, voice direction, scene timings and a ready voice prompt |
+| [`MERGE.md`](MERGE.md) | How FieldShift 360, Ropon Radar and the voice agent were brought into one repository |
+
+For code: [`AGENTS.md`](../AGENTS.md) (the guide for every developer and coding agent), [`scripts/README.md`](../scripts/README.md)
+(every data and photo script) and [`src/data/README.md`](../src/data/README.md) (every data folder).

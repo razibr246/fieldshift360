@@ -366,7 +366,8 @@ field, say what matters, compare the options, talk it over with the officer.
 ```
 index.html, vite.config.js, vercel.json, package.json      app entry and build setup
 api/                    Vercel functions: plans (shared plan board), messages, abroad, doctor (Gemini crop doctor)
-public/                 sw.js (offline), manifest, icon; aman/ (radar data per upazila), models/ (photo AI),
+public/                 sw.js (offline), manifest, icon; aman/ (radar data per upazila), models/ (photo AI, and
+                        people/: rigged CC0 3D people for the children's game and the character screen),
                         radar/ (the original Ropon Radar prototype, served as is)
 src/
   main.jsx, App.jsx     start-up and routes (every page but Home loads on demand)
@@ -374,28 +375,36 @@ src/
   index.css             design tokens, glass, motion
   config/brand.js       project name, tagline, description (the only place the name is written)
   layouts/              Public, Farmer, Officer and Abroad layouts
-  pages/                public/ (Home, Login, stories, games), farmer/ (dashboard, plan + steps, Field Future, today,
+  pages/                public/ (Home, Login, stories, games, kids dream, people, science), farmer/ (dashboard, plan + steps, Field Future, today,
                         doctor, help, harvest, farm, voice, SMS), officer/ (overview, requests, farmers, map, alerts,
                         planting, upazila, radar, voice), abroad/ (the five neighbouring-country farmers and officers)
   components/           ui kit, chrome, Overlays, Photo, Motion, SectionNav, NasaEyes, brand/,
-                        charts/, map/, fields/ (satellite field watch), story/ (story video, rotation poster)
+                        charts/, map/, fields/ (field watch, risk card and map, Landsat then and now),
+                        future/ (Field Future's strategy comparison, briefs, soil verdict, view from space),
+                        explain/ (how a recommendation was made, season comparison, data coverage, first step),
+                        story/ (story video, rotation poster), tour/ (guided tours)
   engine/               climate, crops, decision, rotation, soilfuture (Field Future), water, glut, harvest,
-                        abroad, cluster, forecast, dates, text (+ tests)
+                        abroad, cluster, forecast, dates, text; briefs, risks, landsat, explain (how firm an
+                        answer is), provenance (every dataset and its coverage) (+ tests)
   data/                 the app's data, nearly all of it built by a script (see src/data/README.md):
                         climate/, water/, soil/, radar/, fields/, market/, region/, media/, abroad/, geo/,
                         and the data modules (upazilas.js, demo.js, stories.js, parcels.js, crop_problems.js ...)
   assets/               images/ (photos, WebP at four widths; nasa/), maps/ (land use), fields/ (satellite thumbnails)
   voice/, radar/, ai/   the voice assistant, the rain-onset and Aman radar model, on-device photo sharpening
-  game/                 "মাঠের মানুষ", the 3D farm game (regions, places, sim + tests, three/ for the 3D world)
+  game/                 "মাঠের মানুষ", the 3D farm game (regions, places, sim + tests, three/ for the 3D world),
+                        saga (story campaign), dream (the children's "স্বপ্নের মাঠ") and their tests
 scripts/                every data and photo script (index in scripts/README.md):
-  fetch/                downloads from NASA and others: POWER, CMIP6, soil wetness, GIBS water, SEDAC, Giovanni
+  fetch/                downloads from NASA and others: POWER, CMIP6, soil wetness, GIBS water and land, SEDAC,
+                        Giovanni, SRTM and ASTER terrain, MODIS 250 m and Landsat per field
   build/                rebuild boundaries, places, land use, soil, prices, field watch, radar (Python and Node)
   onset/                the rain-onset rule and its check against BMD (also used by the app's tests)
   photos/               photo tools: upscaler, neighbouring-country photos, NASA images
   lib/                  shared helpers (NASA GIBS image decoding)
   sync-voice.mjs        copies the voice brain into services/voice-agent (npm run sync:voice)
 services/voice-agent/   phone and browser voice pipeline (Soniox + Groq), its own project
-docs/                   DATA_SOURCES, THRESHOLDS, RADAR, VOICE, MERGE, SUBMISSION (index in docs/README.md)
+docs/                   for judges (SUBMISSION, DEMO_SCRIPT, EVIDENCE), science and data (DATA_SOURCES,
+                        THRESHOLDS, REVIEW_LOG, USER_TESTING, RADAR) and the product (VOICE, MERGE); index in
+                        docs/README.md
 ```
 
 Ready for a backend later: all reads go through `useStore()` and all changes are reducer actions
