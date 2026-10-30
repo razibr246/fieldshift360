@@ -19,6 +19,7 @@ The three upazila scripts take the upazila as an argument (`godagari` when left 
 | `build_soil.py` | `src/data/soil/soil_godagari.json`, `soil_dhamrai.json`, `soil_fields.json` | ISRIC SoilGrids 2.0 (250 m, top 30 cm, with 5–95% ranges and WRB soil group) at every union centre and registered field; ~15 min (5 requests a minute) |
 | `build_srdi_frs.mjs [upazila]` | `src/data/soil/srdi_frs.json` | SRDI Fertilizer Recommendation System (frs-bd.com): the dose per bigha for each union, land type and Rabi crop, from SRDI's union soil tests; drives the site in headless Chrome (needs Google Chrome); about 4 minutes a union |
 | `build_price_seasons.py` | `src/data/market/price_seasons.json` | DAM market portal (monthly national prices, needs a session and CSRF token, cached in `.cache/data/dam/`); FAOSTAT bulk yields |
+| `build_abroad_prices.py` | `src/data/market/abroad_prices.json` | FAOSTAT Prices bulk file (Asia, `curl -o .cache/data/Prices_E_Asia.zip https://bulks-faostat.fao.org/production/Prices_E_Asia.zip`): producer prices for the five neighbouring countries' rotation crops, an old price carried to 2022–2024 by the producer price index |
 
 The boundary comes first: places and land cover read it. `_common.py` holds the shared download cache and the
 geometry helpers (geodesic area, point-in-polygon, Douglas-Peucker for closed rings).

@@ -12,7 +12,7 @@ dates for every file: [docs/DATA_SOURCES.md](../../docs/DATA_SOURCES.md).
 | `soil/` | `soil_<upazila>.json` and `soil_fields.json` (ISRIC SoilGrids), `srdi_frs.json` (SRDI doses), `abroad_soil_yields.json` | `npm run data:soil`, `data:srdi`; `scripts/build/build_abroad_soil_yields.py` |
 | `radar/` | `aman_radar.json`, `aman_hazards.json`, `aman_normals.json` (Sentinel-1, IMERG), `onset_<upazila>.json`, `onset_validation.json` | `npm run data:aman`, `data:onset`, `data:onset-bmd` |
 | `fields/` | `field_watch.json` (Sentinel-2 per field), `parcels.json` (the upazila office's land register: real cropland, **sample** owners) | `npm run data:fields`; the register is written by hand |
-| `market/` | `market_dhaka.json` (DAM weekly prices), `price_seasons.json`, `yield_history.json` (FAOSTAT), `crop_economics.json` (farm-gate prices and costs, each with its published source) | `npm run data:prices`, `data:seasons`; crop economics is collected by hand |
+| `market/` | `market_dhaka.json` (DAM weekly prices), `price_seasons.json`, `yield_history.json` (FAOSTAT), `abroad_prices.json` (FAOSTAT neighbouring country farm-gate prices), `crop_economics.json` (farm-gate prices and costs, each with its published source) | `npm run data:prices`, `data:seasons`; `scripts/build/build_abroad_prices.py`; crop economics is collected by hand |
 | `region/` | `sedac.json` (NASA SEDAC density, low coast, cropland), `census.json` (BBS censuses) | `npm run fetch:sedac`; the census figures are copied from BBS |
 | `media/` | `nasa_images.json` (NASA Image and Video Library captions and credits) | `npm run photos:nasa` |
 | `abroad/` | `<country>.json` for the five neighbouring-country farms | `npm run fetch:neighbours` |
@@ -21,4 +21,4 @@ dates for every file: [docs/DATA_SOURCES.md](../../docs/DATA_SOURCES.md).
 The `.js` files here are data modules the app imports directly: `upazilas.js` (the seven upazilas and their officers),
 `demo.js` (**sample** farmers and requests), `stories.js` and `story.js` (the division stories and the game story),
 `parcels.js` (the register, with its satellite pictures), `abroad.js`, `advice.js`, `crop_problems.js` (BARI, BRRI and
-DAE guidance), `crop_photos.js` and `upazila_facts.js`.
+DAE guidance), `crop_photos.js`, `crop_samples.js` (sample symptom leaves for the Crop Doctor) and `upazila_facts.js`.

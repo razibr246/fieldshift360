@@ -5,7 +5,14 @@
 // without the straw kept; they are options to compare, not a local recommendation. The farm's current cycle is
 // taken as the one that holds today's soil carbon (the same calibration as Bangladesh). Chickpea has no coefficients
 // of its own in the model, so it uses lentil's (both cool-season grain legumes); this is said on the page.
+// Water and money, when the farm's monthly normals and prices are given: each crop's irrigation need by the FAO-56
+// single crop coefficient method (the same stage shares and Kc as Bangladesh, engine/cropwater.js) on the farm's
+// ERA5 ET₀ and NASA GPM IMERG rain (ERA5's where IMERG is missing), at the usual sowing date; rice adds 200 mm to soak and puddle the field, and seepage is not
+// counted. Under a change, rain scales by the change and ET₀ by the Hargreaves temperature term (FAO-56 eq. 52). The
+// money is the gross value of the harvests, FAOSTAT yield × FAOSTAT producer price (src/data/market/abroad_prices.json):
+// no production costs are known for these countries, so it is not profit.
 import { CARBON, ICBM, CH4, cropCarbon, socStock, omPctOf } from './soilfuture.js';
+import { FAO56 } from './cropwater.js';
 
 export const YEARS = 10;
 const CROP = {
@@ -56,6 +63,37 @@ export const OPTIONS = {
   ],
 };
 
+// When each crop goes in, by country: [kharif sowing or transplanting, rabi sowing] as 'MM-DD'. The rabi dates are
+// the season plans' (engine/abroad.js PLANS); the kharif ones the usual transplanting (sesame sowing in Myanmar's dry
+// zone) of each region's crop calendar. Each crop's days in the field follow FAO-56 Table 11 and the season plans.
+export const SOW = { india: ['06-20', '11-08'], pakistan: ['06-25', '11-10'], nepal: ['06-25', '11-10'], bhutan: ['06-20', '11-20'], myanmar: ['05-15', '10-28'] };
+const DAYS = { rice: 120, wheat: 155, lentil: 150, chickpea: 110, mustard: 110, sesame: 110 };
+// FAO-56 chickpea: stages 20/30/35/25 days (Table 11), Kc 0.4 / 1.0 / 0.35 (Table 12)
+const KC = { rice: FAO56.boro, wheat: FAO56.wheat, lentil: FAO56.lentil, mustard: FAO56.mustard, sesame: FAO56.sesame, chickpea: { stages: [0.18, 0.27, 0.32, 0.23], kc: [0.4, 1.0, 0.35] } };
+const DIM = [31, 28.25, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+function kcAt(f, d, days) {
+  const [a, b, c] = f.stages.map((x) => x * days), [ini, mid, end] = f.kc;
+  if (d < a) return ini;
+  if (d < a + b) return ini + ((mid - ini) * (d - a)) / b;
+  if (d < a + b + c) return mid;
+  return mid + ((end - mid) * (d - a - b - c)) / (days - a - b - c);
+}
+// Irrigation (mm) for one crop sown on 'MM-DD': Σ max(0, Kc·ET₀ − 80% of the day's rain), plus puddling for rice.
+export function cropIrrigation(id, sow, normals, change = null) {
+  const f = KC[id], days = DAYS[id];
+  if (!f || !days || !normals?.length) return null;
+  const [mm, dd] = sow.split('-').map(Number), t0 = Date.UTC(2021, mm - 1, dd);
+  let need = 0;
+  for (let d = 0; d < days; d++) {
+    const m = new Date(t0 + d * 864e5).getUTCMonth(), n = normals[m];
+    const tMean = (n.tmax + n.tmin) / 2, dT = change ? (change.dTmax[m] + change.dTmin[m]) / 2 : 0;
+    const et0 = ((n.et0 ?? 0) / DIM[m]) * ((tMean + dT + 17.8) / (tMean + 17.8));
+    const rain = ((n.rainImerg ?? n.rain ?? 0) / DIM[m]) * (change ? change.rain[m] : 1);
+    need += Math.max(0, kcAt(f, d, days) * et0 - 0.8 * rain);
+  }
+  return need + (id === 'rice' ? 200 : 0);
+}
+
 const rT = (t) => (t <= ICBM.tMin ? 0 : ((t - ICBM.tMin) / (30 - ICBM.tMin)) ** 2);
 const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 
@@ -67,8 +105,9 @@ function yearInput(y, residue, tHa) {
   return { total, h, flood: 1 - (1 - ICBM.floodRate) * Math.min(1, floodDays / 365) };
 }
 
-// opts: { country, soil, yields, normals (monthly tmax/tmin), change (CMIP6 monthly deltas or null) }
-export function abroadRotations({ country, soil, yields, normals, change }) {
+// opts: { country, soil, yields, normals (monthly tmax/tmin, and et0 and rain for water), change (CMIP6 monthly
+// deltas or null), prices (abroad_prices.json countries[country], or null) }
+export function abroadRotations({ country, soil, yields, normals, change, prices = null }) {
   const list = OPTIONS[country];
   if (!list || !soil) return null;
   const tHa = (id) => yields[id]?.tHa ?? 0;
@@ -108,8 +147,14 @@ export function abroadRotations({ country, soil, yields, normals, change }) {
         prev = rb === 'fallow' ? kh : rb;
       });
       const ch4 = kg / o.cycle.length, soilCo2 = (((socEnd - soc0) / YEARS) * 44) / 12;
+      // a year's irrigation and harvest value, averaged over the cycle
+      const water = (ch) => mean(o.cycle.map((y) => y.reduce((a, id, k) => a + (id === 'fallow' ? 0 : cropIrrigation(id, SOW[country][k], normals, ch) ?? 0), 0)));
+      const sown = crops.filter((id) => id !== 'fallow');
+      const unpriced = prices ? [...new Set(sown.filter((id) => !prices.crops[id]))] : null;
+      const gross = prices ? mean(o.cycle.map((y) => y.reduce((a, id) => a + (prices.crops[id] ? tHa(id) * prices.crops[id].perTonne : 0), 0))) : null;
       return {
-        ...o, crops, socEnd, socFut, dSoc: (socEnd / soc0 - 1) * 100, dSocFut: socFut != null ? (socFut / soc0 - 1) * 100 : null,
+        ...o, crops, socEnd, socFut, gross, unpriced,
+        waterMm: normals?.[0]?.et0 != null ? water(null) : null, waterFut: normals?.[0]?.et0 != null && change ? water(change) : null, dSoc: (socEnd / soc0 - 1) * 100, dSocFut: socFut != null ? (socFut / soc0 - 1) * 100 : null,
         om: omPctOf(socEnd, soil), nFix, families: new Set(crops.map((id) => CROP[id].family).filter(Boolean)).size,
         ch4, net: (ch4 * CH4.gwp) / 1000 - soilCo2,
       };
