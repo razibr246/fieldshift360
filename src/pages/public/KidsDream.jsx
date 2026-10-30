@@ -10,6 +10,7 @@ import { REGIONS } from '../../game/regions';
 import { CHILDREN, CHILD_IDS, MOODS, BADGES, dreamFor, cloudStars, blanketStars, waterResult, WATER_BAND, badgesFor, totalStars } from '../../game/dream';
 import { landSummary } from '../../engine/landsat';
 import { createDreamSound } from '../../game/dreamSound';
+import { bnDigits } from '../../engine/dates';
 
 const WHO = {
   parent: { bg: 'bg-amber-100', ring: 'ring-amber-300' },
@@ -41,7 +42,7 @@ function Picker({ onPick }) {
               <button type="button" onClick={() => onPick(id)} className="lift flex w-full items-center gap-3 rounded-[22px] border border-border bg-white p-4 text-left shadow-[var(--shadow-card)] transition hover:border-primary-300">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary-50 text-[30px]" aria-hidden="true">{c.girl ? '👧🏽' : '👦🏽'}</span>
                 <span className="min-w-0">
-                  <span className="block text-[18px] font-bold">{L(c.name)}, {T(`${c.age} বছর`, `${c.age}`)}</span>
+                  <span className="block text-[18px] font-bold">{L(c.name)}, {T(`${bnDigits(c.age)} বছর`, `${c.age}`)}</span>
                   <span className="block text-[13.5px] text-ink/70">{L(c.rel)}</span>
                   <span className="block text-[12.5px] text-muted">{r.flag ?? '🇧🇩'} {L(r.place)} · {L(r.storm)}</span>
                 </span>
