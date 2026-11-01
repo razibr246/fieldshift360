@@ -133,7 +133,7 @@ export default function PublicLayout() {
         <div className="page-shell">
           <div ref={barRef} onPointerMove={glide} onPointerLeave={unglide}
             className={`lg-bar flex h-[64px] items-center justify-between gap-3 rounded-[26px] pl-2.5 pr-2 sm:pl-3 ${solid || open ? 'is-solid' : ''}`}>
-            <Link to="/" aria-label={T('প্রথম পাতা', 'Home')} onClick={toTop} className="shrink-0 whitespace-nowrap rounded-2xl"><BrandMark size={38} /></Link>
+            <Link to="/" aria-label={T('প্রথম পাতা', 'Home')} onClick={toTop} className="flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-2xl"><BrandMark size={38} /></Link>
             <nav ref={navRef} className="relative hidden items-center gap-0.5 whitespace-nowrap xl:flex" aria-label={T('প্রধান', 'Main')}>
               {pill && (
                 <span aria-hidden="true" className="nav-pill pointer-events-none absolute left-0 top-0 rounded-full"
@@ -143,14 +143,14 @@ export default function PublicLayout() {
                 <button key={id} type="button" data-nav={id} onClick={() => go(id)} aria-current={active === id ? 'true' : undefined}
                   className={`relative rounded-full px-3.5 py-2 text-[15px] font-semibold transition-colors duration-300 ${active === id ? 'text-white' : 'text-ink/75 hover:bg-white/60 hover:text-primary-800 hover:shadow-[inset_0_1px_0_#fff,0_4px_12px_-6px_rgba(13,38,20,.25)]'}`}>{label}</button>
               ))}
-              {playLink('relative ml-1 inline-flex items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition-colors duration-300 hover:bg-primary-600/20', true)}
+              {playLink('relative ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition-colors duration-300 hover:bg-primary-600/20', true)}
             </nav>
             <div className="ml-auto hidden items-center gap-2 whitespace-nowrap sm:flex xl:ml-0">
-              <span className="xl:hidden">{playLink('inline-flex items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition hover:bg-primary-600/20')}</span>
+              <span className="xl:hidden">{playLink('inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition hover:bg-primary-600/20')}</span>
               <LangToggle glass />
-              <Link to="/login" className="btn-gloss inline-flex h-10 items-center rounded-full px-5 text-[15px] font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.97] shadow-sm">{T('শুরু করুন', 'Get started')}</Link>
+              <Link to="/login" className="btn-gloss inline-flex h-11 items-center rounded-full px-5 text-[15px] font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.97] shadow-sm">{T('শুরু করুন', 'Get started')}</Link>
             </div>
-            <button type="button" onClick={() => setOpen(!open)} className="glass-pill grid h-10 w-10 shrink-0 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95 xl:hidden" aria-label={T('মেনু', 'Menu')} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
+            <button type="button" onClick={() => setOpen(!open)} className="glass-pill grid h-11 w-11 shrink-0 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95 xl:hidden" aria-label={T('মেনু', 'Menu')} aria-expanded={open}>{open ? <X size={20} /> : <Menu size={20} />}</button>
           </div>
           <div className={`grid transition-[grid-template-rows,opacity] duration-[500ms] ease-[cubic-bezier(.34,1.4,.64,1)] xl:hidden ${open ? 'mt-2 grid-rows-[1fr] opacity-100' : 'pointer-events-none grid-rows-[0fr] opacity-0'}`}>
             <div className="-mx-3 overflow-hidden px-3 pb-6">
@@ -161,7 +161,7 @@ export default function PublicLayout() {
                     style={{ animation: open ? 'page-in 0.35s var(--ease-spring) both' : 'none', animationDelay: `${i * 45}ms` }}
                     className={`rounded-2xl px-3.5 py-3 text-left text-[15.5px] font-semibold transition-all duration-200 active:scale-[0.98] ${active === id ? 'bg-primary-700 text-white shadow-sm' : 'hover:bg-white/80'}`}>{label}</button>
                 ))}
-                <div className="mt-1 flex gap-2 sm:hidden"><LangToggle glass /><Link to="/login" className="btn-gloss inline-flex h-10 flex-1 items-center justify-center rounded-full text-[15px] font-semibold text-white active:scale-95">{T('শুরু করুন', 'Get started')}</Link></div>
+                <div className="mt-1 flex gap-2 sm:hidden"><LangToggle glass /><Link to="/login" className="btn-gloss inline-flex h-11 flex-1 items-center justify-center rounded-full text-[15px] font-semibold text-white active:scale-95">{T('শুরু করুন', 'Get started')}</Link></div>
               </div>
             </div>
           </div>

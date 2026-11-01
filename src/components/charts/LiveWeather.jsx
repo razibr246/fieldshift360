@@ -137,7 +137,7 @@ export default function LiveWeather({ className = '', place = null }) {
             <span className="ml-1.5 mt-1.5 flex items-center text-[18px] leading-none" role="group" aria-label={T('তাপমাত্রার একক', 'Temperature unit')}>
               {['C', 'F'].map((u, i) => (
                 <button key={u} type="button" onClick={() => setUnit(u)} aria-pressed={unit === u}
-                  className={`min-h-8 min-w-8 px-1.5 ${i ? 'border-l border-border' : ''} ${unit === u ? 'font-semibold text-ink' : 'text-muted hover:text-ink'}`}>°{u}</button>
+                  className={`min-h-11 min-w-11 px-1.5 ${i ? 'border-l border-border' : ''} ${unit === u ? 'font-semibold text-ink' : 'text-muted hover:text-ink'}`}>°{u}</button>
               ))}
             </span>
           </div>
@@ -157,7 +157,7 @@ export default function LiveWeather({ className = '', place = null }) {
               ? <span className="inline-flex items-center gap-1 text-clay-700"><WifiOff size={13} />{T('আগের তথ্য', 'Last known')}</span>
               : <span className="inline-flex items-center gap-1.5 font-semibold text-primary-700"><span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" /></span>{T('লাইভ', 'Live')}</span>}
             {at && <span>{T('হালনাগাদ', 'Updated')} {clock(at, lang)}</span>}
-            <button type="button" onClick={reload} disabled={loading} className="-my-2 grid h-8 w-8 place-items-center rounded-full hover:bg-primary-50 disabled:opacity-60" aria-label={T('এখনই হালনাগাদ করুন', 'Refresh now')}>
+            <button type="button" onClick={reload} disabled={loading} className="-my-2 grid h-11 w-11 place-items-center rounded-full hover:bg-primary-50 disabled:opacity-60" aria-label={T('এখনই হালনাগাদ করুন', 'Refresh now')}>
               <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             </button>
           </p>
@@ -175,7 +175,7 @@ export default function LiveWeather({ className = '', place = null }) {
       <div className="mt-5 flex gap-1 text-[16px]" role="tablist">
         {[['temp', T('তাপমাত্রা', 'Temperature')], ['rain', T('বৃষ্টি', 'Precipitation')], ['wind', T('বাতাস', 'Wind')]].map(([k, label], i) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={`relative px-3 pb-2 pt-1 ${i ? 'before:absolute before:left-0 before:top-1.5 before:h-5 before:w-px before:bg-border' : 'pl-0'} ${tab === k ? 'font-semibold text-ink' : 'text-muted hover:text-ink'}`}>
+            className={`relative min-h-11 px-3 pb-2 pt-1 ${i ? 'before:absolute before:left-0 before:top-1.5 before:h-5 before:w-px before:bg-border' : 'pl-0'} ${tab === k ? 'font-semibold text-ink' : 'text-muted hover:text-ink'}`}>
             {label}
             {tab === k && <span className={`tab-line absolute bottom-0 h-[3px] rounded-full bg-paddy-300 ${i ? 'inset-x-3' : 'left-0 right-3'}`} />}
           </button>

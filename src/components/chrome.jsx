@@ -23,7 +23,7 @@ export function LangToggle({ dark = false, glass = false }) {
           patch: { lang: s.lang === 'bn' ? 'en' : 'bn' },
         })
       }
-      className={`group inline-flex h-10 items-center gap-1.5 px-3 text-[14px] font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95 ${glass ? 'glass-pill rounded-full px-3.5 text-ink' : dark ? 'rounded-xl bg-white/10 text-white hover:bg-white/20' : 'rounded-xl border border-border bg-white text-ink hover:bg-primary-50 shadow-2xs'}`}
+      className={`group inline-flex h-11 items-center gap-1.5 px-3 text-[14px] font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95 ${glass ? 'glass-pill rounded-full px-3.5 text-ink' : dark ? 'rounded-xl bg-white/10 text-white hover:bg-white/20' : 'rounded-xl border border-border bg-white text-ink hover:bg-primary-50 shadow-2xs'}`}
       aria-label={s.lang === 'bn' ? 'Switch to English' : 'বাংলায় দেখুন'}
       lang={s.lang === 'bn' ? 'en' : 'bn'}
     >

@@ -119,16 +119,16 @@ export default function FarmworkScene({ kind, from, to, lang, T, onDateChange })
       <div className="px-4 pb-4 pt-3 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1">
-            <button type="button" onClick={() => moveStage(-1)} aria-label={T('আগের ধাপ', 'Previous stage')} className="grid h-8 w-8 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><SkipBack size={15} /></button>
-            <button type="button" onClick={togglePlaying} aria-label={moving ? T('থামান', 'Pause') : T('চালান', 'Resume')} className="grid h-8 w-8 place-items-center rounded-full bg-primary-700 text-white shadow-sm hover:bg-primary-800">
+            <button type="button" onClick={() => moveStage(-1)} aria-label={T('আগের ধাপ', 'Previous stage')} className="grid h-11 w-11 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><SkipBack size={15} /></button>
+            <button type="button" onClick={togglePlaying} aria-label={moving ? T('থামান', 'Pause') : T('চালান', 'Resume')} className="grid h-11 w-11 place-items-center rounded-full bg-primary-700 text-white shadow-sm hover:bg-primary-800">
               {moving ? <Pause size={14} /> : <Play size={14} />}
             </button>
-            <button type="button" onClick={replay} aria-label={T('আবার চালান', 'Replay')} className="grid h-8 w-8 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><RotateCcw size={14} /></button>
-            <button type="button" onClick={() => moveStage(1)} aria-label={T('পরের ধাপ', 'Next stage')} className="grid h-8 w-8 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><SkipForward size={15} /></button>
+            <button type="button" onClick={replay} aria-label={T('আবার চালান', 'Replay')} className="grid h-11 w-11 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><RotateCcw size={14} /></button>
+            <button type="button" onClick={() => moveStage(1)} aria-label={T('পরের ধাপ', 'Next stage')} className="grid h-11 w-11 place-items-center rounded-full bg-white text-primary-800 shadow-sm ring-1 ring-black/5 hover:bg-primary-50"><SkipForward size={15} /></button>
           </div>
           <label className="flex items-center gap-1 text-[11px] font-semibold text-muted">
             <span className="sr-only">{T('গতি', 'Speed')}</span>
-            <select aria-label={T('গতি', 'Speed')} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="h-8 rounded-full border border-primary-100 bg-white px-2 text-ink outline-none focus:ring-2 focus:ring-primary-300">
+            <select aria-label={T('গতি', 'Speed')} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="h-11 rounded-full border border-primary-100 bg-white px-2 text-ink outline-none focus:ring-2 focus:ring-primary-300">
               <option value={0.5}>0.5×</option><option value={1}>1×</option><option value={2}>2×</option>
             </select>
           </label>

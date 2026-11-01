@@ -439,7 +439,7 @@ function HeroBackdrop({ gallery }) {
 // from) and one bar per photo; the current bar fills while it shows. Left and right arrow keys work on the pill too.
 function HeroGalleryPill({ gallery }) {
   const { s, L, T } = useStore();
-  const arrow = 'group/arrow grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink/60 transition duration-300 hover:bg-white/80 hover:text-primary-800 hover:shadow-[0_2px_8px_-2px_rgba(13,38,20,.25)] active:scale-[.86] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400';
+  const arrow = 'group/arrow grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink/60 transition duration-300 hover:bg-white/80 hover:text-primary-800 hover:shadow-[0_2px_8px_-2px_rgba(13,38,20,.25)] active:scale-[.86] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400';
   const onKey = (e) => {
     if (e.key === 'ArrowLeft') { e.preventDefault(); gallery.step(-1); }
     if (e.key === 'ArrowRight') { e.preventDefault(); gallery.step(1); }
