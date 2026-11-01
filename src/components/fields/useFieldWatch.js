@@ -2,7 +2,7 @@
 // live read for a field that was marked or moved after the saved copy was made. Live passes are kept in this
 // browser only (a convenience; losing them just means fetching again).
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { savedWatch } from '../../data/parcels';
+import { savedWatch } from '../../data/fieldWatch';
 import { readPasses, pictureUrls, WATCH_START } from '../../engine/sentinel';
 import { addDays, iso, parseISO, todayDhaka } from '../../engine/dates';
 import { STORAGE_PREFIX } from '../../config/brand';

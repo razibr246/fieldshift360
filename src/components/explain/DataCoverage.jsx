@@ -6,12 +6,11 @@ import { useStore } from '../../store';
 import { Tag } from '../ui';
 import { num } from '../../engine/dates';
 import { coverage, STATUS } from '../../engine/provenance';
-import { savedWatch } from '../../data/parcels';
+import { savedWatch, WATCH_PROV } from '../../data/fieldWatch';
 import { fieldTerrain } from '../../engine/briefs';
 import { fieldGreen, landsatThenNow } from '../../engine/landsat';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import econ from '../../data/market/crop_economics.json';
-import watchFile from '../../data/fields/field_watch.json';
 import { provenance as radarProv } from '../../data/radar/aman_radar.json'; // only this key is bundled
 
 const ICON = { ok: CheckCircle2, coarse: MapIcon, stale: Clock, missing: XCircle, sample: FlaskConical, unreviewed: CircleDashed };
@@ -24,7 +23,7 @@ export default function DataCoverage() {
   const rows = coverage({
     today, climEnd: clim?.prov?.end, soilScope: soil?.scope, srdi: true,
     terrain: !!fieldTerrain(p?.id), fieldNdvi: !!fieldGreen(p?.id, upazila.id), landsat: !!landsatThenNow(p?.id, upazila.id),
-    watch: !!(p && savedWatch(p)), watchEnd: watchFile.provenance?.window?.[1],
+    watch: !!(p && savedWatch(p)), watchEnd: WATCH_PROV.window?.[1],
     cmip6: !!deltas.upazilas?.[upazila.id], priceYearMin: years.length ? Math.min(...years) : null,
     radarThrough: radarProv?.through, liveWeather,
   });

@@ -13,7 +13,7 @@ import { pictureBox } from '../../engine/sentinel';
 import { plotSquare } from '../../engine/world';
 import { cropName, IRRIGATION } from '../../engine/crops';
 import { num, fmtDate, parseISO, iso, todayDhaka } from '../../engine/dates';
-import { WATCH_PROV } from '../../data/parcels';
+import { WATCH_PROV } from '../../data/fieldWatch';
 
 const pctLabel = (p, lang) => `${num(Math.round(p * 100), lang)}%`;
 

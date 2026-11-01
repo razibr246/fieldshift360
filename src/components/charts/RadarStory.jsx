@@ -10,7 +10,7 @@ import { SmsMeter } from '../ui';
 import { fmtDate, num, bnDigits } from '../../engine/dates';
 import { CAT, LATEST, catOf, doyToMs } from '../../radar/aman';
 import { gapSeries, median, cloudShare, ONSET_RULE } from '../../radar/story';
-import WATCH from '../../data/fields/field_watch.json';
+import { WATCH } from '../../data/fieldWatch';
 import { PARCELS } from '../../data/parcels';
 
 const GREEN = '#2f6e2f', GOLD = '#d08f26', TEAL = '#2f8a8f', INK = '#13261b', MUTED = '#5d6a63';
