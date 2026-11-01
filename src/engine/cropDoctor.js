@@ -27,6 +27,20 @@ export function localCropAssessment({ crop = 'tomato', symptomKey = null, contex
     ? ['পাতার কোন অংশে সমস্যা, কবে শুরু, আর কত গাছে আছে—লিখে রাখুন।', 'একটি পরিষ্কার কাছের ছবি তুলে কৃষি কর্মকর্তাকে পাঠান।', 'কর্মকর্তার পরামর্শের আগে কোনো বালাইনাশক ব্যবহার করবেন না।']
     : ['Note which plant part is affected, when it started, and how many plants show it.', 'Take a clear close-up photo and send it to your agriculture officer.', 'Do not apply a pesticide before getting advice from your officer.'];
   const unresolved = !match;
+
+  let evidence = lang === 'bn'
+    ? 'এই নামটি আপনার বাছাই করা নমুনা বা লেখা লক্ষণের সঙ্গে মেলে; ছবিটি অফলাইনে দেখা হয়নি।'
+    : 'This label matches the selected sample or written symptom; the photo was not inspected offline.';
+
+  const w = context.weather;
+  if (match && !unresolved && w) {
+    if ((match.key === 'aphid' || match.key === 'whitefly') && w.rain7 != null && w.rain7 <= 5) {
+      evidence += lang === 'bn' ? ' ৭ দিনের শুষ্ক আবহাওয়া এই পোকা দ্রুত বংশবৃদ্ধির অনুকূল।' : ' Dry 7-day weather favors rapid insect multiplication.';
+    } else if ((match.key === 'late_blight' || match.key === 'early_blight' || match.key === 'blast' || match.key === 'sheath_blight') && ((w.rain7 != null && w.rain7 > 8) || (w.tmin != null && w.tmin <= 20))) {
+      evidence += lang === 'bn' ? ' সাম্প্রতিক আর্দ্রতা বা শীতল রাত এই ছত্রাকের বিস্তার বাড়িয়ে দেয়।' : ' Recent humidity or cool nights favor fungal proliferation.';
+    }
+  }
+
   return {
     // These fields are deliberately inconclusive: this function has no access to image pixels.
     is_crop_photo: null,
@@ -38,9 +52,7 @@ export function localCropAssessment({ crop = 'tomato', symptomKey = null, contex
       name_bn: match.bn,
       name_en: match.en,
       likelihood: null,
-      evidence: lang === 'bn'
-        ? 'এই নামটি আপনার বাছাই করা নমুনা বা লেখা লক্ষণের সঙ্গে মেলে; ছবিটি অফলাইনে দেখা হয়নি।'
-        : 'This label matches the selected sample or written symptom; the photo was not inspected offline.',
+      evidence,
     }] : [],
     urgency: match && !unresolved && match.urgent ? 'high' : 'low',
     summary: unresolved

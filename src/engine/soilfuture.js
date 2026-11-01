@@ -200,7 +200,8 @@ function riskShare(clim, crop, t0, boroHeat = null) {
 
 // Everything the simulation needs, computed once per field: each slot's dates, water, weather risk and money,
 // for today's weather and, when the projections are in, the 2040s.
-export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat = null }) {
+export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat = null, labReport = null }) {
+  const effectiveSoil = calibrateSoilWithLab(soil, labReport);
   const climF = futureClimate(clim, change);
   const aman = amanT ?? ymd(PLAN_SEASON, 7, 15);
   const clearBy = addDays(aman, -AMAN_PREP);
@@ -236,11 +237,28 @@ export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat =
   }
   const mT = monthlyMeanT(clim);
   return {
-    clim, climF, change, soil, plot, econ, boroHeat, aman, clearBy, rabi, k1,
+    clim, climF, change, soil: effectiveSoil, plot, econ, boroHeat, aman, clearBy, rabi, k1,
     amanSlot: { risk: { now: 0, fut: 0 }, tHa: YIELDS.aman.tHa },
     temp: { now: 1, fut: tempFactor(mT, change) }, monthlyT: mT,
-    soc0: socStock(soil),
+    soc0: socStock(effectiveSoil),
   };
+}
+
+// Calibrate modeled SoilGrids data with an official SRDI (Soil Resource Development Institute) physical lab test.
+// labReport: { ph?: number, om_pct?: number, ec_ds_m?: number, n_kg_ha?: number, p_ppm?: number, k_meq?: number, date?: string }
+export function calibrateSoilWithLab(soil, labReport = null) {
+  if (!labReport || !soil) return soil;
+  const out = { ...soil, calibratedWithLab: true, labDate: labReport.date ?? null };
+  if (labReport.ph != null && !isNaN(Number(labReport.ph))) out.ph = Number(labReport.ph);
+  if (labReport.om_pct != null && !isNaN(Number(labReport.om_pct))) {
+    out.om_pct = Number(labReport.om_pct);
+    out.soc_g_kg = (out.om_pct * 10) / 1.724; // Van Bemmelen conversion: OM% = SOC% * 1.724
+  }
+  if (labReport.ec_ds_m != null && !isNaN(Number(labReport.ec_ds_m))) out.ec_ds_m = Number(labReport.ec_ds_m);
+  if (labReport.n_kg_ha != null && !isNaN(Number(labReport.n_kg_ha))) out.n_kg_ha = Number(labReport.n_kg_ha);
+  if (labReport.p_ppm != null && !isNaN(Number(labReport.p_ppm))) out.p_ppm = Number(labReport.p_ppm);
+  if (labReport.k_meq != null && !isNaN(Number(labReport.k_meq))) out.k_meq = Number(labReport.k_meq);
+  return out;
 }
 
 // Topsoil (0–30 cm) carbon stock, t C/ha, from the field's SoilGrids organic carbon and bulk density.

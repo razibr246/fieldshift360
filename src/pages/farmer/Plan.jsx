@@ -51,7 +51,7 @@ export default function Plan() {
           {steps.map((st, k) => (
             <li key={k} className="shrink-0">
               <button type="button" onClick={() => go(k)} aria-current={k === i ? 'step' : undefined}
-                className={`step-chip group flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold active:scale-95 ${k === i ? 'step-chip-now border-primary-300/80 text-white' : k < i ? 'step-chip-done border-primary-300 bg-primary-50 text-primary-800 hover:-translate-y-px hover:border-primary-500' : 'border-border bg-white text-ink/75 hover:-translate-y-px hover:border-primary-300 hover:text-ink'}`}>
+                className={`step-chip group flex min-h-[44px] items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13.5px] font-semibold active:scale-95 ${k === i ? 'step-chip-now border-primary-300/80 text-white' : k < i ? 'step-chip-done border-primary-300 bg-primary-50 text-primary-800 hover:-translate-y-px hover:border-primary-500' : 'border-border bg-white text-ink/75 hover:-translate-y-px hover:border-primary-300 hover:text-ink'}`}>
                 {k < i ? <Check size={14} strokeWidth={2.6} className="text-paddy-500 transition-transform duration-300 group-hover:scale-110" /> : <st.icon size={14} className={`transition-transform duration-300 group-hover:scale-110 ${k === i ? 'text-paddy-300' : ''}`} />}{st.label}
               </button>
             </li>

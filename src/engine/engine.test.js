@@ -418,3 +418,18 @@ test('a live rain series 24 times too large is not taken for the saved one', () 
   assert.equal(rainAgrees(c, series), true);
   assert.equal(rainAgrees(c, { ...series, prec: series.prec.map((x) => (x == null ? x : x * 24)) }), false);
 });
+
+test('SRDI physical lab test report ground-calibrates SoilGrids baseline carbon stock and pH', async () => {
+  const { calibrateSoilWithLab, socStock } = await import('./soilfuture.js');
+  const modeledSoil = { ph: 6.2, om_pct: 1.2, bulk_density: 1.4 };
+  const modeledStock = socStock(modeledSoil);
+
+  const labReport = { ph: 7.1, om_pct: 2.1, date: '2026-10-15' };
+  const calibrated = calibrateSoilWithLab(modeledSoil, labReport);
+  const calibratedStock = socStock(calibrated);
+
+  assert.equal(calibrated.calibratedWithLab, true);
+  assert.equal(calibrated.ph, 7.1);
+  assert.equal(calibrated.om_pct, 2.1);
+  assert.ok(calibratedStock > modeledStock, 'Higher lab OM% increases calibrated starting soil carbon stock');
+});
