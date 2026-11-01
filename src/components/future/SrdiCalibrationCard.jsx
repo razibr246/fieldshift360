@@ -1,75 +1,36 @@
 import { useState } from 'react';
-import { FlaskConical, CheckCircle2, RotateCcw, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { FlaskConical, CheckCircle2, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, Tags, Button, Badge } from '../ui';
-import { num, bnDigits } from '../../engine/dates';
+import { num } from '../../engine/dates';
 import { socStock } from '../../engine/soilfuture';
-
-const SAMPLE_REPORTS = {
-  godagari: {
-    lab_id: 'SRDI-RAJ-2026-G84',
-    station: 'মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI) রাজশাহী আঞ্চলিক গবেষণাগার',
-    stationEn: 'SRDI Rajshahi Regional Laboratory',
-    date: '2026-09-18',
-    ph: 6.8,
-    om_pct: 1.45,
-    ec_ds_m: 0.35,
-    n_kg_ha: 140,
-    p_ppm: 14,
-    k_meq: 0.22,
-  },
-  dhamrai: {
-    lab_id: 'SRDI-DHK-2026-D12',
-    station: 'মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI) কেন্দ্রীয় গবেষণাগার, ঢাকা',
-    stationEn: 'SRDI Central Laboratory, Dhaka',
-    date: '2026-10-04',
-    ph: 6.5,
-    om_pct: 1.80,
-    ec_ds_m: 0.28,
-    n_kg_ha: 165,
-    p_ppm: 19,
-    k_meq: 0.28,
-  },
-  dacope: {
-    lab_id: 'SRDI-KHU-2026-K09',
-    station: 'মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI) খুলনা গবেষণাগার',
-    stationEn: 'SRDI Khulna Regional Laboratory',
-    date: '2026-08-22',
-    ph: 7.4,
-    om_pct: 1.60,
-    ec_ds_m: 4.20,
-    n_kg_ha: 130,
-    p_ppm: 16,
-    k_meq: 0.45,
-  },
-};
 
 export default function SrdiCalibrationCard({
   baseSoil,
   calibratedSoil,
-  labReport,
-  onApplyReport,
+  soilTestValues,
+  onApplyValues,
   onReset,
-  upazilaId,
   lang = 'bn',
   T,
   L,
 }) {
   const [openCustom, setOpenCustom] = useState(false);
-  const [phInput, setPhInput] = useState(baseSoil.ph ?? 6.5);
-  const [omInput, setOmInput] = useState(baseSoil.om_pct ?? 1.2);
-  const [ecInput, setEcInput] = useState(baseSoil.ec_ds_m ?? 0.3);
+  const [phInput, setPhInput] = useState('');
+  const [omInput, setOmInput] = useState('');
+  const [ecInput, setEcInput] = useState('');
+  const [reportIdInput, setReportIdInput] = useState('');
+  const [reportDateInput, setReportDateInput] = useState('');
 
-  const sample = SAMPLE_REPORTS[upazilaId] || SAMPLE_REPORTS.dhamrai;
-  const isCalibrated = !!labReport;
+  const isCalibrated = !!soilTestValues;
   const currentSoil = calibratedSoil || baseSoil;
 
   const handleApplyCustom = (e) => {
     e.preventDefault();
-    onApplyReport({
-      lab_id: 'SRDI-FARMER-CARD',
-      station: lang === 'bn' ? 'কৃষকের নিজস্ব মৃত্তিকা পরীক্ষা রিপোর্ট' : 'Farmer Soil Test Card',
-      stationEn: 'Farmer Soil Test Card',
-      date: new Date().toISOString().slice(0, 10),
+    onApplyValues({
+      lab_id: reportIdInput.trim() || null,
+      date: reportDateInput || null,
+      input_source: 'user-entered-unverified',
+      verified: false,
       ph: Number(phInput),
       om_pct: Number(omInput),
       ec_ds_m: Number(ecInput),
@@ -87,26 +48,26 @@ export default function SrdiCalibrationCard({
             </span>
             <h2 className="text-[17.5px] font-bold text-ink">
               {isCalibrated
-                ? T('SRDI ল্যাব গ্রাউন্ড-ক্যালিব্রেটেড মাটি', 'SRDI Physical Lab Calibrated Soil')
+              ? T('আপনার দেওয়া মাটি পরীক্ষার মান', 'User-entered soil-test values')
                 : T('মাটির রেজোলিউশন: SoilGrids ২৫০মি. স্যাটেলাইট মডেল', 'Soil Baseline: SoilGrids 250m Satellite Model')}
             </h2>
           </div>
           <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink/85">
             {isCalibrated
               ? T(
-                  `সরকারি মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI)-এর ল্যাব টেস্ট রিপোর্ট দিয়ে স্যাটেলাইট মডেল ক্যালিব্রেট করা হয়েছে। ল্যাব আইডি: ${labReport.lab_id} (${labReport.date})। ১০ বছরের কার্বন ও পুষ্টি মজুদ এই বাস্তব তথ্যের ভিত্তিতে নতুন করে হিসাব করা হয়েছে।`,
-                  `Modeled 250m SoilGrids data has been ground-calibrated with an official SRDI physical lab test report (${labReport.lab_id}, ${labReport.date}). 10-year carbon stock and trajectory reflect physical field measurements.`
+                  `আপনি মাটি পরীক্ষার যে মান দিয়েছেন, তা SoilGrids-এর এলাকার মডেল অনুমান সমন্বয়ে ব্যবহার হয়েছে। ${soilTestValues.lab_id ? `রিপোর্ট আইডি: ${soilTestValues.lab_id}। ` : ''}${soilTestValues.date ? `রিপোর্টের তারিখ: ${soilTestValues.date}। ` : ''}অ্যাপ রিপোর্টের উৎস বা নমুনার অবস্থান যাচাই করেনি; এটি পরীক্ষাগারের মাপের বিকল্প নয়।`,
+                  `The soil-test values you entered adjust the SoilGrids area estimate. ${soilTestValues.lab_id ? `Report ID: ${soilTestValues.lab_id}. ` : ''}${soilTestValues.date ? `Report date: ${soilTestValues.date}. ` : ''}The app has not verified the issuer or sample location; this does not replace a laboratory measurement.`
                 )
               : T(
-                  'SoilGrids ২.০-এর ২৫০ মিটার মডেলের মাধ্যমে আঞ্চলিক মাটির গঠন দেখানো হচ্ছে। আপনার কাছে সরকারি SRDI ল্যাব টেস্ট কার্ড থাকলে তা যুক্ত করে জমির পিএইচ (pH) ও জৈব পদার্থের হিসাব মাঠের বাস্তবতার সঙ্গে পুরোপুরি মিলিয়ে নিন।',
-                  'Currently using SoilGrids 2.0 at 250m resolution. Ground-calibrate this baseline with an official SRDI soil test card to accurately capture field-level pH and organic matter.'
+                  'SoilGrids ২.০-এর ২৫০ মিটার মডেলে এলাকার মাটির আনুমানিক মান দেখানো হচ্ছে। নিজের মাটি পরীক্ষার মান দিলে এই অনুমান সমন্বয় হবে; অ্যাপ রিপোর্টের সত্যতা বা নমুনার অবস্থান যাচাই করতে পারে না।',
+                  'This shows an area estimate from SoilGrids 2.0 at 250 m resolution. Entering soil-test values adjusts the estimate; the app cannot verify the report or where its sample came from.'
                 )}
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <Tags list={isCalibrated ? ['RECORD', 'LAB', 'MODEL'] : ['MODEL']} />
-          <Badge tone={isCalibrated ? 'green' : 'slate'} dot={isCalibrated}>
-            {isCalibrated ? T('বাস্তব ল্যাব টেস্ট যুক্ত', 'Lab Calibrated') : T('মডেল অনুমান', 'Satellite Modeled')}
+          <Tags list={isCalibrated ? ['RULE', 'MODEL'] : ['MODEL']} />
+          <Badge tone={isCalibrated ? 'amber' : 'slate'} dot={false}>
+            {isCalibrated ? T('দেওয়া মান · যাচাই হয়নি', 'Entered values · unverified') : T('মডেল অনুমান', 'Satellite estimate')}
           </Badge>
         </div>
       </div>
@@ -152,19 +113,12 @@ export default function SrdiCalibrationCard({
         {!isCalibrated ? (
           <>
             <Button
-              onClick={() => onApplyReport(sample)}
-              className="btn-gloss inline-flex items-center gap-1.5"
-            >
-              <FlaskConical size={14} />
-              {T(`সরকারি SRDI রিপোর্ট লোড করুন (${sample.lab_id})`, `Load Upazila SRDI Lab Card (${sample.lab_id})`)}
-            </Button>
-            <Button
               variant="secondary"
               onClick={() => setOpenCustom(!openCustom)}
               className="inline-flex items-center gap-1.5"
             >
               {openCustom ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {T('নিজের ল্যাব কার্ডের মান লিখুন', 'Enter Custom Lab Report')}
+              {T('মাটি পরীক্ষার রিপোর্ট থেকে মান লিখুন', 'Enter values from a soil-test report')}
             </Button>
           </>
         ) : (
@@ -182,9 +136,17 @@ export default function SrdiCalibrationCard({
       {openCustom && !isCalibrated && (
         <form onSubmit={handleApplyCustom} className="mt-3 rounded-xl border border-primary-200 bg-white p-3.5 shadow-xs">
           <h4 className="text-[13px] font-bold text-ink">
-            {T('মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI) ল্যাব কার্ডের মান:', 'SRDI Laboratory Soil Card Values:')}
+            {T('রিপোর্টে লেখা মান হুবহু লিখুন · অ্যাপ এগুলো যাচাই করে না', 'Enter the values as printed · the app does not verify them')}
           </h4>
-          <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+          <div className="mt-2.5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+            <label className="block text-[12px] font-medium text-ink">
+              {T('রিপোর্ট আইডি (ঐচ্ছিক)', 'Report ID (optional)')}
+              <input type="text" value={reportIdInput} onChange={(e) => setReportIdInput(e.target.value)} className="mt-1 h-11 w-full rounded-lg border border-border px-2.5 text-[13px] font-bold" />
+            </label>
+            <label className="block text-[12px] font-medium text-ink">
+              {T('রিপোর্টের তারিখ (ঐচ্ছিক)', 'Report date (optional)')}
+              <input type="date" value={reportDateInput} onChange={(e) => setReportDateInput(e.target.value)} className="mt-1 h-11 w-full rounded-lg border border-border px-2.5 text-[13px] font-bold" />
+            </label>
             <label className="block text-[12px] font-medium text-ink">
               {T('মাটির পিএইচ (pH)', 'Soil pH')}
               <input
@@ -192,9 +154,10 @@ export default function SrdiCalibrationCard({
                 step="0.1"
                 min="3.5"
                 max="9.5"
+                required
                 value={phInput}
                 onChange={(e) => setPhInput(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border px-2.5 py-1.5 text-[13px] font-bold"
+                className="mt-1 h-11 w-full rounded-lg border border-border px-2.5 text-[13px] font-bold"
               />
             </label>
             <label className="block text-[12px] font-medium text-ink">
@@ -204,9 +167,10 @@ export default function SrdiCalibrationCard({
                 step="0.05"
                 min="0.2"
                 max="8.0"
+                required
                 value={omInput}
                 onChange={(e) => setOmInput(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border px-2.5 py-1.5 text-[13px] font-bold"
+                className="mt-1 h-11 w-full rounded-lg border border-border px-2.5 text-[13px] font-bold"
               />
             </label>
             <label className="block text-[12px] font-medium text-ink">
@@ -216,9 +180,10 @@ export default function SrdiCalibrationCard({
                 step="0.05"
                 min="0.0"
                 max="20.0"
+                required
                 value={ecInput}
                 onChange={(e) => setEcInput(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border px-2.5 py-1.5 text-[13px] font-bold"
+                className="mt-1 h-11 w-full rounded-lg border border-border px-2.5 text-[13px] font-bold"
               />
             </label>
           </div>

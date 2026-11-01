@@ -25,9 +25,9 @@ For each year, the onset is the first day **D on or after 15 May** such that:
 2. **No false start**: in the 30 days after the wet spell there is no 10-day window with less than 5 mm in total.
 3. **The rains have set in**: those 30 days bring at least half the place's mean 30-day June–September rain. This
    separates the monsoon from a burst of pre-monsoon nor'wester storms, which otherwise pass conditions 1 and 2.
-4. **Dynamic cyclonic filter**: distinguishes pre-monsoon tropical cyclones/depressions from the true ITCZ monsoon trough.
-   If a single cloudburst day delivers ≥ 70% of the 5-day total followed by post-cyclonic subsidence (< 15 mm in 10 days),
-   it is flagged as an episodic depression rather than the persistent synoptic monsoon flow, preventing premature false onsets.
+4. **Rain-spike heuristic**: skips a five-day wet spell when one day supplies ≥ 70% of its total and the following
+   ten days bring < 15 mm. This is a simple pattern filter chosen by the app; it does not identify cyclones, explain
+   the cause of rainfall, or have independent agronomic validation. It could also skip a real onset after a concentrated storm.
 
 A year whose onset falls on 15 May itself had the rains set in by then; the page shows it as "15 May or earlier"
 (a triangle on the chart), and those years are counted, not dated. The rule belongs to the agronomic family of

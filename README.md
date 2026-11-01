@@ -88,22 +88,13 @@ After the challenge statement was read (22 October 2026):
 
 The commit history shows each change with its date.
 
-### NASA Space Apps 2026 Eligibility & Open-Source Asset Declaration
+### Development history and Space Apps eligibility
 
-To ensure 100% compliance with NASA Space Apps Challenge Rules regarding pre-existing work and hackathon contributions:
+The repository history records substantial work before the 2026 event: the project existed by 21 October, and additional changes followed publication of the challenge statement on 22 October. The 2026 event is scheduled for 14–15 November. This is a development-history disclosure, **not a claim of eligibility or organizer approval**. Before submitting, the team must give its Local Lead the actual timeline and ask how the event rules apply to this pre-existing project. See the [current participant terms](https://www.spaceappschallenge.org/legal/) and [2026 event page](https://www.spaceappschallenge.org/2026/).
 
-1. **Foundational Open Data & Scaffolding (Pre-Existing)**:
-   - Public open datasets: NASA POWER, GPM IMERG, SMAP, MODIS, GRACE/GRACE-FO, SRTM, CMIP6, ISRIC SoilGrids 2.0, and BMD station normals.
-   - Initial UI framework, basic leaflet map rendering, and base prototype shells.
-2. **Hackathon Innovation & Challenge Solutions (Developed for 2026 Challenge)**:
-   - **Field Future 10-Year Soil Carbon & Health Engine**: 10-year ICBM carbon modeling, NRCS soil-health principles, and FAO-56 crop water balance.
-   - **40-Future Robustness Ensemble**: NEX-GDDP-CMIP6 8-model downscaled projections across 5 FAOSTAT yield regimes.
-   - **Monsoon Onset with Dynamic Cyclonic Filter**: Stern/Moron agronomic onset algorithm augmented with a dynamic Bay of Bengal cyclonic depression filter and BMD gauge validation.
-   - **On-Device Edge Vision Engine**: Zero-cloud client-side computer vision analyzing Green Leaf Index (GLI), chlorosis, and necrotic lesion ratios offline.
-   - **SRDI Physical Laboratory Ground-Calibration**: Real-time integration of physical SRDI lab test reports to calibrate SoilGrids 250m satellite baselines.
-   - **Universal Bilingual Access**: Natural Bangla voice engine, WebXR 3D educational game with AAA base mesh, and SMS chunking for feature phones.
-3. **Local Lead Alignment**:
-   - The team discloses all pre-existing foundations upfront in this repository. In accordance with Space Apps Global Competition Terms, teams utilizing pre-existing open-source codebases or research should confirm their project submission category with their Local Lead during registration.
+Work added after the challenge statement includes the Field Future 40-scenario ensemble, additional soil-water analysis, and changes to the monsoon-onset rule. The optional concentrated-rain filter is a heuristic for a heavy-rain spike followed by a dry period; it is not a cyclone catalogue or a validated cyclone detector. The onset comparison against BMD station-based dates covers three stations, as documented in `docs/RADAR.md`.
+
+The offline photo helper reports RGB colour metrics using simple thresholds; it is not a trained model, crop identifier, or disease diagnosis. Soil-test values can be entered to adjust the SoilGrids estimate, but the app does not authenticate a lab, report, or sample location. The code and commit history are the source for the full development timeline; this summary does not imply that every feature was created during the hackathon.
 
 ## Licence
 

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { extractLeafMetrics, classifyLeafPixels } from './offlineVision.js';
 
-test('offlineVision: non-crop image (blank/grey pixels) is identified as non-crop', () => {
+test('offline colour check: neutral pixels do not produce a green signal or a diagnosis', () => {
   const width = 10, height = 10;
   // Grey pixels (R=128, G=128, B=128)
   const data = new Uint8ClampedArray(width * height * 4);
@@ -19,11 +19,12 @@ test('offlineVision: non-crop image (blank/grey pixels) is identified as non-cro
   const res = classifyLeafPixels({ crop: 'tomato', metrics, lang: 'bn' });
   assert.equal(res.is_crop_photo, false);
   assert.equal(res.image_analyzed, true);
-  assert.equal(res.on_device_vision, true);
+  assert.equal(res.on_device_pixel_check, true);
+  assert.equal(res.method, 'rgb-thresholds');
   assert.equal(res.findings.length, 0);
 });
 
-test('offlineVision: healthy green leaf pixels produce healthy diagnosis with high GLI', () => {
+test('offline colour check: green pixels are only reported as a colour cue, never a healthy diagnosis', () => {
   const width = 20, height = 20;
   // Vibrant green leaf pixels (R=45, G=170, B=50)
   const data = new Uint8ClampedArray(width * height * 4);
@@ -42,11 +43,13 @@ test('offlineVision: healthy green leaf pixels produce healthy diagnosis with hi
   const res = classifyLeafPixels({ crop: 'tomato', metrics, lang: 'en' });
   assert.equal(res.is_crop_photo, true);
   assert.equal(res.image_analyzed, true);
-  assert.equal(res.findings[0].key, 'healthy');
-  assert.ok(res.findings[0].confidence_pct >= 85);
+  assert.equal(res.is_crop_photo, true);
+  assert.equal(res.crop_seen, '');
+  assert.equal(res.findings.length, 0);
+  assert.match(res.summary, /cannot identify a crop or disease/);
 });
 
-test('offlineVision: necrotic lesion patches correctly diagnose blight with high necrotic lesion ratio', () => {
+test('offline colour check: dark pixels are measured but never diagnosed as blight', () => {
   const width = 20, height = 20;
   const data = new Uint8ClampedArray(width * height * 4);
   // 75% green leaf, 25% necrotic dark brown blight spots (R=80, G=35, B=20)
@@ -69,18 +72,16 @@ test('offlineVision: necrotic lesion patches correctly diagnose blight with high
   assert.ok(metrics.necroticPct >= 20.0, 'Detects ~25% necrotic lesion coverage');
 
   const res = classifyLeafPixels({
-    crop: 'tomato',
     metrics,
-    context: { weather: { rain7: 12, tmin: 17 } },
     lang: 'bn',
   });
   assert.equal(res.is_crop_photo, true);
-  assert.equal(res.findings[0].key, 'late_blight');
-  assert.equal(res.urgency, 'high');
-  assert.ok(res.findings[0].evidence.includes('নেক্রোটিক'));
+  assert.equal(res.findings.length, 0);
+  assert.equal(res.urgency, 'low');
+  assert.match(res.summary, /রোগ শনাক্ত করে না/);
 });
 
-test('offlineVision: chlorotic yellowing diagnoses aphid/sap-sucking pest symptom', () => {
+test('offline colour check: yellow pixels are measured but never diagnosed as pests', () => {
   const width = 20, height = 20;
   // Chlorotic yellowing (R=180, G=190, B=30)
   const data = new Uint8ClampedArray(width * height * 4);
@@ -96,12 +97,11 @@ test('offlineVision: chlorotic yellowing diagnoses aphid/sap-sucking pest sympto
   assert.ok(metrics.chlorosis >= 0.85, 'High chlorosis index for yellowing leaf');
 
   const res = classifyLeafPixels({
-    crop: 'mustard',
     metrics,
-    context: { weather: { rain7: 0 } },
     lang: 'bn',
   });
   assert.equal(res.is_crop_photo, true);
-  assert.equal(res.findings[0].key, 'aphid');
-  assert.ok(res.findings[0].evidence.includes('ক্লোরোসিস'));
+  assert.equal(res.findings.length, 0);
+  assert.equal(res.urgency, 'low');
+  assert.match(res.summary, /রোগ শনাক্ত করে না/);
 });

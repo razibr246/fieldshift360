@@ -19,7 +19,7 @@ import { bnOf } from '../../engine/text';
 import { clockText } from '../../engine/forecast';
 
 const THRESHOLD = 0.7;
-const MAX_SIDE = 1568; // the vision models read images up to about this long edge at full detail
+const MAX_SIDE = 1568; // cap upload size before the server-side image review
 const URGENCY = { low: { tone: 'green', bn: 'তাড়া নেই', en: 'Not urgent' }, medium: { tone: 'amber', bn: 'কয়েক দিনের মধ্যে দেখুন', en: 'Act within days' }, high: { tone: 'red', bn: 'জরুরি', en: 'Urgent' } };
 
 // Shrink and re-encode in the browser: a small JPEG uploads fast on a rural connection, and re-encoding drops the
@@ -200,7 +200,7 @@ export default function CropDoctor() {
         const pixels = await extractCanvasPixels(img);
         if (pixels) {
           const metrics = extractLeafMetrics(pixels);
-          visionReport = classifyLeafPixels({ crop, metrics, context, lang });
+          visionReport = classifyLeafPixels({ metrics, lang });
         }
       } catch {
         visionReport = null;
@@ -220,7 +220,7 @@ export default function CropDoctor() {
       setSt({
         phase: 'done',
         report: fallback,
-        model: visionReport ? 'On-Device MobileNet / Edge Vision' : 'Offline symptom reference',
+        model: visionReport ? 'Offline RGB colour heuristic' : 'Offline symptom reference',
         at: Date.now(),
         sources: fallback.sources || [],
         offlineFallback: true,
@@ -505,19 +505,19 @@ export default function CropDoctor() {
                     </p>
                     <h2 className="mt-1 text-[23px] font-bold leading-tight text-ink">
                       {st.offlineFallback
-                        ? rep.on_device_vision
-                          ? top ? (lang === 'bn' ? top.name_bn : top.name_en) : T('ফসলের লক্ষণ স্পষ্ট নয়', 'Symptom unclear')
+                        ? rep.on_device_pixel_check
+                          ? T('ছবির রঙের ইঙ্গিত, রোগ নির্ণয় নয়', 'Photo colour cues, not a diagnosis')
                           : top ? T(`লেখা লক্ষণের মিল: ${top.name_bn}`, `Text symptom match: ${top.name_en}`) : T('অফলাইনে ছবি বিশ্লেষণ করা যায়নি', 'Photo not analyzed offline')
                         : !rep.is_crop_photo
                           ? T('ফসলের ছবি মনে হচ্ছে না', 'This does not look like a crop photo')
                           : top ? (lang === 'bn' ? top.name_bn : top.name_en) : T('স্পষ্ট কিছু পাওয়া যায়নি', 'Nothing clear found')}
                     </h2>
-                    <p className="mt-0.5 text-[13px] text-muted">{st.offlineFallback && !rep.on_device_vision
+                    <p className="mt-0.5 text-[13px] text-muted">{st.offlineFallback && !rep.on_device_pixel_check
                       ? T('আপনি যে ফসল বেছেছেন: ', 'Crop selected: ')
-                      : T('ছবিতে দেখা যাচ্ছে: ', 'Seen in the photo: ')}<b>{st.offlineFallback && !rep.on_device_vision ? L(cropObj.name) : (rep.crop_seen || L(cropObj.name))}</b></p>
+                      : T('ছবিতে বাছা ফসল: ', 'Selected crop for this photo: ')}<b>{L(cropObj.name)}</b></p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <Tags list={st.offlineFallback ? (rep.on_device_vision ? ['RULE', 'AI'] : ['RULE']) : ['AI']} />
+                    <Tags list={st.offlineFallback ? ['RULE'] : ['AI']} />
                     <Badge tone={URGENCY[rep.urgency].tone} dot={rep.urgency === 'high'}>
                       {rep.urgency === 'high' && <AlertTriangle size={12} />}
                       {L(URGENCY[rep.urgency])}
@@ -525,23 +525,23 @@ export default function CropDoctor() {
                   </div>
                 </div>
 
-                {st.offlineFallback && !rep.on_device_vision && (
+                {st.offlineFallback && !rep.on_device_pixel_check && (
                   <div className="mt-3.5 flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50/70 p-3 text-[12.5px] leading-5 text-primary-950 shadow-2xs">
                     <Sparkles size={16} className="shrink-0 text-primary-700" />
                     <span>{T('অফলাইনে ছবির ভেতর দেখা যায় না। এই ফল শুধু আপনার বাছাই করা নমুনা বা লেখা লক্ষণের সঙ্গে ফসলের সমস্যা-তালিকা মিলিয়ে দেখায়; রোগ নির্ণয় বা সম্ভাবনার শতাংশ নয়।', 'Offline mode cannot inspect image pixels. This only matches your selected sample or written symptom against a crop reference list; it is not a diagnosis or a probability score.')}</span>
                   </div>
                 )}
 
-                {rep.on_device_vision && rep.vision_metrics && (
+                {rep.on_device_pixel_check && rep.vision_metrics && (
                   <div className="mt-3.5 rounded-xl border border-primary-200 bg-primary-50/70 p-3 text-[12.5px] leading-5 text-primary-950 shadow-2xs">
                     <div className="flex items-center gap-1.5 font-bold text-primary-900">
                       <Sparkles size={15} className="text-primary-700" />
-                      <span>{T('অন-ডিভাইস এজ ভিশন (ক্লাউড ছাড়া বিশ্লেষণ):', 'On-Device Edge Vision (No Cloud Dependency):')}</span>
+                      <span>{T('অফলাইন পিক্সেল রঙ-পরীক্ষা · রোগ নির্ণয় নয়', 'Offline pixel-colour check · not a diagnosis')}</span>
                     </div>
                     <p className="mt-1 text-primary-900/90">
                       {T(
-                        `ডিভাইসের নিজস্ব প্রসেসরে পাতার পিক্সেল বিশ্লেষণ সম্পন্ন হয়েছে। সবুজ পাতা সূচক (GLI): ${rep.vision_metrics.gli}, ক্ষতের অনুপাত: ${rep.vision_metrics.necroticPct}%, হলুদাভ ক্লোরোসিস: ${rep.vision_metrics.chlorosis}।`,
-                        `Local on-device vision model analyzed leaf pixels directly. Green Leaf Index (GLI): ${rep.vision_metrics.gli}, Necrotic lesions: ${rep.vision_metrics.necroticPct}%, Chlorosis index: ${rep.vision_metrics.chlorosis}.`
+                        `ছবির রঙের মান থেকে সবুজ সূচক (GLI) ${num(rep.vision_metrics.gli, lang, { dp: 2 })}, হলুদ-লাল অনুপাত ${num(rep.vision_metrics.chlorosis, lang, { dp: 2 })}, আর গাঢ় বাদামি পিক্সেলের ভাগ ${num(rep.vision_metrics.necroticPct, lang, { dp: 1 })}% হিসাব করা হয়েছে। আলো ও পেছনের রং ফল বদলাতে পারে।`,
+                        `RGB pixel values only: green index (GLI) ${num(rep.vision_metrics.gli, lang, { dp: 2 })}, yellow-red ratio ${num(rep.vision_metrics.chlorosis, lang, { dp: 2 })}, and dark-brown pixel share ${num(rep.vision_metrics.necroticPct, lang, { dp: 1 })}%. Lighting and background can change these values.`
                       )}
                     </p>
                   </div>
@@ -581,7 +581,9 @@ export default function CropDoctor() {
                 )}
 
                 {st.offlineFallback ? (
-                  <Note tone="gold" className="mt-5">{T('এই ফল ছবি দেখে তৈরি হয়নি। নিশ্চিত হতে ইন্টারনেট সংযোগে আবার পরীক্ষা করুন বা ছবিটি কৃষি কর্মকর্তাকে পাঠান।', 'This result did not come from image analysis. Recheck when online or send the photo to your agriculture officer.')}</Note>
+                  <Note tone="gold" className="mt-5">{rep.on_device_pixel_check
+                    ? T('এটি কেবল রঙের হিসাব; রোগ বা পুষ্টির সমস্যা শনাক্ত করে না। লক্ষণ থাকলে কৃষি কর্মকর্তাকে দেখান।', 'This only measures colour. It does not identify disease or nutrient problems. Show symptomatic plants to an agriculture officer.')
+                    : T('এই ফল ছবি দেখে তৈরি হয়নি। নিশ্চিত হতে ইন্টারনেট সংযোগে আবার পরীক্ষা করুন বা ছবিটি কৃষি কর্মকর্তাকে পাঠান।', 'This result did not come from image analysis. Recheck when online or send the photo to your agriculture officer.')}</Note>
                 ) : low ? (
                   <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50/90 p-4">
                     <div className="flex items-center gap-2 font-bold text-amber-900"><ShieldAlert size={18} />{T('নিশ্চিত হওয়া যাচ্ছে না', 'Not fully certain')}</div>

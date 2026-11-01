@@ -64,21 +64,21 @@ export default function FieldFuture() {
   const [world, setWorld] = useState('now');
   const [scen, setScen] = useState('ssp245');
   const [own, setOwn] = useState(null);
-  const [labReport, setLabReport] = useState(null);
+  const [soilTestValues, setSoilTestValues] = useState(null);
   const [brief, setBrief] = useState('best'); // which strategy's full brief is open
   const change = useMemo(() => climateChange(deltas, upazila.id, scen), [upazila.id, scen]);
-  const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, labReport }),
-    [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, labReport]);
+  const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, soilTestValues }),
+    [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, soilTestValues]);
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
   const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities, exclude: s.exclude ?? [] }),
     [ctx, lastCrop, planRabi, planK1, s.priorities, s.exclude]);
   const futureHeatSensitivity = useMemo(() => [
     { id: 'current', label: T('বর্তমান সীমা: ৩৫° · ৩ দিন', 'Current rule: 35 °C · 3 days'), result: ff },
     ...BORO_HEAT_SENSITIVITIES.map((variant) => {
-      const changedCtx = fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, boroHeat: variant, labReport });
+      const changedCtx = fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, boroHeat: variant, soilTestValues });
       return { id: variant.id, label: L(variant), result: rankBoroSensitivity(ff, changedCtx, s.priorities, s.exclude ?? []) };
     }),
-  ], [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, lastCrop, planRabi, planK1, s.priorities, s.exclude, ff, T, L, labReport]);
+  ], [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, lastCrop, planRabi, planK1, s.priorities, s.exclude, ff, T, L, soilTestValues]);
   const futureHeatRows = futureHeatSensitivity.map(({ id, label, result }, index) => ({
     id, label, baseline: index === 0,
     ranks: result.top.slice(0, 3).map((item) => ({ id: keyOf(item.rot), name: rotName(item.rot, { short: true }), score: item.score })),
@@ -145,10 +145,9 @@ export default function FieldFuture() {
       <SrdiCalibrationCard
         baseSoil={soil}
         calibratedSoil={ctx.soil}
-        labReport={labReport}
-        onApplyReport={setLabReport}
-        onReset={() => setLabReport(null)}
-        upazilaId={upazila.id}
+        soilTestValues={soilTestValues}
+        onApplyValues={setSoilTestValues}
+        onReset={() => setSoilTestValues(null)}
         lang={lang}
         T={T}
         L={L}

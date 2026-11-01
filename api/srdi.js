@@ -1,9 +1,8 @@
 import { parseBody } from './body.js';
 
-// SRDI (Soil Resource Development Institute) Laboratory Ground Calibration API.
-// Ingests physical laboratory soil test reports to ground-calibrate satellite/SoilGrids 250m estimates.
-// Computes Van Bemmelen organic matter to organic carbon conversion (OM% = SOC% * 1.724)
-// and returns calibrated soil parameters, topsoil carbon stock, and delta analysis.
+// Accepts user-entered soil-test values and checks numeric ranges only.
+// It does not authenticate SRDI, a report ID, or the sample location.
+// Computes OM-to-SOC conversion (OM% = SOC% * 1.724) for an adjusted model estimate.
 
 export function parseAndValidateLabReport(raw) {
   if (!raw || typeof raw !== 'object') return null;
@@ -21,9 +20,10 @@ export function parseAndValidateLabReport(raw) {
   const soc_g_kg = om_pct != null ? Math.round(((om_pct * 10) / 1.724) * 10) / 10 : null;
 
   return {
-    lab_id: String(raw.lab_id || raw.labId || 'SRDI-GEN-2026'),
-    station: String(raw.station || 'SRDI Testing Laboratory'),
-    date: String(raw.date || new Date().toISOString().slice(0, 10)),
+    lab_id: String(raw.lab_id || raw.labId || 'USER-ENTERED'),
+    station: String(raw.station || 'User-entered, unverified source'),
+    date: raw.date ? String(raw.date) : null,
+    verified: false,
     ph: ph != null ? Math.round(ph * 10) / 10 : null,
     om_pct: om_pct != null ? Math.round(om_pct * 100) / 100 : null,
     soc_g_kg,
@@ -31,7 +31,7 @@ export function parseAndValidateLabReport(raw) {
     n_kg_ha: n_kg_ha != null ? Math.round(n_kg_ha) : null,
     p_ppm: p_ppm != null ? Math.round(p_ppm * 10) / 10 : null,
     k_meq: k_meq != null ? Math.round(k_meq * 100) / 100 : null,
-    calibrated_at: Date.now(),
+    received_at: Date.now(),
   };
 }
 
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
   const report = parseAndValidateLabReport(parsed.body?.report ?? parsed.body);
   if (!report) {
-    return res.status(400).json({ error: 'invalid SRDI lab report: pH (3-10), OM% (0.1-15), or EC values out of physical agronomic bounds' });
+    return res.status(400).json({ error: 'invalid user-entered soil values: pH (3-10), OM% (0.1-15), or EC values out of supported bounds' });
   }
 
   const baseSoil = parsed.body?.base_soil ?? {};
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     report,
     comparison: {
       modeled_source: 'SoilGrids 2.0 (250m satellite-modeled)',
-      calibrated_source: 'SRDI Physical Laboratory Ground Truth',
+      calibrated_source: 'User-entered values; report and sample location are not verified',
       delta,
     },
   });

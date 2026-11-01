@@ -200,8 +200,8 @@ function riskShare(clim, crop, t0, boroHeat = null) {
 
 // Everything the simulation needs, computed once per field: each slot's dates, water, weather risk and money,
 // for today's weather and, when the projections are in, the 2040s.
-export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat = null, labReport = null }) {
-  const effectiveSoil = calibrateSoilWithLab(soil, labReport);
+export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat = null, soilTestValues = null }) {
+  const effectiveSoil = adjustSoilWithReportedValues(soil, soilTestValues);
   const climF = futureClimate(clim, change);
   const aman = amanT ?? ymd(PLAN_SEASON, 7, 15);
   const clearBy = addDays(aman, -AMAN_PREP);
@@ -244,20 +244,20 @@ export function fieldContext({ clim, change, soil, plot, amanT, econ, boroHeat =
   };
 }
 
-// Calibrate modeled SoilGrids data with an official SRDI (Soil Resource Development Institute) physical lab test.
-// labReport: { ph?: number, om_pct?: number, ec_ds_m?: number, n_kg_ha?: number, p_ppm?: number, k_meq?: number, date?: string }
-export function calibrateSoilWithLab(soil, labReport = null) {
-  if (!labReport || !soil) return soil;
-  const out = { ...soil, calibratedWithLab: true, labDate: labReport.date ?? null };
-  if (labReport.ph != null && !isNaN(Number(labReport.ph))) out.ph = Number(labReport.ph);
-  if (labReport.om_pct != null && !isNaN(Number(labReport.om_pct))) {
-    out.om_pct = Number(labReport.om_pct);
+// Adjust modeled SoilGrids data with user-reported soil-test values; the app does not verify the report or sample.
+// Reported values are user-entered and not verified by the app; units: pH, OM %, EC dS/m, N kg/ha, P ppm, K meq.
+export function adjustSoilWithReportedValues(soil, values = null) {
+  if (!values || !soil) return soil;
+  const out = { ...soil, adjustedWithReportedValues: true, soilTestDate: values.date ?? null };
+  if (values.ph != null && !isNaN(Number(values.ph))) out.ph = Number(values.ph);
+  if (values.om_pct != null && !isNaN(Number(values.om_pct))) {
+    out.om_pct = Number(values.om_pct);
     out.soc_g_kg = (out.om_pct * 10) / 1.724; // Van Bemmelen conversion: OM% = SOC% * 1.724
   }
-  if (labReport.ec_ds_m != null && !isNaN(Number(labReport.ec_ds_m))) out.ec_ds_m = Number(labReport.ec_ds_m);
-  if (labReport.n_kg_ha != null && !isNaN(Number(labReport.n_kg_ha))) out.n_kg_ha = Number(labReport.n_kg_ha);
-  if (labReport.p_ppm != null && !isNaN(Number(labReport.p_ppm))) out.p_ppm = Number(labReport.p_ppm);
-  if (labReport.k_meq != null && !isNaN(Number(labReport.k_meq))) out.k_meq = Number(labReport.k_meq);
+  if (values.ec_ds_m != null && !isNaN(Number(values.ec_ds_m))) out.ec_ds_m = Number(values.ec_ds_m);
+  if (values.n_kg_ha != null && !isNaN(Number(values.n_kg_ha))) out.n_kg_ha = Number(values.n_kg_ha);
+  if (values.p_ppm != null && !isNaN(Number(values.p_ppm))) out.p_ppm = Number(values.p_ppm);
+  if (values.k_meq != null && !isNaN(Number(values.k_meq))) out.k_meq = Number(values.k_meq);
   return out;
 }
 

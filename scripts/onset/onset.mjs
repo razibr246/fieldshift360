@@ -19,12 +19,13 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-export const RULE = { searchFrom: [5, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years', cyclonicFilter: true, cyclonicConcentration: 0.70 };
+export const RULE = { searchFrom: [5, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years', rainSpikeFilter: true, rainSpikeConcentration: 0.70 };
 const DAY = 864e5;
 
-// Distinguish an episodic pre-monsoon cyclonic depression / tropical storm from the persistent synoptic ITCZ monsoon trough.
-// A cyclone delivers >= 70% of its 5-day rainfall in a single concentrated cloudburst day, followed by post-storm subsidence (< 15 mm in 10 days).
-export function isCyclonicDepression(pentadRain, postRain10d = null, threshold = 0.70) {
+// A rain-pattern heuristic only. Daily rainfall cannot identify a cyclone or its cause.
+// It flags a concentrated five-day event followed by little rain; thresholds are app choices, not validated storm criteria.
+export function isIsolatedRainSpike(pentadRain, postRain10d = null, threshold = 0.70) {
+  if (postRain10d == null) return false;
   const sum = pentadRain.reduce((a, b) => a + (b ?? 0), 0);
   if (sum <= 0) return false;
   const maxDay = Math.max(...pentadRain.map((x) => x ?? 0));
@@ -61,11 +62,11 @@ export function onsetIndex(s, year, W, r = RULE, month = (W / r.wetDays) * r.loo
     }
     if (gap || sum < W || rainy < r.minRainyDays) continue;
 
-    // Dynamic cyclonic filter: reject isolated pre-monsoon cyclonic surges followed by dry subsidence
-    if (r.cyclonicFilter) {
+    // Optional rain-pattern heuristic; this does not determine whether a cyclone caused the rain.
+    if (r.rainSpikeFilter) {
       let post10 = 0;
       for (let k = 0; k < 10; k++) post10 += s.v[i + r.wetDays + k] ?? 0;
-      if (isCyclonicDepression(pentad, post10, r.cyclonicConcentration ?? 0.70)) continue;
+      if (isIsolatedRainSpike(pentad, post10, r.rainSpikeConcentration ?? 0.70)) continue;
     }
 
     let falseStart = false;
