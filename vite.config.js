@@ -5,6 +5,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
 import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from './src/config/brand.js';
+import { slimStoriesClimate } from './src/engine/storyClimate.js';
 
 // Fills %PROJECT_NAME% / %PROJECT_DESCRIPTION% in index.html from src/config/brand.js.
 const brandHtml = () => ({
@@ -131,6 +132,9 @@ const slimClimate = () => ({
   name: 'slim-climate',
   enforce: 'pre',
   transform(code, id) {
+    if (id.replaceAll('\\', '/').endsWith('/src/data/climate/stories_climate.json')) {
+      return { code: JSON.stringify(slimStoriesClimate(JSON.parse(code))), map: null };
+    }
     if (!/[\\/]src[\\/]data[\\/]climate[\\/]climate_[a-z]+\.json$/.test(id)) return null;
     const j = JSON.parse(code);
     return { code: JSON.stringify(Object.fromEntries(Object.entries(j).filter(([k]) => CLIMATE_IN_APP.has(k)))), map: null };
