@@ -1,4 +1,5 @@
 import { parseBody } from './body.js';
+import { isHostedRuntime } from './runtime.js';
 
 // The neighbouring countries' board: the sample farmer's requests to the local agriculture office, the officer's
 // replies, and the advisories (SMS drafts) the officer sends. One board per country, in the same Upstash Redis store
@@ -72,6 +73,7 @@ async function load(cc) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  if (isHostedRuntime()) return res.status(503).json({ error: 'persistent board storage is disabled until authenticated access exists' });
   if (!URL_ || !TOKEN) return res.status(503).json({ error: 'board store not configured' });
   try {
     if (req.method === 'GET') {

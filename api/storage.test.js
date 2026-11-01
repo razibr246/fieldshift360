@@ -37,3 +37,30 @@ for (const [name, handler, query] of [
     assert.deepEqual(res.body, { error: 'bad json' });
   });
 }
+
+test('persistent demo boards fail closed in production until account-level access controls exist', async () => {
+  const previous = process.env.NODE_ENV;
+  const previousVercel = process.env.VERCEL;
+  try {
+    for (const runtime of [{ NODE_ENV: 'production', VERCEL: undefined }, { NODE_ENV: 'development', VERCEL: '1' }]) {
+      process.env.NODE_ENV = runtime.NODE_ENV;
+      if (runtime.VERCEL === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = runtime.VERCEL;
+      for (const [name, handler, query] of [
+        ['plans', plans, { season: '2027' }],
+        ['messages', messages, { to: 'RAHIM' }],
+        ['abroad', abroad, { cc: 'india' }],
+      ]) {
+        const res = response();
+        await handler({ method: 'GET', query }, res);
+        assert.equal(res.code, 503, `${name} should be disabled in a hosted runtime`);
+        assert.match(res.body.error, /authenticated access/i);
+      }
+    }
+  } finally {
+    if (previous === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previous;
+    if (previousVercel === undefined) delete process.env.VERCEL;
+    else process.env.VERCEL = previousVercel;
+  }
+});

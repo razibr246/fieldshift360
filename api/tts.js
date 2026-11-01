@@ -1,4 +1,5 @@
 import { parseBody } from './body.js';
+import { rateLimitResponse } from './rateLimit.js';
 
 // The voice of চক্র এজেন্ট: natural speech from Google Gemini's text-to-speech model, a young Bangladeshi woman's Bangla
 // or fluent British English. Vercel serverless function; needs GEMINI_API_KEY. GEMINI_TTS_VOICE_BN / _EN / GEMINI_TTS_VOICE
@@ -153,6 +154,8 @@ export default async function handler(req, res) {
   const lang = body?.lang === 'en' ? 'en' : 'bn';
   const text = String(body?.text ?? '').replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
   if (!text) return res.status(400).json({ error: 'empty text' });
+  const blocked = await rateLimitResponse(req, res, { scope: 'tts', limit: 120, windowSeconds: 3600 });
+  if (blocked) return blocked;
   try {
     const chosen = await voiceFor(lang);
     const transcript = spokenTranscript(text, lang);

@@ -20,6 +20,8 @@ Then, by what you need:
 | [`THRESHOLDS.md`](THRESHOLDS.md) | Every crop limit and assumption the advice rests on, with its source, and the known problems |
 | [`REVIEW_LOG.md`](REVIEW_LOG.md) | Who has reviewed the crop rules and soil assumptions, and what a reviewer should check first |
 | [`USER_TESTING.md`](USER_TESTING.md) | The protocol for testing with farmers and agriculture officers, and where results are recorded |
+| [`SECURITY.md`](SECURITY.md) | Current API boundaries, production fail-closed behavior, AI rate limits, deployment checks and remaining security work |
+| [`CHANGELOG.md`](CHANGELOG.md) | Dated, evidence-backed user-visible and operational changes |
 | [`RADAR.md`](RADAR.md) | The Aman rain-onset rule and Ropon Radar, and their check against BMD stations |
 
 ## The product

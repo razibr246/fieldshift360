@@ -1,4 +1,5 @@
 import { parseBody } from './body.js';
+import { isHostedRuntime } from './runtime.js';
 
 // Shared plan board: every farmer's confirmed season plan, so each union's harvest weeks add up across all users.
 // Vercel serverless function backed by Upstash Redis over its REST API (no SDK). Connect an Upstash Redis store to
@@ -35,6 +36,7 @@ export function clean(p, season) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  if (isHostedRuntime()) return res.status(503).json({ error: 'persistent plan storage is disabled until authenticated access exists' });
   if (!URL_ || !TOKEN) return res.status(503).json({ error: 'shared store not configured' });
   const season = Number(req.query?.season ?? req.body?.season ?? 2027);
   if (!SEASONS.has(season)) return res.status(400).json({ error: 'unknown season' });

@@ -13,7 +13,7 @@ export function createDreamSound() {
   let ctx = null, master = null, timer = null, pad = [], muted = false, mood = null;
   const ensure = () => {
     if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination); }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     return ctx;
   };
   const note = (f, start, dur, { wave = 'sine', vol = 0.05 } = {}) => {
@@ -46,6 +46,6 @@ export function createDreamSound() {
     music,
     fx(name) { if (muted) return; ensure(); FX[name]?.(); },
     setMuted(v) { muted = v; if (v) stopMusic(); else { const m = mood; mood = null; if (m) music(m); } },
-    dispose() { stopMusic(); ctx?.close(); },
+    dispose() { stopMusic(); ctx?.close().catch(() => {}); },
   };
 }

@@ -14,7 +14,7 @@ npm test                             # every Node test suite (list in package.js
 node --test src/engine/engine.test.js                                  # one suite
 node --test --test-name-pattern="weights" src/engine/engine.test.js    # one test by name
 npm run build && npm run preview     # production build in dist/, served locally
-npm run build:single                 # one self-contained dist-single/index.html
+npm run build:single                 # inline app JS/CSS in dist-single/index.html; worker and public assets stay alongside it
 npm run fetch:* / data:* / photos:*  # data and photo scripts, listed in scripts/README.md
 ```
 

@@ -166,24 +166,21 @@ npm install
 npm run dev            # http://localhost:5173
 npm test               # engine tests (Node's built-in runner)
 npm run build          # static site in dist/ (hash routing: works on Netlify, Vercel, GitHub Pages or any folder)
-npm run build:single   # everything in one file: dist-single/index.html (open it straight from disk)
+npm run build:single   # inline app JS/CSS in dist-single/index.html; MapLibre worker and public assets remain alongside it
 npm run preview        # serve dist/ locally
 ```
 
 ## Shared plan board (planner step 7, officer pages)
 
-Every confirmed season plan goes to `api/plans.js`, a Vercel function that keeps one plan per field in Upstash Redis.
-Every open app reads the board on start, every 30 seconds and when it comes back on screen, so each new farmer's
-plan shows up in everyone's harvest-week chart. Only plot id, union, crop, planting day and area are stored.
+The prototype has handlers for a shared plan board (`api/plans.js`) and officer-to-farmer messages (`api/messages.js`),
+but it has no real account system. **Persistent shared boards are disabled in hosted deployments** until server-side sign-in
+and per-user authorization exist; adding Upstash credentials alone no longer turns them on. Local changes continue to
+work in the browser.
 
-- **Switch it on:** in the Vercel project, Storage → add Upstash Redis (free tier is enough) and connect it. Vercel
-  adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`; redeploy. Without them the function answers 503 and the app says
-  "the shared plan server is not switched on yet" and works from the phone's own plans plus sample neighbours.
-- **Officer → farmer messages** (`api/messages.js`) use the same store: every reply, area advice and weather warning
-  an officer sends is delivered to each recipient's own phone, which checks every 30 seconds, opens with a pop-up of
-  unread messages and can raise a phone notification. Before real use, sending must require an officer sign-in.
-- **Local:** `npm run dev` serves an in-memory board at `/api/plans` with the same checks, so two browser tabs share
-  plans until the dev server stops.
+- **Local demo:** `npm run dev` serves in-memory plan, message and abroad boards so two browser tabs can exercise the
+  flow. The data disappears when the dev server stops; this is not secure multi-user storage.
+- **Security gate:** see [`docs/SECURITY.md`](docs/SECURITY.md) before deployment. The production AI endpoints also
+  require Upstash Redis for per-IP abuse limits; rate limits do not identify a user or replace authentication.
 
 ## Project name and branding: one place
 
@@ -297,9 +294,8 @@ Open them from the login page (each country is one card: farmer on one side, off
   English for Bhutan and Myanmar), Farmer requests, Farmer and field, Area map (the area outline from geoBoundaries,
   its villages from GeoNames, this week's fires), Planting calendar, Whole country (six farming zones on yesterday's
   NASA VIIRS picture).
-- **Shared board** (`api/abroad.js`): the farmer's requests, the officer's replies and the officer's advisories go
-  through the same Upstash Redis store as the Bangladesh plan board and messages (an in-memory board under
-  `npm run dev`); on a static host without it the board stays in the browser and the pages say so.
+- **Shared board** (`api/abroad.js`): the handlers support farmer requests, officer replies and advisories. The
+  production endpoint is disabled until authenticated access is implemented; `npm run dev` uses an in-memory board.
 - **SMS languages**: Hindi, Urdu and Nepali templates; Burmese and Dzongkha are machine-drafted and marked "draft —
   check with a local speaker", with an English version one tap away.
 - **Areas**: Myanmar's township and Bhutan's gewog come from UN OCHA's administrative boundaries (HDX; Bhutan's from
@@ -330,7 +326,7 @@ Open them from the login page (each country is one card: farmer on one side, off
 | | `/farmer/farm` | My field: map picker, plan and soil |
 | | `/farmer/plan` | 7-step season plan: field, weather, soil, what matters to you, recommendation, next crop, price-drop check, confirm |
 | | `/farmer/today` | Water advice in four colours, weather (live Open-Meteo or sample scenarios), field check |
-| | `/farmer/doctor` | Leaf photo, top-3 guess (sample), send to the officer |
+| | `/farmer/doctor` | Check a crop photo online when the optional server-side model is configured; otherwise show an offline symptom reference and non-diagnostic RGB colour cues; send the photo and question to the officer |
 | | `/farmer/help` | Send a question or problem; officer replies and area advice |
 | | `/farmer/harvest` | Harvest weeks, likely yield in maund, union harvest timing, record your harvest |
 | | `/farmer/future` | Field Future: ten years of the usual rotation, the best rotation found and the farmer's own, in today's weather and NASA's 2040s; soil time machine, side-by-side table, every rotation on profit against soil, NASA climate change by season and model, method and sources |
@@ -354,7 +350,7 @@ Open them from the login page (each country is one card: farmer on one side, off
 | Fertilizer doses (SRDI) | **RECORD** (SRDI's union guides, from its soil tests in the union) |
 | Scores, Keep/Adjust/Shift, rotation, price-drop risk, water advice, harvest weeks | **Rule-based** (`src/engine/`) |
 | Area problem clusters | **AI** (DBSCAN) on sample requests |
-| Crop doctor | **AI** (Google Gemini vision on the farmer's photo with the field's context; a first look, not a diagnosis; sample requests in the demo are made up) |
+| Crop doctor | **AI when configured** (the server can send an uploaded photo and field context to Gemini or Claude; a first look, not a diagnosis; no model is shipped in the browser). Offline behavior is a symptom reference and RGB colour heuristic, not image diagnosis. Demo examples are sample requests. |
 | Prices and full production costs per crop | **REAL** (government procurement prices, DAM notices, ministry and field cost studies; years differ and are shown) |
 | Farmers, plans, requests, officers, normal supply | **Sample** (`src/data/demo.js`) |
 | Today's weather | **REAL** from Open-Meteo when online, otherwise sample scenarios |
@@ -375,7 +371,7 @@ field, say what matters, compare the options, talk it over with the officer.
 
 ```
 index.html, vite.config.js, vercel.json, package.json      app entry and build setup
-api/                    Vercel functions: plans (shared plan board), messages, abroad, doctor (Gemini crop doctor)
+api/                    Vercel functions: AI limits, doctor/agent/voice, and prototype boards disabled in production
 public/                 sw.js (offline), manifest, icon; aman/ (radar data per upazila), models/ (photo AI, and
                         people/: rigged CC0 3D people for the children's game and the character screen),
                         radar/ (the original Ropon Radar prototype, served as is)
@@ -428,8 +424,9 @@ Stack: React 19, Vite 6, Tailwind CSS 4, React Router 7 (hash routing), Recharts
 - All farmers, requests, prices and officers are dummy data; saved changes live only in this browser.
 - Climate is one NASA POWER point for the whole upazila (about a 50 km cell), not a field measurement.
 - Map tiles need internet; without it the map is blank but pins, boundaries and fields still work. Fonts are bundled.
-- Crop doctor shows a fixed sample result; no image model is shipped.
-- Not built: OTP login, actually sending SMS (messages are only counted for SMS length), payments, marketplace, native apps, drawing field boundaries as polygons, ML yield prediction.
+- The crop doctor’s online review needs a server-side model key, Upstash rate-limit store and network access. Each photo requires consent before its resized image and field context are sent to the configured provider. The model path was not end-to-end verified here. Offline symptom references and RGB metrics cannot identify a crop or diagnose disease.
+- No real user login or server-side role authorization exists. Persistent plans, messages and abroad boards are disabled in production until they do. The AI API rate limits reduce abuse but do not authenticate callers.
+- Not built: actually sending SMS (messages are only counted for SMS length), payments, marketplace, native apps, drawing field boundaries as polygons, ML yield prediction.
 
 ---
 

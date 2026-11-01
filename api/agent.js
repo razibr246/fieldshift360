@@ -9,6 +9,7 @@
 // role's policy (src/engine/chakra.js authorize/gateFor) and an officer approves anything sent in the office's name.
 import Anthropic from '@anthropic-ai/sdk';
 import { parseBody } from './body.js';
+import { rateLimitResponse } from './rateLimit.js';
 
 export const MODEL = 'claude-opus-5-5';
 // A spoken conversation needs a fast model: Flash-Lite answered in about 3 s in testing (Oct 2026) where the bigger
@@ -161,6 +162,9 @@ export default async function handler(req, res) {
   const turn = `Language: ${lang === 'en' ? 'English' : 'Bangla (বাংলা)'}.\n${role === 'farmer' ? 'The farmer' : 'The officer'} says: "${message}"`;
   if (messages.length && messages[messages.length - 1].role === 'user') messages[messages.length - 1].content += `\n${turn}`;
   else messages.push({ role: 'user', content: turn });
+
+  const blocked = await rateLimitResponse(req, res, { scope: 'agent', limit: 60, windowSeconds: 3600 });
+  if (blocked) return blocked;
 
   if (gemini) {
     const contents = messages.map((m, i) => ({

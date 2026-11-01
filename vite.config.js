@@ -142,7 +142,7 @@ const slimClimate = () => ({
 });
 
 // npm run build        -> static site in dist/ (hash routing, works on any static host)
-// npm run build:single -> one self-contained dist-single/index.html for sharing
+// npm run build:single -> inline app JS/CSS in one HTML; public assets and the MapLibre worker remain alongside it
 export default defineConfig(({ mode }) => ({
   plugins: [slimClimate(), react(), tailwindcss(), brandHtml(), dropGitHistory(), devPlansApi(), devMessagesApi(), devAbroadApi(), devDoctorApi(loadEnv(mode, process.cwd(), '')), ...(mode === 'single' ? [viteSingleFile()] : [])],
   base: './',

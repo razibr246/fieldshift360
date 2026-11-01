@@ -43,6 +43,7 @@ export default function CropDoctor() {
   const [crop, setCrop] = useState(amanNow ? 'aman' : chosen.crop.id);
   const [img, setImg] = useState(null);
   const [selectedSample, setSelectedSample] = useState(null);
+  const [cloudConsent, setCloudConsent] = useState(false);
   const [note, setNote] = useState('');
   const [st, setSt] = useState({ phase: 'idle' }); // idle | checking | done | off | error
   const [err, setErr] = useState(null);
@@ -101,6 +102,7 @@ export default function CropDoctor() {
   const chooseCrop = (id) => {
     if (id === crop) return;
     clearResult();
+    setCloudConsent(false);
     setCrop(id);
     if (selectedSample) {
       setSelectedSample(null);
@@ -112,12 +114,14 @@ export default function CropDoctor() {
   const changeNote = (value) => {
     if (value === note) return;
     clearResult();
+    setCloudConsent(false);
     setNote(value);
   };
 
   const pickSample = async (smp) => {
     const id = invalidateWork();
     setSelectedSample(smp.id);
+    setCloudConsent(false);
     setCrop(smp.crop);
     setImg(null);
     setNote(smp.note[lang] || smp.note.bn);
@@ -139,6 +143,7 @@ export default function CropDoctor() {
     const id = invalidateWork();
     setErr(null);
     setSelectedSample(null);
+    setCloudConsent(false);
     const reader = new FileReader();
     setImg(null);
     setSt({ phase: 'idle' });
@@ -229,7 +234,7 @@ export default function CropDoctor() {
   };
 
   const check = async () => {
-    if (!img || st.phase === 'checking') return;
+    if (!img || !cloudConsent || st.phase === 'checking') return;
     const id = invalidateWork();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -276,14 +281,14 @@ export default function CropDoctor() {
     setSentId(id);
     toast('ছবি কৃষি কর্মকর্তার কাছে পাঠানো হয়েছে', 'Photo sent to your officer');
   };
-  const reset = () => { invalidateWork(); setImg(null); setSelectedSample(null); setSt({ phase: 'idle' }); setSentId(null); setNote(''); setErr(null); };
+  const reset = () => { invalidateWork(); setImg(null); setSelectedSample(null); setCloudConsent(false); setSt({ phase: 'idle' }); setSentId(null); setNote(''); setErr(null); };
 
   return (
     <div>
       <PageHeader
         eyebrow={T('ফসলের ডাক্তার', 'Crop doctor')}
         title={T('ফসলের ছবি দেখে প্রথম ধারণা', 'A first look from a crop photo')}
-        subtitle={T('পাতা বা গাছের পরিষ্কার ছবি দিন। ক্লাউড AI লক্ষণগুলো দেখে, পাওয়া গেলে জমির আবহাওয়া, উপগ্রহ ও মাটির তথ্যও বিবেচনা করে। উত্তরটি প্রাথমিক ধারণা—চূড়ান্ত রোগ নির্ণয় নয়; নিশ্চিত হতে কৃষি কর্মকর্তাকে দেখান।', 'Add a clear photo of a leaf or plant. Cloud AI checks the visible symptoms and, when available, considers your field’s weather, satellite and soil data. Treat the answer as a first look, not a diagnosis; ask your agriculture officer to confirm.')}
+        subtitle={T('পাতা বা গাছের পরিষ্কার ছবি দিন। ক্লাউড AI চালু থাকলে লক্ষণগুলো দেখে; না থাকলে অফলাইন রঙ-পরীক্ষা শুধু পিক্সেলের রং মাপে, রোগ শনাক্ত করে না। ফল প্রাথমিক ধারণা—নিশ্চিত হতে কৃষি কর্মকর্তাকে দেখান।', 'Add a clear photo of a leaf or plant. If cloud AI is configured, it reviews the visible symptoms; otherwise the offline colour check only measures pixel colours and cannot identify a disease. Treat any result as a first look and ask your agriculture officer to confirm.')}
         tags={['AI', 'REAL']}
       />
 
@@ -336,9 +341,23 @@ export default function CropDoctor() {
                     </div>
                   )}
                 </div>
+                {st.phase !== 'done' && (
+                  <label className="mx-auto mt-3 flex min-h-11 max-w-xl cursor-pointer items-start gap-2 rounded-xl border border-border bg-white/80 p-3 text-left text-[12.5px] leading-5 text-ink/80">
+                    <input
+                      type="checkbox"
+                      checked={cloudConsent}
+                      onChange={(e) => setCloudConsent(e.target.checked)}
+                      className="mt-0.5 h-5 w-5 shrink-0 accent-primary-700"
+                    />
+                    <span>{T('অনলাইন AI যাচাই বেছে নিলে ছবি, গ্রাম/ইউনিয়ন/উপজেলা, ফসলের স্তর, আবহাওয়া, উপগ্রহ ও মাটির তথ্য এবং আমার লেখা কনফিগার করা ক্লাউড AI সেবায় পাঠাতে সম্মতি দিচ্ছি। ছবির GPS মুছে যায়; আমার নাম পাঠানো হয় না।', 'I agree that online AI review may send the photo, village/union/upazila, crop stage, weather, satellite and soil details, and my note to the configured cloud AI service. Photo GPS is removed; my name is not included.')}</span>
+                  </label>
+                )}
                 <div className="mt-4 flex flex-wrap justify-center gap-2.5">
                   {st.phase !== 'checking' && st.phase !== 'done' && (
-                    <Button onClick={check} className="btn-gloss shadow-sm"><ScanLine size={17} />{T('ডাক্তারকে দেখান', 'Ask the doctor')}</Button>
+                    <>
+                      <Button disabled={!cloudConsent} onClick={check} className="btn-gloss shadow-sm"><ScanLine size={17} />{T('ক্লাউড AI-তে দেখান', 'Ask cloud AI')}</Button>
+                      <Button variant="secondary" onClick={runOfflineAssessment}><Sparkles size={16} />{T('অফলাইনে দেখুন', 'Check offline')}</Button>
+                    </>
                   )}
                   {st.phase === 'checking' && (
                     <Button disabled loading={true}>{T('খুঁটিয়ে দেখছে…', 'Looking closely…')}</Button>
@@ -443,7 +462,7 @@ export default function CropDoctor() {
               </div>
             </div>
             <p className="mt-2.5 text-[12px] leading-relaxed text-muted">
-              {T('ছবি ছোট করে পাঠানো হয়, ছবির ভেতরের জায়গার তথ্য (জিপিএস) মুছে যায়। AI-কে আপনার নাম পাঠানো হয় না।', 'The photo is made smaller before it is sent, which also removes its location (GPS) data. Your name is not sent to the AI.')}
+              {T('অনলাইন AI-তে ছবির সঙ্গে এখানে দেখানো জমির তথ্য ও আপনার লেখা যেতে পারে; ছবি ছোট করে GPS মুছে পাঠানো হয়। অফলাইন পরীক্ষা এই যন্ত্রেই থাকে।', 'Online AI may receive the field details shown here and your note with the photo; the image is resized and its GPS metadata removed. The offline check stays on this device.')}
             </p>
           </div>
         </Card>
@@ -481,7 +500,7 @@ export default function CropDoctor() {
                 <Note tone="gold">
                   {st.phase === 'off'
                     ? T('ক্লাউড AI ডাক্তার এই মুহূর্তে সংযুক্ত নয়। তবে আপনি অফলাইন প্রাক-মূল্যায়ন দেখতে পারেন বা সরাসরি কৃষি কর্মকর্তাকে পাঠাতে পারেন।', 'The cloud AI doctor is not connected right now. You can view an offline assessment or send the photo straight to your officer.')
-                    : st.status === 429 ? T('ডাক্তার এখন ব্যস্ত, এক মিনিট পরে আবার চেষ্টা করুন।', 'The doctor is busy; try again in a minute.')
+                    : st.status === 429 ? T('অনেকবার অনুরোধ করা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।', 'The request limit was reached. Please try again later.')
                       : st.status === 422 ? T('এই ছবির উত্তর দেওয়া গেল না। কৃষি কর্মকর্তাকে পাঠান।', 'No answer could be given for this photo. Send it to your officer.')
                         : st.msg === 'offline' ? T('ইন্টারনেট পাওয়া যাচ্ছে না। সংযোগ দেখে আবার চেষ্টা করুন।', 'No internet connection. Check it and try again.')
                           : T('ডাক্তারের কাছ থেকে উত্তর আসেনি। আবার চেষ্টা করুন, বা কর্মকর্তাকে পাঠান।', 'No answer came back. Try again, or send it to your officer.')}
@@ -650,7 +669,9 @@ export default function CropDoctor() {
                   </div>
                 )}
                 <p className="mt-3 text-[11.5px] text-muted">
-                  {T(`AI ডাক্তারের উত্তর, ${clockText(st.at, 'bn')}। AI ভুল করতে পারে, তাই জমিতে গিয়ে মিলিয়ে দেখুন।`, `The AI doctor’s answer, ${clockText(st.at, 'en')}. AI can be wrong, so check it in the field.`)}
+                  {st.offlineFallback
+                    ? T(`অফলাইন ${rep.on_device_pixel_check ? 'রঙের হিসাব' : 'লক্ষণ-তথ্য'}, ${clockText(st.at, 'bn')}। এটি রোগ নির্ণয় নয়।`, `Offline ${rep.on_device_pixel_check ? 'colour check' : 'symptom reference'}, ${clockText(st.at, 'en')}. This is not a diagnosis.`)
+                    : T(`AI ডাক্তারের উত্তর, ${clockText(st.at, 'bn')}। AI ভুল করতে পারে, তাই জমিতে গিয়ে মিলিয়ে দেখুন।`, `The AI doctor’s answer, ${clockText(st.at, 'en')}. AI can be wrong, so check it in the field.`)}
                 </p>
               </>
             )}

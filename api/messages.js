@@ -1,4 +1,5 @@
 import { parseBody } from './body.js';
+import { isHostedRuntime } from './runtime.js';
 
 // Officer → farmer messages (replies to requests, area advice, weather warnings, upazila notices), so a message sent
 // from the office reaches the farmer's own phone. Same Upstash Redis store as api/plans.js (KV_REST_API_URL /
@@ -32,6 +33,7 @@ export function cleanAdv(a) {
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  if (isHostedRuntime()) return res.status(503).json({ error: 'persistent message storage is disabled until authenticated access exists' });
   if (!URL_ || !TOKEN) return res.status(503).json({ error: 'message store not configured' });
   try {
     if (req.method === 'GET') {

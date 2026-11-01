@@ -1,8 +1,9 @@
 # Testing with farmers and officers
 
-A protocol and record for testing the main flow with Bangladeshi farmers and agriculture officers. **The team
-reports that farmer and officer validation has been completed.** The date, place, participant counts, tasks,
-findings and resulting fixes have not yet been added to this record; do not infer them from the protocol below.
+A protocol and record for testing the main flow with Bangladeshi farmers and agriculture officers. The team has
+reported that testing took place, but this repository contains no session date, place, participant counts,
+participant responses, findings or resulting fixes. Treat field validation as unverified until those records are
+added; do not infer results from the protocol below.
 
 **Run it with the kit in the app: `/testkit`.** It reads the consent, times the four tasks, records the three
 questions and the problems seen (never a name), and exports a CSV and ready-made rows for the results table below.

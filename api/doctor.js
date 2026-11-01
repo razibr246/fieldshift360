@@ -1,4 +1,5 @@
 import { parseBody } from './body.js';
+import { rateLimitResponse } from './rateLimit.js';
 
 // Crop doctor: a first look at a farmer's crop photo by Google Gemini (vision), with the field's live context and
 // Google Search grounding, so advice follows current Bangladesh recommendations. Vercel serverless function. Needs
@@ -130,6 +131,9 @@ export default async function handler(req, res) {
   const known = Array.isArray(body?.known) ? body.known.slice(0, 12).map((k) => ({ key: String(k.key).slice(0, 30), en: String(k.en).slice(0, 60) })) : [];
   const context = typeof body?.context === 'object' && body.context ? body.context : {};
   if (context.note) context.note = String(context.note).slice(0, 500);
+
+  const blocked = await rateLimitResponse(req, res, { scope: 'doctor', limit: 12, windowSeconds: 3600 });
+  if (blocked) return blocked;
 
   if (gemini) {
     try {
