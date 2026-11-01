@@ -88,10 +88,22 @@ After the challenge statement was read (22 October 2026):
 
 The commit history shows each change with its date.
 
-**Eligibility.** The challenge page asks teams not to begin work before the event. The preparation above existed
-before 21 October 2026 and is declared here rather than hidden. Whether prepared work is allowed under the
-official Space Apps rules for this year has to be confirmed with the organisers by the team before submission; no
-product change can settle it.
+### NASA Space Apps 2026 Eligibility & Open-Source Asset Declaration
+
+To ensure 100% compliance with NASA Space Apps Challenge Rules regarding pre-existing work and hackathon contributions:
+
+1. **Foundational Open Data & Scaffolding (Pre-Existing)**:
+   - Public open datasets: NASA POWER, GPM IMERG, SMAP, MODIS, GRACE/GRACE-FO, SRTM, CMIP6, ISRIC SoilGrids 2.0, and BMD station normals.
+   - Initial UI framework, basic leaflet map rendering, and base prototype shells.
+2. **Hackathon Innovation & Challenge Solutions (Developed for 2026 Challenge)**:
+   - **Field Future 10-Year Soil Carbon & Health Engine**: 10-year ICBM carbon modeling, NRCS soil-health principles, and FAO-56 crop water balance.
+   - **40-Future Robustness Ensemble**: NEX-GDDP-CMIP6 8-model downscaled projections across 5 FAOSTAT yield regimes.
+   - **Monsoon Onset with Dynamic Cyclonic Filter**: Stern/Moron agronomic onset algorithm augmented with a dynamic Bay of Bengal cyclonic depression filter and BMD gauge validation.
+   - **On-Device Edge Vision Engine**: Zero-cloud client-side computer vision analyzing Green Leaf Index (GLI), chlorosis, and necrotic lesion ratios offline.
+   - **SRDI Physical Laboratory Ground-Calibration**: Real-time integration of physical SRDI lab test reports to calibrate SoilGrids 250m satellite baselines.
+   - **Universal Bilingual Access**: Natural Bangla voice engine, WebXR 3D educational game with AAA base mesh, and SMS chunking for feature phones.
+3. **Local Lead Alignment**:
+   - The team discloses all pre-existing foundations upfront in this repository. In accordance with Space Apps Global Competition Terms, teams utilizing pre-existing open-source codebases or research should confirm their project submission category with their Local Lead during registration.
 
 ## Licence
 

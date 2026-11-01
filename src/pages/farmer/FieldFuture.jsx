@@ -21,6 +21,7 @@ import LandFromSpace from '../../components/future/LandFromSpace';
 import SoilVerdict from '../../components/future/SoilVerdict';
 import StrategyCompare from '../../components/future/StrategyCompare';
 import BoroSensitivity from '../../components/future/BoroSensitivity';
+import SrdiCalibrationCard from '../../components/future/SrdiCalibrationCard';
 import JudgementNote from '../../components/explain/JudgementNote';
 import { runnerUp, soilVerdict } from '../../engine/explain';
 import { fieldTerrain } from '../../engine/briefs';
@@ -63,20 +64,21 @@ export default function FieldFuture() {
   const [world, setWorld] = useState('now');
   const [scen, setScen] = useState('ssp245');
   const [own, setOwn] = useState(null);
+  const [labReport, setLabReport] = useState(null);
   const [brief, setBrief] = useState('best'); // which strategy's full brief is open
   const change = useMemo(() => climateChange(deltas, upazila.id, scen), [upazila.id, scen]);
-  const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ }),
-    [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ]);
+  const ctx = useMemo(() => fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, labReport }),
+    [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, labReport]);
   const planRabi = chosen.crop.id, planK1 = rotation.best?.crop.id ?? 'fallow';
   const ff = useMemo(() => fieldFuture({ ctx, lastCrop, plan: { rabi: planRabi, k1: planK1 }, priorities: s.priorities, exclude: s.exclude ?? [] }),
     [ctx, lastCrop, planRabi, planK1, s.priorities, s.exclude]);
   const futureHeatSensitivity = useMemo(() => [
     { id: 'current', label: T('বর্তমান সীমা: ৩৫° · ৩ দিন', 'Current rule: 35 °C · 3 days'), result: ff },
     ...BORO_HEAT_SENSITIVITIES.map((variant) => {
-      const changedCtx = fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, boroHeat: variant });
+      const changedCtx = fieldContext({ clim, change, soil, plot: farmer, amanT: rotation.amanMeasured ? rotation.amanT : null, econ, boroHeat: variant, labReport });
       return { id: variant.id, label: L(variant), result: rankBoroSensitivity(ff, changedCtx, s.priorities, s.exclude ?? []) };
     }),
-  ], [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, lastCrop, planRabi, planK1, s.priorities, s.exclude, ff, T, L]);
+  ], [clim, change, soil, farmer, rotation.amanMeasured, rotation.amanT, econ, lastCrop, planRabi, planK1, s.priorities, s.exclude, ff, T, L, labReport]);
   const futureHeatRows = futureHeatSensitivity.map(({ id, label, result }, index) => ({
     id, label, baseline: index === 0,
     ranks: result.top.slice(0, 3).map((item) => ({ id: keyOf(item.rot), name: rotName(item.rot, { short: true }), score: item.score })),
@@ -140,6 +142,17 @@ export default function FieldFuture() {
       <JudgementNote className="mb-4" />
       <BoroSensitivity rows={futureHeatRows} />
       {seen && <SatHabit seen={seen} farmer={farmer} habitFrom={useSat ? 'sat' : 'registry'} setHabitFrom={setHabitFrom} canUse={seen.usable} />}
+      <SrdiCalibrationCard
+        baseSoil={soil}
+        calibratedSoil={ctx.soil}
+        labReport={labReport}
+        onApplyReport={setLabReport}
+        onReset={() => setLabReport(null)}
+        upazilaId={upazila.id}
+        lang={lang}
+        T={T}
+        L={L}
+      />
       <TimeMachine cols={cols} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} w={w} />
       <BestCard ff={ff} sumOf={sumOf} rotName={rotName} onEdit={editFrom} w={w} />
       <div className="mt-3 flex flex-wrap gap-2.5">

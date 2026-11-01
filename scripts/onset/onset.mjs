@@ -19,8 +19,20 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-export const RULE = { searchFrom: [5, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years' };
+export const RULE = { searchFrom: [5, 15], wetDays: 5, minRainyDays: 3, rainyMm: 1, dryWindow: 10, dryTotalMm: 5, lookahead: 30, setInShare: 0.5, refYears: [2001, 2025], finalTo: 2025, thresholdFrom: 'mean 5-day June–September rain over the reference years', cyclonicFilter: true, cyclonicConcentration: 0.70 };
 const DAY = 864e5;
+
+// Distinguish an episodic pre-monsoon cyclonic depression / tropical storm from the persistent synoptic ITCZ monsoon trough.
+// A cyclone delivers >= 70% of its 5-day rainfall in a single concentrated cloudburst day, followed by post-storm subsidence (< 15 mm in 10 days).
+export function isCyclonicDepression(pentadRain, postRain10d = null, threshold = 0.70) {
+  const sum = pentadRain.reduce((a, b) => a + (b ?? 0), 0);
+  if (sum <= 0) return false;
+  const maxDay = Math.max(...pentadRain.map((x) => x ?? 0));
+  const concentration = maxDay / sum;
+  if (concentration < threshold) return false;
+  if (postRain10d != null) return postRain10d < 15;
+  return true;
+}
 
 export function series(json, key) {
   const t0 = Date.parse(`${json.start}T00:00:00Z`);
@@ -39,8 +51,23 @@ export function onsetIndex(s, year, W, r = RULE, month = (W / r.wetDays) * r.loo
   const from = at(s, year, ...r.searchFrom), last = at(s, year, 9, 30);
   for (let i = from; i <= last && i + r.wetDays + r.lookahead < s.v.length; i++) {
     let sum = 0, rainy = 0, gap = false;
-    for (let k = 0; k < r.wetDays; k++) { const x = s.v[i + k]; if (x == null) { gap = true; break; } sum += x; if (x >= r.rainyMm) rainy++; }
+    const pentad = [];
+    for (let k = 0; k < r.wetDays; k++) {
+      const x = s.v[i + k];
+      if (x == null) { gap = true; break; }
+      pentad.push(x);
+      sum += x;
+      if (x >= r.rainyMm) rainy++;
+    }
     if (gap || sum < W || rainy < r.minRainyDays) continue;
+
+    // Dynamic cyclonic filter: reject isolated pre-monsoon cyclonic surges followed by dry subsidence
+    if (r.cyclonicFilter) {
+      let post10 = 0;
+      for (let k = 0; k < 10; k++) post10 += s.v[i + r.wetDays + k] ?? 0;
+      if (isCyclonicDepression(pentad, post10, r.cyclonicConcentration ?? 0.70)) continue;
+    }
+
     let falseStart = false;
     const a = i + r.wetDays;
     for (let j = a; j + r.dryWindow <= a + r.lookahead; j++) {

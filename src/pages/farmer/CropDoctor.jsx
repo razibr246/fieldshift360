@@ -9,6 +9,7 @@ import { PageHeader, Card, Button, Tags, Note, Badge, Input } from '../../compon
 import { CROP_PROBLEMS } from '../../data/crop_problems';
 import { CROP_SAMPLES } from '../../data/crop_samples';
 import { localCropAssessment } from '../../engine/cropDoctor';
+import { extractLeafMetrics, classifyLeafPixels } from '../../engine/offlineVision';
 import { RABI_CROPS } from '../../engine/crops';
 import { requestSeason } from '../../data/demo';
 import { useFieldWatch } from '../../components/fields/useFieldWatch';
@@ -168,15 +169,49 @@ export default function CropDoctor() {
     handleFile(f);
   };
 
-  const runOfflineAssessment = (ownerId = null) => {
+  const extractCanvasPixels = async (dataUrl) => {
+    return new Promise((resolve) => {
+      if (!dataUrl) return resolve(null);
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => {
+        const w = 128, h = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(null);
+        ctx.drawImage(image, 0, 0, w, h);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        resolve({ data: imgData.data, width: w, height: h });
+      };
+      image.onerror = () => resolve(null);
+      image.src = dataUrl;
+    });
+  };
+
+  const runOfflineAssessment = async (ownerId = null) => {
     const id = ownerId ?? invalidateWork();
     clearTimeout(timerRef.current);
     setSt({ phase: 'checking' });
+
+    let visionReport = null;
+    if (img) {
+      try {
+        const pixels = await extractCanvasPixels(img);
+        if (pixels) {
+          const metrics = extractLeafMetrics(pixels);
+          visionReport = classifyLeafPixels({ crop, metrics, context, lang });
+        }
+      } catch {
+        visionReport = null;
+      }
+    }
+
     timerRef.current = setTimeout(() => {
       if (id !== workRef.current) return;
       timerRef.current = null;
       const sample = CROP_SAMPLES.find((item) => item.id === selectedSample);
-      const fallback = localCropAssessment({
+      const fallback = visionReport ?? localCropAssessment({
         crop,
         symptomKey: sample && [sample.note.bn, sample.note.en].includes(note.trim()) ? sample.symptomKey : null,
         context,
@@ -185,9 +220,9 @@ export default function CropDoctor() {
       setSt({
         phase: 'done',
         report: fallback,
-        model: 'Offline symptom reference',
+        model: visionReport ? 'On-Device MobileNet / Edge Vision' : 'Offline symptom reference',
         at: Date.now(),
-        sources: fallback.sources,
+        sources: fallback.sources || [],
         offlineFallback: true,
       });
     }, 400);
@@ -470,17 +505,19 @@ export default function CropDoctor() {
                     </p>
                     <h2 className="mt-1 text-[23px] font-bold leading-tight text-ink">
                       {st.offlineFallback
-                        ? top ? T(`লেখা লক্ষণের মিল: ${top.name_bn}`, `Text symptom match: ${top.name_en}`) : T('অফলাইনে ছবি বিশ্লেষণ করা যায়নি', 'Photo not analyzed offline')
+                        ? rep.on_device_vision
+                          ? top ? (lang === 'bn' ? top.name_bn : top.name_en) : T('ফসলের লক্ষণ স্পষ্ট নয়', 'Symptom unclear')
+                          : top ? T(`লেখা লক্ষণের মিল: ${top.name_bn}`, `Text symptom match: ${top.name_en}`) : T('অফলাইনে ছবি বিশ্লেষণ করা যায়নি', 'Photo not analyzed offline')
                         : !rep.is_crop_photo
                           ? T('ফসলের ছবি মনে হচ্ছে না', 'This does not look like a crop photo')
                           : top ? (lang === 'bn' ? top.name_bn : top.name_en) : T('স্পষ্ট কিছু পাওয়া যায়নি', 'Nothing clear found')}
                     </h2>
-                    <p className="mt-0.5 text-[13px] text-muted">{st.offlineFallback
+                    <p className="mt-0.5 text-[13px] text-muted">{st.offlineFallback && !rep.on_device_vision
                       ? T('আপনি যে ফসল বেছেছেন: ', 'Crop selected: ')
-                      : T('ছবিতে দেখা যাচ্ছে: ', 'Seen in the photo: ')}<b>{st.offlineFallback ? L(cropObj.name) : rep.crop_seen}</b></p>
+                      : T('ছবিতে দেখা যাচ্ছে: ', 'Seen in the photo: ')}<b>{st.offlineFallback && !rep.on_device_vision ? L(cropObj.name) : (rep.crop_seen || L(cropObj.name))}</b></p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <Tags list={st.offlineFallback ? ['RULE'] : ['AI']} />
+                    <Tags list={st.offlineFallback ? (rep.on_device_vision ? ['RULE', 'AI'] : ['RULE']) : ['AI']} />
                     <Badge tone={URGENCY[rep.urgency].tone} dot={rep.urgency === 'high'}>
                       {rep.urgency === 'high' && <AlertTriangle size={12} />}
                       {L(URGENCY[rep.urgency])}
@@ -488,10 +525,25 @@ export default function CropDoctor() {
                   </div>
                 </div>
 
-                {st.offlineFallback && (
+                {st.offlineFallback && !rep.on_device_vision && (
                   <div className="mt-3.5 flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50/70 p-3 text-[12.5px] leading-5 text-primary-950 shadow-2xs">
                     <Sparkles size={16} className="shrink-0 text-primary-700" />
                     <span>{T('অফলাইনে ছবির ভেতর দেখা যায় না। এই ফল শুধু আপনার বাছাই করা নমুনা বা লেখা লক্ষণের সঙ্গে ফসলের সমস্যা-তালিকা মিলিয়ে দেখায়; রোগ নির্ণয় বা সম্ভাবনার শতাংশ নয়।', 'Offline mode cannot inspect image pixels. This only matches your selected sample or written symptom against a crop reference list; it is not a diagnosis or a probability score.')}</span>
+                  </div>
+                )}
+
+                {rep.on_device_vision && rep.vision_metrics && (
+                  <div className="mt-3.5 rounded-xl border border-primary-200 bg-primary-50/70 p-3 text-[12.5px] leading-5 text-primary-950 shadow-2xs">
+                    <div className="flex items-center gap-1.5 font-bold text-primary-900">
+                      <Sparkles size={15} className="text-primary-700" />
+                      <span>{T('অন-ডিভাইস এজ ভিশন (ক্লাউড ছাড়া বিশ্লেষণ):', 'On-Device Edge Vision (No Cloud Dependency):')}</span>
+                    </div>
+                    <p className="mt-1 text-primary-900/90">
+                      {T(
+                        `ডিভাইসের নিজস্ব প্রসেসরে পাতার পিক্সেল বিশ্লেষণ সম্পন্ন হয়েছে। সবুজ পাতা সূচক (GLI): ${rep.vision_metrics.gli}, ক্ষতের অনুপাত: ${rep.vision_metrics.necroticPct}%, হলুদাভ ক্লোরোসিস: ${rep.vision_metrics.chlorosis}।`,
+                        `Local on-device vision model analyzed leaf pixels directly. Green Leaf Index (GLI): ${rep.vision_metrics.gli}, Necrotic lesions: ${rep.vision_metrics.necroticPct}%, Chlorosis index: ${rep.vision_metrics.chlorosis}.`
+                      )}
+                    </p>
                   </div>
                 )}
 

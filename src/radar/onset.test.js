@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { onsetIndex, threshold, trend, RULE } from '../../scripts/onset/onset.mjs';
+import { onsetIndex, threshold, trend, RULE, isCyclonicDepression } from '../../scripts/onset/onset.mjs';
 import { onsetSummary, ONSET } from './onset.js';
 
 const DAY = 864e5;
@@ -14,6 +14,25 @@ function year() {
   for (let k = i(6, 10); k < i(9, 30); k++) v[k] = 12;
   return { t0: Date.UTC(2020, 0, 1), v, i };
 }
+
+test('dynamic cyclonic filter distinguishes pre-monsoon tropical depression spikes from the true ITCZ monsoon trough', () => {
+  // Test pure cyclonic detector function
+  const cyclonicPentad = [65, 3, 2, 0, 0]; // 70 mm total, 65 mm on day 1 (92.8% concentration)
+  assert.equal(isCyclonicDepression(cyclonicPentad, 5), true, 'Anomalous May cyclone spike with post-storm dry hiatus detected');
+  
+  const monsoonalPentad = [12, 14, 11, 10, 13]; // 60 mm total, max 14 mm (23.3% concentration)
+  assert.equal(isCyclonicDepression(monsoonalPentad, 50), false, 'Steady ITCZ monsoonal inflow is not classified as cyclone');
+
+  // Synthesize weather series with a May 18 cyclonic depression, followed by post-storm subsidence, then true June 10 monsoon
+  const s = year();
+  const may18 = s.i(5, 18);
+  s.v[may18] = 65;
+  s.v[may18 + 1] = 3;
+  s.v[may18 + 2] = 2;
+  // Without cyclonic filter, the anomalous spike could skew onset to mid-May
+  const filteredOnset = onsetIndex(s, 2020, 40, { ...RULE, cyclonicFilter: true });
+  assert.equal(filteredOnset, s.i(6, 9), 'Cyclonic filter skips anomalous pre-monsoon cyclone and identifies true June ITCZ monsoon');
+});
 
 test('a single pre-monsoon storm followed by a dry spell is a false start, not the onset', () => {
   const s = year();
