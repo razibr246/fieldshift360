@@ -112,6 +112,7 @@ export function useChakra(role) {
   const [phase, setPhase] = useState('idle'); // idle | listening | thinking | speaking
   const [interim, setInterim] = useState('');
   const [voiceOn, setVoiceOn] = useState(true); // speak answers aloud and listen again: the hands-free mode
+  const [voiceNote, setVoiceNote] = useState(null); // why the natural voice is off this visit ('quota' | 'no-key'), shown under the orb
   const [ai, setAi] = useState('unknown'); // unknown | on | off (api/agent.js not switched on)
   const pending = useRef(null); // a problem report waiting for the farmer's yes
   const rec = useRef(null);
@@ -143,6 +144,7 @@ export function useChakra(role) {
     if (!flags.current.voiceOn || !text) { setPhase('idle'); return; }
     setPhase('speaking');
     const r = await speakNatural(text, ref.current.s.lang, { onEnd: () => { setPhase('idle'); if (flags.current.voiceOn) listen(); } });
+    if (r.fallback === 'quota' || r.fallback === 'no-key') setVoiceNote(r.fallback);
     if (!r.ok) setPhase('idle');
   }, [listen]);
   const reply = useCallback((text, extra = {}) => { setMessages((m) => [...m, mk('bot', text, extra)]); say(text); }, [say]);
@@ -254,6 +256,6 @@ export function useChakra(role) {
 
   return {
     role, mode, setMode, tasks, verdicts, approve, act, reject, dismiss, audit, auditOk: verifyAudit(audit),
-    messages, phase, interim, voiceOn, setVoiceOn, ai, send, listen, stopAll, start,
+    messages, phase, interim, voiceOn, setVoiceOn, voiceNote, ai, send, listen, stopAll, start,
   };
 }

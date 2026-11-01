@@ -183,6 +183,7 @@ function Panel({ c, onClose }) {
           <div className="flex flex-col items-center gap-1">
             <ChakraOrb phase={c.phase} size={76} onClick={talk} label={c.phase === 'listening' ? T('শোনা থামান', 'Stop listening') : T('কথা বলুন', 'Talk')} />
             <span className="text-[11.5px] text-white/50">{{ listening: T('শুনছি…', 'Listening…'), thinking: T('ভাবছি…', 'Thinking…'), speaking: T('বলছি… থামাতে ছুঁয়ে দিন', 'Speaking… tap to stop') }[c.phase] ?? T('ছুঁয়ে কথা বলুন', 'Tap and speak')}</span>
+            {c.voiceNote && <span className="max-w-[200px] text-center text-[10.5px] leading-4 text-amber-200/80">{c.voiceNote === 'quota' ? T('আজকের স্বাভাবিক কণ্ঠের সীমা শেষ; কাল আবার ফিরবে। এখন ডিভাইসের কণ্ঠ।', 'Today’s natural-voice limit is used; it is back tomorrow. Device voice for now.') : T('স্বাভাবিক কণ্ঠ চালু নেই; ডিভাইসের কণ্ঠ বলছে।', 'Natural voice is off; the device voice speaks.')}</span>}
           </div>
           <button type="button" onClick={() => { setTyping(!typing); setTab('talk'); }} className={`grid h-12 w-12 place-items-center rounded-full ${typing ? 'bg-white text-primary-950' : 'bg-white/10 hover:bg-white/20'}`} aria-pressed={typing} aria-label={T('লিখে বলুন', 'Type instead')}><Keyboard size={20} /></button>
         </div>

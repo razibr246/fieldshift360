@@ -120,13 +120,20 @@ export async function speak(text, lang, { rate = 0.97, pitch = 1, gap = 130, onE
   return { ok: true, voice: voice?.name ?? null };
 }
 
-// The natural voice: Gemini text-to-speech through api/tts.js (warm Bangladeshi Bangla, fluent British English), played
-// as audio. Any failure (no key, offline, slow) falls back to the browser's own voice above, so speech never stops.
-// The same words are not fetched twice; after a missing-key or quota response, the server is not asked again this visit.
+// The natural voice: Gemini text-to-speech through api/tts.js (a young Bangladeshi woman's Bangla, fluent British
+// English), played as audio. Kept steady on purpose: one voice for the whole conversation, never a quiet switch.
+// * Every clip is remembered, in memory and in the browser's Cache Storage, so a line heard once (the greeting, a
+//   briefing, a common answer) plays at once on every later visit, in the same voice, without using the day's quota.
+// * A long reply is spoken as two clips: the first sentence is fetched on its own, so speech starts in a few seconds
+//   while the rest is made. Short replies stay one clip (the free tier allows few requests a day).
+// * A slow or failed request is tried once more before anything else happens. Only when there is no key, no quota left
+//   or no network does the device's own voice speak, and naturalVoiceState() says why so the screen can tell the person.
 let audio = null;
-let ttsOff = false;
+let ttsOff = null; // null, or why the natural voice is off for this visit: 'no-key' | 'quota'
+export const naturalVoiceState = () => ttsOff;
+const VOICE_CACHE = 'fs360-voice-v1'; // a new name when the voice itself changes, so old clips are not replayed
 // Replays (the children's "Dream again", a repeated briefing) should not wait for the network again: up to 64 clips,
-// and at most ~16 MB of audio text in all, the oldest dropped first.
+// and at most ~16 MB of audio text in memory, the oldest dropped first.
 const clips = new Map();
 const MAX_CLIPS = 64, MAX_CHARS = 16_000_000;
 let clipChars = 0;
@@ -137,43 +144,84 @@ const keepClip = (key, src) => {
     clips.delete(k); clipChars -= v.length;
   }
 };
+const hashKey = (k) => { let h = 2166136261; for (let i = 0; i < k.length; i++) h = Math.imul(h ^ k.charCodeAt(i), 16777619); return `${(h >>> 0).toString(36)}-${k.length}`; };
+const cacheReq = (key) => new Request(`${w.location?.origin ?? ''}/__voice/${hashKey(key)}`);
+async function storedClip(key) {
+  try { const c = await w.caches?.open(VOICE_CACHE); const r = await c?.match(cacheReq(key)); return r ? await r.text() : null; } catch { return null; }
+}
+async function storeClip(key, src) {
+  try { const c = await w.caches?.open(VOICE_CACHE); await c?.put(cacheReq(key), new Response(src)); } catch { /* storage full or blocked: memory only */ }
+}
+
+// One clip: memory, then Cache Storage, then api/tts.js with one retry on a slow or failed request.
+async function fetchClip(text, lang) {
+  const key = `${lang}|${text}`;
+  const mem = clips.get(key);
+  if (mem) return { src: mem };
+  const kept = await storedClip(key);
+  if (kept) { keepClip(key, kept); return { src: kept }; }
+  if (ttsOff || w.navigator?.onLine === false) return { fail: ttsOff ?? 'offline' };
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch('/api/tts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text, lang }), signal: AbortSignal.timeout(18000) });
+      if (r.status === 503 || r.status === 404) { ttsOff = 'no-key'; return { fail: ttsOff }; }
+      if (r.status === 429) { ttsOff = 'quota'; return { fail: ttsOff }; }
+      if (r.ok) {
+        const j = await r.json();
+        const src = `data:${j.mime};base64,${j.audio}`;
+        keepClip(key, src); storeClip(key, src);
+        return { src };
+      }
+    } catch { /* timeout or network: one more try */ }
+  }
+  return { fail: 'error' };
+}
+
+// The first sentence, and the rest, of a reply long enough to be worth two requests.
+function splitFirst(t) {
+  if (t.length < 140) return [t];
+  const m = /^(.{25,220}?[।.?!])\s+(.+)$/s.exec(t);
+  return m ? [m[1], m[2]] : [t];
+}
+
+// The natural voice's own turn counter: speak() moves `run`, so a device-voice part must not look like a stop.
+let chain = 0;
+const play = (src, me) => new Promise((resolve) => {
+  if (me !== chain) { resolve(false); return; }
+  const a = new Audio(src);
+  audio = a;
+  const done = (ok) => { if (audio === a) audio = null; resolve(ok); };
+  a.onended = () => done(true);
+  a.onerror = () => done(false);
+  a.play().catch(() => done(false));
+});
+
 export async function speakNatural(text, lang, opts = {}) {
   const t = String(text ?? '').trim();
   if (!t) { opts.onEnd?.(); return { ok: false, reason: 'empty' }; }
-  if (!ttsOff && typeof Audio !== 'undefined' && w.navigator?.onLine !== false) {
-    stopSpeaking();
-    const me = run;
-    try {
-      const key = `${lang}|${t}`;
-      let src = clips.get(key);
-      if (!src) {
-        const ctl = new AbortController();
-        const timer = setTimeout(() => ctl.abort(), 12000);
-        const r = await fetch('/api/tts', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: t, lang }), signal: ctl.signal });
-        clearTimeout(timer);
-        if (r.status === 503 || r.status === 404 || r.status === 429) ttsOff = true;
-        if (r.ok) {
-          const j = await r.json();
-          src = `data:${j.mime};base64,${j.audio}`;
-          keepClip(key, src);
-        }
-      }
-      if (me !== run) return { ok: false, reason: 'stopped' };
-      if (src) {
-        const a = new Audio(src);
-        audio = a;
-        a.onended = () => { if (audio === a) audio = null; opts.onEnd?.(); };
-        a.onerror = () => { if (audio === a) audio = null; opts.onEnd?.(); };
-        await a.play();
-        return { ok: true, voice: 'gemini', natural: true };
-      }
-    } catch { /* autoplay blocked, timeout or offline: the browser voice speaks instead */ }
-  }
-  return speak(t, lang, opts);
+  if (typeof Audio === 'undefined') return speak(t, lang, opts);
+  stopSpeaking();
+  const me = ++chain;
+  const parts = splitFirst(t);
+  const pending = parts.map((p) => fetchClip(p, lang)); // both requested at once; the first plays as soon as it is ready
+  const first = await pending[0];
+  if (me !== chain) return { ok: false, reason: 'stopped' };
+  if (!first.src) return { ...(await speak(t, lang, opts)), fallback: first.fail };
+  // Speak the clips in order; a later part that cannot be made is read by the device voice rather than skipped.
+  (async () => {
+    for (let i = 0; i < parts.length; i++) {
+      const c = i === 0 ? first : await pending[i];
+      if (me !== chain) return;
+      if (c.src) { if (!(await play(c.src, me))) break; }
+      else { await new Promise((resolve) => speak(parts[i], lang, { ...opts, onEnd: resolve })); }
+    }
+    if (me === chain) opts.onEnd?.();
+  })();
+  return { ok: true, voice: 'gemini', natural: true };
 }
 
 export const stopSpeaking = () => {
-  run++;
+  run++; chain++;
   try { audio?.pause(); } catch { /* not playing */ }
   audio = null;
   try { w.speechSynthesis?.cancel(); } catch { /* nothing playing */ }
