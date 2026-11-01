@@ -1,3 +1,5 @@
+import { parseBody } from './body.js';
+
 // Shared plan board: every farmer's confirmed season plan, so each union's harvest weeks add up across all users.
 // Vercel serverless function backed by Upstash Redis over its REST API (no SDK). Connect an Upstash Redis store to
 // the Vercel project (Storage → Upstash → Redis) and it injects KV_REST_API_URL / KV_REST_API_TOKEN; the plain
@@ -45,7 +47,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ plans, at: Date.now() });
     }
     if (req.method === 'POST') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body ?? {};
+      const parsed = parseBody(req.body);
+      if (!parsed.ok) return res.status(400).json({ error: 'bad json' });
+      const body = parsed.value;
       const plan = clean(body.plan, season);
       if (!plan) return res.status(400).json({ error: 'invalid plan' });
       const exists = await redis('HEXISTS', key, plan.plot_id);

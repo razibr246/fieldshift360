@@ -9,7 +9,7 @@
 // and skin with a soft sheen, and a painted face on every head — in their likeness for a farmer drawn from a real
 // person (look.face). The walk sways the hips and counter-turns the shoulders.
 import * as THREE from 'three';
-import { blink } from '../../engine/motion.js';
+import { blink, idleGaze, ageStoop, expressionFromState } from '../../engine/motion.js';
 
 const geo = {
   sphere: (r, w = 14, h = 10, ...rest) => new THREE.SphereGeometry(r, w, h, ...rest),
@@ -315,7 +315,9 @@ export function buildFarmer(look) {
   const female = isFemale(look);
   const hips = group(body, [0, 0.92, 0]);
   const torso = group(hips, [0, 0.02, 0]);
-  const P = { root, body, hips, torso, look, seed: ((look.skin ? look.skin.charCodeAt(1) : 3) + (look.hair ? look.hair.charCodeAt(1) : 7)) % 100 };
+  const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  const stoop = ageStoop(look.age ?? (look.beard ? 58 : look.hair === '#efece6' ? 72 : 34));
+  const P = { root, body, hips, torso, look, reducedMotion, ageStoop: stoop, seed: ((look.skin ? look.skin.charCodeAt(1) : 3) + (look.hair ? look.hair.charCodeAt(1) : 7)) % 100 };
   const lower = look.lower;
   const skirted = lower === 'ghagra' || lower === 'kira' || lower === 'longyi' || lower === 'sari';
   const kneeSkirt = lower === 'lungi' || lower === 'dhoti';
@@ -491,12 +493,15 @@ export function buildFarmer(look) {
   }
   P.eyelids = eyelids;
   const eyeM = mat('#16100c', { rough: 0.3 });
-  const browM = mat(look.beard ?? look.moustache ?? (look.head === 'gaungbaung' ? '#3a3330' : look.hair));
-  for (const s of []) {
-    mesh(geo.sphere(0.016, 8, 6), mat('#f4efe6'), head, [s * 0.042, 0.022, 0.104], [0, 0, 0], [1, 0.8, 0.5]);
-    mesh(geo.sphere(0.0105, 8, 6), eyeM, head, [s * 0.042, 0.022, 0.112]);
-    mesh(geo.box(0.04, 0.008, 0.01), browM, head, [s * 0.043, 0.052, 0.108], [0, 0, s * -0.12]);
+  const brows = [];
+  const browColor = look.beard ?? look.moustache ?? (look.head === 'gaungbaung' ? '#3a3330' : (look.hair || '#1a120c'));
+  const browM = mat(browColor, { rough: 0.88 });
+  for (const s of [-1, 1]) {
+    const browPivot = group(head, [s * 0.042, 0.052, 0.109]);
+    mesh(geo.box(0.038, 0.008, 0.012), browM, browPivot, [0, 0, 0], [0, 0, s * -0.12]);
+    brows.push({ pivot: browPivot, side: s, baseRotZ: s * -0.12 });
   }
+  P.brows = brows;
   if (look.beard) {
     // a full beard that follows the jaw from the cheeks round the chin, and a moustache curving over the lip
     const bm = mat(look.beard, { rough: 1, sheen: 0.4, sheenRough: 0.9, side: THREE.DoubleSide });
@@ -729,20 +734,30 @@ export function animate(P, st, dt) {
   if (a < 0.05 && !st.act) {
     const breathe = Math.sin(st.t * 2.2);
     torso.scale.set(1 + breathe * 0.012, 1 + breathe * 0.018, 1 + breathe * 0.014);
-    headY = Math.sin(st.t * 0.35) * 0.32 * Math.max(0, Math.sin(st.t * 0.21));
-    headX = Math.sin(st.t * 0.5) * 0.05;
+    const gaze = idleGaze(st.t, P.reducedMotion);
+    headY = gaze.y;
+    headX = gaze.x;
   } else {
     const exertion = 1 + (st.run ? 0.025 : 0.012) * Math.sin(st.t * 6);
     torso.scale.set(exertion, 1, exertion);
   }
 
-  // 3D Biological Blinking
+  // 3D Biological Blinking & Expressive Gestures
+  const expr = expressionFromState(st);
   const bVal = blink(st.t ?? 0, P.seed ?? 1);
   if (P.eyelids) {
+    const openLimit = 0.02 + expr.lidSquint;
     for (const lid of P.eyelids) {
-      lid.scale.y = 0.02 + bVal * 0.98;
-      lid.position.y = (1 - bVal) * 0.009;
+      lid.scale.y = openLimit + bVal * (1 - openLimit);
+      lid.position.y = (1 - bVal) * (0.009 * (1 - expr.lidSquint * 0.5));
       lid.position.z = bVal * 0.0025;
+    }
+  }
+  if (P.brows) {
+    const browLerp = Math.min(1, dt * 10);
+    for (const b of P.brows) {
+      b.pivot.position.y = lerp(b.pivot.position.y, 0.052 + expr.browY, browLerp);
+      b.pivot.rotation.z = lerp(b.pivot.rotation.z, b.baseRotZ + b.side * expr.browTilt, browLerp);
     }
   }
 
@@ -781,6 +796,7 @@ export function animate(P, st, dt) {
   // Let the head anticipate a turn slightly, rather than rotating as one rigid block.
   headY += Math.max(-0.2, Math.min(0.2, (st.turnRate ?? 0) * 0.035));
   if (st.down > 0) { hipY = 0.3; L[0] = L[1] = -1.45; K[0] = K[1] = 1.5; lean = 0.25; A[1] = -2.4; E[1] = -1.8; A[0] = -0.5; headX = 0.35; }
+  lean += (P.ageStoop ?? 0);
   const k = Math.min(1, dt * 14);
   hips.position.y = lerp(hips.position.y, hipY, k);
   P.body.position.y = lerp(P.body.position.y, bodyY, k);

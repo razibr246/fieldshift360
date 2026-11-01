@@ -62,6 +62,7 @@ const stamp = (p) => `${p}${Date.now().toString(36)}`;
 
 export function useBoard(id) {
   const [mode, setMode] = useState('checking'); // checking | server | local
+  const [writeError, setWriteError] = useState(false);
   const [board, setBoard] = useState(() => ({ requests: readLocal(id, 'req'), notices: readLocal(id, 'notice') }));
   const pull = useCallback(async () => {
     try {
@@ -89,18 +90,26 @@ export function useBoard(id) {
     if (mode === 'server') {
       try {
         const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cc: id, ...body }) });
-        if (r.ok) { await pull(); return; }
-      } catch { /* fall through to the browser copy */ }
+        if (!r.ok) throw new Error(`board write ${r.status}`);
+        await pull();
+        setWriteError(false);
+        return true;
+      } catch {
+        setWriteError(true);
+        return false;
+      }
     }
     const req = local.req ? local.req(readLocal(id, 'req')) : null;
     const nt = local.notice ? local.notice(readLocal(id, 'notice')) : null;
     if (req) writeLocal(id, 'req', req);
     if (nt) writeLocal(id, 'notice', nt);
     setBoard({ requests: readLocal(id, 'req'), notices: readLocal(id, 'notice') });
+    return true;
   }, [id, mode, pull]);
   const now = () => new Date().toISOString();
   return {
     mode,
+    writeError,
     req: {
       list: board.requests,
       add: (topic, text) => write({ op: 'request', topic, text }, { req: (p) => [{ id: stamp('R'), t: now(), topic, text, reply: null }, ...p] }),
@@ -117,6 +126,7 @@ export function useBoard(id) {
 export function BoardChip({ mode }) {
   const { T } = useStore();
   if (mode === 'checking') return null;
+  if (mode === 'error') return <span role="status" className="chip bg-red-50 text-red-800 ring-1 ring-red-200">{T('সার্ভারে পাঠানো যায়নি — আবার চেষ্টা করুন', 'Could not send to the server — try again')}</span>;
   return mode === 'server'
     ? <span className="chip bg-primary-50 text-primary-800 ring-1 ring-primary-200">{T('সার্ভারে শেয়ার — অন্য ফোনেও দেখা যায়', 'Shared on the server — seen on other phones')}</span>
     : <span className="chip bg-paddy-50 text-paddy-700 ring-1 ring-paddy-200">{T('শুধু এই ব্রাউজারে (সার্ভার চালু নেই)', 'This browser only (server not switched on)')}</span>;

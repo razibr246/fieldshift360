@@ -1,3 +1,5 @@
+import { parseBody } from './body.js';
+
 // Crop doctor: a first look at a farmer's crop photo by Google Gemini (vision), with the field's live context and
 // Google Search grounding, so advice follows current Bangladesh recommendations. Vercel serverless function. Needs
 // GEMINI_API_KEY in the project's environment (GEMINI_MODEL optionally picks the model); without it, Claude is used
@@ -117,8 +119,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'method not allowed' }); }
   const gemini = !!process.env.GEMINI_API_KEY;
   if (!gemini && !process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return res.status(503).json({ error: 'doctor not configured' });
-  let body = req.body;
-  try { if (typeof body === 'string') body = JSON.parse(body || '{}'); } catch { return res.status(400).json({ error: 'bad json' }); }
+  const parsed = parseBody(req.body);
+  if (!parsed.ok) return res.status(400).json({ error: 'bad json' });
+  const body = parsed.value;
   const image = String(body?.image ?? '');
   const crop = String(body?.crop ?? '');
   const lang = body?.lang === 'en' ? 'en' : 'bn';

@@ -326,12 +326,23 @@ const TOPICS = [
 export function Help() {
   const { s, T, L } = useStore();
   const lang = s.lang;
-  const { c, req, boardMode } = useAbroad();
+  const { c, req, boardMode, boardError } = useAbroad();
   const [topic, setTopic] = useState('pest');
   const [text, setText] = useState('');
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(false);
   useEffect(() => { req.seenAll(); }, [req.list.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  const send = (e) => { e.preventDefault(); if (!text.trim()) return; req.add(topic, text.trim()); setText(''); setSent(true); setTimeout(() => setSent(false), 2400); };
+  const send = async (e) => {
+    e.preventDefault();
+    if (!text.trim() || sending) return;
+    setSending(true);
+    const ok = await req.add(topic, text.trim());
+    setSending(false);
+    setSendError(!ok);
+    if (!ok) return;
+    setText(''); setSent(true); setTimeout(() => setSent(false), 2400);
+  };
   return (
     <div className="page-shell grid gap-5 lg:grid-cols-[1.1fr_1fr]">
       <Section icon={Send} title={T(`${c.local.role.bn}-কে জানান`, `Ask the ${c.local.role.en}`)} sub={L(c.local.office)}>
@@ -341,13 +352,14 @@ export function Help() {
           </div>
           <textarea aria-label={T(`${c.local.role.bn}-কে কী জানাবেন`, `Your message to the ${c.local.role.en}`)} value={text} onChange={(e) => setText(e.target.value)} rows={4} className="w-full rounded-2xl border border-border bg-white p-3 text-[15px] outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-100" placeholder={T('কী হয়েছে লিখুন — কোন ফসল, কবে থেকে, জমির কোন অংশে', 'Say what is wrong — which crop, since when, which part of the field')} />
           <div className="flex items-center gap-3">
-            <button type="submit" disabled={!text.trim()} className="btn-gloss inline-flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-semibold text-white disabled:opacity-50"><Send size={16} />{T('পাঠান', 'Send')}</button>
+            <button type="submit" disabled={!text.trim() || sending} className="btn-gloss inline-flex h-11 items-center gap-2 rounded-full px-5 text-[15px] font-semibold text-white disabled:opacity-50"><Send size={16} />{sending ? T('পাঠানো হচ্ছে…', 'Sending…') : T('পাঠান', 'Send')}</button>
             {sent && <span className="swap-in text-[13.5px] font-semibold text-primary-700">{T('পাঠানো হয়েছে — কর্মকর্তার পাতায় দেখা যাবে', 'Sent — it shows on the officer’s page')}</span>}
+            {sendError && <span role="alert" className="text-[13.5px] font-semibold text-red-700">{T('পাঠানো যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।', 'Not sent. Check the connection and try again.')}</span>}
           </div>
         </form>
         {c.local.phone && <a href={`tel:${c.local.phone}`} className="mt-4 inline-flex items-center gap-2 text-[14px] font-semibold text-primary-700"><Phone size={15} />{T('দপ্তরের ফোন', 'Office phone')}: {lang === 'bn' ? bnDigits(c.local.phone) : c.local.phone}</a>}
       </Section>
-      <Section icon={MessageSquareReply} title={T('আমার অনুরোধ', 'My requests')} sub={T('উত্তর এলে এখানে দেখা যাবে', 'Replies appear here')} tag={<BoardChip mode={boardMode} />}>
+      <Section icon={MessageSquareReply} title={T('আমার অনুরোধ', 'My requests')} sub={T('উত্তর এলে এখানে দেখা যাবে', 'Replies appear here')} tag={<BoardChip mode={boardError ? 'error' : boardMode} />}>
         {req.list.length === 0 ? <p className="text-[14px] text-muted">{T('এখনো কোনো অনুরোধ নেই।', 'No requests yet.')}</p> : (
           <ul className="space-y-2.5">
             {req.list.map((r) => (

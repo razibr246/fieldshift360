@@ -132,7 +132,7 @@ function Shell({ c }) {
             <>
               {/* The overview and whole-country pages carry their own big heading; every other tab gets one for screen readers. */}
               {here && here !== tabs[0] && !here.heading && <h1 className="sr-only">{L(c.name)} · {here.label}</h1>}
-              <Outlet context={{ c, data, fc, status, now, alerts, req, notices, boardMode: board.mode }} />
+              <Outlet context={{ c, data, fc, status, now, alerts, req, notices, boardMode: board.mode, boardError: board.writeError }} />
             </>
           )}
         </div>

@@ -227,6 +227,8 @@ export function Alerts() {
 function AlertCard({ a, lang, onSend, sent }) {
   const { T, L } = useStore();
   const [which, setWhich] = useState('local');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(false);
   const source = which === 'local' ? a.sms : a.smsEn;
   const [text, setText] = useState(source ?? '');
   useEffect(() => setText(source ?? ''), [source]);
@@ -249,7 +251,8 @@ function AlertCard({ a, lang, onSend, sent }) {
           )}
           <textarea dir="auto" value={text} onChange={(e) => setText(e.target.value)} rows={3} className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-[14.5px] leading-6 outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" aria-label={T('কৃষককে উত্তর (এসএমএসে যাবে)', 'Reply to the farmer (sent by SMS)')} />
           <SmsMeter text={text} className="mt-1" />
-          <button type="button" onClick={() => onSend(text)} disabled={sent} className="btn-gloss mt-2.5 inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold text-white disabled:opacity-60">{sent ? <><CheckCircle2 size={16} />{T('আজ পাঠানো হয়েছে', 'Sent today')}</> : <><Send size={15} />{T('কৃষককে পাঠান', 'Send to the farmer')}</>}</button>
+          <button type="button" onClick={async () => { setSending(true); const ok = await onSend(text); setSendError(!ok); setSending(false); }} disabled={sent || sending} className="btn-gloss mt-2.5 inline-flex h-10 items-center gap-2 rounded-full px-4 text-[14px] font-semibold text-white disabled:opacity-60">{sent ? <><CheckCircle2 size={16} />{T('আজ পাঠানো হয়েছে', 'Sent today')}</> : sending ? T('পাঠানো হচ্ছে…', 'Sending…') : <><Send size={15} />{T('কৃষককে পাঠান', 'Send to the farmer')}</>}</button>
+          {sendError && <p role="alert" className="mt-2 text-[13px] font-semibold text-red-700">{T('পাঠানো যায়নি। আবার চেষ্টা করুন।', 'Not sent. Please try again.')}</p>}
         </>
       )}
     </article>
@@ -259,11 +262,11 @@ function AlertCard({ a, lang, onSend, sent }) {
 // ---- Farmer requests ----
 export function Requests() {
   const { s, T, L } = useStore();
-  const { c, req, boardMode } = useAbroad();
+  const { c, req, boardMode, boardError } = useAbroad();
   const [draft, setDraft] = useState({});
   return (
     <div className="page-shell space-y-5">
-      <Section icon={LifeBuoy} title={T('কৃষকের অনুরোধ', 'Farmer requests')} sub={T(`${L(c.farmer.name)} “সাহায্য” পাতা থেকে যা পাঠান`, `What ${L(c.farmer.name)} sends from the Help page`)} tag={<BoardChip mode={boardMode} />}>
+      <Section icon={LifeBuoy} title={T('কৃষকের অনুরোধ', 'Farmer requests')} sub={T(`${L(c.farmer.name)} “সাহায্য” পাতা থেকে যা পাঠান`, `What ${L(c.farmer.name)} sends from the Help page`)} tag={<BoardChip mode={boardError ? 'error' : boardMode} />}>
         {req.list.length === 0 ? (
           <div className="rounded-2xl bg-white/60 p-5 text-[14.5px] leading-6 text-muted">{T('এখনো কোনো অনুরোধ আসেনি। কৃষকের “সাহায্য” পাতা থেকে একটি পাঠিয়ে দেখুন।', 'No requests yet. Send one from the farmer’s Help page to try it.')} <Link to={`/abroad/${c.id}/help`} className="font-semibold text-primary-700">{T('কৃষকের সাহায্য পাতা', 'Farmer’s Help page')} →</Link></div>
         ) : (
@@ -275,7 +278,7 @@ export function Requests() {
                 {r.reply ? <div className="mt-2 rounded-xl bg-primary-50 p-2.5 text-[14px] ring-1 ring-primary-100"><b>{T('আপনার উত্তর', 'Your reply')}:</b> {r.reply.text}</div> : (
                   <div className="mt-2.5 flex gap-2">
                     <input aria-label={T('এই কৃষককে উত্তর', 'Reply to this farmer')} value={draft[r.id] ?? ''} onChange={(e) => setDraft({ ...draft, [r.id]: e.target.value })} className="h-10 flex-1 rounded-full border border-border bg-white px-4 text-[14.5px] outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100" placeholder={T('উত্তর লিখুন', 'Write a reply')} />
-                    <button type="button" disabled={!draft[r.id]?.trim()} onClick={() => { req.reply(r.id, draft[r.id].trim()); setDraft({ ...draft, [r.id]: '' }); }} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-semibold text-white disabled:opacity-50"><Send size={15} />{T('উত্তর', 'Reply')}</button>
+                    <button type="button" disabled={!draft[r.id]?.trim()} onClick={async () => { const ok = await req.reply(r.id, draft[r.id].trim()); if (ok) setDraft({ ...draft, [r.id]: '' }); }} className="btn-gloss inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[14px] font-semibold text-white disabled:opacity-50"><Send size={15} />{T('উত্তর', 'Reply')}</button>
                   </div>
                 )}
               </li>

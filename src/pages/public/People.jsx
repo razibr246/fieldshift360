@@ -3,17 +3,18 @@
 // grown-ups' game or the child's dream. Stage: game/three/characterStage.js; people: game/regions.js and dream.js.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Gamepad2, Sparkles, CloudLightning, MapPin, Shirt } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Gamepad2, Sparkles, CloudLightning, MapPin, Shirt, UserRound } from 'lucide-react';
 import { useStore } from '../../store';
 import { REGIONS } from '../../game/regions';
 import { CHILDREN, CHILD_IDS } from '../../game/dream';
-import { bnDigits } from '../../engine/dates';
+import { bnDigits, num } from '../../engine/dates';
 
 export default function People() {
-  const { T, L } = useStore();
+  const { T, L, s } = useStore();
   const host = useRef(null), stage = useRef(null);
   const [i, setI] = useState(0);
   const [ready, setReady] = useState(false);
+  const [stageError, setStageError] = useState(false);
   const id = CHILD_IDS[i], r = REGIONS[id], kid = CHILDREN[id], f = r.farmer;
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function People() {
       if (!alive) return;
       st = stage.current = createCharacterStage(host.current);
       setReady(true);
-    });
+    }).catch(() => { if (alive) setStageError(true); });
     return () => { alive = false; st?.dispose(); stage.current = null; };
   }, []);
   useEffect(() => {
@@ -39,18 +40,24 @@ export default function People() {
   return (
     <div className="fixed inset-0 z-[70] bg-[#0d1712] text-white">
       <div ref={host} className="absolute inset-0" />
+      {stageError && <div className="pointer-events-none absolute inset-0 grid place-items-center px-6 pb-40 pt-24 text-center" role="status" aria-live="polite">
+        <div className="max-w-sm rounded-3xl border border-white/15 bg-black/45 p-6 backdrop-blur-sm">
+          <UserRound size={56} className="mx-auto mb-3 text-white/80" aria-hidden="true" />
+          <p className="text-[15px] leading-6 text-white/90">{T('৩ডি চরিত্রটি লোড করা যায়নি। নাম, এলাকা ও পোশাকের তথ্য নিচে আছে।', 'The 3D character could not be loaded. Their name, place and clothing details are still shown below.')}</p>
+        </div>
+      </div>}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,transparent_35%,rgba(0,0,0,.55)_100%)]" />
       <div className="pointer-events-none absolute inset-0 flex flex-col">
         <div className="pointer-events-auto flex items-center gap-2 p-3">
           <Link to="/games" className="grid h-11 w-11 place-items-center rounded-full bg-white/15 backdrop-blur" aria-label={T('খেলাগুলোয় ফিরুন', 'Back to the games')}><ArrowLeft size={20} /></Link>
-          <span className="rounded-full bg-white/15 px-4 py-2 text-[14px] font-semibold backdrop-blur">{T('মাঠের মানুষেরা', 'The people of the fields')} · {i + 1}/{CHILD_IDS.length}</span>
+          <span className="rounded-full bg-white/15 px-4 py-2 text-[14px] font-semibold backdrop-blur">{T('মাঠের মানুষেরা', 'The people of the fields')} · {num(i + 1, s.lang)}/{num(CHILD_IDS.length, s.lang)}</span>
         </div>
 
         {/* the name, big and slanted, with who they are */}
         <div className="mt-2 max-w-[560px] px-5 sm:mt-10 sm:px-10">
           <p className="text-[13px] font-bold tracking-[.04em] text-[#8be08a]">{r.flag ?? '🇧🇩'} {L(r.place)}</p>
-          <h1 key={id} className="hero-rise mt-1 -skew-x-6 text-[44px] font-black uppercase leading-[.95] tracking-tight [text-shadow:0_4px_0_#000,0_0_24px_rgba(0,0,0,.6)] sm:text-[72px]" style={{ WebkitTextStroke: '1.5px #000' }}>{f.en}</h1>
-          <p className="mt-1 text-[22px] font-bold text-white/90 sm:text-[26px]">{T(`${f.bn}, ${bnDigits(f.age)} বছর`, `${f.bn}, ${f.age}`)}</p>
+          <h1 key={id} className="hero-rise mt-1 -skew-x-6 text-[44px] font-black uppercase leading-[.95] tracking-tight [text-shadow:0_4px_0_#000,0_0_24px_rgba(0,0,0,.6)] sm:text-[72px]" style={{ WebkitTextStroke: '1.5px #000' }}>{T(f.bn, f.en)}</h1>
+          <p className="mt-1 text-[22px] font-bold text-white/90 sm:text-[26px]">{T(`${f.bn}, ${bnDigits(f.age)} বছর`, `${f.en}, ${num(f.age, 'en')} years old`)}</p>
           {f.trait && <p className="mt-1 text-[15px] text-white/75">{L(f.trait)}</p>}
           <p className="mt-1 flex items-center gap-1.5 text-[14px] text-white/85 sm:hidden"><CloudLightning size={15} className="text-amber-300" />{L(r.storm)}</p>
           <ul className="mt-4 hidden space-y-1.5 text-[14px] text-white/85 sm:block">
@@ -72,7 +79,7 @@ export default function People() {
             {CHILD_IDS.map((x, k) => (
               <li key={x} className="shrink-0">
                 <button type="button" onClick={() => setI(k)} aria-current={k === i ? 'true' : undefined}
-                  className={`rounded-full px-3.5 py-2 text-[13px] font-semibold backdrop-blur transition ${k === i ? 'bg-white text-[#1b2620]' : 'bg-white/12 text-white/80 hover:bg-white/25'}`}>
+                  className={`min-h-11 rounded-full px-3.5 py-2 text-[13px] font-semibold backdrop-blur transition ${k === i ? 'bg-white text-[#1b2620]' : 'bg-white/12 text-white/80 hover:bg-white/25'}`}>
                   {REGIONS[x].flag ?? '🇧🇩'} {REGIONS[x].farmer.bn}
                 </button>
               </li>

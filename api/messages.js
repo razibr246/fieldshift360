@@ -1,3 +1,5 @@
+import { parseBody } from './body.js';
+
 // Officer → farmer messages (replies to requests, area advice, weather warnings, upazila notices), so a message sent
 // from the office reaches the farmer's own phone. Same Upstash Redis store as api/plans.js (KV_REST_API_URL /
 // KV_REST_API_TOKEN, or the UPSTASH_REDIS_REST_* names); without it the endpoint answers 503 and the app keeps
@@ -42,7 +44,9 @@ export default async function handler(req, res) {
       return res.status(200).json({ messages: messages.slice(0, KEEP), at: Date.now() });
     }
     if (req.method === 'POST') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body ?? {};
+      const parsed = parseBody(req.body);
+      if (!parsed.ok) return res.status(400).json({ error: 'bad json' });
+      const body = parsed.value;
       const adv = cleanAdv(body.adv);
       if (!adv) return res.status(400).json({ error: 'invalid message' });
       const { to, ...rest } = adv;

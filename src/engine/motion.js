@@ -80,6 +80,43 @@ export function ring(t, a, f = 2, z = 0.25) {
 export const wobble = (t, seed = 0) =>
   0.5 * Math.sin(t * 1.31 + seed * 12.9898) + 0.3 * Math.sin(t * 2.17 + seed * 78.233) + 0.2 * Math.sin(t * 0.53 + seed * 37.719);
 
+// Idle head-look for farm-game characters. Reduced motion keeps the gaze still;
+// blinking remains independent and continues normally.
+export function idleGaze(t, reduced = false) {
+  if (reduced) return { x: 0, y: 0 };
+  return { y: Math.sin(t * 0.35) * 0.32 * Math.max(0, Math.sin(t * 0.21)), x: Math.sin(t * 0.5) * 0.05 };
+}
+
+// Age-based grounded posture stoop (head and torso lean).
+export function ageStoop(age = 30) {
+  if (age >= 75) return 0.08;
+  if (age >= 55) return 0.055;
+  if (age >= 45) return 0.025;
+  return 0;
+}
+
+// Dynamic 3D expression parameters derived from state.
+// Returns brow tilt (positive arches outer, negative furrows), brow vertical shift, and eyelid squint.
+export function expressionFromState(st = {}) {
+  if (st.down > 0) {
+    return { mood: 'hurt', browTilt: -0.25, browY: -0.005, lidSquint: 0.35 };
+  }
+  const act = st.act?.type;
+  if (act === 'cheer') {
+    return { mood: 'happy', browTilt: 0.18, browY: 0.006, lidSquint: 0.12 };
+  }
+  if (act === 'water' || act === 'plant' || act === 'harvest' || act === 'spray' || act === 'clear' || act === 'pump') {
+    return { mood: 'focused', browTilt: -0.12, browY: -0.003, lidSquint: 0.08 };
+  }
+  if (st.carrying) {
+    return { mood: 'effort', browTilt: -0.1, browY: -0.002, lidSquint: 0.15 };
+  }
+  if (st.stress || st.worried) {
+    return { mood: 'worried', browTilt: -0.22, browY: 0.004, lidSquint: 0.18 };
+  }
+  return { mood: 'calm', browTilt: 0, browY: 0, lidSquint: 0 };
+}
+
 // blink(t, seed) → how closed the eyes are (0 open, 1 shut): a quick close and a slower open every 2.5–5 seconds.
 export function blink(t, seed = 0) {
   const period = 3.4, i = Math.floor(t / period);

@@ -27,13 +27,13 @@ export function bodyFor(id, region) {
   const look = region?.farmer?.look ?? {};
   const age = region?.farmer?.age ?? 40;
   const model = ['rahima', 'rampyari', 'kinley'].includes(id) ? 'Casual3_Female' : id === 'razib' ? 'Casual2_Male' : age >= 55 ? 'OldClassy_Male' : 'Worker_Male';
-  return { model, colors: { Skin: look.skin, Shirt: look.topA, Vest: look.topB ?? look.topA, Detail: look.topB, Pants: look.lowA, Hair: look.hair, Hat: look.headA ?? look.hair, Belt: '#3a2a1e' } };
+  return { id, look, age, model, colors: { Skin: look.skin, Shirt: look.topA, Vest: look.topB ?? look.topA, Detail: look.topB, Pants: look.lowA, Hair: look.hair, Hat: look.headA ?? look.hair, Belt: '#3a2a1e' } };
 }
 export function kidBody(child, region) {
   const skin = region?.farmer?.look?.skin ?? '#b77b52';
   return child.girl
-    ? { model: 'Casual_Female', colors: { Skin: skin, Shirt: '#f2a7c3', Pants: '#7b5cd6', Hair: '#1a1411', Belt: '#e2b84a' }, kid: true }
-    : { model: 'Casual_Male', colors: { Skin: skin, Shirt: '#4fb3e8', Pants: '#2f4f7f', Hair: '#1a1411', Belt: '#e2b84a' }, kid: true };
+    ? { child, model: 'Casual_Female', colors: { Skin: skin, Shirt: '#f2a7c3', Pants: '#7b5cd6', Hair: '#1a1411', Belt: '#e2b84a' }, kid: true }
+    : { child, model: 'Casual_Male', colors: { Skin: skin, Shirt: '#4fb3e8', Pants: '#2f4f7f', Hair: '#1a1411', Belt: '#e2b84a' }, kid: true };
 }
 
 export function createDreamScene(host, { onTap = () => {} } = {}) {
@@ -155,9 +155,85 @@ export function createDreamScene(host, { onTap = () => {} } = {}) {
       o.material = ms.map((m) => { const n = m.clone(); const c = spec.colors[m.name]; if (c) n.color.set(c); return n; });
       if (o.material.length === 1) o.material = o.material[0];
     });
+    let headBone = null, neckBone = null, spineBone = null, handBoneR = null;
+    root.traverse((o) => {
+      if (o.isBone) {
+        if (/^Head$/i.test(o.name)) headBone = o;
+        else if (/^Neck$/i.test(o.name)) neckBone = o;
+        else if (/^Spine2$|^Chest$/i.test(o.name)) spineBone = o;
+        else if (/^RightHand$/i.test(o.name)) handBoneR = o;
+      }
+    });
+
     if (spec.kid) {
-      root.scale.setScalar(0.62);
-      root.traverse((o) => { if (o.isBone && /^Head$/i.test(o.name)) o.scale.setScalar(1.3); });
+      const age = spec.child?.age ?? 8;
+      const kidScale = 0.54 + (age - 7) * 0.032;
+      root.scale.setScalar(kidScale);
+      const headScale = 1.32 - (age - 7) * 0.02;
+      if (headBone) headBone.scale.setScalar(headScale);
+
+      // Child personal story item
+      const item = spec.child?.item;
+      if (item && handBoneR) {
+        if (item === 'boat') {
+          const boat = box(0.14, 0.06, 0.08, 0xf6f0e4);
+          boat.position.set(0.04, 0.02, 0.06);
+          handBoneR.add(boat);
+        } else if (item === 'bag' && spineBone) {
+          const bag = box(0.24, 0.28, 0.12, 0x2563eb);
+          bag.position.set(0, 0.04, -0.14);
+          spineBone.add(bag);
+        } else if (item === 'kite') {
+          const kite = box(0.22, 0.22, 0.015, 0xef4444);
+          kite.rotation.z = Math.PI / 4;
+          kite.position.set(0.06, 0.08, 0.06);
+          handBoneR.add(kite);
+        } else if (item === 'pinwheel') {
+          const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.28, 6), mat(0xd4a373));
+          stick.position.set(0.04, 0.1, 0.04);
+          handBoneR.add(stick);
+        } else if (item === 'slate') {
+          const slate = box(0.14, 0.19, 0.012, 0x1e293b);
+          slate.position.set(0.05, 0.02, 0.05);
+          handBoneR.add(slate);
+        }
+      }
+    } else if (spec.look && headBone) {
+      const l = spec.look;
+      if (l.head === 'turban') {
+        const turb = new THREE.Mesh(new THREE.CylinderGeometry(0.165, 0.155, 0.15, 16), mat(l.headA ?? 0xd97736));
+        turb.position.set(0, 0.12, 0);
+        headBone.add(turb);
+      } else if (l.head === 'sindhi') {
+        const topi = new THREE.Mesh(new THREE.CylinderGeometry(0.148, 0.148, 0.085, 16), mat(l.headA ?? 0x991b1b));
+        topi.position.set(0, 0.11, 0);
+        headBone.add(topi);
+      } else if (l.head === 'tupi') {
+        const tupi = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.148, 0.065, 16), mat(l.headA ?? 0xffffff));
+        tupi.position.set(0, 0.11, 0);
+        headBone.add(tupi);
+      } else if (l.head === 'mathal') {
+        const mathal = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.16, 16), mat(0xd8b56a));
+        mathal.position.set(0, 0.14, 0);
+        headBone.add(mathal);
+      } else if (l.head === 'gamcha') {
+        const gam = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.038, 6, 16), mat(l.headA ?? 0xd9383a));
+        gam.position.set(0, 0.08, 0);
+        gam.rotation.x = Math.PI / 2;
+        headBone.add(gam);
+      } else if (l.head === 'gaungbaung') {
+        const gb = new THREE.Mesh(new THREE.TorusGeometry(0.142, 0.032, 6, 16), mat(l.headA ?? 0xf59e0b));
+        gb.position.set(0, 0.09, 0);
+        gb.rotation.x = Math.PI / 2;
+        headBone.add(gb);
+      }
+
+      if (spec.id === 'harjinder' && handBoneR) {
+        const kara = new THREE.Mesh(new THREE.TorusGeometry(0.038, 0.008, 6, 14), mat(0xcccccc, { metalness: 0.85, roughness: 0.2 }));
+        kara.position.set(0, 0.02, 0);
+        kara.rotation.x = Math.PI / 2;
+        handBoneR.add(kara);
+      }
     }
     const mixer = new THREE.AnimationMixer(root);
     const actions = Object.fromEntries(gltf.animations.map((a) => [a.name, mixer.clipAction(a)]));

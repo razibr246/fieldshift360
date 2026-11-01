@@ -256,15 +256,20 @@ export default function CropDoctor() {
         <Card data-tour="doc-photo" className="spotlight-card lift p-5 sm:p-6">
           <div className="mb-4">
             <span className="block text-[13.5px] font-semibold text-muted">{T('কোন ফসলের ছবি?', 'Which crop is this?')}</span>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
               {[...(amanNow ? [AMAN] : []), ...Object.values(RABI_CROPS)].map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => chooseCrop(c.id)}
                   aria-pressed={crop === c.id}
-                  className={`rounded-full border px-3.5 py-1 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${crop === c.id ? 'border-primary-600 bg-primary-600 text-white shadow-sm' : 'border-border bg-white text-ink hover:border-primary-200 hover:bg-canvas'}`}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full border px-4 py-2 text-[14px] font-semibold transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none ${
+                    crop === c.id
+                      ? 'border-primary-600 bg-primary-600 text-white shadow-sm ring-2 ring-primary-600/30'
+                      : 'border-border bg-white text-ink hover:border-primary-300 hover:bg-canvas'
+                  }`}
                 >
+                  {crop === c.id && <span className="h-2 w-2 rounded-full bg-white shadow-xs" />}
                   {L(c.name)}
                 </button>
               ))}
@@ -341,7 +346,7 @@ export default function CropDoctor() {
                     key={smp.id}
                     type="button"
                     onClick={() => pickSample(smp)}
-                    className={`group relative flex flex-col items-start rounded-xl border p-2 text-left transition-all duration-200 active:scale-95 ${
+                    className={`group relative flex min-h-[44px] flex-col items-start rounded-xl border p-2 text-left transition-all duration-200 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none ${
                       active
                         ? 'border-primary-600 bg-white shadow-sm ring-2 ring-primary-500/30'
                         : 'border-border/80 bg-white/70 hover:border-primary-300 hover:bg-white'

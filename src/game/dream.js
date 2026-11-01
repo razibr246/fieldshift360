@@ -13,23 +13,24 @@ const MONTHS = [q('জানুয়ারি', 'January'), q('ফেব্র�
 
 // The child of each farmer in মাঠের মানুষ (regions.js ids), what they call the grown-up, and where NASA's records are kept.
 export const CHILDREN = {
-  razib: { name: q('তুহিন', 'Tuhin'), age: 9, girl: false, calls: q('ভাইয়া', 'Bhaiya'), rel: q('রাজিবের ছোট ভাই', 'Razib’s little brother'), land: 'dhamrai' },
-  rahimu: { name: q('নাজমা', 'Nazma'), age: 9, girl: true, calls: q('আব্বা', 'Abba'), rel: q('রহিম উদ্দিনের মেয়ে', 'Rahim Uddin’s daughter'), land: 'godagari' },
-  didarul: { name: q('আরিফ', 'Arif'), age: 8, girl: false, calls: q('আব্বু', 'Abbu'), rel: q('দিদারুল আলমের ছেলে', 'Didarul Alam’s son'), land: 'sitakunda' },
-  prahlad: { name: q('পূজা', 'Puja'), age: 10, girl: true, calls: q('বাবা', 'Baba'), rel: q('প্রহ্লাদ চন্দ্র রায়ের মেয়ে', 'Prahlad Chandra Roy’s daughter'), land: 'dacope' },
-  kader: { name: q('রাফি', 'Rafi'), age: 7, girl: false, calls: q('আব্বা', 'Abba'), rel: q('আবদুল কাদের হাওলাদারের ছেলে', 'Abdul Kader Howlader’s son'), land: 'bakerganj' },
-  mofizul: { name: q('সুমি', 'Sumi'), age: 9, girl: true, calls: q('আব্বা', 'Abba'), rel: q('মফিজুল ইসলামের মেয়ে', 'Mofizul Islam’s daughter'), land: 'gangachara' },
-  rahima: { name: q('জুয়েল', 'Jewel'), age: 8, girl: false, calls: q('মা', 'Ma'), rel: q('রহিমা বেগমের ছেলে', 'Rahima Begum’s son'), land: 'gowainghat' },
-  harjinder: { name: q('সিমরন', 'Simran'), age: 9, girl: true, calls: q('পাপা', 'Papa'), rel: q('হরজিন্দর সিংয়ের মেয়ে', 'Harjinder Singh’s daughter'), land: 'india' },
-  ghulam: { name: q('আলী', 'Ali'), age: 8, girl: false, calls: q('বাবা', 'Baba'), rel: q('গোলাম নবী চান্ডিওর ছেলে', 'Ghulam Nabi Chandio’s son'), land: 'pakistan' },
-  rampyari: { name: q('সীতা', 'Sita'), age: 9, girl: true, calls: q('আমা', 'Aama'), rel: q('রামপ্যারী চৌধুরীর মেয়ে', 'Rampyari Chaudhary’s daughter'), land: 'nepal' },
-  kinley: { name: q('তাশি', 'Tashi'), age: 8, girl: false, calls: q('আমা', 'Ama'), rel: q('কিনলে ওয়াংমোর ছেলে', 'Kinley Wangmo’s son'), land: 'bhutan' },
-  kyawwin: { name: q('মিন থু', 'Min Thu'), age: 9, girl: false, calls: q('দাদু', 'Grandpa'), rel: q('উ চ উইনের নাতি', 'U Kyaw Win’s grandson'), land: 'myanmar' },
+  razib: { name: q('তুহিন', 'Tuhin'), age: 9, girl: false, calls: q('ভাইয়া', 'Bhaiya'), rel: q('রাজিবের ছোট ভাই', 'Razib’s little brother'), land: 'dhamrai', item: 'boat' },
+  rahimu: { name: q('নাজমা', 'Nazma'), age: 9, girl: true, calls: q('আব্বা', 'Abba'), rel: q('রহিম উদ্দিনের মেয়ে', 'Rahim Uddin’s daughter'), land: 'godagari', item: 'bag' },
+  didarul: { name: q('আরিফ', 'Arif'), age: 8, girl: false, calls: q('আব্বু', 'Abbu'), rel: q('দিদারুল আলমের ছেলে', 'Didarul Alam’s son'), land: 'sitakunda', item: 'pinwheel' },
+  prahlad: { name: q('পূজা', 'Puja'), age: 10, girl: true, calls: q('বাবা', 'Baba'), rel: q('প্রহ্লাদ চন্দ্র রায়ের মেয়ে', 'Prahlad Chandra Roy’s daughter'), land: 'dacope', item: 'lantern' },
+  kader: { name: q('রাফি', 'Rafi'), age: 7, girl: false, calls: q('আব্বা', 'Abba'), rel: q('আবদুল কাদের হাওলাদারের ছেলে', 'Abdul Kader Howlader’s son'), land: 'bakerganj', item: 'kite' },
+  mofizul: { name: q('সুমি', 'Sumi'), age: 9, girl: true, calls: q('আব্বা', 'Abba'), rel: q('মফিজুল ইসলামের মেয়ে', 'Mofizul Islam’s daughter'), land: 'gangachara', item: 'basket' },
+  rahima: { name: q('জুয়েল', 'Jewel'), age: 8, girl: false, calls: q('মা', 'Ma'), rel: q('রহিমা বেগমের ছেলে', 'Rahima Begum’s son'), land: 'gowainghat', item: 'flute' },
+  harjinder: { name: q('সিমরন', 'Simran'), age: 9, girl: true, calls: q('পাপা', 'Papa'), rel: q('হরজিন্দর সিংয়ের মেয়ে', 'Harjinder Singh’s daughter'), land: 'india', item: 'pouch' },
+  ghulam: { name: q('আলী', 'Ali'), age: 8, girl: false, calls: q('বাবা', 'Baba'), rel: q('গোলাম নবী চান্ডিওর ছেলে', 'Ghulam Nabi Chandio’s son'), land: 'pakistan', item: 'toy' },
+  rampyari: { name: q('সীতা', 'Sita'), age: 9, girl: true, calls: q('আমা', 'Aama'), rel: q('রামপ্যারী চৌধুরীর মেয়ে', 'Rampyari Chaudhary’s daughter'), land: 'nepal', item: 'slate' },
+  kinley: { name: q('তাশি', 'Tashi'), age: 8, girl: false, calls: q('আমা', 'Ama'), rel: q('কিনলে ওয়াংমোর ছেলে', 'Kinley Wangmo’s son'), land: 'bhutan', item: 'wheel' },
+  kyawwin: { name: q('মিন থু', 'Min Thu'), age: 9, girl: false, calls: q('দাদু', 'Grandpa'), rel: q('উ চ উইনের নাতি', 'U Kyaw Win’s grandson'), land: 'myanmar', item: 'cricket' },
 };
 export const CHILD_IDS = Object.keys(CHILDREN);
 export const WOMEN = ['rahima', 'rampyari', 'kinley'];
 
 // Moods drive the grown-up's animation, the colour of the light and the music.
+// Peaceful motion constraint: no combat or violent defeat animation.
 export const MOODS = {
   worried: { anim: 'SitDown', grade: 'night', music: 'soft' },
   calm: { anim: 'Idle', grade: 'night', music: 'soft' },

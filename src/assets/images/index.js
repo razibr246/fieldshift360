@@ -136,138 +136,138 @@ import viewAfghanistan3200 from './abroad/afghanistan-view-3200.webp';
 
 export const IMAGES = {
   villageSky: {
-    src: villageSky1600, srcSet: `${villageSky900} 900w, ${villageSky1600} 1600w, ${villageSky2400} 2400w, ${villageSky3200} 3200w`, width: 3200, height: 2400, focus: '62% 58%',
+    src: villageSky1600, srcSet: import.meta.env.MODE === 'single' ? `${villageSky900} 900w, ${villageSky1600} 1600w` : `${villageSky900} 900w, ${villageSky1600} 1600w, ${villageSky2400} 2400w, ${villageSky3200} 3200w`, width: 3200, height: 2400, focus: '62% 58%',
     alt: { bn: 'গ্রামের মাঠ, গাছের সারি আর বিকেলের মেঘলা নীল আকাশ', en: 'Village fields, a row of trees and an afternoon sky with clouds' },
   },
   sunsetFields: {
-    src: sunsetFields1600, srcSet: `${sunsetFields900} 900w, ${sunsetFields1600} 1600w, ${sunsetFields2400} 2400w, ${sunsetFields3200} 3200w`, width: 3200, height: 2400, focus: '56% 55%',
+    src: sunsetFields1600, srcSet: import.meta.env.MODE === 'single' ? `${sunsetFields900} 900w, ${sunsetFields1600} 1600w` : `${sunsetFields900} 900w, ${sunsetFields1600} 1600w, ${sunsetFields2400} 2400w, ${sunsetFields3200} 3200w`, width: 3200, height: 2400, focus: '56% 55%',
     alt: { bn: 'সূর্য ডোবার সময় সবুজ খেত, গাছের সারি আর লালচে পাতা', en: 'Green fields, a tree line and reddish leaves at sunset' },
   },
   mantisPaddy: {
-    src: mantisPaddy1600, srcSet: `${mantisPaddy900} 900w, ${mantisPaddy1600} 1600w, ${mantisPaddy2400} 2400w, ${mantisPaddy3200} 3200w`, width: 3200, height: 4267, focus: '56% 57%',
+    src: mantisPaddy1600, srcSet: import.meta.env.MODE === 'single' ? `${mantisPaddy900} 900w, ${mantisPaddy1600} 1600w` : `${mantisPaddy900} 900w, ${mantisPaddy1600} 1600w, ${mantisPaddy2400} 2400w, ${mantisPaddy3200} 3200w`, width: 3200, height: 4267, focus: '56% 57%',
     alt: { bn: 'ধানক্ষেতের ওপর ডালে বসা একটি সবুজ ম্যান্টিস পোকা', en: 'A green praying mantis on a twig above a paddy field' },
   },
   hillClouds: {
-    src: hillClouds1600, srcSet: `${hillClouds900} 900w, ${hillClouds1600} 1600w, ${hillClouds2400} 2400w, ${hillClouds3200} 3200w`, width: 3200, height: 2018, focus: '70% 62%',
+    src: hillClouds1600, srcSet: import.meta.env.MODE === 'single' ? `${hillClouds900} 900w, ${hillClouds1600} 1600w` : `${hillClouds900} 900w, ${hillClouds1600} 1600w, ${hillClouds2400} 2400w, ${hillClouds3200} 3200w`, width: 3200, height: 2018, focus: '70% 62%',
     alt: { bn: 'পাহাড়ের ওপর বাঁশের বেড়া আর সবুজ টিনের চালের ঘর, নিচে মেঘের সাগর আর দূরে নীল পাহাড়', en: 'A bamboo cottage with a green tin roof on a hilltop, a sea of cloud below and blue hills beyond' },
   },
   hillWaterfall: {
-    src: hillWaterfall1600, srcSet: `${hillWaterfall900} 900w, ${hillWaterfall1600} 1600w, ${hillWaterfall2400} 2400w, ${hillWaterfall3200} 3200w`, width: 3200, height: 1744, focus: '58% 55%',
+    src: hillWaterfall1600, srcSet: import.meta.env.MODE === 'single' ? `${hillWaterfall900} 900w, ${hillWaterfall1600} 1600w` : `${hillWaterfall900} 900w, ${hillWaterfall1600} 1600w, ${hillWaterfall2400} 2400w, ${hillWaterfall3200} 3200w`, width: 3200, height: 1744, focus: '58% 55%',
     alt: { bn: 'সবুজ বনের মাঝে পাথরের ধাপ বেয়ে নামা ঝরনা, নিচে সবুজ পানির কুণ্ড', en: 'A waterfall stepping down layered rock in green forest into a clear green pool' },
   },
   wetlandBoardwalk: {
-    src: wetlandBoardwalk1600, srcSet: `${wetlandBoardwalk900} 900w, ${wetlandBoardwalk1600} 1600w, ${wetlandBoardwalk2400} 2400w, ${wetlandBoardwalk3200} 3200w`, width: 3200, height: 2133, focus: '56% 58%',
+    src: wetlandBoardwalk1600, srcSet: import.meta.env.MODE === 'single' ? `${wetlandBoardwalk900} 900w, ${wetlandBoardwalk1600} 1600w` : `${wetlandBoardwalk900} 900w, ${wetlandBoardwalk1600} 1600w, ${wetlandBoardwalk2400} 2400w, ${wetlandBoardwalk3200} 3200w`, width: 3200, height: 2133, focus: '56% 58%',
     alt: { bn: 'আকাশ থেকে দেখা বিল: শাপলা-পাতায় ঢাকা পানির ওপর আঁকাবাঁকা কাঠের সাঁকো, দুই পাশে ঘন বন', en: 'A wetland from the air: a zigzag wooden walkway over water covered in lily pads, dense forest on both banks' },
   },
   guavaBoat: {
-    src: guavaBoat1600, srcSet: `${guavaBoat900} 900w, ${guavaBoat1600} 1600w, ${guavaBoat2400} 2400w, ${guavaBoat3200} 3200w`, width: 3200, height: 2135, focus: '64% 62%',
+    src: guavaBoat1600, srcSet: import.meta.env.MODE === 'single' ? `${guavaBoat900} 900w, ${guavaBoat1600} 1600w` : `${guavaBoat900} 900w, ${guavaBoat1600} 1600w, ${guavaBoat2400} 2400w, ${guavaBoat3200} 3200w`, width: 3200, height: 2135, focus: '64% 62%',
     alt: { bn: 'খালে ডিঙি নৌকা ভরা সবুজ-হলুদ পেয়ারা, দুজন মাঝি বৈঠা বাইছেন', en: 'A dinghy full of green and yellow guavas on a canal, two boatmen poling it along' },
   },
   teestaBarrage: {
-    src: teestaBarrage1600, srcSet: `${teestaBarrage900} 900w, ${teestaBarrage1600} 1600w, ${teestaBarrage2400} 2400w, ${teestaBarrage3200} 3200w`, width: 3200, height: 2133, focus: '58% 52%',
+    src: teestaBarrage1600, srcSet: import.meta.env.MODE === 'single' ? `${teestaBarrage900} 900w, ${teestaBarrage1600} 1600w` : `${teestaBarrage900} 900w, ${teestaBarrage1600} 1600w, ${teestaBarrage2400} 2400w, ${teestaBarrage3200} 3200w`, width: 3200, height: 2133, focus: '58% 52%',
     alt: { bn: 'আকাশ থেকে তিস্তা ব্যারেজ: চওড়া নদীর ওপর গেটের সারি, পাশে বালুর চর', en: 'Teesta Barrage from the air: a row of gates across the wide river, sandbars alongside' },
   },
   bullockCart: {
-    src: bullockCart1600, srcSet: `${bullockCart900} 900w, ${bullockCart1600} 1600w, ${bullockCart2400} 2400w, ${bullockCart3200} 3200w`, width: 3200, height: 2286, focus: '68% 58%',
+    src: bullockCart1600, srcSet: import.meta.env.MODE === 'single' ? `${bullockCart900} 900w, ${bullockCart1600} 1600w` : `${bullockCart900} 900w, ${bullockCart1600} 1600w, ${bullockCart2400} 2400w, ${bullockCart3200} 3200w`, width: 3200, height: 2286, focus: '68% 58%',
     alt: { bn: 'সবুজ ধানক্ষেতের আলপথে গরুর গাড়িতে ধানের আঁটি নিয়ে যাচ্ছেন কৃষক, মাথার ওপর সাদা মেঘ', en: 'A farmer taking sheaves of paddy home by bullock cart along a field bund, white clouds overhead' },
   },
   stonyRiver: {
-    src: stonyRiver1600, srcSet: `${stonyRiver900} 900w, ${stonyRiver1600} 1600w, ${stonyRiver2400} 2400w, ${stonyRiver3200} 3200w`, width: 3200, height: 2023, focus: '55% 58%',
+    src: stonyRiver1600, srcSet: import.meta.env.MODE === 'single' ? `${stonyRiver900} 900w, ${stonyRiver1600} 1600w` : `${stonyRiver900} 900w, ${stonyRiver1600} 1600w, ${stonyRiver2400} 2400w, ${stonyRiver3200} 3200w`, width: 3200, height: 2023, focus: '55% 58%',
     alt: { bn: 'দুই পাশে সবুজ পাহাড়, মাঝ দিয়ে বয়ে চলা স্বচ্ছ পানির পাথুরে নদী', en: 'A clear stony river running between green hills' },
   },
   // Misty aerial at dawn; open haze on the left is where the hero text sits.
   heroDawn: {
-    src: heroAerialDawn1600, srcSet: `${heroAerialDawn900} 900w, ${heroAerialDawn1600} 1600w, ${heroAerialDawn2400} 2400w, ${heroAerialDawn3200} 3200w`, width: W, height: H, focus: '70% 55%',
+    src: heroAerialDawn1600, srcSet: import.meta.env.MODE === 'single' ? `${heroAerialDawn900} 900w, ${heroAerialDawn1600} 1600w` : `${heroAerialDawn900} 900w, ${heroAerialDawn1600} 1600w, ${heroAerialDawn2400} 2400w, ${heroAerialDawn3200} 3200w`, width: W, height: H, focus: '70% 55%',
     alt: { bn: 'ভোরের কুয়াশায় ঢাকা ধানক্ষেত, নদী আর গাছপালার আকাশ থেকে তোলা ছবি', en: 'Aerial view of paddy fields, a river and tree lines in morning mist' },
   },
   // Aerial with three plots outlined in white — used wherever a farmer marks their own land.
   landParcels: {
-    src: landParcels1600, srcSet: `${landParcels900} 900w, ${landParcels1600} 1600w, ${landParcels2400} 2400w, ${landParcels3200} 3200w`, width: W, height: H, focus: '52% 62%',
+    src: landParcels1600, srcSet: import.meta.env.MODE === 'single' ? `${landParcels900} 900w, ${landParcels1600} 1600w` : `${landParcels900} 900w, ${landParcels1600} 1600w, ${landParcels2400} 2400w, ${landParcels3200} 3200w`, width: W, height: H, focus: '52% 62%',
     alt: { bn: 'আকাশ থেকে দেখা খেতের মধ্যে সাদা দাগে চিহ্নিত কয়েকটি জমি, পাশে পুকুর ও খাল', en: 'Aerial view of farm plots with three fields outlined in white, beside ponds and a canal' },
   },
   // A frame of the 3D farm game "মাঠের মানুষ" (Rahima Begum's field, Gowainghat, Sylhet), captured from the game itself — its cover.
   farmGame: {
-    src: farmGame1600, srcSet: `${farmGame900} 900w, ${farmGame1600} 1600w, ${farmGame2400} 2400w, ${farmGame3200} 3200w`, width: 3200, height: 1800, focus: '50% 45%',
+    src: farmGame1600, srcSet: import.meta.env.MODE === 'single' ? `${farmGame900} 900w, ${farmGame1600} 1600w` : `${farmGame900} 900w, ${farmGame1600} 1600w, ${farmGame2400} 2400w, ${farmGame3200} 3200w`, width: 3200, height: 1800, focus: '50% 45%',
     alt: { bn: 'থ্রিডি খেলার দৃশ্য: বেগুনি হিজাব আর শাড়িতে এক কৃষক নারী, পাশে নানা ফসলের সবুজ খেত, পেছনে চা-বাগানের টিলা, টিনের ঘর, গরু আর নদী', en: 'A scene from the 3D game: a farmer in a purple hijab and sari beside a field of mixed crops, with a tea-garden hill, a tin-roofed house, a cow and a river behind' },
   },
   // Close-up of young seedlings with flooded paddy at sunrise — crop advice / today's tasks.
   seedlings: {
-    src: seedlings1600, srcSet: `${seedlings900} 900w, ${seedlings1600} 1600w, ${seedlings2400} 2400w, ${seedlings3200} 3200w`, width: W, height: 940, focus: '30% 60%',
+    src: seedlings1600, srcSet: import.meta.env.MODE === 'single' ? `${seedlings900} 900w, ${seedlings1600} 1600w` : `${seedlings900} 900w, ${seedlings1600} 1600w, ${seedlings2400} 2400w, ${seedlings3200} 3200w`, width: W, height: 940, focus: '30% 60%',
     alt: { bn: 'ভোরের আলোয় শিশিরভেজা চারা, পেছনে পানি দেওয়া ধানের জমি', en: 'Dew-covered seedlings at sunrise with flooded paddy behind' },
   },
   // Satellite-style patchwork of fields and a winding river — Earth observation / NASA data.
   satellite: {
-    src: satellite1600, srcSet: `${satellite900} 900w, ${satellite1600} 1600w, ${satellite2400} 2400w, ${satellite3200} 3200w`, width: W, height: 940, focus: '50% 50%',
+    src: satellite1600, srcSet: import.meta.env.MODE === 'single' ? `${satellite900} 900w, ${satellite1600} 1600w` : `${satellite900} 900w, ${satellite1600} 1600w, ${satellite2400} 2400w, ${satellite3200} 3200w`, width: W, height: 940, focus: '50% 50%',
     alt: { bn: 'উপগ্রহ থেকে দেখা নানা রঙের খেত আর আঁকাবাঁকা নদী', en: 'Satellite-style view of patchwork fields and a winding river' },
   },
   // Farmer checking rice panicles at sunrise — people, support and impact.
   farmer: {
-    src: farmer1600, srcSet: `${farmer900} 900w, ${farmer1600} 1600w, ${farmer2400} 2400w, ${farmer3200} 3200w`, width: W, height: H, focus: '22% 45%',
+    src: farmer1600, srcSet: import.meta.env.MODE === 'single' ? `${farmer900} 900w, ${farmer1600} 1600w` : `${farmer900} 900w, ${farmer1600} 1600w, ${farmer2400} 2400w, ${farmer3200} 3200w`, width: W, height: H, focus: '22% 45%',
     alt: { bn: 'ভোরে ধানক্ষেতে দাঁড়িয়ে একজন কৃষক ধানের শিষ দেখছেন', en: 'A farmer checking rice panicles in his field at sunrise' },
   },
   // Balia–Chauhat bridge in Dhamrai, Dhaka: the river, paddy and village trees around Chauhat at midday.
   dhamraiBridge: {
-    src: dhamraiBridge1600, srcSet: `${dhamraiBridge900} 900w, ${dhamraiBridge1600} 1600w, ${dhamraiBridge2400} 2400w, ${dhamraiBridge3200} 3200w`, width: 1600, height: 903, focus: '58% 60%',
+    src: dhamraiBridge1600, srcSet: import.meta.env.MODE === 'single' ? `${dhamraiBridge900} 900w, ${dhamraiBridge1600} 1600w` : `${dhamraiBridge900} 900w, ${dhamraiBridge1600} 1600w, ${dhamraiBridge2400} 2400w, ${dhamraiBridge3200} 3200w`, width: 1600, height: 903, focus: '58% 60%',
     alt: { bn: 'ধামরাইয়ে বালিয়া-চৌহাট সেতু: নদীর ওপর সেতু, দুই পাশে সবুজ ধানক্ষেত আর গাছপালা', en: 'The Balia–Chauhat bridge in Dhamrai: a bridge over the river with green paddy fields and trees on both banks' },
   },
   // Golden paddy being cut and threshed with a pedal thresher, a village and river behind.
   riceHarvest: {
-    src: riceHarvest1600, srcSet: `${riceHarvest900} 900w, ${riceHarvest1600} 1600w, ${riceHarvest2400} 2400w, ${riceHarvest3200} 3200w`, width: 1600, height: 872, focus: '55% 60%',
+    src: riceHarvest1600, srcSet: import.meta.env.MODE === 'single' ? `${riceHarvest900} 900w, ${riceHarvest1600} 1600w` : `${riceHarvest900} 900w, ${riceHarvest1600} 1600w, ${riceHarvest2400} 2400w, ${riceHarvest3200} 3200w`, width: 1600, height: 872, focus: '55% 60%',
     alt: { bn: 'সোনালি ধানক্ষেতে কৃষকেরা ধান কাটছেন, পায়ে চালানো মাড়াই যন্ত্রে মাড়াই হচ্ছে, মাথায় ধানের আঁটি নিয়ে আলপথে হাঁটছেন; পেছনে গ্রাম আর নদী', en: 'Farmers cutting golden paddy and threshing it with a pedal thresher, carrying sheaves along the field bund, with a village and river behind' },
   },
   // Ripe mangoes hanging in clusters — Rajshahi's famous mangoes.
   rajshahiMango: {
-    src: rajshahiMango1600, srcSet: `${rajshahiMango900} 900w, ${rajshahiMango1600} 1600w, ${rajshahiMango2400} 2400w, ${rajshahiMango3200} 3200w`, width: 1600, height: 1065, focus: '62% 50%',
+    src: rajshahiMango1600, srcSet: import.meta.env.MODE === 'single' ? `${rajshahiMango900} 900w, ${rajshahiMango1600} 1600w` : `${rajshahiMango900} 900w, ${rajshahiMango1600} 1600w, ${rajshahiMango2400} 2400w, ${rajshahiMango3200} 3200w`, width: 1600, height: 1065, focus: '62% 50%',
     alt: { bn: 'গাছে থোকায় থোকায় ঝুলছে পাকা লাল-হলুদ আম, রাজশাহীর বিখ্যাত আম', en: 'Ripe red-and-yellow mangoes hanging in clusters on the tree, Rajshahi’s famous mangoes' },
   },
   // Same field split between drought and flood — climate risk.
   droughtFlood: {
-    src: droughtFlood1600, srcSet: `${droughtFlood900} 900w, ${droughtFlood1600} 1600w, ${droughtFlood2400} 2400w, ${droughtFlood3200} 3200w`, width: W, height: 940, focus: '50% 60%',
+    src: droughtFlood1600, srcSet: import.meta.env.MODE === 'single' ? `${droughtFlood900} 900w, ${droughtFlood1600} 1600w` : `${droughtFlood900} 900w, ${droughtFlood1600} 1600w, ${droughtFlood2400} 2400w, ${droughtFlood3200} 3200w`, width: W, height: 940, focus: '50% 60%',
     alt: { bn: 'একই মাঠের একপাশে খরায় ফাটা মাটি, অন্যপাশে বৃষ্টিতে ডুবে যাওয়া ফসল', en: 'One field split between cracked, drought-hit soil and flooded crops under rain' },
   },
   abroadIndia: {
-    src: abroadIndia1600, srcSet: `${abroadIndia900} 900w, ${abroadIndia1600} 1600w, ${abroadIndia2400} 2400w, ${abroadIndia3200} 3200w`, width: 3200, height: 2133, focus: '50% 45%',
+    src: abroadIndia1600, srcSet: import.meta.env.MODE === 'single' ? `${abroadIndia900} 900w, ${abroadIndia1600} 1600w` : `${abroadIndia900} 900w, ${abroadIndia1600} 1600w, ${abroadIndia2400} 2400w, ${abroadIndia3200} 3200w`, width: 3200, height: 2133, focus: '50% 45%',
     alt: { bn: 'পাঞ্জাবের সবুজ গমের খেত, ভারত', en: 'Green wheat in Punjab, India' },
     credit: { artist: "Jagseer S Sidhu", license: 'CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:Green_Wheat_Fields_in_Punjab.jpg' },
   },
   abroadPakistan: {
-    src: abroadPakistan1600, srcSet: `${abroadPakistan900} 900w, ${abroadPakistan1600} 1600w, ${abroadPakistan2400} 2400w, ${abroadPakistan3200} 3200w`, width: 3200, height: 2133, focus: '55% 40%',
+    src: abroadPakistan1600, srcSet: import.meta.env.MODE === 'single' ? `${abroadPakistan900} 900w, ${abroadPakistan1600} 1600w` : `${abroadPakistan900} 900w, ${abroadPakistan1600} 1600w, ${abroadPakistan2400} 2400w, ${abroadPakistan3200} 3200w`, width: 3200, height: 2133, focus: '55% 40%',
     alt: { bn: 'ধান কেটে আঁটি বাঁধছেন কৃষকেরা, পাকিস্তান', en: 'Farmers bundling the cut rice, Pakistan' },
     credit: { artist: "Tariq hameed sulemani", license: 'CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:Rice_crop_in_pakistan.jpg' },
   },
   abroadNepal: {
-    src: abroadNepal1600, srcSet: `${abroadNepal900} 900w, ${abroadNepal1600} 1600w, ${abroadNepal2400} 2400w, ${abroadNepal3200} 3200w`, width: 3200, height: 2125, focus: '50% 55%',
+    src: abroadNepal1600, srcSet: import.meta.env.MODE === 'single' ? `${abroadNepal900} 900w, ${abroadNepal1600} 1600w` : `${abroadNepal900} 900w, ${abroadNepal1600} 1600w, ${abroadNepal2400} 2400w, ${abroadNepal3200} 3200w`, width: 3200, height: 2125, focus: '50% 55%',
     alt: { bn: 'পাহাড়ের গায়ে ধাপে ধাপে ধানক্ষেত, ঘান্দ্রুক, নেপাল', en: 'Rice terraces on the hillside, Ghandruk, Nepal' },
     credit: { artist: "Manuel Velazquez", license: 'CC BY 3.0', page: 'https://commons.wikimedia.org/wiki/File:BANCALES_EN_GHANDRUK_-_panoramio.jpg' },
   },
   abroadBhutan: {
-    src: abroadBhutan1600, srcSet: `${abroadBhutan900} 900w, ${abroadBhutan1600} 1600w, ${abroadBhutan2400} 2400w, ${abroadBhutan3200} 3200w`, width: 3200, height: 2133, focus: '50% 55%',
+    src: abroadBhutan1600, srcSet: import.meta.env.MODE === 'single' ? `${abroadBhutan900} 900w, ${abroadBhutan1600} 1600w` : `${abroadBhutan900} 900w, ${abroadBhutan1600} 1600w, ${abroadBhutan2400} 2400w, ${abroadBhutan3200} 3200w`, width: 3200, height: 2133, focus: '50% 55%',
     alt: { bn: 'পারো উপত্যকার ধানক্ষেত, ভুটান', en: 'Rice fields of the Paro valley, Bhutan' },
     credit: { artist: "Bernard Gagnon", license: 'CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:Rice_fields_in_Paro,_Bhutan.jpg' },
   },
   abroadAfghanistan: {
-    src: abroadAfghanistan1600, srcSet: `${abroadAfghanistan900} 900w, ${abroadAfghanistan1600} 1600w, ${abroadAfghanistan2400} 2400w, ${abroadAfghanistan3200} 3200w`, width: 3200, height: 2400, focus: '50% 88%',
+    src: abroadAfghanistan1600, srcSet: import.meta.env.MODE === 'single' ? `${abroadAfghanistan900} 900w, ${abroadAfghanistan1600} 1600w` : `${abroadAfghanistan900} 900w, ${abroadAfghanistan1600} 1600w, ${abroadAfghanistan2400} 2400w, ${abroadAfghanistan3200} 3200w`, width: 3200, height: 2400, focus: '50% 88%',
     alt: { bn: 'বামিয়ানের পাহাড়ের নিচে গমের খেত, আফগানিস্তান', en: 'Wheat below the cliffs of Bamyan, Afghanistan' },
     credit: { artist: "Monikajoannah", license: 'CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:Bamyan_field.jpg' },
   },
   viewIndia: {
-    src: viewIndia1600, srcSet: `${viewIndia900} 900w, ${viewIndia1600} 1600w, ${viewIndia2400} 2400w, ${viewIndia3200} 3200w`, width: 3200, height: 1794, focus: '60% 55%',
+    src: viewIndia1600, srcSet: import.meta.env.MODE === 'single' ? `${viewIndia900} 900w, ${viewIndia1600} 1600w` : `${viewIndia900} 900w, ${viewIndia1600} 1600w, ${viewIndia2400} 2400w, ${viewIndia3200} 3200w`, width: 3200, height: 1794, focus: '60% 55%',
     alt: { bn: 'মেঘে ঢাকা পাহাড়ের গায়ে চা-বাগান, ভারত', en: 'Tea gardens on misty hills, India' },
   },
   viewPakistan: {
-    src: viewPakistan1600, srcSet: `${viewPakistan900} 900w, ${viewPakistan1600} 1600w, ${viewPakistan2400} 2400w, ${viewPakistan3200} 3200w`, width: 3200, height: 1921, focus: '58% 62%',
+    src: viewPakistan1600, srcSet: import.meta.env.MODE === 'single' ? `${viewPakistan900} 900w, ${viewPakistan1600} 1600w` : `${viewPakistan900} 900w, ${viewPakistan1600} 1600w, ${viewPakistan2400} 2400w, ${viewPakistan3200} 3200w`, width: 3200, height: 1921, focus: '58% 62%',
     alt: { bn: 'সাইফুল মুলুক হ্রদ, কাগান উপত্যকা, পাকিস্তান', en: 'Lake Saiful Muluk, Kaghan valley, Pakistan' },
   },
   viewNepal: {
-    src: viewNepal1600, srcSet: `${viewNepal900} 900w, ${viewNepal1600} 1600w, ${viewNepal2400} 2400w, ${viewNepal3200} 3200w`, width: 3200, height: 2182, focus: '48% 38%',
+    src: viewNepal1600, srcSet: import.meta.env.MODE === 'single' ? `${viewNepal900} 900w, ${viewNepal1600} 1600w` : `${viewNepal900} 900w, ${viewNepal1600} 1600w, ${viewNepal2400} 2400w, ${viewNepal3200} 3200w`, width: 3200, height: 2182, focus: '48% 38%',
     alt: { bn: 'সূর্যাস্তে আমা দাবলাম, খুম্বু হিমালয়, নেপাল', en: 'Ama Dablam at sunset, Khumbu Himalaya, Nepal' },
   },
   viewBhutan: {
-    src: viewBhutan1600, srcSet: `${viewBhutan900} 900w, ${viewBhutan1600} 1600w, ${viewBhutan2400} 2400w, ${viewBhutan3200} 3200w`, width: 3200, height: 1732, focus: '66% 42%',
+    src: viewBhutan1600, srcSet: import.meta.env.MODE === 'single' ? `${viewBhutan900} 900w, ${viewBhutan1600} 1600w` : `${viewBhutan900} 900w, ${viewBhutan1600} 1600w, ${viewBhutan2400} 2400w, ${viewBhutan3200} 3200w`, width: 3200, height: 1732, focus: '66% 42%',
     alt: { bn: 'পুনাখা জং, পো ছু আর মো ছু নদীর মিলনে, ভুটান', en: 'Punakha Dzong where the Pho Chhu meets the Mo Chhu, Bhutan' },
   },
   viewAfghanistan: {
-    src: viewAfghanistan1600, srcSet: `${viewAfghanistan900} 900w, ${viewAfghanistan1600} 1600w, ${viewAfghanistan2400} 2400w, ${viewAfghanistan3200} 3200w`, width: 3200, height: 2394, focus: '58% 45%',
+    src: viewAfghanistan1600, srcSet: import.meta.env.MODE === 'single' ? `${viewAfghanistan900} 900w, ${viewAfghanistan1600} 1600w` : `${viewAfghanistan900} 900w, ${viewAfghanistan1600} 1600w, ${viewAfghanistan2400} 2400w, ${viewAfghanistan3200} 3200w`, width: 3200, height: 2394, focus: '58% 45%',
     alt: { bn: 'বান্দ-ই-আমির হ্রদ, বামিয়ান, আফগানিস্তান', en: 'The Band-e-Amir lakes, Bamyan, Afghanistan' },
   },
 };

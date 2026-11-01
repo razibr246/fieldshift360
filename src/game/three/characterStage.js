@@ -5,6 +5,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { createFallbackPerson, disposePerson } from './personModels.js';
+import { previewFrame } from '../previewMotion.js';
 
 const BASE = `${import.meta.env.BASE_URL || './'}models/people/`;
 
@@ -42,10 +44,26 @@ export function createCharacterStage(host) {
   scene.add(dust);
 
   const loader = new GLTFLoader(), cache = new Map();
-  const load = (n) => { if (!cache.has(n)) cache.set(n, loader.loadAsync(`${BASE}${n}.glb`)); return cache.get(n); };
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reducedMotion = motionQuery.matches;
+  const load = (n) => {
+    if (!cache.has(n)) {
+      const request = loader.loadAsync(`${BASE}${n}.glb`).catch((error) => {
+        if (cache.get(n) === request) cache.delete(n);
+        throw error;
+      });
+      cache.set(n, request);
+    }
+    return cache.get(n);
+  };
   const cast = [];
   async function person(spec, x) {
-    const gltf = await load(spec.model);
+    let gltf;
+    try { gltf = await load(spec.model); }
+    catch (error) {
+      console.warn(`Character model ${spec.model} could not be loaded; using the built-in fallback.`, error);
+      return { ...createFallbackPerson(spec, x), mixer: null, actions: {}, now: null };
+    }
     const root = cloneSkinned(gltf.scene);
     root.traverse((o) => {
       if (!o.isMesh) return;
@@ -54,7 +72,13 @@ export function createCharacterStage(host) {
       o.material = ms.map((m) => { const n = m.clone(); const c = spec.colors[m.name]; if (c) n.color.set(c); n.roughness = m.name === 'Skin' ? 0.55 : 0.75; return n; });
       if (o.material.length === 1) o.material = o.material[0];
     });
-    if (spec.kid) { root.scale.setScalar(0.62); root.traverse((o) => { if (o.isBone && /^Head$/i.test(o.name)) o.scale.setScalar(1.3); }); }
+    if (spec.kid) {
+      const age = spec.child?.age ?? 8;
+      const kidScale = 0.54 + (age - 7) * 0.032;
+      root.scale.setScalar(kidScale);
+      const headScale = 1.32 - (age - 7) * 0.02;
+      root.traverse((o) => { if (o.isBone && /^Head$/i.test(o.name)) o.scale.setScalar(headScale); });
+    }
     root.position.x = x;
     const mixer = new THREE.AnimationMixer(root);
     const actions = Object.fromEntries(gltf.animations.map((a) => [a.name, mixer.clipAction(a)]));
@@ -72,32 +96,47 @@ export function createCharacterStage(host) {
   async function show(adult, kid) {
     const my = ++token;
     const [a, k] = await Promise.all([person(adult, -0.35), person(kid, 0.75)]);
-    if (my !== token) return; // a newer pick came in while these loaded
-    for (const p of cast.splice(0)) scene.remove(p.root);
+    if (my !== token) { disposePerson(a); disposePerson(k); return; } // a newer pick came in while these loaded
+    for (const p of cast.splice(0)) { scene.remove(p.root); disposePerson(p); }
     cast.push(a, k);
     scene.add(a.root, k.root);
-    play(a, 'Victory', true); play(k, 'Jump', true);
+    if (!reducedMotion) { play(a, 'Victory', true); play(k, 'Jump', true); }
     spin = -0.6;
   }
 
   const clock = new THREE.Timer(); // THREE.Clock is deprecated
   let spin = 0, angle = 0.35;
+  const onMotionPreference = (event) => {
+    reducedMotion = event.matches;
+    spin = 0;
+    if (reducedMotion) for (const p of cast) { p.mixer?.stopAllAction(); p.now = null; }
+  };
+  motionQuery.addEventListener?.('change', onMotionPreference);
   renderer.setAnimationLoop(() => {
     clock.update(); const dt = Math.min(clock.getDelta(), 0.05), t = clock.getElapsed();
-    for (const p of cast) p.mixer.update(dt);
-    spin *= 0.97; angle += dt * 0.12 + spin * dt;
+    const motion = previewFrame({ dt, t, angle, spin, reduced: reducedMotion });
+    angle = motion.angle; spin = motion.spin;
+    if (motion.animateCharacters) for (const p of cast) p.mixer?.update(dt);
     const r = camera.aspect < 1 ? 9.2 : 5.6;
-    camera.position.set(Math.sin(angle) * r, 1.45 + Math.sin(t * 0.3) * 0.08, Math.cos(angle) * r);
+    camera.position.set(Math.sin(angle) * r, motion.cameraY, Math.cos(angle) * r);
     camera.lookAt(0.15, camera.aspect < 1 ? 1.75 : 1.05, 0); // on a phone the people stand low, under the name
-    ring.material.emissiveIntensity = 2 + Math.sin(t * 2) * 0.6;
-    dust.rotation.y += dt * 0.03;
+    ring.material.emissiveIntensity = motion.ringIntensity;
+    dust.rotation.y += motion.dustDelta;
     renderer.render(scene, camera);
   });
   const onResize = () => { camera.aspect = host.clientWidth / host.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(host.clientWidth, host.clientHeight); };
   window.addEventListener('resize', onResize);
   return {
     show,
-    cheer() { if (cast[0]) play(cast[0], 'Victory', true); if (cast[1]) play(cast[1], 'Jump', true); },
-    dispose() { renderer.setAnimationLoop(null); window.removeEventListener('resize', onResize); renderer.dispose(); renderer.domElement.remove(); },
+    cheer() { if (!reducedMotion) { if (cast[0]) play(cast[0], 'Victory', true); if (cast[1]) play(cast[1], 'Jump', true); } },
+    dispose() {
+      token++;
+      for (const p of cast.splice(0)) { scene.remove(p.root); disposePerson(p); }
+      renderer.setAnimationLoop(null);
+      motionQuery.removeEventListener?.('change', onMotionPreference);
+      window.removeEventListener('resize', onResize);
+      renderer.dispose();
+      renderer.domElement.remove();
+    },
   };
 }

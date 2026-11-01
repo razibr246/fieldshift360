@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { curve, steps, reach, ring, blink, panCurve } from './motion.js';
+import { curve, steps, reach, ring, blink, idleGaze, panCurve, ageStoop, expressionFromState } from './motion.js';
 
 const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
 
@@ -52,6 +52,28 @@ test('eyes blink briefly and stay open most of the time', () => {
   let shut = 0;
   for (let t = 0; t < 60; t += 0.01) if (blink(t) > 0.5) shut += 1;
   assert.ok(shut > 0 && shut < 6000 * 0.06);
+});
+
+test('reduced motion stops idle head-looking while normal idle gaze stays small', () => {
+  assert.deepEqual(idleGaze(5, true), { x: 0, y: 0 });
+  const gaze = idleGaze(5);
+  assert.ok(Math.abs(gaze.x) <= 0.05 && Math.abs(gaze.y) <= 0.32);
+});
+
+test('age stoop gives natural grounded posture to older farmers', () => {
+  assert.equal(ageStoop(30), 0);
+  assert.equal(ageStoop(48), 0.025);
+  assert.equal(ageStoop(58), 0.055);
+  assert.equal(ageStoop(82), 0.08);
+});
+
+test('expression from state maps farm actions to 3D facial gestures', () => {
+  assert.equal(expressionFromState({}).mood, 'calm');
+  assert.equal(expressionFromState({ down: 1 }).mood, 'hurt');
+  assert.equal(expressionFromState({ act: { type: 'cheer' } }).mood, 'happy');
+  assert.equal(expressionFromState({ act: { type: 'harvest' } }).mood, 'focused');
+  assert.equal(expressionFromState({ carrying: true }).mood, 'effort');
+  assert.equal(expressionFromState({ worried: true }).mood, 'worried');
 });
 
 test('the looping pan covers the whole distance once per loop at a speed continuous across the seam', () => {

@@ -1,3 +1,5 @@
+import { parseBody } from './body.js';
+
 // The neighbouring countries' board: the sample farmer's requests to the local agriculture office, the officer's
 // replies, and the advisories (SMS drafts) the officer sends. One board per country, in the same Upstash Redis store
 // as api/plans.js and api/messages.js (KV_REST_API_URL / KV_REST_API_TOKEN, or the UPSTASH_REDIS_REST_* names);
@@ -78,7 +80,9 @@ export default async function handler(req, res) {
       return res.status(200).json(listBoard(await load(cc)));
     }
     if (req.method === 'POST') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body ?? {};
+      const parsed = parseBody(req.body);
+      if (!parsed.ok) return res.status(400).json({ error: 'bad json' });
+      const body = parsed.value;
       if (!validCountry(body.cc)) return res.status(400).json({ error: 'bad country' });
       const board = await load(body.cc);
       const out = applyOp(board, body);

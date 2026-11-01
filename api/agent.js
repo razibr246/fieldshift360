@@ -8,6 +8,7 @@
 // The model never changes anything. It can only *propose* an action; the browser checks every proposal against the
 // role's policy (src/engine/chakra.js authorize/gateFor) and an officer approves anything sent in the office's name.
 import Anthropic from '@anthropic-ai/sdk';
+import { parseBody } from './body.js';
 
 export const MODEL = 'claude-opus-5-5';
 // A spoken conversation needs a fast model: Flash-Lite answered in about 3 s in testing (Oct 2026) where the bigger
@@ -139,8 +140,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'method not allowed' }); }
   const gemini = !!process.env.GEMINI_API_KEY;
   if (!gemini && !process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return res.status(503).json({ error: 'agent not configured' });
-  let body = req.body;
-  try { if (typeof body === 'string') body = JSON.parse(body || '{}'); } catch { return res.status(400).json({ error: 'bad json' }); }
+  const parsed = parseBody(req.body);
+  if (!parsed.ok) return res.status(400).json({ error: 'bad json' });
+  const body = parsed.value;
   const role = body?.role === 'officer' ? 'officer' : 'farmer';
   const lang = body?.lang === 'en' ? 'en' : 'bn';
   const message = clip(body?.message, 600).trim();
