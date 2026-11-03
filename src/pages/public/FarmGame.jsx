@@ -14,7 +14,7 @@ import { sliderMods, seasonReport, nextTry } from '../../game/fieldshift';
 // the FieldShift station brings the place's NASA records and the rotation engine: loaded when it is first opened
 const FieldStation = lazy(() => import('../../components/game/FieldStation'));
 import { PLACES } from '../../game/places';
-import { createGame, buy, note, answerQuiz, priceOf, dayOf, isNight, clock, quizOf, canMax, target, ripeAt } from '../../game/sim';
+import { createGame, buy, note, answerQuiz, priceOf, dayOf, isNight, clock, quizOf, canMax, target, ripeAt, LEVELS, agriScorecard } from '../../game/sim';
 import { createStage, createPreview, portraits, xrModes, lightGraphics, QUALITY_KEY } from '../../game/three/stage';
 import { play, setMuted, startAmbience, stopAmbience, setScene, setMusic } from '../../game/sound';
 
@@ -22,7 +22,11 @@ const MUTE_KEY = 'fs360.game.muted';
 const MUSIC_KEY = 'fs360.game.music';
 const BEST_KEY = 'fs360.game.best';
 const readBest = () => { try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); } catch { return {}; } };
-export const starsOf = (r) => { const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0; return lost <= 1 && !hurt ? 3 : lost <= 4 ? 2 : 1; };
+export const starsOf = (r) => {
+  if (Number.isFinite(r?.scorecard?.stars)) return Math.max(1, Math.min(3, r.scorecard.stars));
+  const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0;
+  return lost <= 1 && !hurt ? 3 : lost <= 4 ? 2 : 1;
+};
 const fill = (s, R) => s.replace('{cur}', R.cur);
 // The compass strip: a mark every 15°, letters at the eight points (Bangla উ পূ দ প, or N E S W).
 const POINTS = { 0: ['উ', 'N'], 45: ['উপূ', 'NE'], 90: ['পূ', 'E'], 135: ['দপূ', 'SE'], 180: ['দ', 'S'], 225: ['দপ', 'SW'], 270: ['প', 'W'], 315: ['উপ', 'NW'] };
@@ -193,7 +197,7 @@ function BriefScreen({ who, onDone, onBack }) {
           </div>
           <div className="glass flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[22px] px-4 py-3 text-[13px] text-ink/75">
             <span className="flex items-center gap-1.5 font-semibold text-ink"><Keyboard size={14} />{T('নিয়ন্ত্রণ', 'Controls')}</span>
-            <span>WASD / ↑↓←→ {T('হাঁটা', 'walk')}</span><span>Shift {T('দৌড়', 'run')}</span><span>E / Space {T('কাজ', 'act')}</span><span>{T('মাউস টেনে চারপাশ দেখা', 'drag to look')}</span><span>1–4 {T('বীজ', 'seed')}</span><span>N {T('উপগ্রহ', 'satellite')}</span><span>Esc {T('বিরতি', 'pause')}</span>
+            <span>WASD / ↑↓←→ {T('হাঁটা', 'walk')}</span><span>Shift / R {T('ধরে দৌড় / টগল', 'hold to run / toggle')}</span><span>E / F / Space {T('কাজ', 'act')}</span><span>{T('মাউস টেনে চারপাশ দেখা', 'drag to look')}</span><span>1–4 {T('বীজ', 'seed')}</span><span>N {T('উপগ্রহ', 'satellite')}</span><span>Esc {T('বিরতি', 'pause')}</span>
           </div>
         </div>
       </div>
@@ -204,6 +208,7 @@ function BriefScreen({ who, onDone, onBack }) {
 // ---- the game ----
 const snapshot = (g) => ({
   money: g.money, can: g.can, canMax: canMax(g), seeds: { ...g.seeds }, sel: g.sel, basketN: Object.values(g.basket).reduce((a, b) => a + b, 0),
+  xp: g.xp ?? 0, level: g.level ?? 1, soilHealth: g.soilHealth ?? 50, carbonScore: g.carbonScore ?? 25,
   quest: g.quest, count: { ...g.count }, ev: { heat: g.ev.heat, storm: g.ev.storm, glut: g.ev.glut, zone: g.ev.zone && { ...g.ev.zone }, flood: g.ev.flood }, day: dayOf(g), night: isNight(g), clock: clock(g), perks: { ...g.perks },
   pests: g.plots.filter((p) => p.pests).length, stamina: g.me.stamina, down: g.me.down, target: target(g), won: g.won, ripe: ripeAt(g),
   inZone: g.ev.zone ? Math.hypot(g.me.x - g.ev.zone.x, g.me.z - g.ev.zone.z) <= g.ev.zone.r : false,
@@ -263,7 +268,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
           else if (e.type === 'hurt') setBanner({ kind: 'hurt', fine: e.fine, k: Math.random() });
           else if (e.type === 'safe') setBanner({ kind: 'safe', k: Math.random() });
           else if (e.type === 'place') setPlaceCard({ p: e.place, n: e.n, total: e.total, k: Math.random() });
-          else if (e.type === 'win' && !ended.current) { ended.current = true; setBanner({ kind: 'win', k: Math.random() }); setTimeout(() => endRef.current({ count: { ...g.count }, answers: [...g.answers], day: dayOf(g), money: g.money, seen: [...g.seen], report: seasonReport(g), prevBest: readBest()[who] ?? null }), 4200); }
+          else if (e.type === 'win' && !ended.current) { ended.current = true; setBanner({ kind: 'win', k: Math.random() }); setTimeout(() => endRef.current({ count: { ...g.count }, answers: [...g.answers], day: dayOf(g), money: g.money, seen: [...g.seen], report: seasonReport(g), scorecard: agriScorecard(g), xp: g.xp ?? 0, level: g.level ?? 1, prevBest: readBest()[who] ?? null }), 4200); }
           else if (e.type === 'broke') setBroke(true);
         },
       });
@@ -283,6 +288,25 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
   const goXR = (mode) => st.current?.enterXR(mode, rootRef.current).catch(() => setToast({ text: { bn: 'এই যন্ত্রে AR/VR চালু করা গেল না', en: 'AR/VR could not start on this device' }, k: Math.random() }));
   const xrBtns = (size) => modes.map((m) => <RoundBtn key={m} onClick={() => goXR(m)} label={m === 'ar' ? T('AR: ঘরের মেঝেতে বা টেবিলে খামার', 'AR: the farm on your table') : T('VR: হেডসেটে নিজের মাঠে দাঁড়ান', 'VR: stand in the field in a headset')}>{m === 'ar' ? <View size={size} /> : <Glasses size={size} />}</RoundBtn>);
   useEffect(() => { st.current?.setPaused(paused || !!panel); g.paused = paused || !!panel; }, [paused, panel, g]);
+  useEffect(() => {
+    const modal = rootRef.current?.querySelector('[role="dialog"][aria-modal="true"], [role="alertdialog"][aria-modal="true"]');
+    if (!modal) return undefined;
+    const previous = document.activeElement;
+    const focusable = () => [...modal.querySelectorAll('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])')];
+    (focusable()[0] ?? modal).focus({ preventScroll: true });
+    const trapTab = (e) => {
+      if (e.key !== 'Tab') return;
+      const items = focusable(), first = items[0], last = items.at(-1);
+      if (!first) { e.preventDefault(); modal.focus(); }
+      else if (e.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    };
+    modal.addEventListener('keydown', trapTab);
+    return () => {
+      modal.removeEventListener('keydown', trapTab);
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
+    };
+  }, [paused, panel, broke]);
   useEffect(() => { if (!toast) return undefined; const t = setTimeout(() => setToast(null), 2600); return () => clearTimeout(t); }, [toast]);
   useEffect(() => { if (!placeCard) return undefined; const t = setTimeout(() => setPlaceCard(null), 4600); return () => clearTimeout(t); }, [placeCard]);
   useEffect(() => { if (!banner || banner.kind === 'win') return undefined; const t = setTimeout(() => setBanner(null), banner.kind === 'quest' ? 3200 : 2600); return () => clearTimeout(t); }, [banner]);
@@ -291,8 +315,8 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
   // keys the stage does not own: pause, seeds, satellite
   useEffect(() => {
     const down = (e) => {
-      if (e.target instanceof Element && e.target.closest('input, textarea, select, button, a, [role="button"], [role="tab"], [role="menuitem"], [contenteditable="true"]')) return;
-      if (e.code === 'Escape') { if (panel && panel !== 'quiz') closePanel(); else if (!panel) setPaused((p) => !p); return; }
+      if (e.code === 'Escape') { if (broke) return; if (panel && panel !== 'quiz') closePanel(); else if (!panel) setPaused((p) => !p); return; }
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
       if (panel || paused) return;
       if (/^Digit[1-4]$/.test(e.code)) { g.sel = Object.keys(R.crops)[+e.code.slice(5) - 1]; play('tap'); }
       else if (e.code === 'KeyN') setSat(st.current?.toggleSat() ?? false);
@@ -300,9 +324,12 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
     };
     window.addEventListener('keydown', down);
     return () => window.removeEventListener('keydown', down);
-  }, [g, panel, paused, closePanel, R]);
+  }, [g, panel, paused, broke, closePanel, R]);
 
   const q = QUESTS[hud.quest];
+  const levelInfo = LEVELS.find((x) => x.level === hud.level) ?? LEVELS[0];
+  const nextLevel = LEVELS.find((x) => x.level > hud.level);
+  const levelProgress = nextLevel ? Math.max(0, Math.min(100, ((hud.xp - levelInfo.xpReq) / (nextLevel.xpReq - levelInfo.xpReq)) * 100)) : 100;
   // the step of the mission still to do (a mission can need two: look at the data, then act on it)
   const qNeed = q?.need && (Object.entries(q.need).find(([k, v]) => (hud.count[k] ?? 0) < v) ?? Object.entries(q.need).slice(-1)[0]);
   const zone = hud.ev.zone;
@@ -337,6 +364,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
           <span className="flex items-center gap-1.5 truncate text-[12px] text-white/70">{hud.night ? <Moon size={12} /> : <Sun size={12} />}{T(`দিন ${num(hud.day, 'bn')}`, `Day ${hud.day}`)}<span className="hidden sm:inline"> · {fmtClock}</span>{whatIf && <b className="font-semibold text-sky-200">· {T(`যদি: +${num(whatIf.dT, 'bn', { dp: 1 })}°, বৃষ্টি ${whatIf.rain > 0 ? '+' : whatIf.rain < 0 ? '−' : ''}${num(Math.abs(whatIf.rain), 'bn')}%`, `What if: +${whatIf.dT}°, rain ${whatIf.rain > 0 ? '+' : whatIf.rain < 0 ? '−' : ''}${Math.abs(whatIf.rain)}%`)}</b>}<b className="font-semibold text-amber-200 sm:hidden">· {money}</b></span>
         </span>
         <span className="ml-1 hidden border-l border-white/15 pl-3 leading-tight sm:block"><span className="block text-[11px] font-semibold uppercase tracking-wider text-white/55">{T('টাকা', 'Cash')}</span><span className="font-display flex items-center gap-1 text-[17px] font-semibold tabular text-amber-200"><Coins size={14} />{money}</span></span>
+        <span className="ml-1 hidden border-l border-white/15 pl-3 leading-tight md:block"><span className="block text-[11px] font-semibold uppercase tracking-wider text-white/55">{T('লেভেল', 'Level')} {num(hud.level ?? 1, lang)}</span><span className="font-display flex items-center gap-1 text-[15px] font-semibold tabular text-paddy-300"><Sprout size={13} />{T(`মাটি ${num(hud.soilHealth ?? 50, lang)}%`, `Soil ${hud.soilHealth ?? 50}%`)}</span></span>
       </div>
 
       {/* top centre: the compass strip */}
@@ -371,7 +399,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
         )}
         <div className="pointer-events-none flex w-[min(78vw,300px)] flex-col gap-1.5">
           {alerts.map((a) => (
-            <div key={a.id} className={`alert-in g3-hud rounded-xl px-3 py-2 ${a.tone === 'hot' ? 'ring-1 ring-red-400/70' : a.tone === 'ok' ? 'ring-1 ring-emerald-300/60' : 'ring-1 ring-amber-300/60'}`}>
+            <div key={a.id} role="status" aria-live={a.tone === 'hot' ? 'assertive' : 'polite'} className={`alert-in g3-hud rounded-xl px-3 py-2 ${a.tone === 'hot' ? 'ring-1 ring-red-400/70' : a.tone === 'ok' ? 'ring-1 ring-emerald-300/60' : 'ring-1 ring-amber-300/60'}`}>
               <p className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-emerald-300"><Smartphone size={11} />FieldShift</p>
               <p className="text-[13.5px] font-semibold leading-snug">{L(a.title)}</p>
               <p className="text-[12px] leading-5 text-white/75">{L(a.body)}</p>
@@ -382,8 +410,20 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
 
       {/* left: the mission */}
       {q && !intro && (
-        <div key={hud.quest} className="g3-hud g3-mission-card outcome-in absolute left-3 top-[76px] w-[min(calc(58vw-22px),290px)] rounded-2xl px-3.5 py-2.5">
-          <p className="text-[10.5px] font-bold uppercase tracking-[.14em] text-amber-200">{T(`মিশন ${num(hud.quest + 1, 'bn')}/${num(QUESTS.length, 'bn')}`, `Mission ${hud.quest + 1}/${QUESTS.length}`)}</p>
+        <div key={hud.quest} role="region" aria-label={T('বর্তমান মিশন', 'Current mission')} className="g3-hud g3-mission-card outcome-in absolute left-3 top-[76px] w-[min(calc(58vw-22px),290px)] rounded-2xl px-3.5 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10.5px] font-bold uppercase tracking-[.14em] text-amber-200">{T(`মিশন ${num(hud.quest + 1, 'bn')}/${num(QUESTS.length, 'bn')}`, `Mission ${hud.quest + 1}/${QUESTS.length}`)}</p>
+            <span className="shrink-0 text-[10.5px] font-semibold text-lime-200" title={L(levelInfo.title)}>{T('স্তর', 'LV')} {num(hud.level, lang)} · {num(hud.xp, lang)} XP</span>
+          </div>
+          <div role="progressbar" aria-label={nextLevel ? T('পরের স্তরের অগ্রগতি', 'Progress to next level') : T('সর্বোচ্চ স্তর অর্জিত', 'Maximum level reached')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(levelProgress)} className="mt-1 h-1 overflow-hidden rounded-full bg-white/15">
+            <span className="block h-full rounded-full bg-gradient-to-r from-lime-400 to-amber-300 transition-[width]" style={{ width: `${levelProgress}%` }} />
+          </div>
+          <div className="mt-1.5 grid grid-cols-2 gap-x-2 text-[10px]" title={T('দুটিই খেলার সূচক, বাস্তব মাটির পরিমাপ নয়।', 'Both are game indexes, not field measurements.')}>
+            {[[T('মাটি-সূচক', 'Soil index'), hud.soilHealth], [T('কার্বন চর্চা', 'Carbon practice'), hud.carbonScore]].map(([label, value]) => <div key={label}>
+              <div className="mb-0.5 flex items-center justify-between gap-1 text-white/70"><span className="truncate">{label}</span><span className="shrink-0 tabular">{num(value, lang)}</span></div>
+              <div role="progressbar" aria-label={`${label} · ${T('খেলার সূচক, বাস্তব পরিমাপ নয়', 'game index, not a field measurement')}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value} className="h-1 overflow-hidden rounded-full bg-white/15"><span className="block h-full rounded-full bg-emerald-300" style={{ width: `${value}%` }} /></div>
+            </div>)}
+          </div>
           <p className="mt-0.5 text-[14.5px] font-semibold leading-snug">{fill(L(q), R)}</p>
           {/* the steps, each ticked when done (a tick and the words, not only a colour) */}
           {q.need && Object.keys(q.need).length > 1 && (
@@ -421,7 +461,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
 
       {/* centre banners: new mission, mission done, caught in the storm, safe, the win */}
       {banner && (
-        <div key={banner.k} className="pointer-events-none absolute inset-x-0 top-[24%] flex justify-center px-4">
+        <div key={banner.k} role="status" aria-live="polite" className="pointer-events-none absolute inset-x-0 top-[24%] flex justify-center px-4">
           <div className="g3-banner text-center">
             {banner.kind === 'quest' && <><p className="text-[12px] font-bold uppercase tracking-[.3em] text-amber-200">{T('নতুন মিশন', 'New mission')}</p><p className="font-display mt-1 text-[26px] font-bold sm:text-[34px]">{fill(L(QUESTS[banner.i]), R)}</p>{QUESTS[banner.i].how && <p className="mx-auto mt-2 max-w-xl text-[15px] font-medium text-emerald-100">{L(QUESTS[banner.i].how)}</p>}</>}
             {banner.kind === 'done' && <p className="font-display text-[30px] font-bold text-emerald-300 sm:text-[40px]">✓ {T('মিশন সম্পন্ন', 'Mission complete')}</p>}
@@ -493,6 +533,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
             <div className="g3-hud flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full px-3.5 py-1.5 text-[12px] font-semibold">
               <Satellite size={13} className="text-emerald-300" /><span className="text-white/60">{ly.sat}</span>{ly.legend.map(([c, bn, en]) => <span key={c} className="inline-flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />{T(bn, en)}</span>)}
             </div>
+            <p className="g3-hud rounded-full px-3.5 py-1 text-center text-[11px] leading-5 text-white/75">{T('রঙগুলো খেলার সিমুলেশন, এই মাঠের বাস্তব উপগ্রহ মাপ নয়।', 'Colours are simulated for play, not satellite measurements of this field.')}</p>
           </div>
         );
       })()}
@@ -515,8 +556,8 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       {panel && <Panel kind={panel} g={g} hud={hud} R={R} onClose={closePanel} onWhatIf={onWhatIf} onQuizDone={(ok) => { answerQuiz(g, ok); setPanel(null); }} />}
       {paused && !panel && (
         <div className="absolute inset-0 grid place-items-center bg-black/55 p-4 backdrop-blur-sm">
-          <div className="g3-panel w-full max-w-sm rounded-[26px] p-6 text-center">
-            <p className="font-display text-[26px] font-bold">{T('বিরতি', 'Paused')}</p>
+          <div role="dialog" aria-modal="true" aria-labelledby="game-pause-title" tabIndex={-1} className="g3-panel w-full max-w-sm rounded-[26px] p-6 text-center">
+            <p id="game-pause-title" className="font-display text-[26px] font-bold">{T('বিরতি', 'Paused')}</p>
             <div className="mt-3 flex items-center justify-center gap-3 rounded-2xl bg-white/10 p-3 text-left ring-1 ring-white/15">
               <span className="grid h-12 w-12 place-items-center rounded-xl text-[24px]" style={{ background: stage(R.country) }}>{R.flag}</span>
               <div className="min-w-0 flex-1">
@@ -529,16 +570,17 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
               <button type="button" onClick={() => setPaused(false)} className="btn-gloss inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white"><Play size={17} />{T('চালিয়ে যান', 'Resume')}</button>
               <button type="button" onClick={onRestart} className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-5 py-3 font-semibold ring-1 ring-white/15 hover:bg-white/15"><RotateCcw size={16} />{T('আবার শুরু', 'Restart')}</button>
               <button type="button" onClick={() => setMute(!muted)} className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-5 py-3 font-semibold ring-1 ring-white/15 hover:bg-white/15">{muted ? <VolumeX size={16} /> : <Volume2 size={16} />}{muted ? T('শব্দ চালু করুন', 'Turn sound on') : T('শব্দ বন্ধ করুন', 'Turn sound off')}</button>
+              <button type="button" onClick={() => setMusicOn(!music)} aria-pressed={music} className="inline-flex items-center justify-center gap-2 rounded-full bg-white/10 px-5 py-3 font-semibold ring-1 ring-white/15 hover:bg-white/15"><Music size={16} />{music ? T('সুর বন্ধ করুন', 'Turn music off') : T('সুর চালু করুন', 'Turn music on')}</button>
               <button type="button" onClick={onQuit} className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 font-semibold text-white/70 hover:text-white"><LogOut size={16} />{T('খেলা ছেড়ে বের হন', 'Quit the game')}</button>
             </div>
-            <p className="mt-4 text-[12.5px] leading-5 text-white/60">{touch ? T('বাঁয়ের চাকা দিয়ে হাঁটুন, ডানে টেনে চারপাশ দেখুন, দুই আঙুলে জুম।', 'Walk with the left stick, drag on the right to look, pinch to zoom.') : T('WASD হাঁটা · Shift দৌড় · E কাজ · মাউস টেনে দেখা · চাকা জুম · 1–4 বীজ · N উপগ্রহ', 'WASD walk · Shift run · E act · drag to look · wheel zoom · 1–4 seed · N satellite')}</p>
+            <p className="mt-4 text-[12.5px] leading-5 text-white/60">{touch ? T('বাঁয়ের চাকা দিয়ে হাঁটুন, ডানে টেনে চারপাশ দেখুন, দুই আঙুলে জুম।', 'Walk with the left stick, drag on the right to look, pinch to zoom.') : T('WASD হাঁটা · Shift ধরে দৌড় / R টগল · E/F/Space কাজ · মাউস টেনে দেখা · চাকা জুম · 1–4 বীজ · N উপগ্রহ', 'WASD walk · hold Shift / press R to run · E/F/Space act · drag to look · wheel zoom · 1–4 seed · N satellite')}</p>
           </div>
         </div>
       )}
       {broke && (
         <div className="absolute inset-0 grid place-items-center bg-black/55 p-4 backdrop-blur-sm">
-          <div className="g3-panel max-w-sm rounded-[24px] p-6 text-center">
-            <p className="font-display text-[22px] font-semibold">{T('টাকা আর বীজ — দুটোই শেষ', 'Out of money and seed')}</p>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="game-broke-title" tabIndex={-1} className="g3-panel max-w-sm rounded-[24px] p-6 text-center">
+            <p id="game-broke-title" className="font-display text-[22px] font-semibold">{T('টাকা আর বীজ — দুটোই শেষ', 'Out of money and seed')}</p>
             <p className="mt-2 text-[15px] text-white/75">{T('খরচের আগে হিসাব — এটাই FieldShift-এর মূল কথা। আবার চেষ্টা করুন!', 'Plan before you spend — that is the heart of FieldShift. Try again!')}</p>
             <button type="button" onClick={onRestart} className="btn-gloss mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-white"><RotateCcw size={16} />{T('আবার শুরু', 'Restart')}</button>
           </div>
@@ -623,7 +665,7 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
   const next = QUESTS[g.quest];
   return (
     <div className="absolute inset-0 grid place-items-center overflow-y-auto bg-black/45 p-3 backdrop-blur-[3px]">
-      <div className={`outcome-in g3-panel w-full rounded-[26px] p-5 sm:p-6 ${kind === 'kiosk' ? 'max-w-3xl' : 'max-w-xl'}`}>
+      <div role="dialog" aria-modal="true" aria-label={kind === 'shop' ? L(R.names.shed) : kind === 'kiosk' ? `FieldShift · ${L(R.names.kiosk)}` : T('FieldShift-এর প্রশ্ন', 'FieldShift question')} tabIndex={-1} className={`outcome-in g3-panel w-full rounded-[26px] p-5 sm:p-6 ${kind === 'kiosk' ? 'max-w-3xl' : 'max-w-xl'}`}>
         {kind === 'shop' && (<>
           <div className="flex items-center justify-between"><p className="font-display text-[22px] font-semibold">{L(R.names.shed)}</p><span className="text-[15px] font-semibold text-amber-200">{R.cur}{num(hud.money, lang)}</span></div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -693,12 +735,35 @@ function EndScreen({ who, r, onReplay, onPick, onWhatIf }) {
   const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0;
   const stars = starsOf(r);
   const prev = r?.prevBest ?? null; // the best before this season (read when it was won), to beat next time
-  const newBest = !prev || stars > prev.stars || (stars === prev.stars && (r?.count.earned ?? 0) > prev.earned);
+  const seasonLevel = LEVELS.find((x) => x.level === (r?.level ?? 1)) ?? LEVELS[0];
+  const correctAnswers = r?.answers?.filter((a) => a.ok).length ?? 0;
+  const totalAnswers = r?.answers?.length ?? 0;
+  const seasonScore = r?.scorecard?.overall ?? 0;
+  const earned = r?.count.earned ?? 0;
+  const betterThanPrev = (old) => stars > old.stars || (stars === old.stars && (
+    seasonScore > (old.score ?? -1) ||
+    (seasonScore === (old.score ?? -1) && (correctAnswers > (old.correct ?? -1) || (correctAnswers === (old.correct ?? -1) && earned > (old.earned ?? 0))))
+  ));
+  const newBest = !prev || betterThanPrev(prev);
+  const scorecard = r?.scorecard;
+  const scoreRows = scorecard ? [
+    [T('ফসলচক্র', 'Crop rotation'), scorecard.rotScore],
+    [T('পানি-তথ্যের ব্যবহার', 'Water data use'), scorecard.waterScore],
+    [T('ফসলের বৈচিত্র্য', 'Crop diversity'), scorecard.diversityScore],
+    [T('মোট বিক্রি', 'Gross sales'), scorecard.econScore],
+  ] : [];
   const tries = r?.report ? nextTry(r.report, R) : [];
+  const c = r?.count ?? {};
+  const badges = [
+    { icon: Satellite, earned: c.satViews > 0 && c.advised > 0, name: T('FieldShift খোঁজারু', 'FieldShift scout'), why: T('উপগ্রহ আর কিয়স্ক—দুটোই দেখুন', 'Check both the satellite view and the kiosk') },
+    { icon: Droplets, earned: c.waterLayer > 0 && c.watered >= 3, name: T('পানি-সচেতন', 'Water wise'), why: T('পানির চাপ দেখে অন্তত ৩টি চারা সেচ দিন', 'Use the water stress view, then water 3 seedlings') },
+    { icon: Sprout, earned: (r?.report?.rotated ?? 0) > 0 && (r?.report?.legumes ?? 0) > 0, name: T('মাটি গড়ি', 'Soil builder'), why: T('ফসল বদলান এবং একটি ডাল ফসল তুলুন', 'Rotate a crop and harvest a pulse') },
+    { icon: Star, earned: totalAnswers > 0 && correctAnswers === totalAnswers, name: T('জ্ঞানী চাষি', 'Knowledge grower'), why: T('সব কৃষি প্রশ্নের সঠিক উত্তর দিন', 'Answer every farm question correctly') },
+  ];
   useEffect(() => {
     const b = readBest(), was = b[who];
-    if (!was || stars > was.stars || (stars === was.stars && (r?.count.earned ?? 0) > was.earned)) { b[who] = { stars, earned: r?.count.earned ?? 0 }; try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch { /* storage unavailable */ } }
-  }, [who, stars, r]);
+    if (!was || betterThanPrev(was)) { b[who] = { stars, score: seasonScore, correct: correctAnswers, total: totalAnswers, earned }; try { localStorage.setItem(BEST_KEY, JSON.stringify(b)); } catch { /* storage unavailable */ } }
+  }, [who, stars, seasonScore, correctAnswers, totalAnswers, earned]);
   const quizzes = QUESTS.map((q) => q.quiz && R.quiz[q.quiz] && { id: q.id, Q: R.quiz[q.quiz] }).filter(Boolean);
   return (
     <section className="scene-in mx-auto max-w-4xl">
@@ -712,16 +777,41 @@ function EndScreen({ who, r, onReplay, onPick, onWhatIf }) {
             <p className="mt-3 text-[12px] font-bold uppercase tracking-[.3em] text-amber-200">{T('মৌসুম জয়', 'Season won')}</p>
             <h1 className="font-display mt-1 text-[32px] font-extrabold leading-tight sm:text-[42px]"><Words text={T(`জয় জয়! আজ রাতে ${R.dinner.bn}!`, `Winner winner, ${R.dinner.en} dinner!`)} /></h1>
             <p className="mt-2 text-[16px] text-white/80">{L(R.lines.win)} — {L(R.farmer)}</p>
-            <p className="mt-3 text-[13px] leading-5 text-white/70">{T('৩ তারা: ১টির বেশি গাছ হারাননি, ঝড়ে খোলা জায়গায় আটকাননি · ২ তারা: ৪টি পর্যন্ত গাছ হারানো · ১ তারা: মৌসুম জয়', '3 stars: no more than 1 plant lost and never caught in the storm · 2 stars: up to 4 plants lost · 1 star: season won')}</p>
-            <p className="mt-1.5 text-[13.5px] font-semibold text-amber-200">{newBest ? T('নতুন সেরা!', 'New best!') : T(`আগের সেরা: ${num(prev.stars, 'bn')} তারা, ${R.cur}${num(prev.earned, 'bn')}`, `Best so far: ${prev.stars} stars, ${R.cur}${prev.earned}`)}</p>
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[13px] font-semibold text-lime-100"><Sparkles size={14} />{L(seasonLevel.title)} · {T(`স্তর ${num(seasonLevel.level, 'bn')} · ${num(r?.xp ?? 0, 'bn')} XP`, `Level ${seasonLevel.level} · ${r?.xp ?? 0} XP`)}</p>
+            <p className="mt-3 text-[13px] leading-5 text-white/70">{T('৩ তারা: কৌশল স্কোর ৮০ বা বেশি · ২ তারা: ৫৫–৭৯ · ১ তারা: ৫৫-এর কম', '3 stars: strategy score 80 or higher · 2 stars: 55–79 · 1 star: below 55')}</p>
+            <p className="mt-1.5 text-[13.5px] font-semibold text-amber-200">{newBest ? T('নতুন সেরা!', 'New best!') : T(`আগের সেরা: ${num(prev.stars, 'bn')} তারা · স্কোর ${num(prev.score ?? 0, 'bn')} · প্রশ্নে ${num(prev.correct ?? 0, 'bn')}/${num(prev.total ?? 0, 'bn')} · বিক্রি ${R.cur}${num(prev.earned ?? 0, 'bn')}`, `Best: ${prev.stars} stars · score ${prev.score ?? 0} · ${prev.correct ?? 0}/${prev.total ?? 0} quiz answers · sales ${R.cur}${prev.earned ?? 0}`)}</p>
           </div>
         </div>
       </div>
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[[Coins, T('মোট বিক্রি', 'Sold'), `${R.cur}${num(r?.count.earned ?? 0, lang)}`], [ShoppingBasket, T('ফসল তোলা', 'Harvested'), num(r?.count.harvested ?? 0, lang)], [Sprout, T('হারানো গাছ', 'Plants lost'), num(lost, lang)], [Sun, T('দিন লেগেছে', 'Days'), num(r?.day ?? 1, lang)]].map(([Icon, l, v], k) => (
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {[[Coins, T('মোট বিক্রি', 'Sold'), `${R.cur}${num(r?.count.earned ?? 0, lang)}`], [ShoppingBasket, T('ফসল তোলা', 'Harvested'), num(r?.count.harvested ?? 0, lang)], [Sprout, T('হারানো গাছ', 'Plants lost'), num(lost, lang)], [Sun, T('দিন লেগেছে', 'Days'), num(r?.day ?? 1, lang)], [Check, T('প্রশ্নের সঠিক উত্তর', 'Correct quiz answers'), `${num(correctAnswers, lang)}/${num(totalAnswers, lang)}`]].map(([Icon, l, v], k) => (
           <div key={l} className="outcome-in glass rounded-[22px] p-4 text-center" style={{ animationDelay: `${700 + k * 110}ms` }}><Icon size={20} className="mx-auto text-primary-700" /><p className="font-display mt-1.5 text-[24px] font-semibold tabular">{v}</p><p className="text-[13px] text-muted">{l}</p></div>
         ))}
       </div>
+      {scorecard && <section className="glass mt-5 rounded-[24px] p-5" aria-labelledby="season-score-title">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div><h2 id="season-score-title" className="font-display text-[19px] font-semibold">{T('মৌসুমের কৌশল স্কোর', 'Season strategy score')}</h2><p className="mt-1 text-[12.5px] text-muted">{T(`${L(R.farmer)}-এর খেলার ফল`, `${R.farmer.en}’s game results`)}</p></div>
+          <p className="font-display text-[30px] font-bold leading-none text-primary-800 tabular">{num(scorecard.overall, lang)}<span className="text-[15px] font-semibold text-muted">/100</span></p>
+        </div>
+        <div className="mt-4 grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          {scoreRows.map(([label, value]) => <div key={label}>
+            <div className="mb-1 flex items-center justify-between gap-2 text-[13px]"><span className="font-semibold text-ink/80">{label}</span><span className="tabular text-muted">{num(value, lang)}/100</span></div>
+            <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={value} className="h-2 overflow-hidden rounded-full bg-primary-100"><span className="block h-full rounded-full bg-gradient-to-r from-primary-600 to-paddy-500" style={{ width: `${value}%` }} /></div>
+          </div>)}
+        </div>
+        {scorecard.takeaways?.length > 0 && <ul className="mt-4 space-y-2">{scorecard.takeaways.map((tip, i) => <li key={i} className="flex gap-2 text-[13.5px] leading-6 text-ink/75"><Sprout size={15} className="mt-1 shrink-0 text-primary-600" />{L(tip)}</li>)}</ul>}
+        <p className="mt-3 rounded-2xl bg-paddy-50 px-3.5 py-2.5 text-[12px] leading-5 text-ink/65">{T('এই স্কোর খেলার নিয়ম থেকে তৈরি শেখার সহায়ক; এটি বৈজ্ঞানিক ফলন-অনুমান বা বাস্তব কৃষি পরামর্শ নয়।', 'This score is a learning aid from game rules; it is not a scientific yield estimate or real-world farm advice.')}</p>
+      </section>}
+      <section className="glass mt-5 rounded-[24px] p-5" aria-label={T('শেখার পদক', 'Learning badges')}>
+        <h2 className="font-display text-[19px] font-semibold">{T('শেখার পদক', 'Learning badges')}</h2>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {badges.map(({ icon: Icon, earned: got, name, why }) => <div key={name} className={`flex items-start gap-3 rounded-2xl p-3 ring-1 ${got ? 'bg-emerald-50 ring-emerald-200' : 'bg-white/45 ring-border/60 opacity-70'}`}>
+            <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${got ? 'bg-emerald-600 text-white' : 'bg-black/5 text-muted'}`}>{got ? <Icon size={18} /> : <X size={16} />}</span>
+            <span className="min-w-0"><b className="block text-[14px] text-ink">{name}</b><span className="block text-[12.5px] leading-5 text-muted">{why}</span></span>
+            <span className="ml-auto shrink-0 text-[11px] font-semibold text-primary-700">{got ? T('অর্জিত', 'Earned') : T('বাকি', 'Locked')}</span>
+          </div>)}
+        </div>
+      </section>
       {tries.length > 0 && (
         <div className="mt-5 rounded-[24px] border border-paddy-300/70 bg-paddy-50 p-5">
           <p className="font-display text-[19px] font-semibold text-primary-950">{T('পরের মৌসুমে চেষ্টা করুন', 'Next season, try this')}</p>

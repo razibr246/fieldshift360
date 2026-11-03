@@ -28,6 +28,10 @@ const FX = {
   alarm: () => { tone(880, 0.12, 'square', 0.04); tone(880, 0.12, 'square', 0.04, 0.18); },
   thunder: () => noise(1.2, 0.12, 300),
   bump: () => { noise(0.12, 0.09, 380); tone(110, 0.14, 'sine', 0.09, 0, -50); },
+  chime: () => [880, 1108, 1318, 1760].forEach((f, i) => tone(f, 0.22, 'sine', 0.05, i * 0.05)),
+  levelUp: () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, 0.25, 'triangle', 0.06, i * 0.07)),
+  step: () => noise(0.04, 0.015, 260),
+  hoe: () => { noise(0.08, 0.04, 800); tone(180, 0.09, 'sine', 0.05, 0, -60); },
 };
 export function play(s) {
   if (muted || !FX[s]) return;

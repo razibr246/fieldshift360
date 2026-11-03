@@ -43,6 +43,12 @@ export function createGame(id, mods = {}) {
     me: { x: L.S.start.x, z: L.S.start.z, yaw: 0.6, vx: 0, vz: 0, speed: 0, act: null, stamina: 1, down: 0, idle: -5, run: false },
     can: F.can, seeds, sel: Object.keys(R.crops)[0], basket: { ...seeds }, money: 150,
     count: { bought: 0, planted: 0, watered: 0, harvested: 0, sold: 0, earned: 0, pestsCleared: 0, lost: 0, hurt: 0, rotated: 0, repeats: 0, legumes: 0, eroded: 0, satViews: 0, advised: 0, waterLayer: 0 },
+    soilHealth: 50, carbonScore: 25, xp: 0, level: 1,
+    forecast: [
+      { day: 1, hazard: 'heat', title: { bn: 'তাপপ্রবাহের শঙ্কা', en: 'Heat Risk' } },
+      { day: 2, hazard: 'storm', title: { bn: 'কালবৈশাখী ঝড়', en: 'Storm Warning' } },
+      { day: 3, hazard: 'glut', title: { bn: 'বাজারে অতিরিক্ত সরবরাহ', en: 'Market Glut' } },
+    ],
     quest: 0, questStarted: false, nextQuestAt: 1.5, perks: {}, answers: [], ev: { heat: 0, storm: 0, glut: 0, done: {}, zone: null, flood: 0 },
     waitFor: null, timers: [], plots, out: [], won: false, broke: false, alerts: ALERT(R),
     home: PLACES[id], seen: [], phase: 0.06,
@@ -62,6 +68,40 @@ export const canMax = (g) => g.F.can + (g.perks.pond ? 2 : 0);
 export const priceOf = (g, k) => Math.round(g.R.crops[k].price * (1 + g.F.sellBonus) * (g.ev.glut > 0 && k === g.R.glut ? 0.35 : 1));
 export const ripeAt = (g) => (g.perks.early ? 0.8 : 1);
 const growing = (g) => g.plots.filter((p) => p.crop && !p.dead);
+
+export const LEVELS = [
+  { level: 1, xpReq: 0, title: { bn: 'শিক্ষানবিস চাষি', en: 'Apprentice Cultivator' } },
+  { level: 2, xpReq: 80, title: { bn: 'দক্ষ চাষি', en: 'Skilled Cultivator' } },
+  { level: 3, xpReq: 180, title: { bn: 'মৃত্তিকা সাধক', en: 'Soil Master' } },
+  { level: 4, xpReq: 320, title: { bn: 'মাস্টার এগ্রোনমিস্ট', en: 'Master Agronomist' } },
+];
+
+export function gainXp(g, amount, reason) {
+  if (amount <= 0) return;
+  g.xp += amount;
+  let newLevel = 1;
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (g.xp >= LEVELS[i].xpReq) {
+      newLevel = LEVELS[i].level;
+      break;
+    }
+  }
+  if (newLevel > g.level) {
+    g.level = newLevel;
+    sound(g, 'levelUp');
+    const lvlObj = LEVELS.find((l) => l.level === newLevel);
+    emit(g, {
+      type: 'toast',
+      text: {
+        bn: `স্তর বৃদ্ধি! ${lvlObj?.title?.bn ?? ''} (লেভেল ${newLevel})`,
+        en: `Level Up! ${lvlObj?.title?.en ?? ''} (Level ${newLevel})`,
+      },
+    });
+  }
+  if (reason) {
+    floater(g, { bn: `+${amount} XP`, en: `+${amount} XP` }, g.me.x, g.me.z, 'xp');
+  }
+}
 
 export function plotAt(x, z) {
   const c = Math.floor((x + FIELD_W / 2 + GAP / 2) / CELL), r = Math.floor((z + FIELD_D / 2 + GAP / 2) / CELL);
@@ -113,6 +153,7 @@ function plotAction(g, p) {
   const C = g.R.crops;
   if (p.pests > 0) {
     p.pests = 0; p.pestT = 0; g.count.pestsCleared++; startAct(g, 'spray'); fx(g, 'spray', p.x, p.z); sound(g, 'spray');
+    gainXp(g, 20, { bn: 'বালাই দমন', en: 'Pest Control' });
     floater(g, { bn: 'সারিয়ে তোলা হলো', en: 'Treated' }, p.x, p.z, 'ok'); return;
   }
   if (p.dead) { Object.assign(p, { crop: null, g: 0, dead: false, health: 1, wilt: 0 }); startAct(g, 'clear'); fx(g, 'dust', p.x, p.z); sound(g, 'clear'); return; }
@@ -122,12 +163,27 @@ function plotAction(g, p) {
     g.count.planted++; startAct(g, 'plant'); fx(g, 'plant', p.x, p.z); sound(g, 'plant');
     // rotation: the same crop again on this plot keeps its pests fed; a different one breaks their cycle
     p.repeat = p.last === p.crop;
-    if (p.repeat) g.count.repeats++; else if (p.last) g.count.rotated++;
+    if (p.repeat) {
+      g.count.repeats++;
+      g.soilHealth = Math.max(10, g.soilHealth - 2);
+    } else if (p.last) {
+      g.count.rotated++;
+      g.soilHealth = Math.min(100, g.soilHealth + 3);
+      g.carbonScore = Math.min(100, g.carbonScore + 2);
+      gainXp(g, 15, { bn: 'ফসলচক্র', en: 'Crop Rotation' });
+    }
     floater(g, p.repeat ? { bn: `আবার ${C[p.crop].bn}: পোকা জমে উঠবে`, en: `${C[p.crop].en} again: pests build up` } : p.last ? { bn: `${C[p.crop].bn} বোনা হলো · ফসল বদল`, en: `${C[p.crop].en} sown · crop rotated` } : { bn: `${C[p.crop].bn} বোনা হলো`, en: `${C[p.crop].en} sown` }, p.x, p.z, p.repeat ? 'bad' : 'info'); return;
   }
   if (p.g >= ripeAt(g)) {
     const k = p.crop; g.basket[k]++; g.count.harvested++; p.last = k; if (C[k].soil) g.count.legumes++;
     p.fert = C[k].soil ? Math.min(0.6, p.fert + 0.35) : Math.max(0, p.fert - (g.F.soilKeeper ? 0 : 0.1));
+    if (C[k].soil) {
+      g.soilHealth = Math.min(100, g.soilHealth + 4);
+      g.carbonScore = Math.min(100, g.carbonScore + 3);
+      gainXp(g, 25, { bn: 'ডাল ফসল বোনাস', en: 'Legume Bonus' });
+    } else {
+      gainXp(g, 10, { bn: 'ফসল তোলা', en: 'Harvest' });
+    }
     Object.assign(p, { crop: null, g: 0, health: 1, wilt: 0 });
     startAct(g, 'harvest'); fx(g, 'harvest', p.x, p.z); sound(g, 'harvest');
     floater(g, { bn: `+১ ${C[k].bn}${C[k].soil ? ' · মাটি উর্বর হলো' : ''}`, en: `+1 ${C[k].en}${C[k].soil ? ' · soil enriched' : ''}` }, p.x, p.z, 'good');
@@ -173,10 +229,13 @@ export const quizOf = (g, i = g.quest) => { const q = QUESTS[i]; return (q?.quiz
 export function answerQuiz(g, ok) {
   const q = QUESTS[g.quest], Q = quizOf(g);
   g.answers.push({ id: q.id, ok });
-  if (ok && Q?.perk) {
-    g.perks[Q.perk] = true;
-    if (Q.perk === 'mulch') for (const p of g.plots) p.mulch = true;
-    if (Q.perk === 'pond') g.can = Math.min(canMax(g), g.can + 2);
+  if (ok) {
+    gainXp(g, 35, { bn: 'কৃষি জ্ঞান বৃদ্ধি', en: 'Agronomic Knowledge' });
+    if (Q?.perk) {
+      g.perks[Q.perk] = true;
+      if (Q.perk === 'mulch') for (const p of g.plots) p.mulch = true;
+      if (Q.perk === 'pond') g.can = Math.min(canMax(g), g.can + 2);
+    }
   }
   g.paused = false;
   sound(g, ok ? 'good' : 'bad');
@@ -392,4 +451,66 @@ export const dayPhase = (g) => ((g.t / DAY) + 0.06) % 1;
 export const dayOf = (g) => Math.floor(g.t / DAY + 0.06) + 1;
 export const isNight = (g) => dayPhase(g) > 0.75;
 export const clock = (g) => { const p = dayPhase(g), h = p < 0.75 ? 6 + (p / 0.75) * 12 : 18 + ((p - 0.75) / 0.25) * 12; return [Math.floor(h) % 24, Math.floor((h % 1) * 60)]; };
+
+export function agriScorecard(g) {
+  const c = g.count;
+  const rotScore = Math.min(100, Math.max(0, Math.round(50 + (c.rotated * 8) + (c.legumes * 10) - (c.repeats * 10) - (c.eroded * 5))));
+  const waterScore = Math.min(100, Math.max(0, Math.round(60 + (c.waterLayer * 12) + (c.satViews * 5) - (c.lost * 8))));
+  const diversityScore = Math.min(100, Math.max(20, Math.round((c.rotated > 0 ? 50 : 20) + (c.legumes > 0 ? 30 : 0) + (c.harvested >= 6 ? 20 : 10))));
+  const econScore = Math.min(100, Math.max(0, Math.round(Math.min(100, (c.earned / 1200) * 80) - (c.lost * 6))));
+
+  const overall = Math.round((rotScore * 0.3) + (waterScore * 0.25) + (diversityScore * 0.25) + (econScore * 0.2));
+  const stars = overall >= 80 ? 3 : overall >= 55 ? 2 : 1;
+
+  const takeaways = [];
+  if (c.repeats > 0) {
+    takeaways.push({
+      bn: 'একই জমিতে বারবার একই ফসল বোনা মাটির পুষ্টি নিঃশেষ করে ও ক্ষতিকর পোকা বাড়ায়। ফসল বদল করুন।',
+      en: 'Repeating the same crop depletes specific soil nutrients and fosters pests. Prioritize rotation.',
+      type: 'warning',
+    });
+  } else if (c.rotated > 0) {
+    takeaways.push({
+      bn: 'সুপরিকল্পিত ফসলচক্র! মাটির জীববৈচিত্র্য ও রোগ প্রতিরোধ ক্ষমতা সুরক্ষিত থেকেছে।',
+      en: 'Superb crop rotation! Soil biome and natural pest resilience preserved.',
+      type: 'good',
+    });
+  }
+  if (c.legumes > 0) {
+    takeaways.push({
+      bn: 'ডালজাতীয় ফসল বায়ুমণ্ডলীয় নাইট্রোজেন শিকড়ে আবদ্ধ করে পরবর্তী ফসলের রাসায়নিক সারের খরচ কমায়।',
+      en: 'Legumes fix atmospheric nitrogen, replenishing the root zone and reducing chemical fertilizer costs.',
+      type: 'good',
+    });
+  }
+  if (c.eroded > 0) {
+    takeaways.push({
+      bn: 'ঝড়ের সময় খালি জমিতে ক্ষয় ঘটে; কভার ক্রপ বা মালচ দিয়ে জমি ঢেকে রাখলে উর্বর উপরিমাটি টিকে থাকে।',
+      en: 'Bare plots suffered topsoil erosion; organic mulch and cover crops retain critical humus.',
+      type: 'warning',
+    });
+  }
+  if (takeaways.length === 0) {
+    takeaways.push({
+      bn: 'নিয়মতান্ত্রিক সেচ ও আগাম বালাই দমন আপনার খামারকে টেকসই ও লাভজনক রাখবে।',
+      en: 'Calculated irrigation and early IPM scouting ensure long-term agricultural resilience.',
+      type: 'good',
+    });
+  }
+
+  return {
+    rotScore,
+    waterScore,
+    diversityScore,
+    econScore,
+    overall,
+    stars,
+    takeaways,
+    level: g.level,
+    xp: g.xp,
+    soilHealth: g.soilHealth,
+    carbonScore: g.carbonScore,
+  };
+}
+
 export { rand };

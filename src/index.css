@@ -1061,6 +1061,7 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 .g3-good, .g3-ok { background: linear-gradient(135deg, #22b55e, #17914a); color: #fff; }
 .g3-bad { background: linear-gradient(135deg, #e5372b, #b82a22); color: #fff; }
 .g3-money { background: linear-gradient(135deg, #ffd24a, #f2a81e); color: #2a1d00; }
+.g3-xp { background: linear-gradient(135deg, #a78bfa, #6366f1); color: #fff; }
 .g3-info { background: rgba(255,255,255,.94); color: #0f2318; }
 
 /* Quest distance tag */
@@ -1196,7 +1197,7 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 @keyframes star-pop { from { transform: scale(0) rotate(-30deg); opacity: 0; } to { transform: scale(1) rotate(0deg); opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .g3-win, .g3-drop, .g3-banner, .hint-in, .alert-in, .g3-zone-urgent { animation: none; }
+  .g3-win, .g3-drop, .g3-banner, .hint-in, .alert-in, .g3-zone-urgent, .g3-act.has-prompt, .g3-stamina-low { animation: none; }
   .g3-place { animation: none; }
   .tool-deal, .tool-shake, .star-pop, .g3-pop { animation: none; }
 }

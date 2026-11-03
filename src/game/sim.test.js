@@ -252,3 +252,36 @@ test('before sowing, the prompt knows a rotation from a repeat; the season ends 
   assert.ok(tries.some((x) => x.id === 'rotate'));
   for (const x of tries) assert.ok(x.title.bn && x.title.en && x.why.bn && x.why.en && !/NaN|undefined/.test(x.why.en));
 });
+
+test('agronomic progression: XP, leveling, soil health, and agriScorecard work accurately', async () => {
+  const { agriScorecard, gainXp, LEVELS } = await import('./sim.js');
+  const g = createGame('razib');
+  assert.equal(g.xp, 0);
+  assert.equal(g.level, 1);
+  assert.equal(g.soilHealth, 50);
+  assert.equal(g.carbonScore, 25);
+  assert.equal(LEVELS.length, 4);
+
+  // Gain XP and level up
+  gainXp(g, 90, { bn: 'পরীক্ষা', en: 'Test' });
+  assert.equal(g.xp, 90);
+  assert.equal(g.level, 2);
+
+  // Scorecard evaluation
+  g.count.rotated = 3;
+  g.count.legumes = 2;
+  g.count.repeats = 0;
+  g.count.watered = 5;
+  g.count.earned = 1200;
+  const sc = agriScorecard(g);
+  assert.ok(sc.rotScore >= 80);
+  assert.ok(sc.waterScore >= 50);
+  assert.ok(sc.diversityScore >= 50);
+  assert.ok(sc.econScore >= 70);
+  assert.ok(sc.overall >= 70);
+  assert.ok([1, 2, 3].includes(sc.stars));
+  assert.ok(sc.takeaways.length > 0);
+  for (const t of sc.takeaways) {
+    assert.ok(t.bn && t.en);
+  }
+});

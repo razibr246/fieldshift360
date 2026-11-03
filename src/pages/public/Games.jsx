@@ -1,6 +1,6 @@
 // The games hub: two ways to learn FieldShift by playing.
 import { Link } from 'react-router-dom';
-import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy, Sparkles, Users } from 'lucide-react';
+import { Swords, Sprout, ArrowRight, BookOpen, Gamepad2, MapPinned, Check, Trophy, Sparkles, Users, Droplets, Bug, CloudLightning, Coins } from 'lucide-react';
 import Photo from '../../components/Photo';
 import { useStore } from '../../store';
 
@@ -54,6 +54,22 @@ export default function Games() {
           <span className="mt-4 inline-flex items-center gap-2 font-semibold text-paddy-300">{T('গল্প শুরু করুন', 'Begin the story')}<ArrowRight size={17} className="transition-transform duration-300 group-hover:translate-x-1" /></span>
         </div>
       </Link>
+      <section className="relative isolate mt-7 overflow-hidden rounded-[30px] bg-primary-950 text-white shadow-[var(--shadow-lift)]" aria-labelledby="field-folk-feature">
+        <div className="absolute inset-0 -z-10 opacity-45"><Photo name="farmGame" fill sizes="100vw" decorative /></div>
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950 via-primary-950/90 to-primary-950/45" />
+        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end lg:p-10">
+          <div className="max-w-3xl">
+            <p className="inline-flex items-center gap-2 rounded-full bg-paddy-300 px-3 py-1 text-[13px] font-bold text-primary-950"><Gamepad2 size={15} />{T('৩D মৌসুমের সিমুলেশন', '3D season simulation')}</p>
+            <h2 id="field-folk-feature" className="font-display mt-3 text-[30px] font-bold leading-tight sm:text-[40px]">{T('মাঠের মানুষ: সিদ্ধান্ত নিন, ফল দেখুন', 'Field Folk: make the call, live with the season')}</h2>
+            <p className="mt-2 max-w-2xl text-[15px] leading-7 text-white/80">{T('নিজের এলাকার কৃষক বেছে নিয়ে বীজ কিনুন, জমি লাগান, পানি ও পোকা সামলান, সতর্কতা পেলে ফসল বাঁচান। শেষে আপনার ফসলচক্র আর শেখা বিষয়গুলোর হিসাব পাবেন।', 'Choose a farmer from their own region. Buy seed, plant plots, manage water and pests, and protect the crop when warnings arrive. Finish with a rotation summary and a review of what you learned.')}</p>
+            <ul className="mt-4 grid gap-2 text-[13.5px] text-white/85 sm:grid-cols-2">
+              {[[Droplets, T('পানি ভাগ করে ব্যবহার', 'Use limited water well')], [Bug, T('পোকা দেখে ব্যবস্থা', 'Respond to pest reports')], [CloudLightning, T('ঝড়ে নিরাপদ আশ্রয়', 'Reach shelter before storms')], [Coins, T('ফসল তুলে বাজারে বিক্রি', 'Harvest and sell at market')]].map(([Icon, text]) => <li key={text} className="flex items-center gap-2"><Icon size={16} className="shrink-0 text-paddy-300" />{text}</li>)}
+            </ul>
+            <p className="mt-4 text-[12.5px] text-white/60">{T('শেখার সিমুলেশন: ফলন ও বাজারের টাকা বাস্তব পূর্বাভাস নয়।', 'Educational simulation: crop outcomes and market money are not real-world forecasts.')}</p>
+          </div>
+          <Link to="/farm" className="btn-gloss inline-flex items-center justify-center gap-2 self-start rounded-full px-6 py-3.5 font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[.98] lg:self-end">{T('মাঠে নামুন', 'Enter the field')}<ArrowRight size={18} /></Link>
+        </div>
+      </section>
       <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {games.map((g, n) => (
           <Link key={g.to} to={g.to} style={{ '--n': n }} className="tool-card tool-deal glass flat group overflow-hidden rounded-[28px] border border-white/80 shadow-md hover:shadow-2xl hover:border-primary-400/60 transition-all duration-300 bg-white/80 backdrop-blur-md">

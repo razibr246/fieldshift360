@@ -136,10 +136,15 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const keys = new Set();
   const joy = { x: 0, y: 0 };
   let runHeld = false, runToggle = false;
+  const MOVE_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight']);
   const onKey = (e, down) => {
-    if (e.target.closest?.('input, textarea, select, button, a, [role="button"], [contenteditable="true"]')) return;
     const k = e.code;
-    if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'Space'].includes(k)) e.preventDefault();
+    const typing = e.target.closest?.('input, textarea, select, [contenteditable="true"]');
+    const onControl = e.target.closest?.('button, a, [role="button"]');
+    // Keep movement available after a HUD click, while never stealing keys from text fields.
+    // Always process keyup so a key pressed before focus changed cannot stay held forever.
+    if (down && (typing || (onControl && !MOVE_KEYS.has(k)))) return;
+    if (MOVE_KEYS.has(k) || k === 'Space') e.preventDefault();
     if (down) keys.add(k); else keys.delete(k);
     if (k === 'ShiftLeft' || k === 'ShiftRight') runHeld = down;
   };
@@ -496,7 +501,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     get sat() { return cam.sat; },
     setLayer(l) { cam.layer = l; if (l === 'water' && cam.sat) note(g, 'waterLayer'); },
     skipIntro() { if (cam.intro) cam.introT = Math.max(cam.introT, 4.6); },
-    setPaused(p) { paused = p; },
+    setPaused(p) { paused = p; if (p) clearInput(); },
     setLang(l) { lang = l; setNames(); life.setLang(l); },
     target: () => target(g),
     onPlot: () => plotAt(g.me.x, g.me.z) !== null,
