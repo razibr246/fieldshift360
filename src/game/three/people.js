@@ -375,7 +375,6 @@ export function buildFarmer(look) {
     if (!skirted) mesh(limb(0.076 * wide, 0.056 * wide, 0.44, 1.04), legM, thigh); // a long skirt hides the thigh
     const knee = group(thigh, [0, -0.44, 0]);
     mesh(geo.sphere(0.042 * wide, 14, 10), legM, knee, [0, 0, 0], [0, 0, 0], [1, 0.9, 0.92]);
-    mesh(geo.sphere(0.026 * wide, 12, 8), legM, knee, [0, -0.008, 0.036 * wide], [0.18, 0, 0], [1, 1.2, 0.65]); // patella plate
     mesh(limb(0.058 * wide, lower === 'shalwar' ? 0.048 : wide > 1 ? 0.046 * wide : 0.036, 0.42, wide > 1 ? 1.02 : 1.12), legM, knee);
     if (lower === 'shalwar') mesh(geo.cyl(0.05, 0.05, 0.05), mat(look.lowB), knee, [0, -0.4, 0]); // gathered cuff
     if (lower === 'cargo') {
@@ -385,7 +384,6 @@ export function buildFarmer(look) {
       mesh(geo.cyl(0.06, 0.06, 0.03), mat(look.lowB), knee, [0, -0.4, 0]);
     }
     mesh(geo.sphere(0.032 * wide, 12, 8), legM, knee, [0, -0.405, 0], [0, 0, 0], [0.88, 1.1, 0.9]);
-    for (const s of [-1, 1]) mesh(geo.sphere(0.015 * wide, 8, 6), legM, knee, [s * 0.034 * wide, -0.405, 0], [0, 0, 0], [0.8, 1, 1]); // malleoli prominences
     const foot = group(knee, [0, -0.44, 0.03]);
     const fm = mat(look.feetA);
     const shoeG = capsule(0.05, 0.12);
@@ -449,9 +447,6 @@ export function buildFarmer(look) {
   // Keep this in sync with frontOf(), which positions buttons and trim on the cloth.
   mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.86]);
   const fz = frontOf(female);
-  if (!female) {
-    for (const side of [-1, 1]) mesh(geo.sphere(0.058, 14, 10), topM, torso, [side * 0.074, 0.38, fz(0.38, side * 0.074) - 0.01], [0.1, side * 0.08, 0], [1.15, 0.88, 0.75]);
-  }
   const plainTop = look.top === 'polo' ? cloth(look.topA) : topM;
   if (look.top === 'kurta' || look.top === 'kameez' || look.top === 'eingyi') {
     mesh(geo.box(0.02, 0.16, 0.01), mat(look.topB), torso, [0, 0.45, fz(0.45) + 0.004]);
@@ -511,30 +506,14 @@ export function buildFarmer(look) {
   // head
   const neck = group(torso, [0, 0.55, 0]);
   mesh(geo.cyl(0.047, 0.056, 0.12, 14), skin, neck, [0, 0.045, 0]);
-  // Sternocleidomastoid neck contour muscles
-  for (const side of [-1, 1]) mesh(geo.cyl(0.014, 0.02, 0.1, 8), skin, neck, [side * 0.026, 0.035, 0.012], [0.18, 0, side * -0.2]);
-  // Clavicle (collarbone) bar across the upper chest
-  mesh(geo.box(female ? 0.21 : 0.25, 0.012, 0.02), skin, torso, [0, 0.528, 0.046], [0.12, 0, 0]);
   const head = group(neck, [0, 0.18, 0]); head.scale.setScalar(1);
   P.neck = neck; P.head = head;
   mesh(geo.sphere(0.118, 18, 14), skin, head, [0, 0, 0], [0, 0, 0], [0.95, 1.08, 1]);
-  // Sculpted ears: helix curve, concha depth, and lobule angled naturally
-  for (const side of [-1, 1]) {
-    const ear = group(head, [side * 0.115, 0.002, -0.004], [0, side * 0.22, side * -0.08]);
-    mesh(geo.torus(0.018, 0.0055, 6, 12, Math.PI * 1.3), skin, ear, [0, 0.004, 0], [0, 0, side * 0.15]);
-    mesh(geo.sphere(0.012, 10, 8), skin, ear, [0, -0.014, 0], [0, 0, 0], [0.85, 1.3, 0.7]); // earlobe
-    mesh(geo.sphere(0.01, 8, 6), mat(look.skin, { rough: 0.85 }), ear, [side * 0.002, 0.002, 0.003], [0, 0, 0], [0.8, 1, 0.5]); // tragus
-  }
-  // Zygomatic arches (cheekbones)
-  for (const side of [-1, 1]) mesh(geo.sphere(0.032, 12, 8), skin, head, [side * 0.074, -0.008, 0.08], [0.15, side * 0.18, 0], [1.1, 0.85, 0.9]);
-  // The nose (bridge, tip, and alar base wings)
+  mesh(geo.sphere(0.02, 6, 4), skin, head, [-0.115, 0, 0]); mesh(geo.sphere(0.02, 6, 4), skin, head, [0.115, 0, 0]);
+  // the nose (bridge and tip), the jaw, and the painted face over them
   mesh(geo.sphere(0.017, 10, 8), skin, head, [0, -0.012, 0.112], [0.3, 0, 0], [1.05, 1.15, 1]);
   mesh(geo.box(0.014, 0.034, 0.014), skin, head, [0, 0.008, 0.113], [-0.25, 0, 0]);
-  for (const side of [-1, 1]) mesh(geo.sphere(0.0075, 8, 6), skin, head, [side * 0.014, -0.018, 0.107], [0, 0, 0], [1, 0.9, 0.8]); // alar wings
-  // Jaw and chin (mental protuberance)
   mesh(geo.sphere(0.086, 16, 10), skin, head, [0, -0.052, 0.02], [0, 0, 0], [female ? 0.92 : 1.02, 0.72, 0.95]);
-  mesh(geo.sphere(0.024, 12, 8), skin, head, [0, -0.106, 0.08], [0.2, 0, 0], [female ? 0.95 : 1.25, 0.85, 0.9]); // chin tip
-  for (const side of [-1, 1]) mesh(geo.sphere(0.022, 10, 8), skin, head, [side * 0.066, -0.07, 0.01], [0, 0, 0], [0.9, 1.1, 1.1]); // jaw angle
   const faceKey = faceFor(look);
   {
     const ft = faceTex(faceKey); ft.wrapS = ft.wrapT = THREE.ClampToEdgeWrapping;
@@ -671,10 +650,8 @@ export function buildFarmer(look) {
     mesh(geo.sphere(0.032, 12, 8), skin, elbow, [0, -0.244, 0], [0, 0, 0], [0.9, 1, 0.92]); // wrist transition
     if (look.cuff) mesh(geo.cyl(0.052, 0.052, 0.07), mat(look.cuff), elbow, [0, -0.2, 0]);
     const hand = group(elbow, [0, -0.27, 0]);
-    // palm, thenar / hypothenar muscle pads, four slightly curled fingers and an opposable thumb
+    // palm, four slightly curled fingers and a thumb
     mesh(geo.sphere(0.041, 16, 12), skin, hand, [0, -0.03, 0.004], [0, 0, 0], [0.58, 1, 0.9]);
-    mesh(geo.sphere(0.018, 10, 8), skin, hand, [side * -0.015, -0.035, 0.016], [0.35, 0, side * 0.28], [1.1, 1.25, 0.85]); // thenar pad
-    mesh(geo.sphere(0.016, 10, 8), skin, hand, [side * 0.014, -0.044, -0.006], [0, 0, side * -0.18], [0.9, 1.15, 0.8]); // hypothenar pad
     for (let f = 0; f < 4; f++) {
       const fingerLen = 0.052 - Math.abs(f - 1.5) * 0.007;
       const fingerX = (f - 1.5) * 0.006;
