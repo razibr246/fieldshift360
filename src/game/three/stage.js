@@ -184,7 +184,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const ro = new ResizeObserver(resize); ro.observe(canvas); resize();
 
   // ---- where the quest wants the farmer next ----
-  let hint = null, hintT = 0;
+  let hint = null, hintT = 0, stepT = 0;
   function goal() {
     if (hintT > 0 && hint) return hint;
     const q = QUESTS[g.quest];
@@ -404,6 +404,16 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       bank: me.bank ?? 0,
       turnRate: me.turnRate ?? 0,
     }, dt);
+    if (me.speed > 0.6 && !me.act && me.down <= 0) {
+      stepT -= dt;
+      if (stepT <= 0) {
+        stepT = me.run ? 0.22 : 0.36;
+        onEvent({ type: 'sound', s: 'step' });
+        if (me.run) burst('dust', me.x, me.z);
+      }
+    } else {
+      stepT = 0.08;
+    }
     // camera: dynamic follow with velocity look-ahead and speed pull-back
     const runShare = me.run ? Math.min(1, me.speed / 4.8) : 0;
     const leadX = (me.vx ?? 0) * 0.22, leadZ = (me.vz ?? 0) * 0.22;

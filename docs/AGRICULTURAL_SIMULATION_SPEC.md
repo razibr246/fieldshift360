@@ -78,3 +78,4 @@ At the conclusion of a season, the simulation evaluates four orthogonal agronomi
 $$\text{OverallScore} = \text{round}\left( 0.30 \cdot S_{\text{soil}} + 0.25 \cdot S_{\text{water}} + 0.25 \cdot S_{\text{div}} + 0.20 \cdot S_{\text{econ}} \right)$$
 
 $$\text{Stars} = \begin{cases} 3 & \text{if } \text{OverallScore} \ge 80 \\ 2 & \text{if } \text{OverallScore} \ge 55 \\ 1 & \text{otherwise} \end{cases}$$
+

@@ -76,3 +76,4 @@ Repetitive sowing of identical crop species on the same plot creates biological 
 - Unchecked pests multiply; every $13\text{s}$ ($22\text{s}$ with organic Neem spray unlocked), pests spread to adjacent orthogonal plots:
   $$\Delta \text{Neighbor} \in \{ (0, 1), (0, -1), (1, 0), (-1, 0) \}$$
 - Crop health decays continuously ($\Delta h = -0.045 \times \text{pests} \times \Delta t$). When health hits zero, the crop perishes.
+

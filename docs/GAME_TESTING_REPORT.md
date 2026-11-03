@@ -60,3 +60,4 @@ A headless player bot autonomously plays full seasonal campaigns across all 12 r
 - **Reduced Motion**: All camera glides, banner entrances, and HUD popups listen to `@media (prefers-reduced-motion: reduce)`, immediately substituting animations with instant state transitions.
 - **Touch Ergonomics**: All interactive HUD controls (action trigger, seed selector, pause, satellite view) provide touch target boundaries $> 48 \times 48\text{ px}$.
 - **Bilingual Completeness**: Every string in the simulation, hints, dialogues, and scorecard passes through `T(bn, en)` or `L({ bn, en })`. Zero untranslated strings or `[object Object]` / `NaN` outputs occur across the test suites.
+

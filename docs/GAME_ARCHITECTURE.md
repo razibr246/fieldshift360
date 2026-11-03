@@ -106,3 +106,4 @@ To eliminate hundreds of megabytes of audio assets, the game synthesizes every f
 - **Atmospheric Wind & Storm**: White noise generator filtered through a dynamic `BiquadFilterNode` modulated by storm intensity:
   $$\text{cutoff}(t) = 150\text{Hz} + 1200\text{Hz} \times \text{windIntensity}$$
 - **Foley Impacts**: Hoe chopping uses high-pass noise burst coupled with a pitched $180\text{Hz} \rightarrow 120\text{Hz}$ sine transient.
+

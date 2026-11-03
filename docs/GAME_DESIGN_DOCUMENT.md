@@ -88,3 +88,4 @@ flowchart TD
 2. **Pest Cycle Disruption through Crop Rotation**: Players visually encounter how monoculture repetition directly causes pest waves on adjacent plots, while rotation starves pest populations naturally.
 3. **Topsoil Conservation via Cover & Mulch**: Experiencing storm-induced fertility stripping on bare plots cements the critical necessity of organic mulching and green cover.
 4. **Water Stewardship under Climate Volatility**: Monitoring SMAP root-zone depletion prevents over-irrigation while safeguarding plants through thermal heatwaves.
+

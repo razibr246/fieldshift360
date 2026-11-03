@@ -62,3 +62,4 @@ xychart-beta
 - **Render Targets (Shadow & FX)**: $12.1\text{ MB}$ (Full Mode) / $2.0\text{ MB}$ (Light Mode)
 - **Three.js Program Shaders**: $1.2\text{ MB}$
 - **Total GPU Memory**: **$25.9\text{ MB}$** (Well below the $128\text{ MB}$ limit of entry-level mobile browsers).
+

@@ -21,7 +21,12 @@ import { play, setMuted, startAmbience, stopAmbience, setScene, setMusic } from 
 const MUTE_KEY = 'fs360.game.muted';
 const MUSIC_KEY = 'fs360.game.music';
 const BEST_KEY = 'fs360.game.best';
-const readBest = () => { try { return JSON.parse(localStorage.getItem(BEST_KEY) || '{}'); } catch { return {}; } };
+const readBest = () => {
+  try {
+    const value = JSON.parse(localStorage.getItem(BEST_KEY) || '{}');
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
+};
 export const starsOf = (r) => {
   if (Number.isFinite(r?.scorecard?.stars)) return Math.max(1, Math.min(3, r.scorecard.stars));
   const lost = r?.count.lost ?? 0, hurt = r?.count.hurt ?? 0;
@@ -357,7 +362,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       <div className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${hud.down > 0 ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'radial-gradient(100% 80% at 50% 50%, rgba(120,0,0,.1), rgba(150,0,0,.55))' }} />
 
       {/* top left: the farmer, the day, the money */}
-      <div className={`g3-hud absolute left-3 top-3 flex max-w-[calc(58vw-22px)] items-center gap-2.5 rounded-2xl py-1.5 pl-1.5 pr-3.5 transition-opacity sm:max-w-none ${intro ? 'opacity-0' : ''}`}>
+      <div className={`g3-hud g3-safe-top absolute left-3 top-3 flex max-w-[calc(58vw-22px)] items-center gap-2.5 rounded-2xl py-1.5 pl-1.5 pr-3.5 transition-opacity sm:max-w-none ${intro ? 'opacity-0' : ''}`}>
         <span className="grid h-11 w-11 place-items-center rounded-xl text-[22px]" style={{ background: stage(R.country) }}>{R.flag}</span>
         <span className="min-w-0 leading-tight">
           <span className="block truncate text-[14.5px] font-semibold">{L(R.farmer)}</span>
@@ -368,7 +373,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       </div>
 
       {/* top centre: the compass strip */}
-      <div className={`absolute left-1/2 top-3 hidden -translate-x-1/2 transition-opacity md:block ${intro ? 'opacity-0' : ''}`}>
+      <div className={`g3-safe-top absolute left-1/2 top-3 hidden -translate-x-1/2 transition-opacity md:block ${intro ? 'opacity-0' : ''}`}>
         <div ref={compassRef} className="g3-compass" aria-hidden="true">
           {COMPASS.map(([d, t]) => <span key={d} className={t ? 'g3-cl' : 'g3-ct'} style={{ '--d': d }}>{t ? t[lang === 'bn' ? 0 : 1] : ''}</span>)}
           <span className="g3-compass-pin" />
@@ -376,7 +381,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       </div>
 
       {/* top right: minimap, the zone timer, FieldShift alerts */}
-      <div className={`absolute right-3 top-3 flex flex-col items-end gap-2 transition-opacity sm:w-[200px] ${touch ? 'w-[min(32vw,150px)]' : 'w-[min(42vw,184px)]'} ${intro ? 'opacity-0' : ''}`}>
+      <div className={`g3-safe-top absolute right-3 top-3 flex flex-col items-end gap-2 transition-opacity sm:w-[200px] ${touch ? 'w-[min(32vw,150px)]' : 'w-[min(42vw,184px)]'} ${intro ? 'opacity-0' : ''}`}>
         <div className="g3-hud relative w-full overflow-hidden rounded-2xl p-1">
           <canvas ref={mapRef} width={360} height={360} className="block aspect-square w-full rounded-xl" aria-label={T('মানচিত্র', 'Map')} />
           <span className="absolute left-2 top-1.5 text-[10px] font-bold text-white/80">{T('উ', 'N')}↑</span>
@@ -410,7 +415,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
 
       {/* left: the mission */}
       {q && !intro && (
-        <div key={hud.quest} role="region" aria-label={T('বর্তমান মিশন', 'Current mission')} className="g3-hud g3-mission-card outcome-in absolute left-3 top-[76px] w-[min(calc(58vw-22px),290px)] rounded-2xl px-3.5 py-2.5">
+        <div key={hud.quest} role="region" aria-label={T('বর্তমান মিশন', 'Current mission')} className="g3-hud g3-mission-card g3-safe-mission outcome-in absolute left-3 top-[76px] w-[min(calc(58vw-22px),290px)] rounded-2xl px-3.5 py-2.5">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[10.5px] font-bold uppercase tracking-[.14em] text-amber-200">{T(`মিশন ${num(hud.quest + 1, 'bn')}/${num(QUESTS.length, 'bn')}`, `Mission ${hud.quest + 1}/${QUESTS.length}`)}</p>
             <span className="shrink-0 text-[10.5px] font-semibold text-lime-200" title={L(levelInfo.title)}>{T('স্তর', 'LV')} {num(hud.level, lang)} · {num(hud.xp, lang)} XP</span>
@@ -475,6 +480,27 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       {/* bottom: the prompt, the stamina bar, and the inventory */}
       {!intro && (
         <div className="absolute inset-x-0 bottom-3 flex flex-col items-center gap-2 px-3">
+          {tg?.kind === 'plot' && tg.p && (
+            <div role="group" aria-label={T('খেলার জমির তথ্য; বাস্তব মাঠের মাপ নয়', 'Simulated plot data; not real field measurements')} className="g3-hud mb-0.5 flex max-w-[92vw] flex-wrap items-center justify-center gap-2 rounded-2xl bg-black/65 px-3 py-1 text-[11.5px] text-white/90 shadow-md backdrop-blur-md" title={T('খেলার জমির তথ্য; বাস্তব মাঠের মাপ নয়', 'Simulated plot data; not real field measurements')}>
+              <span className="font-semibold text-amber-200">
+                {tg.p.crop ? L(tg.crop) : T('ফাঁকা জমি', 'Empty Plot')}
+              </span>
+              {tg.p.crop ? (
+                <>
+                  <span className="flex items-center gap-1"><Sprout size={12} className="text-emerald-400" />{T('বৃদ্ধি', 'Growth')}: <b className="text-white">{num(Math.round(tg.p.g * 100), lang)}%</b></span>
+                  <span className="flex items-center gap-1"><Droplets size={12} className={tg.p.moist > 0.4 ? 'text-sky-300' : 'text-amber-400'} />{T('আর্দ্রতা', 'Moist')}: <b className="text-white">{num(Math.round(tg.p.moist * 100), lang)}%</b></span>
+                  <span className="flex items-center gap-1">{T('উর্বরতা', 'Fertility')}: <b className="text-white">{num(Math.round(((tg.p.fert ?? 0) / 0.6) * 100), lang)}%</b></span>
+                  {tg.p.mulch && <span className="rounded bg-emerald-500/80 px-1 text-[9.5px] font-bold text-white">{T('মালচ', 'Mulch')}</span>}
+                  {tg.p.pests > 0 && <span className="rounded bg-red-500/90 px-1 text-[9.5px] font-bold text-white animate-pulse">{T('পোকা', 'Pest')}</span>}
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1">{T('মাটির উর্বরতা', 'Soil Fertility')}: <b className="text-white">{num(Math.round(((tg.p.fert ?? 0) / 0.6) * 100), lang)}%</b></span>
+                  {tg.p.last && R.crops[tg.p.last] && <span className="text-white/70">{T('আগের ফসল', 'Last')}: <b className="text-white/90">{L(R.crops[tg.p.last])}</b></span>}
+                </>
+              )}
+            </div>
+          )}
           {prompt && !touch && (
             <div className="g3-hud flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold shadow-lg backdrop-blur-xl animate-bounce">
               <kbd className="grid h-6 min-w-6 place-items-center rounded-md bg-white px-1.5 text-[12px] font-bold text-ink shadow-2xs">E</kbd>
@@ -661,8 +687,10 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
   const { T, L, s } = useStore();
   const lang = s.lang;
   const [pick, setPick] = useState(null);
+  const answerNext = useRef(null);
   const Q = quizOf(g);
   const next = QUESTS[g.quest];
+  useEffect(() => { if (pick !== null) answerNext.current?.focus({ preventScroll: true }); }, [pick]);
   return (
     <div className="absolute inset-0 grid place-items-center overflow-y-auto bg-black/45 p-3 backdrop-blur-[3px]">
       <div role="dialog" aria-modal="true" aria-label={kind === 'shop' ? L(R.names.shed) : kind === 'kiosk' ? `FieldShift · ${L(R.names.kiosk)}` : T('FieldShift-এর প্রশ্ন', 'FieldShift question')} tabIndex={-1} className={`outcome-in g3-panel w-full rounded-[26px] p-5 sm:p-6 ${kind === 'kiosk' ? 'max-w-3xl' : 'max-w-xl'}`}>
@@ -716,10 +744,10 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
             })}
           </div>
           {pick !== null && (
-            <div className="outcome-in mt-4">
+            <div role="status" aria-live="polite" className="outcome-in mt-4">
               <p className="text-[14.5px] leading-6 text-white/80">{L(Q.why)}</p>
               {Q.options[pick].ok && <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-[13px] font-semibold text-white"><Sparkles size={14} />{L(Q.perkText)}</p>}
-              <div><button type="button" onClick={() => onQuizDone(!!Q.options[pick].ok)} className="btn-gloss mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-white">{T('মাঠে ফিরি', 'Back to the field')}<ArrowRight size={16} /></button></div>
+              <div><button ref={answerNext} type="button" onClick={() => onQuizDone(!!Q.options[pick].ok)} className="btn-gloss mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-white">{T('মাঠে ফিরি', 'Back to the field')}<ArrowRight size={16} /></button></div>
             </div>
           )}
         </>)}
@@ -779,7 +807,7 @@ function EndScreen({ who, r, onReplay, onPick, onWhatIf }) {
             <p className="mt-2 text-[16px] text-white/80">{L(R.lines.win)} — {L(R.farmer)}</p>
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[13px] font-semibold text-lime-100"><Sparkles size={14} />{L(seasonLevel.title)} · {T(`স্তর ${num(seasonLevel.level, 'bn')} · ${num(r?.xp ?? 0, 'bn')} XP`, `Level ${seasonLevel.level} · ${r?.xp ?? 0} XP`)}</p>
             <p className="mt-3 text-[13px] leading-5 text-white/70">{T('৩ তারা: কৌশল স্কোর ৮০ বা বেশি · ২ তারা: ৫৫–৭৯ · ১ তারা: ৫৫-এর কম', '3 stars: strategy score 80 or higher · 2 stars: 55–79 · 1 star: below 55')}</p>
-            <p className="mt-1.5 text-[13.5px] font-semibold text-amber-200">{newBest ? T('নতুন সেরা!', 'New best!') : T(`আগের সেরা: ${num(prev.stars, 'bn')} তারা · স্কোর ${num(prev.score ?? 0, 'bn')} · প্রশ্নে ${num(prev.correct ?? 0, 'bn')}/${num(prev.total ?? 0, 'bn')} · বিক্রি ${R.cur}${num(prev.earned ?? 0, 'bn')}`, `Best: ${prev.stars} stars · score ${prev.score ?? 0} · ${prev.correct ?? 0}/${prev.total ?? 0} quiz answers · sales ${R.cur}${prev.earned ?? 0}`)}</p>
+            <p className="mt-1.5 text-[13.5px] font-semibold text-amber-200">{newBest ? T('নতুন সেরা!', 'New best!') : T(`আগের সেরা: ${num(prev.stars, 'bn')} তারা · ${prev.score == null ? 'পুরোনো রেকর্ডে স্কোর নেই' : `স্কোর ${num(prev.score, 'bn')}`} · প্রশ্নে ${num(prev.correct ?? 0, 'bn')}/${num(prev.total ?? 0, 'bn')} · বিক্রি ${R.cur}${num(prev.earned ?? 0, 'bn')}`, `Best: ${prev.stars} stars · ${prev.score == null ? 'score not recorded' : `score ${prev.score}`} · ${prev.correct ?? 0}/${prev.total ?? 0} quiz answers · sales ${R.cur}${prev.earned ?? 0}`)}</p>
           </div>
         </div>
       </div>

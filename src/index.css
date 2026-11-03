@@ -979,6 +979,8 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 
 /* ---- "মাঠের মানুষ" 3D game HUD — cinematic edition ---- */
 .g3 { -webkit-tap-highlight-color: transparent; }
+.g3-safe-top { top: max(12px, env(safe-area-inset-top)); }
+.g3-safe-mission { top: max(76px, calc(env(safe-area-inset-top) + 64px)); }
 
 /* Core HUD glass: deeper, warmer, with a subtle inner rim light */
 .g3-hud {
