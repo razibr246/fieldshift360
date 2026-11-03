@@ -1,4 +1,4 @@
-// The five farmers as low-poly 3D figures with jointed limbs, each dressed as people dress where they farm:
+// Procedural low-poly game characters with jointed limbs, dressed for their regional setting:
 // Harjinder Singh in a saffron dastar, white kurta-pyjama and a steel kara; Ghulam Nabi Chandio in a mirror-work
 // Sindhi cap, white shalwar kameez and an ajrak shawl; Rampyari Chaudhary in a Tharu skirt with bright bands, a white
 // choli, a red orhni and silver jewellery; Kinley Wangmo in a woven kira and silk tego with folded wonju cuffs;
@@ -6,8 +6,8 @@
 // can (a clay pot for the women), a sickle, a sprayer, a phone. animate() poses the figure every frame.
 // Bodies are built for a realistic look: a shaped torso (broader chest on men, a narrower waist on women), smooth
 // tapered limbs with rounded joints, hands with fingers, adult proportions, fabric that catches the light at its edges
-// and skin with a soft sheen, and a painted face on every head — in their likeness for a farmer drawn from a real
-// person (look.face). The walk sways the hips and counter-turns the shoulders.
+// and skin with a soft sheen, and a painted face on every head (look.face). These are sample game characters, not
+// likenesses of real farmers. The walk sways the hips and counter-turns the shoulders.
 import * as THREE from 'three';
 import { blink, idleGaze, ageStoop, expressionFromState } from '../../engine/motion.js';
 
@@ -150,9 +150,20 @@ const turbanTex = (a, b) => canvasTex(`turban${a}${b}`, 64, 64, (c, w, h) => {
 }, [3, 1]);
 
 // Painted game faces, drawn from each farmer's portrait: distinct skin undertones, almond eyes with limbal rings,
-// dual corneal catch-lights, authentic eyebrows, facial contours, lip highlights and healthy cheek warmth.
+// triple corneal catch-lights, authentic eyebrows, facial contours, lip highlights, and healthy cheek warmth.
 const FACES = {
   razib: { brow: '#16100d', iris: '#3b2416', lid: '#22150f', lip: '#9e5a4c', lipLo: '#b8766a', beard: '#1e1611', shade: '#9c6a4c', blush: '#c76e5b', goatee: true, browW: 8.5 },
+  rahimu: { brow: '#5a524c', iris: '#2d1c12', lid: '#1a100a', lip: '#8a4b3d', lipLo: '#a15d4e', beard: '#d9d4cc', shade: '#7a4e32', blush: '#b06148', wrinkles: true, browW: 9 },
+  didarul: { brow: '#1a1410', iris: '#28170e', lid: '#180e08', lip: '#945242', lipLo: '#aa6452', beard: '#231b16', shade: '#7c4d30', blush: '#b5644c', beardTrim: true, browW: 8.5 },
+  prahlad: { brow: '#1f1915', iris: '#2e1d13', lid: '#1a100a', lip: '#844537', lipLo: '#9c5444', beard: '#2a2420', shade: '#693e25', blush: '#9e5238', wrinkles: true, browW: 9.5 },
+  kader: { brow: '#d5d0c8', iris: '#2b1b12', lid: '#1a110a', lip: '#965646', lipLo: '#af6a58', beard: '#efebe4', shade: '#885434', blush: '#bd6a52', browW: 8 },
+  mofizul: { brow: '#1c1511', iris: '#301f14', lid: '#1b110a', lip: '#99594a', lipLo: '#b26e5e', beard: '#211a16', shade: '#94603e', blush: '#c26e52', stubble: true, browW: 8.5 },
+  rahima: { brow: '#18120e', iris: '#2e190e', lid: '#140c07', lip: '#b34842', lipLo: '#cf635c', shade: '#a87854', blush: '#dc6d62', female: true, beautyMark: true, browW: 5.8 },
+  harjinder: { brow: '#15100c', iris: '#2f1c11', lid: '#180f09', lip: '#945344', lipLo: '#ad6756', beard: '#1d1714', shade: '#8a5635', blush: '#bf6c54', browW: 10 },
+  ghulam: { brow: '#201812', iris: '#2a1a10', lid: '#170e08', lip: '#8e4e3f', lipLo: '#a66050', beard: '#3a322c', shade: '#7a4e30', blush: '#b25f46', wrinkles: true, browW: 9 },
+  rampyari: { brow: '#1a130f', iris: '#2b170c', lid: '#160d07', lip: '#bf443e', lipLo: '#d85e56', shade: '#98623f', blush: '#dd6658', female: true, noseStud: true, browW: 6 },
+  kinley: { brow: '#1b1410', iris: '#2d1b11', lid: '#150d08', lip: '#b8524d', lipLo: '#d36c66', shade: '#a67652', blush: '#e86e68', female: true, himalayanCheeks: true, browW: 5.5 },
+  kyaw: { brow: '#241b16', iris: '#2c1c12', lid: '#160e09', lip: '#8c4e40', lipLo: '#a56252', beard: '#241b16', shade: '#966341', blush: '#bd6a50', wrinkles: true, browW: 7.5 },
 };
 function faceFor(look) {
   if (look.face && FACES[look.face]) return look.face;
@@ -209,11 +220,15 @@ const faceTex = (k) => canvasTex(`face${k}`, 512, 512, (c, W, H) => {
   blob(0, -0.017, 0.022, 0.009, F.shade, 0.42);
   blob(0, -0.058, 0.018, 0.007, F.shade, 0.36);
 
-  // Stubble / Goatee / Beard
+  // Stubble / Goatee / Beard / Trim
   if (F.goatee) {
     blob(0, -0.08, 0.02, 0.017, F.beard, 0.38);
     blob(0, -0.064, 0.01, 0.007, F.beard, 0.32);
     line([[-0.022, -0.034], [-0.007, -0.03], [0.007, -0.03], [0.022, -0.034]], F.beard, 4.5, 0.7);
+  }
+  if (F.beardTrim) {
+    blob(0, -0.078, 0.028, 0.022, F.beard, 0.32);
+    line([[-0.03, -0.035], [0, -0.03], [0.03, -0.035]], F.beard, 4, 0.65);
   }
   if (F.stubble) {
     blob(0, -0.076, 0.032, 0.026, F.beard, 0.14);
@@ -223,6 +238,13 @@ const faceTex = (k) => canvasTex(`face${k}`, 512, 512, (c, W, H) => {
   const cheekCol = F.blush ?? '#d9776a';
   for (const s of [-1, 1]) blob(s * 0.052, -0.018, 0.022, 0.013, cheekCol, F.female ? 0.24 : 0.14);
   blob(0, -0.008, 0.012, 0.008, cheekCol, 0.12);
+  if (F.himalayanCheeks) {
+    for (const s of [-1, 1]) blob(s * 0.054, -0.014, 0.026, 0.016, '#e05852', 0.28);
+  }
+
+  // Philtrum column indentations and Cupid's bow
+  line([[0, -0.026], [-0.004, -0.038]], F.shade, 1.2, 0.35);
+  line([[0, -0.026], [0.004, -0.038]], F.shade, 1.2, 0.35);
 
   // Lips: vermilion border, upper lip, fuller lower lip
   blob(0, -0.043, 0.022, 0.0055, F.lip);
@@ -230,15 +252,32 @@ const faceTex = (k) => canvasTex(`face${k}`, 512, 512, (c, W, H) => {
   line([[-0.022, -0.045], [-0.007, -0.047], [0, -0.046], [0.007, -0.047], [0.022, -0.045]], '#482018', 1.8, 0.95);
   blob(0, -0.052, 0.009, 0.0025, '#ffffff', 0.18);
 
-  // Nostrils
+  // Nostrils & personal ornaments
   for (const s of [-1, 1]) blob(s * 0.009, -0.021, 0.005, 0.0035, '#3e1e12', 0.85);
+  if (F.noseStud) {
+    blob(-0.013, -0.018, 0.0036, 0.0036, '#9ba2a8', 0.8);
+    blob(-0.013, -0.018, 0.0024, 0.0024, '#ffffff', 0.98);
+  }
+  if (F.beautyMark) blob(0.042, -0.038, 0.0024, 0.0024, '#21150f', 0.88);
 
-  // Almond eyes: detailed anatomical structure with sclera shading, limbal ring, and dual catch-lights
+  // Seasoned farmer character lines & subtle crows-feet
+  if (F.wrinkles) {
+    for (const s of [-1, 1]) {
+      line([[s * 0.054, 0.028], [s * 0.066, 0.033]], F.shade, 1.1, 0.38);
+      line([[s * 0.056, 0.022], [s * 0.068, 0.021]], F.shade, 1.1, 0.32);
+      line([[s * 0.024, -0.024], [s * 0.036, -0.046]], F.shade, 1.2, 0.28);
+    }
+    line([[-0.028, 0.064], [0.028, 0.064]], F.shade, 1.1, 0.25);
+  }
+
+  // Almond eyes: detailed anatomical structure with sclera shading, limbal ring, and triple catch-lights
   for (const s of [-1, 1]) {
     const ex = s * 0.039, ey = 0.026;
     blob(ex, ey, 0.0205, 0.0098, '#f7f3ec');
     blob(ex + s * -0.014, ey, 0.006, 0.007, '#e4d3c5', 0.45);
     blob(ex + s * 0.014, ey, 0.006, 0.007, '#e4d3c5', 0.45);
+    // Inner lacrimal caruncle
+    blob(ex - s * 0.019, ey - 0.001, 0.0042, 0.0035, '#d47b74', 0.65);
 
     const irisX = ex + s * -0.002, irisY = ey - 0.0005;
     blob(irisX, irisY, 0.0094, 0.0094, F.lid, 0.85); // limbal ring
@@ -246,11 +285,14 @@ const faceTex = (k) => canvasTex(`face${k}`, 512, 512, (c, W, H) => {
     blob(irisX, irisY, 0.0058, 0.0058, '#4a2816', 0.4);
     blob(irisX, irisY, 0.0042, 0.0042, '#070504'); // pupil
 
-    // Dual corneal catch-lights
+    // Triple corneal catch-lights (primary specular, bounce, and rim gleam)
     blob(irisX + 0.0032, irisY + 0.0035, 0.0022, 0.0022, '#ffffff', 0.95);
     blob(irisX - 0.0024, irisY - 0.0022, 0.0014, 0.0014, '#ffffff', 0.4);
+    blob(irisX + 0.001, irisY - 0.0035, 0.001, 0.001, '#ffffff', 0.25);
 
+    // Eyelid contours & supratarsal crease
     line([[ex - s * 0.022, ey - 0.0015], [ex - s * 0.01, ey + 0.01], [ex + s * 0.01, ey + 0.0095], [ex + s * 0.022, ey + 0.0015]], F.lid, F.female ? 4.2 : 3.6);
+    line([[ex - s * 0.02, ey + 0.014], [ex, ey + 0.017], [ex + s * 0.018, ey + 0.013]], F.shade, 1.2, 0.45); // supratarsal fold
     if (F.female) line([[ex + s * 0.02, ey + 0.002], [ex + s * 0.026, ey + 0.007]], F.lid, 2.4);
     line([[ex - s * 0.015, ey - 0.0065], [ex + s * 0.015, ey - 0.0055]], F.shade, 1.2, 0.55);
 
@@ -333,6 +375,7 @@ export function buildFarmer(look) {
     if (!skirted) mesh(limb(0.076 * wide, 0.056 * wide, 0.44, 1.04), legM, thigh); // a long skirt hides the thigh
     const knee = group(thigh, [0, -0.44, 0]);
     mesh(geo.sphere(0.042 * wide, 14, 10), legM, knee, [0, 0, 0], [0, 0, 0], [1, 0.9, 0.92]);
+    mesh(geo.sphere(0.026 * wide, 12, 8), legM, knee, [0, -0.008, 0.036 * wide], [0.18, 0, 0], [1, 1.2, 0.65]); // patella plate
     mesh(limb(0.058 * wide, lower === 'shalwar' ? 0.048 : wide > 1 ? 0.046 * wide : 0.036, 0.42, wide > 1 ? 1.02 : 1.12), legM, knee);
     if (lower === 'shalwar') mesh(geo.cyl(0.05, 0.05, 0.05), mat(look.lowB), knee, [0, -0.4, 0]); // gathered cuff
     if (lower === 'cargo') {
@@ -342,6 +385,7 @@ export function buildFarmer(look) {
       mesh(geo.cyl(0.06, 0.06, 0.03), mat(look.lowB), knee, [0, -0.4, 0]);
     }
     mesh(geo.sphere(0.032 * wide, 12, 8), legM, knee, [0, -0.405, 0], [0, 0, 0], [0.88, 1.1, 0.9]);
+    for (const s of [-1, 1]) mesh(geo.sphere(0.015 * wide, 8, 6), legM, knee, [s * 0.034 * wide, -0.405, 0], [0, 0, 0], [0.8, 1, 1]); // malleoli prominences
     const foot = group(knee, [0, -0.44, 0.03]);
     const fm = mat(look.feetA);
     const shoeG = capsule(0.05, 0.12);
@@ -405,6 +449,9 @@ export function buildFarmer(look) {
   // Keep this in sync with frontOf(), which positions buttons and trim on the cloth.
   mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.86]);
   const fz = frontOf(female);
+  if (!female) {
+    for (const side of [-1, 1]) mesh(geo.sphere(0.058, 14, 10), topM, torso, [side * 0.074, 0.38, fz(0.38, side * 0.074) - 0.01], [0.1, side * 0.08, 0], [1.15, 0.88, 0.75]);
+  }
   const plainTop = look.top === 'polo' ? cloth(look.topA) : topM;
   if (look.top === 'kurta' || look.top === 'kameez' || look.top === 'eingyi') {
     mesh(geo.box(0.02, 0.16, 0.01), mat(look.topB), torso, [0, 0.45, fz(0.45) + 0.004]);
@@ -464,14 +511,30 @@ export function buildFarmer(look) {
   // head
   const neck = group(torso, [0, 0.55, 0]);
   mesh(geo.cyl(0.047, 0.056, 0.12, 14), skin, neck, [0, 0.045, 0]);
+  // Sternocleidomastoid neck contour muscles
+  for (const side of [-1, 1]) mesh(geo.cyl(0.014, 0.02, 0.1, 8), skin, neck, [side * 0.026, 0.035, 0.012], [0.18, 0, side * -0.2]);
+  // Clavicle (collarbone) bar across the upper chest
+  mesh(geo.box(female ? 0.21 : 0.25, 0.012, 0.02), skin, torso, [0, 0.528, 0.046], [0.12, 0, 0]);
   const head = group(neck, [0, 0.18, 0]); head.scale.setScalar(1);
   P.neck = neck; P.head = head;
   mesh(geo.sphere(0.118, 18, 14), skin, head, [0, 0, 0], [0, 0, 0], [0.95, 1.08, 1]);
-  mesh(geo.sphere(0.02, 6, 4), skin, head, [-0.115, 0, 0]); mesh(geo.sphere(0.02, 6, 4), skin, head, [0.115, 0, 0]);
-  // the nose (bridge and tip), the jaw, and the painted face over them
+  // Sculpted ears: helix curve, concha depth, and lobule angled naturally
+  for (const side of [-1, 1]) {
+    const ear = group(head, [side * 0.115, 0.002, -0.004], [0, side * 0.22, side * -0.08]);
+    mesh(geo.torus(0.018, 0.0055, 6, 12, Math.PI * 1.3), skin, ear, [0, 0.004, 0], [0, 0, side * 0.15]);
+    mesh(geo.sphere(0.012, 10, 8), skin, ear, [0, -0.014, 0], [0, 0, 0], [0.85, 1.3, 0.7]); // earlobe
+    mesh(geo.sphere(0.01, 8, 6), mat(look.skin, { rough: 0.85 }), ear, [side * 0.002, 0.002, 0.003], [0, 0, 0], [0.8, 1, 0.5]); // tragus
+  }
+  // Zygomatic arches (cheekbones)
+  for (const side of [-1, 1]) mesh(geo.sphere(0.032, 12, 8), skin, head, [side * 0.074, -0.008, 0.08], [0.15, side * 0.18, 0], [1.1, 0.85, 0.9]);
+  // The nose (bridge, tip, and alar base wings)
   mesh(geo.sphere(0.017, 10, 8), skin, head, [0, -0.012, 0.112], [0.3, 0, 0], [1.05, 1.15, 1]);
   mesh(geo.box(0.014, 0.034, 0.014), skin, head, [0, 0.008, 0.113], [-0.25, 0, 0]);
+  for (const side of [-1, 1]) mesh(geo.sphere(0.0075, 8, 6), skin, head, [side * 0.014, -0.018, 0.107], [0, 0, 0], [1, 0.9, 0.8]); // alar wings
+  // Jaw and chin (mental protuberance)
   mesh(geo.sphere(0.086, 16, 10), skin, head, [0, -0.052, 0.02], [0, 0, 0], [female ? 0.92 : 1.02, 0.72, 0.95]);
+  mesh(geo.sphere(0.024, 12, 8), skin, head, [0, -0.106, 0.08], [0.2, 0, 0], [female ? 0.95 : 1.25, 0.85, 0.9]); // chin tip
+  for (const side of [-1, 1]) mesh(geo.sphere(0.022, 10, 8), skin, head, [side * 0.066, -0.07, 0.01], [0, 0, 0], [0.9, 1.1, 1.1]); // jaw angle
   const faceKey = faceFor(look);
   {
     const ft = faceTex(faceKey); ft.wrapS = ft.wrapT = THREE.ClampToEdgeWrapping;
@@ -608,8 +671,10 @@ export function buildFarmer(look) {
     mesh(geo.sphere(0.032, 12, 8), skin, elbow, [0, -0.244, 0], [0, 0, 0], [0.9, 1, 0.92]); // wrist transition
     if (look.cuff) mesh(geo.cyl(0.052, 0.052, 0.07), mat(look.cuff), elbow, [0, -0.2, 0]);
     const hand = group(elbow, [0, -0.27, 0]);
-    // palm, four slightly curled fingers and a thumb
+    // palm, thenar / hypothenar muscle pads, four slightly curled fingers and an opposable thumb
     mesh(geo.sphere(0.041, 16, 12), skin, hand, [0, -0.03, 0.004], [0, 0, 0], [0.58, 1, 0.9]);
+    mesh(geo.sphere(0.018, 10, 8), skin, hand, [side * -0.015, -0.035, 0.016], [0.35, 0, side * 0.28], [1.1, 1.25, 0.85]); // thenar pad
+    mesh(geo.sphere(0.016, 10, 8), skin, hand, [side * 0.014, -0.044, -0.006], [0, 0, side * -0.18], [0.9, 1.15, 0.8]); // hypothenar pad
     for (let f = 0; f < 4; f++) {
       const fingerLen = 0.052 - Math.abs(f - 1.5) * 0.007;
       const fingerX = (f - 1.5) * 0.006;

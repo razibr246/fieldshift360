@@ -2,6 +2,8 @@
 **System Domain**: Interactive Economy, Hazard Evasion, XP & Progression, and IPM Dynamics  
 **Specification Version**: 2.4.0
 
+> **Implementation note:** This is a design draft; some numbers and mechanics below are planned or may be out of date. `src/game/sim.js` is the source of truth for current behavior. Game outcomes are simulated, not field forecasts or measured soil properties.
+
 ---
 
 ## 1. Agricultural Economy & Market Mechanics

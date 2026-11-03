@@ -1,8 +1,7 @@
-// The seven Bangladesh farmers of "মাঠের মানুষ", one from each division: the same composite characters as the app's
-// sample farms and the story levels (src/data/demo.js, src/data/stories.js), each farming their own upazila — Razib
-// Miah in Dhamrai, Rahim Uddin in Godagari, Md. Didarul Alam in Sitakunda, Prahlad Chandra Roy in Dacope, Abdul
-// Kader Howlader in Bakerganj, Md. Mofizul Islam in Gangachara and Rahima Begum in Gowainghat. The dangers and the
-// answers to them are the ones their stories tell, with the advice BRRI, BARI and the DAE give.
+// Seven sample farmer characters in "মাঠের মানুষ", one associated with each division. They are composite characters
+// shared with the app's demo farms and story levels (src/data/demo.js, src/data/stories.js), mapped to Dhamrai, Godagari,
+// Sitakunda, Dacope, Bakerganj, Gangachara and Gowainghat. Their scenarios draw on local hazards and crops; the quiz
+// answers are simplified learning prompts, not official recommendations for an individual farm.
 const q = (bn, en) => ({ bn, en });
 const ok = (bn, en) => ({ bn, en, ok: true });
 const glutQuiz = (crop, where) => ({
@@ -104,7 +103,7 @@ export const REGIONS_BD = {
       skill: q('বড় বালতি: একবারে ৮ বার পানি', 'Big can: 8 waterings per fill'),
       dress: [q('চেক লুঙ্গি', 'Checked lungi'), q('সাদা ফতুয়া', 'White fotua'), q('মাথায় লাল গামছা', 'Red gamcha on the head'), q('পাকা দাড়ি', 'White beard')],
       speed: 3.6, run: 6.2, can: 8, sellBonus: 0, scanner: false, alertLead: 0, idle: 'wipe',
-      look: { skin: '#a8704a', hair: '#5b5551', beard: '#d9d4cc', build: 1.04, head: 'gamcha', headA: '#b0302b', headB: '#f3eee4', top: 'fotua', topA: '#e4eaf0', topB: '#c9d2dc', lower: 'lungi', lowA: '#27507f', lowB: '#7aa3cf', feet: 'sandal', feetA: '#3a2a1e' },
+      look: { face: 'rahimu', skin: '#a8704a', hair: '#5b5551', beard: '#d9d4cc', build: 1.04, head: 'gamcha', headA: '#b0302b', headB: '#f3eee4', top: 'fotua', topA: '#e4eaf0', topB: '#c9d2dc', lower: 'lungi', lowA: '#27507f', lowB: '#7aa3cf', feet: 'sandal', feetA: '#3a2a1e' },
     },
     place: {
       bn: 'দেওপাড়া, গোদাগাড়ী, রাজশাহী', en: 'Deopara, Godagari, Rajshahi', area: q('বরেন্দ্র অঞ্চল', 'The Barind tract'),
@@ -147,7 +146,7 @@ export const REGIONS_BD = {
       q('আমি {name}। দেওপাড়ার লাল খিয়ার মাটিতে আমার চারটি জমি — বাপ-দাদার আমল থেকে।', 'I am {name}. My four fields are in the red Barind soil of Deopara — they were my father’s and his father’s.'),
       q('গ্রীষ্মে মাটি ফেটে যায়। বোরোর ফুল আসে ৩৫ ডিগ্রির ওপরের গরমে।', 'In the hot season the soil cracks. The Boro flowers in heat over 35 degrees.'),
       q('গভীর নলকূপের পানি প্রতি বছর আরও নিচে নামছে। দাদার আমলের হিসাব আর মেলে না।', 'The deep-well water sinks lower every year. Grandfather’s calendar no longer adds up.'),
-      q('ছেলে বলল, FieldShift নাসার ২৫ বছরের আবহাওয়া মিলিয়ে আগেই সাবধান করে।', 'My son says FieldShift checks 25 years of NASA weather and warns ahead.'),
+      q('ছেলে বলল, FieldShift নাসার বহু বছরের আবহাওয়ার রেকর্ড মিলিয়ে বীজ বোনা আর সেচের পরিকল্পনা করতে সাহায্য করে।', 'My son says FieldShift uses long-term NASA weather records to help plan sowing and irrigation.'),
       q('এই রবি মৌসুমে চলুন একসঙ্গে চেষ্টা করি — মাঠ বাঁচাই, লাভও করি!', 'This Rabi season, let us try together — save the field, and make a profit!'),
     ],
     lines: LINES({ storm: q('কালবৈশাখী! ফসল তুলে স্কুলঘরে যাই।', 'A nor’wester! Crop in, then to the school.'), dry: q('বালতি খালি — নলকূপে যাই।', 'The can is empty — to the well.') }),
@@ -161,7 +160,7 @@ export const REGIONS_BD = {
       skill: q('উঁচু বেড বানাতে ওস্তাদ: জমির মাটি দ্রুত উর্বর হয়', 'Master of raised beds: his soil recovers fast'),
       dress: [q('সাদা টুপি', 'White prayer cap'), q('ঘিয়ে পাঞ্জাবি', 'Cream panjabi'), q('খয়েরি চেক লুঙ্গি', 'Brown checked lungi'), q('ছোট দাড়ি', 'A short beard')],
       speed: 3.9, run: 6.6, can: 6, sellBonus: 0.05, scanner: false, alertLead: 0, idle: 'wipe', soilKeeper: true,
-      look: { skin: '#a8704a', hair: '#1d1714', beard: '#231b16', build: 1.02, head: 'tupi', headA: '#f7f5ef', top: 'kurta', topA: '#f1efe8', topB: '#d7d2c4', lower: 'lungi', lowA: '#6b3f2a', lowB: '#c79a6a', feet: 'sandal', feetA: '#2f2a26' },
+      look: { face: 'didarul', skin: '#a8704a', hair: '#1d1714', beard: '#231b16', build: 1.02, head: 'tupi', headA: '#f7f5ef', top: 'kurta', topA: '#f1efe8', topB: '#d7d2c4', lower: 'lungi', lowA: '#6b3f2a', lowB: '#c79a6a', feet: 'sandal', feetA: '#2f2a26' },
     },
     place: {
       bn: 'সৈয়দপুর, সীতাকুণ্ড, চট্টগ্রাম', en: 'Syedpur, Sitakunda, Chattogram', area: q('পাহাড় আর সাগরের মাঝখানে', 'Between the hills and the sea'),
@@ -229,7 +228,7 @@ export const REGIONS_BD = {
       skill: q('গরম সয়ে যান: তাপে ফসল ২৫% কম শুকায়', 'Used to the heat: crops dry 25% less in a heatwave'),
       dress: [q('সাদা ধুতি', 'White dhoti'), q('সাদা ফতুয়া', 'White fotua'), q('কাঁধে লাল গামছা', 'Red gamcha on the shoulder'), q('গোঁফ', 'A moustache')],
       speed: 3.7, run: 6.2, can: 6, sellBonus: 0.05, scanner: false, alertLead: 0, idle: 'wipe', heatHardy: true,
-      look: { skin: '#8d5b3c', hair: '#2a2420', moustache: '#2a2420', build: 1, head: 'bare', top: 'fotua', topA: '#f3efe2', topB: '#d8d2c4', lower: 'dhoti', lowA: '#f1ede4', lowB: '#d8d2c4', feet: 'sandal', feetA: '#3a2a1e', scarf: '#c9482e' },
+      look: { face: 'prahlad', skin: '#8d5b3c', hair: '#2a2420', moustache: '#2a2420', build: 1, head: 'bare', top: 'fotua', topA: '#f3efe2', topB: '#d8d2c4', lower: 'dhoti', lowA: '#f1ede4', lowB: '#d8d2c4', feet: 'sandal', feetA: '#3a2a1e', scarf: '#c9482e' },
     },
     place: {
       bn: 'তিলডাঙ্গা, দাকোপ, খুলনা', en: 'Tildanga, Dacope, Khulna', area: q('উপকূল, সুন্দরবনের ধারে', 'The coast, at the edge of the Sundarbans'),
@@ -286,7 +285,7 @@ export const REGIONS_BD = {
       skill: q('নৌকা-পথ চেনেন: দ্রুত হাঁটেন, হাটে ১৫% বেশি দাম', 'Knows the waterways: walks fast, sells for 15% more'),
       dress: [q('সাদা টুপি', 'White prayer cap'), q('সাদা দাড়ি', 'White beard'), q('হালকা নীল পাঞ্জাবি', 'Pale blue panjabi'), q('নীল চেক লুঙ্গি', 'Blue checked lungi')],
       speed: 4.3, run: 7.1, can: 6, sellBonus: 0.15, scanner: false, alertLead: 0, idle: 'wipe',
-      look: { skin: '#b77b52', hair: '#e7e3dc', beard: '#efebe4', build: 1, head: 'tupi', headA: '#f7f5ef', top: 'kurta', topA: '#dfe7ee', topB: '#c3cdd6', lower: 'lungi', lowA: '#1f4f8a', lowB: '#7aa3cf', feet: 'sandal', feetA: '#2f2a26' },
+      look: { face: 'kader', skin: '#b77b52', hair: '#e7e3dc', beard: '#efebe4', build: 1, head: 'tupi', headA: '#f7f5ef', top: 'kurta', topA: '#dfe7ee', topB: '#c3cdd6', lower: 'lungi', lowA: '#1f4f8a', lowB: '#7aa3cf', feet: 'sandal', feetA: '#2f2a26' },
     },
     place: {
       bn: 'নীলগঞ্জ, বাকেরগঞ্জ, বরিশাল', en: 'Nilganj, Bakerganj, Barishal', area: q('নদী আর খালের দেশ', 'The land of rivers and canals'),
@@ -343,7 +342,7 @@ export const REGIONS_BD = {
       skill: q('চরের মানুষ: চরের বালুতে বালতির পানি বেশিক্ষণ থাকে', 'Char man: knows how to hold water in the sand'),
       dress: [q('নীল মাফলার', 'Blue muffler'), q('খয়েরি সোয়েটার', 'Brown sweater'), q('চেক লুঙ্গি', 'Checked lungi'), q('গোঁফ', 'A moustache')],
       speed: 3.9, run: 6.7, can: 7, sellBonus: 0, scanner: false, alertLead: 0, idle: 'wipe',
-      look: { skin: '#c68a5e', hair: '#211a16', moustache: '#211a16', build: 1, head: 'bare', top: 'sweater', topA: '#7b5a3c', topB: '#5f4530', muffler: '#5b6fa8', lower: 'lungi', lowA: '#5a4a7a', lowB: '#a89ac8', feet: 'sandal', feetA: '#2f2a26' },
+      look: { face: 'mofizul', skin: '#c68a5e', hair: '#211a16', moustache: '#211a16', build: 1, head: 'bare', top: 'sweater', topA: '#7b5a3c', topB: '#5f4530', muffler: '#5b6fa8', lower: 'lungi', lowA: '#5a4a7a', lowB: '#a89ac8', feet: 'sandal', feetA: '#2f2a26' },
     },
     place: {
       bn: 'দক্ষিণ কোলকোন্দ, গঙ্গাচড়া, রংপুর', en: 'Dakshin Kolkonda, Gangachara, Rangpur', area: q('তিস্তার চর', 'The Teesta chars'),
@@ -405,7 +404,7 @@ export const REGIONS_BD = {
       skill: q('ফোনে সব জমির পানি দেখেন, সতর্কতা আগে পান', 'Sees every plot’s moisture, gets warnings early'),
       dress: [q('বেগুনি হিজাব', 'Purple hijab'), q('বেগুনি শাড়ি, সোনালি পাড়', 'Purple sari, gold border'), q('কাচের চুড়ি', 'Glass bangles'), q('হাতে ফোন', 'Phone in hand')],
       speed: 4.3, run: 7.1, can: 5, sellBonus: 0.05, scanner: true, alertLead: 6, idle: 'adjust',
-      look: { skin: '#d8a47a', hair: '#15100c', build: 0.94, head: 'hijab', headA: '#6d4aa8', top: 'blouse', topA: '#5e3f94', topB: '#4e3480', lower: 'sari', lowA: '#6d4aa8', lowB: '#e2b84a', gold: '#e2b84a', sari: true, silver: '#e2b84a', bangle: '#d9a83a', feet: 'sandal', feetA: '#6b3b2a' },
+      look: { face: 'rahima', skin: '#d8a47a', hair: '#15100c', build: 0.94, head: 'hijab', headA: '#6d4aa8', top: 'blouse', topA: '#5e3f94', topB: '#4e3480', lower: 'sari', lowA: '#6d4aa8', lowB: '#e2b84a', gold: '#e2b84a', sari: true, silver: '#e2b84a', bangle: '#d9a83a', feet: 'sandal', feetA: '#6b3b2a' },
     },
     place: {
       bn: 'কুড়িখোলা, গোয়াইনঘাট, সিলেট', en: 'Kurikhola, Gowainghat, Sylhet', area: q('হাওর আর পাহাড়ের দেশ', 'Haor wetland under the hills'),

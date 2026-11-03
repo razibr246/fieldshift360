@@ -1,20 +1,24 @@
 # FieldShift 360: Agricultural Simulation Specification
-**Mathematical & Biophysical Foundation**: FAO-56 Crop Evapotranspiration, ICBM Soil Carbon Balance, NRCS Soil Health Dynamics, and IPCC Tier 1/2 Paddy Emissions  
+**Status**: Design notes for possible future model work; not a description of the current game implementation
 **Specification Version**: 2.4.0
 
 ---
 
-## 1. Biophysical Principles & Overview
+## 1. Scope and current implementation
 
-The simulation inside FieldShift 360 is not an arbitrary game abstraction; every formula is rooted in peer-reviewed agronomic and soil science models. It accurately simulates:
-1. **Soil Moisture & Evapotranspiration** based on the FAO-56 dual crop coefficient method.
-2. **Soil Organic Carbon (SOC) Dynamics** modeled after the Introductory Carbon Balance Model (ICBM).
-3. **Biological Nitrogen Fixation (BNF)** and nutrient replenishment.
-4. **Storm Runoff & Topsoil Humus Stripping**.
+The playable `src/game/sim.js` uses simplified rules for plot moisture, crop growth, pests, and game soil indices. It does not implement FAO-56, ICBM, NRCS, or IPCC calculation models. Those model names below are references for future design and must not be presented as current game outputs. The FieldShift station and rotation tools use separate app data and engine calculations.
+
+## 2. Proposed Biophysical Principles & Overview
+
+Future model work could consider established agronomic references. The equations in this document are design proposals and are not a validated implementation. The current game provides:
+
+1. Simplified moisture depletion and crop growth rules.
+2. Game soil-health and carbon indices that respond to selected actions.
+3. Rule-based storms, pests, and crop losses.
 
 ---
 
-## 2. Soil Moisture Depletion & Evapotranspiration (FAO-56)
+## 3. Proposed Soil Moisture & Evapotranspiration Reference
 
 ### 2.1 The Depletion Formula
 Moisture depletion per time step $\Delta t$ on plot $p$ follows:
@@ -39,7 +43,7 @@ Where:
 
 ---
 
-## 3. Soil Carbon & Humus Balance (Adapted ICBM)
+## 4. Proposed Soil Carbon & Humus Reference
 
 ### 3.1 Carbon Pools & Legume Integration
 The soil fertility state $\mathcal{F} \in [0.0, 0.6]$ represents active labile soil organic matter.
@@ -60,21 +64,21 @@ The soil fertility state $\mathcal{F} \in [0.0, 0.6]$ represents active labile s
 
 ---
 
-## 4. Comprehensive Season Scorecard Algorithm
+## 5. Current Game Scorecard (Rule-Based)
 
-At the conclusion of a season, the simulation evaluates four orthogonal agronomic pillars:
+At season end, `agriScorecard()` computes four rule-based learning indices from actions recorded during play. They are not biophysical measurements:
 
-### 4.1 Scoring Equations
+### 5.1 Scoring Equations
 1. **Soil Stewardship Score ($S_{\text{soil}}$)**:
    $$S_{\text{soil}} = \text{clamp}_{[0, 100]}\left( 50 + 8 \cdot N_{\text{rotated}} + 10 \cdot N_{\text{legumes}} - 10 \cdot N_{\text{repeats}} - 5 \cdot N_{\text{eroded}} \right)$$
 2. **Water Conservation Score ($S_{\text{water}}$)**:
    $$S_{\text{water}} = \text{clamp}_{[0, 100]}\left( 60 + 12 \cdot N_{\text{waterLayer}} + 5 \cdot N_{\text{satViews}} - 8 \cdot N_{\text{lost}} \right)$$
 3. **Crop Diversity Score ($S_{\text{div}}$)**:
-   $$S_{\text{div}} = \text{clamp}_{[20, 100]}\left( \delta_{\text{rot}} + \delta_{\text{leg}} + \delta_{\text{vol}} \right)$$
+   $$S_{\text{div}} = \text{clamp}_{[20, 100]}\left( (N_{\text{rotated}} > 0 ? 50 : 20) + (N_{\text{legumes}} > 0 ? 30 : 0) + (N_{\text{harvested}} \ge 6 ? 20 : 10) \right)$$
 4. **Economic Efficiency Score ($S_{\text{econ}}$)**:
    $$S_{\text{econ}} = \text{clamp}_{[0, 100]}\left( \min\left(100, \frac{\text{Earned}}{1200} \times 80\right) - 6 \cdot N_{\text{lost}} \right)$$
 
-### 4.2 Composite Score & Star Ratings
+### 5.2 Composite Score & Star Ratings
 $$\text{OverallScore} = \text{round}\left( 0.30 \cdot S_{\text{soil}} + 0.25 \cdot S_{\text{water}} + 0.25 \cdot S_{\text{div}} + 0.20 \cdot S_{\text{econ}} \right)$$
 
 $$\text{Stars} = \begin{cases} 3 & \text{if } \text{OverallScore} \ge 80 \\ 2 & \text{if } \text{OverallScore} \ge 55 \\ 1 & \text{otherwise} \end{cases}$$

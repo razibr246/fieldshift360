@@ -15,18 +15,18 @@ const rand = (a, b) => a + Math.random() * (b - a);
 // Bangla genitive: পোকা → পোকার, শূকর → শূকরের.
 export const gen = (w) => (/[ািীুূৃেৈোৌঅআইঈউঊএঐওঔ]$/.test(w) ? `${w}র` : `${w}ের`);
 const cap = (w) => w[0].toUpperCase() + w.slice(1);
-// FieldShift phone alerts, worded for the region's storm and pest.
+// Scripted learning-game alerts, worded for the region's storm and pest.
 const ALERT = (R) => ({
-  heatSoon: { tone: 'warn', title: { bn: 'তাপপ্রবাহের সতর্কতা', en: 'Heatwave warning' }, body: { bn: 'নাসার তথ্য বলছে কয়েক সেকেন্ডের মধ্যে কড়া গরম। এখনই সব চারায় পানি দিন।', en: 'NASA data shows strong heat within seconds. Water every seedling now.' } },
-  heatOn: { tone: 'hot', title: { bn: 'তাপপ্রবাহ চলছে', en: 'Heatwave on' }, body: { bn: 'মাটি দ্বিগুণ দ্রুত শুকাচ্ছে। শুকনো জমি খুঁজতে উপগ্রহের চোখ খুলুন (N)।', en: 'Soil is drying twice as fast. Open the satellite view (N) to spot dry plots.' } },
-  heatOff: { tone: 'ok', title: { bn: 'গরম কমেছে', en: 'The heat has passed' }, body: { bn: 'ভালো সামলেছেন।', en: 'Well handled.' } },
-  pestSoon: { tone: 'warn', title: { bn: `${gen(R.pestWord.bn)} খবর`, en: `${cap(R.pestWord.en)} report` }, body: { bn: `পাশের গ্রামে ${R.pestWord.bn} দেখা গেছে। জমিতে নজর রাখুন।`, en: `${cap(R.pestWord.en)} seen in the next village. Watch your plots.` } },
-  pestOn: { tone: 'hot', title: { bn: `জমিতে ${R.pestWord.bn}!`, en: `${cap(R.pestWord.en)} in the field!` }, body: { bn: 'আক্রান্ত জমিতে দাঁড়িয়ে ব্যবস্থা নিন — দেরি হলে পাশের জমিতে ছড়াবে।', en: 'Stand on each affected plot to deal with it — it spreads if you wait.' } },
-  stormSoon: { tone: 'hot', title: { bn: `${R.storm.bn} আসছে`, en: `${R.storm.en} coming` }, body: { bn: `পাকা ফসল তুলে মানচিত্রের নিরাপদ বৃত্তে যান: ${R.names.safe.bn}।`, en: `Bring in the ripe crop, then get inside the safe circle on the map: ${R.names.safe.en}.` } },
-  stormOn: { tone: 'hot', title: { bn: `${R.storm.bn} শুরু`, en: `The ${R.storm.en.toLowerCase()} is here` }, body: { bn: R.storm.kind === 'flood' ? 'ঢলের পানি মাঠে ঢুকছে — না কাটা ফসল ডুবে যাবে।' : 'বৃষ্টি সব জমিতে পানি দিচ্ছে — কিন্তু পাকা ফসল মাঠে থাকলে নষ্ট হবে।', en: R.storm.kind === 'flood' ? 'The flood water is pouring into the field — uncut crop will drown.' : 'The rain waters every plot — but ripe crop left out will spoil.' } },
-  stormOff: { tone: 'ok', title: { bn: `${R.storm.bn} থেমেছে`, en: `The ${R.storm.en.toLowerCase()} is over` }, body: { bn: R.storm.kind === 'flood' ? 'পানি নেমে যাচ্ছে।' : 'আকাশ পরিষ্কার হচ্ছে।', en: R.storm.kind === 'flood' ? 'The water is going down.' : 'The sky is clearing.' } },
-  glutSoon: { tone: 'warn', title: { bn: 'বাজারের খবর', en: 'Market news' }, body: { bn: `সবাই একসঙ্গে ${R.crops[R.glut].bn} তুলছে — দাম পড়ছে। কিছুক্ষণ ধরে রাখুন, অন্য ফসল আগে বেচুন।`, en: `Everyone is bringing in ${R.crops[R.glut].en.toLowerCase()} at once — the price is falling. Hold it a while and sell other crops first.` } },
-  glutOff: { tone: 'ok', title: { bn: `${gen(R.crops[R.glut].bn)} দাম ফিরেছে`, en: `${R.crops[R.glut].en} prices are back` }, body: { bn: 'এখন বেচতে পারেন।', en: 'You can sell now.' } },
+  heatSoon: { tone: 'warn', title: { bn: 'খেলার তাপ-সতর্কতা', en: 'Game heat warning' }, body: { bn: 'খেলার তাপ-পর্ব কিছুক্ষণের মধ্যে শুরু হবে। শুকিয়ে যাওয়া চারায় পানি দিন।', en: 'The game’s heat event begins soon. Water any seedlings that dry out.' } },
+  heatOn: { tone: 'hot', title: { bn: 'খেলার তাপ-পর্ব চলছে', en: 'Game heat event' }, body: { bn: 'খেলার জমি দ্রুত শুকাচ্ছে। শুকনো জমি খুঁজতে সিমুলেটেড মানচিত্র খুলুন (N)।', en: 'Game plots are drying quickly. Open the simulated map (N) to spot dry plots.' } },
+  heatOff: { tone: 'ok', title: { bn: 'খেলার গরম কমেছে', en: 'Game heat event has passed' }, body: { bn: 'ভালো সামলেছেন।', en: 'Well handled.' } },
+  pestSoon: { tone: 'warn', title: { bn: `খেলার ${gen(R.pestWord.bn)} খবর`, en: `Game ${cap(R.pestWord.en)} report` }, body: { bn: `খেলার জগতে পাশের গ্রামে ${R.pestWord.bn} দেখা গেছে। জমিতে নজর রাখুন।`, en: `In the game, ${R.pestWord.en} are reported in the next village. Watch your plots.` } },
+  pestOn: { tone: 'hot', title: { bn: `খেলার জমিতে ${R.pestWord.bn}!`, en: `Game plot: ${cap(R.pestWord.en)}!` }, body: { bn: 'আক্রান্ত খেলার জমিতে দাঁড়িয়ে ব্যবস্থা নিন — দেরি হলে পাশের জমিতে ছড়াবে।', en: 'Treat each affected game plot — the simulated outbreak spreads if you wait.' } },
+  stormSoon: { tone: 'hot', title: { bn: `খেলার ${R.storm.bn} আসছে`, en: `Game event: ${R.storm.en} coming` }, body: { bn: `খেলার ঝড়ের আগে পাকা ফসল তুলে নিরাপদ বৃত্তে যান: ${R.names.safe.bn}।`, en: `Before the game storm, bring in ripe crops and reach the safe circle: ${R.names.safe.en}.` } },
+  stormOn: { tone: 'hot', title: { bn: `খেলার ${R.storm.bn} শুরু`, en: `Game event: ${R.storm.en.toLowerCase()} is here` }, body: { bn: R.storm.kind === 'flood' ? 'ঢলের পানি মাঠে ঢুকছে — না কাটা ফসল ডুবে যাবে।' : 'বৃষ্টি সব জমিতে পানি দিচ্ছে — কিন্তু পাকা ফসল মাঠে থাকলে নষ্ট হবে।', en: R.storm.kind === 'flood' ? 'The flood water is pouring into the field — uncut crop will drown.' : 'The rain waters every plot — but ripe crop left out will spoil.' } },
+  stormOff: { tone: 'ok', title: { bn: `খেলার ${R.storm.bn} থেমেছে`, en: `Game event: ${R.storm.en.toLowerCase()} is over` }, body: { bn: R.storm.kind === 'flood' ? 'পানি নেমে যাচ্ছে।' : 'আকাশ পরিষ্কার হচ্ছে।', en: R.storm.kind === 'flood' ? 'The water is going down.' : 'The sky is clearing.' } },
+  glutSoon: { tone: 'warn', title: { bn: 'খেলার বাজারের খবর', en: 'Game market news' }, body: { bn: `খেলার বাজারে সবাই একসঙ্গে ${R.crops[R.glut].bn} তুলছে — দাম পড়ছে। কিছুক্ষণ ধরে রাখুন, অন্য ফসল আগে বেচুন।`, en: `In the game market, everyone is bringing in ${R.crops[R.glut].en.toLowerCase()} at once — the price is falling. Hold it a while and sell other crops first.` } },
+  glutOff: { tone: 'ok', title: { bn: `খেলার ${gen(R.crops[R.glut].bn)} দাম ফিরেছে`, en: `Game ${R.crops[R.glut].en} prices are back` }, body: { bn: 'এখন বেচতে পারেন।', en: 'You can sell now.' } },
 });
 
 // mods: a season's strength (1 = as designed), e.g. from a real year's weather in the story campaign (src/game/saga.js).
@@ -213,8 +213,8 @@ function useStation(g, id) {
   }
 }
 
-// The player used FieldShift's data: opened the satellite view ('satViews'), the kiosk or phone ('advised'), or the
-// satellite's water-stress layer ('waterLayer'). Missions count these like any other step.
+// Track learning-game views: the satellite-style map ('satViews'), the real-data FieldShift kiosk or phone ('advised'),
+// and the simulated water-stress layer ('waterLayer'). Missions count these like any other step.
 export function note(g, k) { g.count[k] = (g.count[k] ?? 0) + 1; }
 
 export function buy(g, k, n) {

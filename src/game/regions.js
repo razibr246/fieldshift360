@@ -1,10 +1,8 @@
-// "মাঠের মানুষ" — the five farmers and their home ground: the same sample farmers who have accounts in the app's
-// neighbouring-country section (src/data/abroad.js), each farming the land of their own place. Harjinder Singh in
-// Sangrur, Punjab; Ghulam Nabi Chandio in Dadu, Sindh; Rampyari Chaudhary, a Tharu farmer in Kailali in the far-west
-// Terai; Kinley Wangmo in Lobesa, Punakha; U Kyaw Win in Singu, Myanmar's Central Dry Zone. Their clothes, houses,
-// trees, water source, market, crops and the danger that closes the season are those of the place, and the advice
-// in the questions is what each country's agriculture research and extension services give farmers there.
-// Everything is plain data, read by the simulation (sim.js) and the 3D world (three/*.js).
+// "মাঠের মানুষ" — five sample farmer characters, based on the app's neighbouring-country demo profiles
+// (src/data/abroad.js): Harjinder Singh in Sangrur, Punjab; Ghulam Nabi Chandio in Dadu, Sindh; Rampyari Chaudhary
+// in Kailali, Nepal; Kinley Wangmo in Lobesa, Punakha; and U Kyaw Win in Singu, Myanmar. Their fictional stories and
+// game scenes draw on regional references; they do not depict specific real people or farms. Everything is plain data,
+// read by the simulation (sim.js) and the 3D world (three/*.js).
 
 // Seconds of play per in-game day: 8 minutes (6 of daylight, 2 of night), near the 10-20 minute days of farming and
 // survival games, so a season of about 10 minutes sees an evening or two rather than a flicker of days.
@@ -49,6 +47,7 @@ const ABROAD = {
       dress: [q('জাফরান পাগড়ি (দস্তার)', 'Saffron turban (dastar)'), q('সাদা কুর্তা-পায়জামা', 'White kurta-pyjama'), q('হাতে স্টিলের কড়া', 'Steel kara on the wrist'), q('কালো দাড়ি', 'Black beard')],
       speed: 3.8, run: 6.4, can: 8, sellBonus: 0, scanner: false, alertLead: 0, idle: 'wipe',
       look: {
+        face: 'harjinder',
         skin: '#b77b52', hair: '#1d1714', beard: '#1d1714', build: 1.08,
         head: 'turban', headA: '#e08a1e', headB: '#b86d10',
         top: 'kurta', topA: '#f2f2ee', topB: '#dad6cc',
@@ -109,7 +108,7 @@ const ABROAD = {
       q('সত শ্রী আকাল! আমি {name}। সাংরুরের বদরুখাঁ গ্রামে ১০ একরে ধান আর গম করি।', 'Sat Sri Akal! I am {name}. I farm 10 acres of rice and wheat in Badrukhan, Sangrur.'),
       q('এখন অক্টোবর — ধান কাটা শেষ, জমিতে খড়। গম বুনতে হবে ১৫ নভেম্বরের মধ্যে।', 'It is October — the paddy is cut and the straw lies on the field. The wheat must go in by 15 November.'),
       q('পাড়ার অনেকে খড়ে আগুন দেয়; ধোঁয়া দিল্লি পর্যন্ত যায়। আর নলকূপের পানি প্রতি বছর আরও নিচে।', 'Plenty of neighbours set the straw alight; the smoke reaches Delhi. And the tubewell water is lower every year.'),
-      q('FieldShift নাসার ২৫ বছরের আবহাওয়া মিলিয়ে বলে কখন বুনব, কখন পানি দেব।', 'FieldShift checks 25 years of NASA weather to tell me when to sow and when to water.'),
+      q('FieldShift নাসার বহু বছরের আবহাওয়ার রেকর্ড মিলিয়ে বীজ বোনা আর সেচের পরিকল্পনা করতে সাহায্য করে।', 'FieldShift uses long-term NASA weather records to help plan sowing and irrigation.'),
       q('চলুন, এবার খড় না পুড়িয়েই ভালো ফসল তুলি!', 'Come on — a good crop this time, without burning the straw!'),
     ],
     lines: {
@@ -135,6 +134,7 @@ const ABROAD = {
       dress: [q('আয়না-কাজের সিন্ধি টুপি', 'Sindhi cap with mirror work'), q('কাঁধে আজরাক', 'Ajrak over the shoulder'), q('সাদা সালোয়ার-কামিজ', 'White shalwar kameez'), q('দাড়ি-গোঁফ', 'Beard and moustache')],
       speed: 3.9, run: 6.6, can: 6, sellBonus: 0.05, scanner: false, alertLead: 0, idle: 'wipe', heatHardy: true,
       look: {
+        face: 'ghulam',
         skin: '#a8704a', hair: '#2a2420', beard: '#3a322c', build: 1.02,
         head: 'sindhi', headA: '#b8262f', headB: '#e2b84a',
         top: 'kameez', topA: '#eef0f2', topB: '#d9d3c5', ajrak: true,
@@ -215,6 +215,7 @@ const ABROAD = {
       dress: [q('থারু ঘাঘরা, রঙিন পাড়', 'Tharu skirt with bright bands'), q('হলুদ চোলি', 'Yellow choli blouse'), q('মাথায় লাল ওড়না', 'Red orhni over the head'), q('রুপার গয়না', 'Silver jewellery')],
       speed: 4.4, run: 7.2, can: 5, sellBonus: 0.15, scanner: false, alertLead: 0, idle: 'adjust',
       look: {
+        face: 'rampyari',
         skin: '#c68a5e', hair: '#1d1714', build: 0.94,
         head: 'orhni', headA: '#c8203c', headB: '#f2c94c',
         top: 'choli', topA: '#e8b33a', topB: '#c9962a',
@@ -295,6 +296,7 @@ const ABROAD = {
       dress: [q('হাতে বোনা কিরা', 'Hand-woven kira'), q('রেশমি তেগো জ্যাকেট', 'Silk tego jacket'), q('ওনজুর ভাঁজ করা হাতা', 'Folded wonju cuffs'), q('রুপার কোমা ব্রোচ', 'Silver koma brooches')],
       speed: 4.1, run: 7, can: 5, sellBonus: 0, scanner: true, alertLead: 6, idle: 'phone',
       look: {
+        face: 'kinley',
         skin: '#d8a47a', hair: '#1d1714', build: 0.95,
         head: 'short', headA: '#1d1714', headB: '#1d1714',
         top: 'tego', topA: '#b5432e', topB: '#f4e7c8', cuff: '#f4e7c8', silver: '#d8dde2',
@@ -375,6 +377,7 @@ const ABROAD = {
       dress: [q('চেক লুঙ্গি (পাসো)', 'Checked longyi (paso)'), q('সাদা এইঞ্জি শার্ট', 'White eingyi shirt'), q('মাথায় গাউং বাউং', 'Gaung baung head-wrap'), q('রাবারের স্যান্ডেল', 'Rubber flip-flops')],
       speed: 3.6, run: 6, can: 7, sellBonus: 0.05, scanner: false, alertLead: 0, idle: 'wipe', soilKeeper: true,
       look: {
+        face: 'kyaw',
         skin: '#c68a5e', hair: '#1d1714', build: 1,
         head: 'gaungbaung', headA: '#e7a3b6', headB: '#f6d3dc',
         top: 'eingyi', topA: '#f4f1ea', topB: '#d8d2c4',
@@ -453,35 +456,35 @@ export const FARMER_IDS = Object.keys(REGIONS);
 export const BD_IDS = Object.keys(REGIONS_BD), ABROAD_IDS = Object.keys(ABROAD);
 
 // The season, in order. A step with `quiz` asks that region's question first (if it has one).
-// The season's missions: each one a problem the challenge names, solved the way FieldShift's NASA data shows. `need`
-// counts what the player does (sim.js g.count); a mission with several needs moves on when all are met. `problem` says
-// what goes wrong on a real farm and `how` which NASA record, read in FieldShift, answers it.
+// The season's missions are learning scenarios. `need` counts player actions (sim.js g.count); `problem` describes a
+// real farming challenge and `how` explains the relevant FieldShift data or game mechanic. The satellite-style map itself
+// is simulated; real local records are shown in the FieldShift kiosk.
 const m = (bn, en) => ({ bn, en });
 export const QUESTS = [
   { id: 'scan', need: { satViews: 1 }, go: 'field', bn: 'উপগ্রহের চোখে মাঠ দেখুন', en: 'See your field through the satellite’s eyes',
     problem: m('কোন জমি খালি, কোনটা চাপে আছে, চোখে বোঝা যায় না।', 'By eye you cannot tell which plots are bare or under stress.'),
-    how: m('Landsat ও MODIS-এর NDVI: সবুজ মানে সুস্থ ফসল, বাদামি মানে খালি মাটি। উপগ্রহ বোতাম বা N চাপুন।', 'Landsat and MODIS NDVI: green is a healthy crop, brown is bare soil. Press the satellite button or N.') },
+    how: m('খেলার মানচিত্রে রং সিমুলেটেড, বাস্তব উপগ্রহ মাপ নয়। আসল Landsat/MODIS রেকর্ড দেখতে FieldShift কিয়স্ক খুলুন।', 'Map colours are simulated, not satellite measurements. Open the FieldShift kiosk for real Landsat/MODIS records.') },
   { id: 'buy', need: { advised: 1, bought: 3 }, go: 'kiosk', bn: 'FieldShift দেখে ঠিক বীজ কিনুন (৩টি)', en: 'Check FieldShift, then buy the right seeds (3)',
     problem: m('অভ্যাসে প্রতি বছর একই ফসল: মাটি ক্লান্ত হয়, পানি বেশি লাগে।', 'Habit grows the same crop every year: the soil tires and it needs more water.'),
     how: m('কিয়স্কের "ফসলচক্র": নাসার ২৫ মৌসুমের আবহাওয়ায় প্রতিটি পথের পানি, আয় আর মাটির হিসাব। তারপর দোকানে বীজ।', 'The kiosk’s Rotations: each option’s water, income and soil on 25 seasons of NASA weather. Then buy seed at the shop.') },
   { id: 'plant', quiz: 'plant', need: { planted: 3 }, go: 'field', bn: 'খালি জমি ঢাকুন: ৩টি জমিতে বুনুন', en: 'Cover the bare soil: sow 3 plots',
     problem: m('খালি জমির ওপরের উর্বর মাটি বৃষ্টি আর ঝড়ে ধুয়ে যায়।', 'Bare soil loses its rich top layer to rain and storms.'),
-    how: m('MODIS NDVI যে মাসে জমি খালি দেখায়, সেটাই নতুন ফসল বা আবরণ ফসলের সুযোগ।', 'The months MODIS NDVI shows the land bare are the chance for a new or cover crop.') },
+    how: m('আসল MODIS NDVI এলাকার সবুজের পরিবর্তন দেখায়; এই খেলার জমির রং সিমুলেটেড। বাস্তব রেকর্ড কিয়স্কে দেখুন।', 'Real MODIS NDVI tracks vegetation over an area; this game field’s colours are simulated. See the kiosk for real records.') },
   { id: 'water', quiz: 'water', need: { waterLayer: 1, watered: 3 }, go: 'field', bn: 'পানির চাপ খুঁজে ৩টি চারায় পানি দিন', en: 'Find the water stress, then water 3 seedlings',
     problem: m('পানি কম, পাম্পের খরচ বেশি: সব জমিতে নয়, যেখানে দরকার সেখানেই পানি।', 'Water is short and pumping is costly: water where it is needed, not everywhere.'),
-    how: m('SMAP মাটির আর্দ্রতা: উপগ্রহ দৃশ্যে "পানির চাপ" স্তর খুলুন; লাল জমি সবচেয়ে শুকনো।', 'SMAP soil moisture: open the Water stress layer in the satellite view; red plots are driest.') },
+    how: m('খেলার "পানির চাপ" স্তর সিমুলেটেড। আসল এলাকার SMAP মাটির আর্দ্রতার রেকর্ড FieldShift কিয়স্কে দেখুন।', 'The game’s Water stress layer is simulated. See the FieldShift kiosk for real local SMAP soil-moisture records.') },
   { id: 'harvest', need: { harvested: 3, rotated: 1 }, go: 'field', bn: 'ফসল তুলে সেই জমিতে অন্য ফসল বুনুন', en: 'Harvest 3, then sow a different crop where one grew',
     problem: m('একই জমিতে একই ফসল বারবার: সেই ফসলের রোগ-পোকা জমে থাকে, মাটির খাদ্য ফুরায়।', 'The same crop on the same plot again and again: its pests wait in the soil and its food runs out.'),
-    how: m('উপগ্রহের "মাটির স্বাস্থ্য" স্তর: ফসল বদলালে আর ডাল বুনলে জমি সবুজ হয়।', 'The satellite’s Soil health layer: changing the crop and sowing pulses turns the plot green.') },
+    how: m('খেলার "মাটির স্বাস্থ্য" স্তর ফসলচক্রে বদলায়; এটি মাপা মাটির তথ্য নয়। আসল SoilGrids তথ্য কিয়স্কে দেখুন।', 'The game’s Soil health layer changes with crop rotation; it is not measured soil data. See the kiosk for real SoilGrids records.') },
   { id: 'sell', need: { sold: 1 }, go: 'market', bn: 'হাটে ফসল বিক্রি করুন', en: 'Sell your harvest at the market',
     problem: m('ফসল ঘরে পড়ে থাকলে নষ্ট হয়, টাকা আটকে থাকে।', 'A harvest left at home spoils and ties up the money.'),
     how: m('FieldShift কিয়স্কে আজকের বাজারদর দেখে বেচুন।', 'Check today’s prices at the FieldShift kiosk before you sell.') },
   { id: 'heat', quiz: 'heat', event: 'heat', go: 'field', bn: 'তাপপ্রবাহ পার করুন: চারা বাঁচিয়ে রাখুন', en: 'Get through the heatwave: keep the seedlings alive',
     problem: m('তাপমাত্রা বাড়ছে; গরমে মাটি দ্রুত শুকায়, ফুল আসা ফসল পুড়ে যায়।', 'Temperatures are rising; heat dries the soil fast and burns a flowering crop.'),
-    how: m('MODIS ভূপৃষ্ঠের তাপ: কিয়স্কের "উপগ্রহ থেকে" দেখায় কোন মাস সবচেয়ে গরম। সতর্কতা এলে ঘন ঘন পানি দিন।', 'MODIS ground heat: the kiosk’s From space shows the hottest months. When the warning comes, water often.') },
+    how: m('কিয়স্কে আসল MODIS তাপের রেকর্ডে গরম মাস দেখুন। খেলার তাপ-সতর্কতা সিমুলেটেড; এটি দেখে সেচের অনুশীলন করুন।', 'The kiosk’s real MODIS heat record shows the hottest months. The game heat warning is simulated; use it to practise irrigation.') },
   { id: 'pests', quiz: 'pests', event: 'pests', go: 'field', bn: 'আক্রান্ত সব জমি সারিয়ে তুলুন', en: 'Deal with every affected plot',
     problem: m('পোকা আগে আসে যে জমিতে একই ফসল আবার বোনা হয়েছে।', 'Pests strike first where the same crop was sown again.'),
-    how: m('উপগ্রহের "ফসলের স্বাস্থ্য" স্তরে হলুদ-লাল জমি খুঁজুন; ফসল বদলালে পরের বার কম আসে।', 'Find the yellow and red plots on the satellite’s Crop health layer; rotating crops brings fewer next time.') },
+    how: m('সিমুলেটেড ফসল-স্বাস্থ্য স্তরে হলুদ-লাল জমি খুঁজুন; একই ফসল বারবার বুনলে খেলায় পোকার ঝুঁকি বাড়ে।', 'Find yellow and red plots on the simulated Crop health layer; repeating a crop raises pest risk in the game.') },
   { id: 'storm', quiz: 'storm', event: 'storm', go: 'safe', bn: 'পাকা ফসল তুলে নিরাপদ জায়গায় পৌঁছান', en: 'Bring in the ripe crop and reach safety',
     problem: m('বৃষ্টি অনিশ্চিত, চরম আবহাওয়া বাড়ছে: মাঠের পাকা ফসল আর খালি জমির মাটি দুটোই যায়।', 'Rain is less predictable and extremes are rising: ripe crop and bare soil are both lost.'),
     how: m('GPM IMERG-এর বৃষ্টি আর FieldShift-এর আগাম সতর্কতা: সময় থাকতে ফসল তুলুন, জমি ঢেকে রাখুন।', 'GPM IMERG rain and FieldShift’s early warning: harvest in time and keep the soil covered.') },
@@ -498,9 +501,9 @@ export const STEP_LABEL = {
   harvested: m('পাকা ফসল তুলুন', 'Harvest ripe crops'), rotated: m('অন্য ফসল বুনুন', 'Sow a different crop'), sold: m('হাটে বিক্রি', 'Sell at the market'), earned: m('মোট বিক্রি', 'Total sold'),
 };
 
-// The satellite view's layers, each named for the NASA record it stands for, and what each colour means.
+// The satellite-style game view uses simulated colours. Real local NASA and SoilGrids records appear in the FieldShift kiosk.
 export const SAT_LAYERS = [
-  { id: 'health', sat: 'Landsat / MODIS NDVI', bn: 'ফসলের স্বাস্থ্য', en: 'Crop health', legend: [['#2e9d3a', 'সুস্থ', 'Healthy'], ['#c9c23a', 'চাপে আছে', 'Stressed'], ['#d6452f', 'বিপদে', 'In danger']] },
-  { id: 'water', sat: 'SMAP', bn: 'পানির চাপ', en: 'Water stress', legend: [['#2f7fd0', 'ভেজা', 'Moist'], ['#c9c23a', 'শুকাচ্ছে', 'Drying'], ['#d6452f', 'পানির চাপের জায়গা', 'Water-stress hotspot']] },
-  { id: 'soil', sat: 'SoilGrids', bn: 'মাটির স্বাস্থ্য', en: 'Soil health', legend: [['#2e9d3a', 'উর্বর', 'Rich'], ['#c9a23a', 'মাঝারি', 'Middling'], ['#8a5a3a', 'ক্ষয়ে যাওয়া', 'Worn out']] },
+  { id: 'health', sat: 'SIM · inspired by Landsat / MODIS NDVI', bn: 'ফসলের স্বাস্থ্য', en: 'Crop health', legend: [['#2e9d3a', 'সুস্থ', 'Healthy'], ['#c9c23a', 'চাপে আছে', 'Stressed'], ['#d6452f', 'বিপদে', 'In danger']] },
+  { id: 'water', sat: 'SIM · inspired by SMAP', bn: 'পানির চাপ', en: 'Water stress', legend: [['#2f7fd0', 'ভেজা', 'Moist'], ['#c9c23a', 'শুকাচ্ছে', 'Drying'], ['#d6452f', 'পানির চাপের জায়গা', 'Water-stress hotspot']] },
+  { id: 'soil', sat: 'SIM · inspired by SoilGrids', bn: 'মাটির স্বাস্থ্য', en: 'Soil health', legend: [['#2e9d3a', 'উর্বর', 'Rich'], ['#c9a23a', 'মাঝারি', 'Middling'], ['#8a5a3a', 'ক্ষয়ে যাওয়া', 'Worn out']] },
 ];
