@@ -14,9 +14,11 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { createWorld } from './world';
 import { createField } from './field';
 import { buildFarmer, animate, personLight } from './people';
+import { createBackdrop } from './backdrop';
 import { createLife } from './life';
 import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS, note } from '../sim';
 import { QUESTS, FIELD_W, FIELD_D, WORLD_R } from '../regions';
+import { bakeNav, findPath } from '../nav';
 
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const isTouch = () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -90,7 +92,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       gradPass = new ShaderPass(GRADE); composer.addPass(gradPass);
     } catch { composer = null; }
   }
-  const world = createWorld(scene, g);
+  const world = createWorld(scene, g, { light });
   const field = createField(scene, g);
   const P = buildFarmer(g.F.look);
   P.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
@@ -249,6 +251,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(X(g.me.x), X(g.me.z)); x.lineTo(X(z.x), X(z.z)); x.stroke();
     }
     x.fillStyle = '#f4efe2'; for (const [a, b] of life.dots()) { x.beginPath(); x.arc(X(a), X(b), 2.6, 0, Math.PI * 2); x.fill(); }
+    if (route.pts) { x.save(); x.strokeStyle = route.auto ? '#fff0a0' : 'rgba(255,210,74,.9)'; x.lineWidth = 2.4; x.setLineDash([4, 3]); x.beginPath(); route.pts.forEach(([a, b], i) => (i ? x.lineTo(X(a), X(b)) : x.moveTo(X(a), X(b)))); x.stroke(); x.restore(); }
     if (goalPos) { const r = 5 + Math.sin(t * 5) * 1.5; x.strokeStyle = '#ffd24a'; x.lineWidth = 2.2; x.beginPath(); x.arc(X(goalPos[0]), X(goalPos[1]), r, 0, Math.PI * 2); x.stroke(); }
     // the farmer: an arrow pointing the way they face, and the camera's view cone
     x.save(); x.translate(X(g.me.x), X(g.me.z));
@@ -258,6 +261,51 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     x.beginPath(); x.moveTo(0, -7); x.lineTo(5, 5); x.lineTo(0, 2.5); x.lineTo(-5, 5); x.closePath(); x.fill(); x.stroke(); x.restore();
   }
   paintMap();
+
+  // ---- the route (game/nav.js, after NavMeshPlus): the village's walkable surface is baked while the camera drops
+  // from orbit; a trail of soft golden steps then leads round houses, trees and water to the mission, keeping to the
+  // paths. A tap on the minimap (or walkToGoal) walks the farmer there, until the player takes the controls again.
+  let nav = null;
+  const navTimer = setTimeout(() => { if (alive) { try { nav = bakeNav(L); } catch { nav = null; } } }, 700);
+  const TRAIL = 70, trailDot = new THREE.Object3D();
+  const trail = new THREE.InstancedMesh(new THREE.CircleGeometry(0.16, 12).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd24a', transparent: true, opacity: 0.8, depthWrite: false }), TRAIL);
+  trail.count = 0; trail.frustumCulled = false; trail.renderOrder = 2; scene.add(trail);
+  const route = { pts: null, to: null, step: 1, auto: false, at: 0 };
+  function walkTo(x, z) {
+    if (!nav) return false;
+    const p = findPath(nav, g.me.x, g.me.z, x, z); if (!p) return false;
+    Object.assign(route, { pts: p, to: [x, z], step: 1, auto: true, at: 0.6 }); return true;
+  }
+  function updateRoute(dt, goalPos, xrOn) {
+    route.at -= dt;
+    const to = route.auto ? route.to : goalPos, me = g.me;
+    if (!nav || !to || cam.sat || xrOn || Math.hypot(to[0] - me.x, to[1] - me.z) < (route.auto ? 1.2 : 4)) { if (route.auto && to && Math.hypot(to[0] - me.x, to[1] - me.z) < 1.2) route.auto = false; route.pts = null; return; }
+    if (route.at <= 0) { route.at = 0.6; const p = findPath(nav, me.x, me.z, to[0], to[1]); if (p) { route.pts = p; route.step = 1; } }
+  }
+  function drawTrail(t) {
+    let n = 0;
+    if (route.pts) {
+      const pts = route.pts, total = pts.reduce((a, q, k) => (k ? a + Math.hypot(q[0] - pts[k - 1][0], q[1] - pts[k - 1][1]) : 0), 0);
+      let d = 0, next = 1.6;
+      for (let k = 1; k < pts.length && n < TRAIL; k++) {
+        const [ax, az] = pts[k - 1], [bx, bz] = pts[k], len = Math.hypot(bx - ax, bz - az);
+        while (next <= d + len && n < TRAIL && next < total - 0.8) {
+          const u = (next - d) / (len || 1), x = ax + (bx - ax) * u, z = az + (bz - az) * u;
+          const pulse = lessMotion() ? 1 : 1 + 0.35 * Math.max(0, Math.sin(t * 4 - next * 0.9));
+          trailDot.position.set(x, L.ground(x, z) + 0.06, z); trailDot.scale.setScalar(pulse * Math.min(1, (total - next) / 3 + 0.4) * (route.auto ? 1.15 : 1)); trailDot.updateMatrix();
+          trail.setMatrixAt(n++, trailDot.matrix); next += 1.1;
+        }
+        d += len;
+      }
+    }
+    trail.count = n; trail.instanceMatrix.needsUpdate = true;
+  }
+  const mapTap = (e) => {
+    if (!minimap || cam.intro) return;
+    const r = minimap.getBoundingClientRect();
+    if (walkTo(((e.clientX - r.left) / r.width) * 2 * MAP_R - MAP_R, ((e.clientY - r.top) / r.height) * 2 * MAP_R - MAP_R)) onEvent({ type: 'sound', s: 'tap' });
+  };
+  minimap?.addEventListener('pointerdown', mapTap);
 
   // ---- AR and VR (WebXR) ----
   // AR on a phone: the farm stands in the room as a tabletop model (one world metre to 2.5 cm) and the page's HUD stays
@@ -341,7 +389,15 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   let last = performance.now(), mapT = 0, paused = false, alive = true;
   const project = (x, y, z) => { tmpV.set(x, y, z).project(renderer.xr.isPresenting ? renderer.xr.getCamera() : camera); return [(tmpV.x * 0.5 + 0.5) * canvas.clientWidth, (-tmpV.y * 0.5 + 0.5) * canvas.clientHeight, tmpV.z < 1]; };
 
+  const MOVE = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
   function inputVector() {
+    if (route.auto && (MOVE.some((k) => keys.has(k)) || Math.hypot(joy.x, joy.y) > 0.15)) route.auto = false; // the player takes over
+    if (route.auto && route.pts) {
+      const me = g.me; let p = route.pts[route.step];
+      while (p && Math.hypot(p[0] - me.x, p[1] - me.z) < 0.7 && route.step < route.pts.length - 1) p = route.pts[++route.step];
+      const dx = p[0] - me.x, dz = p[1] - me.z, d = Math.hypot(dx, dz);
+      if (d > 0.3) { const left = Math.hypot(route.to[0] - me.x, route.to[1] - me.z); return { mx: dx / d, mz: dz / d, run: left > 10 }; }
+    }
     let fx = 0, fz = 0;
     if (keys.has('KeyW') || keys.has('ArrowUp')) fz += 1;
     if (keys.has('KeyS') || keys.has('ArrowDown')) fz -= 1;
@@ -447,6 +503,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     const goalPos = cam.intro ? null : goal();
     const onIt = goalPos && Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z) < 1.8;
     world.marker(onIt ? null : goalPos);
+    updateRoute(dt, goalPos, xrOn); drawTrail(t);
     const eye = xrOn ? xr.eye : camera.position;
     const ph = dayPhase(g), sunUp = ph < 0.75 ? Math.sin((ph / 0.75) * Math.PI) : 0;
     personLight.value = 0.35 + 0.65 * Math.min(1, sunUp * 2.5);
@@ -505,6 +562,9 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
   return {
     setJoy(x, y) { joy.x = x; joy.y = y; },
+    walkTo,
+    walkToGoal() { const gp = goal(); return gp ? walkTo(gp[0], gp[1]) : false; },
+    get walking() { return route.auto; },
     setRun(on) { runToggle = on; },
     act() { if (cam.intro === 0) simAct(g); },
     toggleSat() { cam.sat = !cam.sat; g.ndvi = cam.sat; if (cam.sat) note(g, 'satViews'); if (cam.sat && cam.layer === 'water') note(g, 'waterLayer'); return cam.sat; },
@@ -518,6 +578,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     enterXR,
     get xr() { return xr.mode; },
     dispose() {
+      clearTimeout(navTimer); minimap?.removeEventListener('pointerdown', mapTap);
       alive = false; renderer.xr.getSession()?.end().catch(() => {}); renderer.setAnimationLoop(null); ro.disconnect(); signTex.dispose(); life.dispose(); composer?.dispose(); gtao?.dispose?.(); gradPass?.dispose?.();
       window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); window.removeEventListener('blur', clearInput); document.removeEventListener('visibilitychange', onVisibility);
       overlay.replaceChildren();
@@ -537,8 +598,10 @@ export async function xrModes() {
   return [ar && 'ar', vr && 'vr'].filter(Boolean);
 }
 
-// Small renders of each farmer for the choosing screen, and a turning preview of the chosen one.
-export function createPreview(canvas, look) {
+// Small renders of each farmer for the choosing screen, and a turning preview of the chosen one. With `world`, the
+// preview stands the farmer on a display base in front of their own place (backdrop.js); without it the canvas stays
+// transparent, as the portrait cards need.
+export function createPreview(canvas, look, { world = null } = {}) {
   needWebGL();
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -553,9 +616,12 @@ export function createPreview(canvas, look) {
   const rim = new THREE.DirectionalLight('#c8e4ff', 1.4); rim.position.set(-3, 2.5, -3); scene.add(rim);
   const fill = new THREE.DirectionalLight('#ffe8d0', 0.65); fill.position.set(1, 0.5, -3); scene.add(fill);
   const ground = new THREE.Mesh(new THREE.CircleGeometry(1.1, 40).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.25 })); ground.receiveShadow = true; scene.add(ground);
+  // the set: soft studio shadows (a blurred shadow edge) over the farmer's own place
+  const backdrop = world ? createBackdrop(scene) : null;
+  if (backdrop) { key.shadow.radius = 6; key.shadow.blurSamples = 16; ground.visible = false; }
   let P = null, raf = 0, alive = true, last = performance.now(), mode = 'idle', spin = 0.35;
-  const set = (lk) => { if (P) scene.remove(P.root); P = buildFarmer(lk); P.root.traverse((o) => { if (o.isMesh) o.castShadow = true; }); scene.add(P.root); };
-  set(look);
+  const set = (lk, w) => { if (P) scene.remove(P.root); P = buildFarmer(lk); P.root.traverse((o) => { if (o.isMesh) o.castShadow = true; }); scene.add(P.root); if (backdrop && w !== undefined) backdrop.set(w); };
+  set(look, world);
   const resize = () => { const w = canvas.clientWidth, h = canvas.clientHeight; if (w && h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } };
   const ro = new ResizeObserver(resize); ro.observe(canvas); resize();
   const loop = (now) => {
@@ -571,7 +637,7 @@ export function createPreview(canvas, look) {
   const renderOnce = () => { resize(); P.root.rotation.y = 0.35; for (let k = 0; k < 20; k++) animate(P, { speed: 0, act: null, t: 0 }, 0.05); camera.position.set(0, 1.2, 4.6); camera.lookAt(0, 0.95, 0); renderer.render(scene, camera); };
   return {
     set, renderOnce, mode(m) { mode = m; },
-    dispose() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); },
+    dispose() { alive = false; cancelAnimationFrame(raf); ro.disconnect(); backdrop?.dispose(); renderer.dispose(); },
   };
 }
 

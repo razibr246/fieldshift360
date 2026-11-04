@@ -5,6 +5,7 @@ import { DAY, PLOT, GAP, FCOLS, FROWS, FIELD_W, FIELD_D, REGIONS, QUESTS } from 
 import { layoutFor, resolve, inWater } from './layout.js';
 import { PLACES, spot } from './places.js';
 import { num } from '../engine/dates.js';
+import { initVillage, stepVillage, marketMult, fillOrder, wateredBeforeRain } from './village.js';
 
 const CELL = PLOT + GAP;
 export const plotCenter = (c, r) => [-FIELD_W / 2 + PLOT / 2 + c * CELL, -FIELD_D / 2 + PLOT / 2 + r * CELL];
@@ -55,6 +56,7 @@ export function createGame(id, mods = {}) {
     mods: { heat: 1, storm: 1, pests: 1, dry: 1, ...mods },
   };
   g.out.push({ type: 'say', text: R.lines.hello });
+  initVillage(g); // the haat's prices, showers, fertiliser and the neighbours' orders (village.js)
   return g;
 }
 
@@ -65,7 +67,7 @@ const fx = (g, kind, x, z) => emit(g, { type: 'fx', kind, x, z });
 const at = (g, delay, fn) => g.timers.push({ at: g.t + delay, fn });
 const floater = (g, text, x, z, tone) => emit(g, { type: 'float', text, x, z, tone });
 export const canMax = (g) => g.F.can + (g.perks.pond ? 2 : 0);
-export const priceOf = (g, k) => Math.round(g.R.crops[k].price * (1 + g.F.sellBonus) * (g.ev.glut > 0 && k === g.R.glut ? 0.35 : 1));
+export const priceOf = (g, k) => Math.round(g.R.crops[k].price * (1 + g.F.sellBonus) * (g.ev.glut > 0 && k === g.R.glut ? 0.35 : 1) * marketMult(g, k));
 export const ripeAt = (g) => (g.perks.early ? 0.8 : 1);
 const growing = (g) => g.plots.filter((p) => p.crop && !p.dead);
 
@@ -184,7 +186,7 @@ function plotAction(g, p) {
     } else {
       gainXp(g, 10, { bn: 'ফসল তোলা', en: 'Harvest' });
     }
-    Object.assign(p, { crop: null, g: 0, health: 1, wilt: 0 });
+    Object.assign(p, { crop: null, g: 0, health: 1, wilt: 0, fed: null, feed: 1 });
     startAct(g, 'harvest'); fx(g, 'harvest', p.x, p.z); sound(g, 'harvest');
     floater(g, { bn: `+১ ${C[k].bn}${C[k].soil ? ' · মাটি উর্বর হলো' : ''}`, en: `+1 ${C[k].en}${C[k].soil ? ' · soil enriched' : ''}` }, p.x, p.z, 'good');
     if (Math.random() < 0.35) say(g, 'harvest');
@@ -192,6 +194,7 @@ function plotAction(g, p) {
   }
   if (g.can <= 0) { say(g, 'dry'); emit(g, { type: 'hint', what: 'water' }); return; }
   if (p.moist > 0.9) { floater(g, { bn: 'মাটি এখনো ভেজা', en: 'Soil is still wet' }, p.x, p.z, 'info'); return; }
+  wateredBeforeRain(g, p);
   g.can--; p.moist = 1; g.count.watered++; startAct(g, 'water'); fx(g, 'water', p.x, p.z); sound(g, 'water');
 }
 
@@ -207,6 +210,7 @@ function useStation(g, id) {
     const total = Object.entries(g.basket).reduce((a, [k, n]) => a + n * priceOf(g, k), 0);
     if (!total) { emit(g, { type: 'toast', text: { bn: 'ঝুড়ি খালি — আগে পাকা ফসল তুলুন।', en: 'The basket is empty — harvest something ripe first.' } }); return; }
     g.money += total; g.count.earned += total; g.count.sold++;
+    fillOrder(g);
     for (const k in g.basket) g.basket[k] = 0;
     startAct(g, 'sell'); sound(g, 'coin'); fx(g, 'coin', s.x, s.z);
     floater(g, { bn: `+${g.R.cur}${total}`, en: `+${g.R.cur}${total}` }, s.x, s.z, 'money');
@@ -298,6 +302,7 @@ export function update(g, dt, input) {
   stepFarmer(g, dt, input);
   stepPlots(g, dt);
   stepEvents(g, dt);
+  stepVillage(g, dt);
   stepPlaces(g);
 
   if (questDone(g)) {
@@ -365,7 +370,7 @@ function kill(g, p, why) {
 }
 
 function stepPlots(g, dt) {
-  const heat = g.ev.heat > 0, wet = g.ev.storm > 0;
+  const heat = g.ev.heat > 0, wet = g.ev.storm > 0 || g.ev.shower > 0;
   for (const p of g.plots) {
     if (!p.crop || p.dead) { p.moist = wet ? 1 : Math.max(0.2, p.moist - dt * 0.01); continue; }
     const c = g.R.crops[p.crop];
@@ -373,7 +378,7 @@ function stepPlots(g, dt) {
     p.moist = wet ? 1 : Math.max(0, p.moist - rate * dt);
     if (p.moist > 0.12) {
       p.wilt = Math.max(0, p.wilt - dt * 2);
-      if (!p.pests && p.g < 1) p.g = Math.min(1, p.g + dt / (c.grow * (1 - p.fert * 0.5)) * (heat ? 0.8 : 1));
+      if (!p.pests && p.g < 1) p.g = Math.min(1, p.g + (dt / (c.grow * (1 - p.fert * 0.5))) * (heat ? 0.8 : 1) * (p.feed ?? 1));
       if (!p.pests) p.health = Math.min(1, p.health + dt * 0.05);
     } else {
       p.wilt += dt; p.health = Math.max(0, p.health - dt * 0.03);

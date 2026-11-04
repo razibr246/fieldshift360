@@ -11,6 +11,9 @@ import { num } from '../../engine/dates';
 import { bnOf } from '../../engine/text';
 import { REGIONS, FARMER_IDS, BD_IDS, ABROAD_IDS, QUESTS, SAT_LAYERS, STEP_LABEL } from '../../game/regions';
 import { sliderMods, seasonReport, nextTry } from '../../game/fieldshift';
+import { FERT, buyFertilizer, fertilize, priceTrend } from '../../game/village';
+import { SAVE_KEY, saveState, restoreState } from '../../game/savegame';
+import { CAREER_KEY, emptyCareer, recordSeason, rankOf, startPerks, ACHIEVEMENTS, UNLOCKS, RANKS } from '../../game/career';
 // the FieldShift station brings the place's NASA records and the rotation engine: loaded when it is first opened
 const FieldStation = lazy(() => import('../../components/game/FieldStation'));
 import { PLACES } from '../../game/places';
@@ -28,6 +31,16 @@ export const starsOf = (r) => {
   return lost <= 1 && !hurt ? 3 : lost <= 4 ? 2 : 1;
 };
 const fill = (s, R) => s.replace('{cur}', R.cur);
+// A season in progress, one per farmer (game/savegame.js), kept in this browser.
+const readSaves = () => { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); } catch { return {}; } };
+const writeSave = (who, s) => { try { const all = readSaves(); if (s) all[who] = s; else delete all[who]; localStorage.setItem(SAVE_KEY, JSON.stringify(all)); } catch { /* storage unavailable */ } };
+// The career across seasons (game/career.js), kept in this browser.
+const readCareer = () => { try { return { ...emptyCareer(), ...JSON.parse(localStorage.getItem(CAREER_KEY) || '{}') }; } catch { return emptyCareer(); } };
+function addSeasonToCareer(r, who, country, whatIf) {
+  const out = recordSeason(readCareer(), { who, country, stars: starsOf(r), count: r.count, report: r.report, whatIf });
+  try { localStorage.setItem(CAREER_KEY, JSON.stringify(out.career)); } catch { /* storage unavailable: the career is shown, not kept */ }
+  return out;
+}
 // The compass strip: a mark every 15°, letters at the eight points (Bangla উ পূ দ প, or N E S W).
 const POINTS = { 0: ['উ', 'N'], 45: ['উপূ', 'NE'], 90: ['পূ', 'E'], 135: ['দপূ', 'SE'], 180: ['দ', 'S'], 225: ['দপ', 'SW'], 270: ['প', 'W'], 315: ['উপ', 'NW'] };
 const COMPASS = Array.from({ length: 49 }, (_, k) => { const d = -360 + k * 15; return [d, POINTS[((d % 360) + 360) % 360] ?? null]; });
@@ -38,12 +51,13 @@ export default function FarmGame() {
   const [result, setResult] = useState(null);
   const [run, setRun] = useState(0);
   const [whatIf, setWhatIf] = useState(null); // { dT, rain } from the station's sliders, or null for the real season
+  const [resume, setResume] = useState(false); // continue the saved season instead of starting a new one
   useEffect(() => { scrollToTop(true); }, [screen]);
   return (
     <div className="page-shell pb-24 pt-[100px] sm:pt-[112px]" data-no-reveal>
-      {screen === 'select' && <SelectScreen who={who} setWho={setWho} onGo={() => setScreen('brief')} />}
+      {screen === 'select' && <SelectScreen who={who} setWho={setWho} onGo={() => { setResume(false); setScreen('brief'); }} onResume={() => { setResume(true); setWhatIf(null); setRun((r) => r + 1); setScreen('play'); }} />}
       {screen === 'brief' && <BriefScreen who={who} onBack={() => setScreen('select')} onDone={() => { setRun((r) => r + 1); setScreen('play'); }} />}
-      {screen === 'play' && <GameStage key={run} who={who} whatIf={whatIf} onWhatIf={(w) => { setWhatIf(w); setRun((r) => r + 1); }} onEnd={(r) => { setResult(r); setScreen('end'); }} onRestart={() => setRun((r) => r + 1)} onQuit={() => { setWhatIf(null); setScreen('select'); }} />}
+      {screen === 'play' && <GameStage key={run} who={who} resume={resume} whatIf={whatIf} onWhatIf={(w) => { setWhatIf(w); setRun((r) => r + 1); }} onEnd={(r) => { setResult(r); setScreen('end'); }} onRestart={() => setRun((r) => r + 1)} onQuit={() => { setWhatIf(null); setScreen('select'); }} />}
       {screen === 'end' && <EndScreen who={who} r={result} onReplay={() => { setRun((r) => r + 1); setScreen('play'); }} onWhatIf={(w) => { setWhatIf(w); setRun((r) => r + 1); setScreen('play'); }} onPick={() => { setWhatIf(null); setScreen('select'); }} />}
     </div>
   );
@@ -53,10 +67,10 @@ export default function FarmGame() {
 function Preview({ id, mood = 'idle', className = '' }) {
   const ref = useRef(null), pv = useRef(null);
   useEffect(() => {
-    try { pv.current = createPreview(ref.current, REGIONS[id].farmer.look); } catch { pv.current = null; }
+    try { pv.current = createPreview(ref.current, REGIONS[id].farmer.look, { world: REGIONS[id].world }); } catch { pv.current = null; }
     return () => pv.current?.dispose();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { pv.current?.set(REGIONS[id].farmer.look); }, [id]);
+  useEffect(() => { pv.current?.set(REGIONS[id].farmer.look, REGIONS[id].world); }, [id]);
   useEffect(() => { pv.current?.mode(mood); }, [mood]);
   return <canvas ref={ref} className={`block h-full w-full ${className}`} aria-hidden="true" />;
 }
@@ -75,7 +89,7 @@ function usePortraits() {
 const TONE = { bangladesh: ['#2e9d5a', '#0f3d26'], india: ['#f4a23a', '#1f7a3a'], pakistan: ['#1f7a4a', '#0f3d26'], nepal: ['#c8283a', '#23407a'], bhutan: ['#f2b23a', '#d0572a'], myanmar: ['#f2c21b', '#2e8b57'] };
 const stage = (cc) => `radial-gradient(110% 80% at 50% 85%, ${TONE[cc][0]}55, transparent 60%), linear-gradient(180deg, #0f2418 0%, #163a26 55%, ${TONE[cc][1]} 140%)`;
 
-function SelectScreen({ who, setWho, onGo }) {
+function SelectScreen({ who, setWho, onGo, onResume }) {
   const { T, L } = useStore();
   const pics = usePortraits();
   const best = readBest();
@@ -139,10 +153,16 @@ function SelectScreen({ who, setWho, onGo }) {
               </div>
             </div>
           ))}
+          <div className="mt-3"><CareerPanel /></div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-white/80 px-4 py-3 text-[13.5px]">
             <span className="flex items-center gap-1.5 font-semibold text-ink"><Star size={15} className="fill-amber-300 text-amber-500" />{T(`${num(won, 'bn')}/${num(FARMER_IDS.length, 'bn')} জনের মাঠে মৌসুম জয়`, `Season won on ${won} of ${FARMER_IDS.length} fields`)}</span>
             <button type="button" onClick={() => setQuality(!light)} aria-pressed={light} className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 font-semibold text-ink/80 hover:bg-primary-50"><Gauge size={15} />{light ? T('গ্রাফিক্স: হালকা (দুর্বল ফোনে দ্রুত)', 'Graphics: light (fast on weak phones)') : T('গ্রাফিক্স: পূর্ণ', 'Graphics: full')}</button>
           </div>
+          {(() => { const sv = readSaves()[who]; return sv && onResume && (
+            <button type="button" onClick={() => { play('tap'); onResume(); }} className="mt-3 inline-flex items-center justify-center gap-2 rounded-full border-2 border-primary-600 bg-white px-6 py-3.5 text-[16px] font-semibold text-primary-800 shadow-sm transition hover:bg-primary-50 active:scale-[0.98]">
+              <RotateCcw size={18} />{T(`চলতি মৌসুম চালিয়ে যান · মিশন ${num(Math.min(sv.quest + 1, QUESTS.length), 'bn')}/${num(QUESTS.length, 'bn')} · ${REGIONS[who].cur}${num(sv.money, 'bn')}`, `Continue the season · mission ${Math.min(sv.quest + 1, QUESTS.length)}/${QUESTS.length} · ${REGIONS[who].cur}${sv.money}`)}
+            </button>
+          ); })()}
           {/* on a phone the list of twelve is long: the start button stays in reach at the bottom of the screen */}
           <button type="button" onClick={() => { play('tap'); onGo(); }} className="btn-gloss sticky bottom-3 z-20 mt-3 inline-flex lg:static items-center justify-center gap-2 rounded-full px-7 py-4 text-[17px] font-semibold text-white shadow-lg shadow-primary-950/25 hover:scale-[1.025] active:scale-[0.975] transition-transform duration-200">{T(`${bnOf(F.bn)} মাঠে চলুন`, `To ${F.en}'s field`)}<ArrowRight size={19} /></button>
           <p className="text-center text-[12.5px] text-muted">{T('এঁরা নমুনা মানুষ; জায়গা, ফসল আর বিপদের তথ্য সত্যি।', 'These are sample people; the places, crops and dangers are real.')}</p>
@@ -210,18 +230,24 @@ const snapshot = (g) => ({
   money: g.money, can: g.can, canMax: canMax(g), seeds: { ...g.seeds }, sel: g.sel, basketN: Object.values(g.basket).reduce((a, b) => a + b, 0),
   xp: g.xp ?? 0, level: g.level ?? 1, soilHealth: g.soilHealth ?? 50, carbonScore: g.carbonScore ?? 25,
   quest: g.quest, count: { ...g.count }, ev: { heat: g.ev.heat, storm: g.ev.storm, glut: g.ev.glut, zone: g.ev.zone && { ...g.ev.zone }, flood: g.ev.flood }, day: dayOf(g), night: isNight(g), clock: clock(g), perks: { ...g.perks },
+  order: g.order && { ...g.order }, fertilizer: { ...(g.fertilizer ?? {}) }, shower: g.ev.shower ?? 0, showerSoon: g.ev.showerSoon ?? 0, surge: g.market?.surge ?? null,
   pests: g.plots.filter((p) => p.pests).length, stamina: g.me.stamina, down: g.me.down, target: target(g), won: g.won, ripe: ripeAt(g),
   inZone: g.ev.zone ? Math.hypot(g.me.x - g.ev.zone.x, g.me.z - g.ev.zone.z) <= g.ev.zone.r : false,
 });
 
-export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, onEnd, onRestart, onQuit }) {
+export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, resume = false, onEnd, onRestart, onQuit }) {
   const mods = whatIf ? sliderMods(whatIf.dT, whatIf.rain) : modsIn;
   const { T, L, s } = useStore();
   const lang = s.lang;
   const R = REGIONS[who];
   const cv = useRef(null), overlay = useRef(null), mapRef = useRef(null), compassRef = useRef(null), rootRef = useRef(null);
   const gRef = useRef(null), st = useRef(null);
-  if (!gRef.current) gRef.current = createGame(who, mods);
+  const kit = useRef(null); // equipment from the career, in free play only
+  if (!gRef.current) {
+    gRef.current = createGame(who, mods);
+    if (resume && !modsIn) restoreState(gRef.current, readSaves()[who]); // the saved season, where it was left
+    if (!modsIn) { kit.current = UNLOCKS.filter((u) => startPerks(readCareer()).includes(u.perk)); for (const u of kit.current) gRef.current.perks[u.perk] = true; gRef.current.can = canMax(gRef.current); }
+  }
   const g = gRef.current;
   const [hud, setHud] = useState(() => snapshot(g));
   const [panel, setPanel] = useState(null);
@@ -261,14 +287,14 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
           else if (e.type === 'toast') setToast({ text: e.text, k: Math.random() });
           else if (e.type === 'alert') { const id = Math.random(); setAlerts((a) => [{ ...e, id }, ...a].slice(0, 4)); setTimeout(() => setAlerts((a) => a.filter((x) => x.id !== id)), 9000); }
           else if (e.type === 'open') { setPanel(e.panel); g.paused = true; }
-          else if (e.type === 'introDone') setIntro(false);
+          else if (e.type === 'introDone') { setIntro(false); if (kit.current?.length) setToast({ text: { bn: `সঙ্গে আছে: ${kit.current.map((u) => u.title.bn).join(' · ')}`, en: `Your kit: ${kit.current.map((u) => u.title.en).join(' · ')}` }, k: Math.random() }); }
           else if (e.type === 'xr') setXr(e.mode);
           else if (e.type === 'quest') setBanner({ kind: 'quest', i: e.index, k: Math.random() });
           else if (e.type === 'questDone') setBanner({ kind: 'done', i: e.index, k: Math.random() });
           else if (e.type === 'hurt') setBanner({ kind: 'hurt', fine: e.fine, k: Math.random() });
           else if (e.type === 'safe') setBanner({ kind: 'safe', k: Math.random() });
           else if (e.type === 'place') setPlaceCard({ p: e.place, n: e.n, total: e.total, k: Math.random() });
-          else if (e.type === 'win' && !ended.current) { ended.current = true; setBanner({ kind: 'win', k: Math.random() }); setTimeout(() => endRef.current({ count: { ...g.count }, answers: [...g.answers], day: dayOf(g), money: g.money, seen: [...g.seen], report: seasonReport(g), scorecard: agriScorecard(g), xp: g.xp ?? 0, level: g.level ?? 1, prevBest: readBest()[who] ?? null }), 4200); }
+          else if (e.type === 'win' && !ended.current) { ended.current = true; if (!modsIn) writeSave(who, null); setBanner({ kind: 'win', k: Math.random() }); setTimeout(() => { const r = { count: { ...g.count }, answers: [...g.answers], day: dayOf(g), money: g.money, seen: [...g.seen], report: seasonReport(g), scorecard: agriScorecard(g), xp: g.xp ?? 0, level: g.level ?? 1, prevBest: readBest()[who] ?? null }; r.career = addSeasonToCareer(r, who, R.country, whatIf); endRef.current(r); }, 4200); }
           else if (e.type === 'broke') setBroke(true);
         },
       });
@@ -278,7 +304,8 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
     let tick = 0;
     const iv = setInterval(() => {
       setHud(snapshot(g));
-      if (++tick % 5 === 0) setScene({ day: !isNight(g), storm: g.ev.storm > 0 ? 1 : g.ev.zone ? Math.min(0.6, 1 - g.ev.zone.left / g.ev.zone.total) : 0, heat: g.ev.heat > 0 ? 1 : 0, wind: g.ev.storm > 0 ? 2.4 : 0.8 });
+      if (!modsIn && tick % 40 === 0 && g.t > 3) writeSave(who, g.won ? null : saveState(g));
+      if (++tick % 5 === 0) setScene({ day: !isNight(g), storm: g.ev.storm > 0 ? 1 : g.ev.shower > 0 ? 0.5 : g.ev.zone ? Math.min(0.6, 1 - g.ev.zone.left / g.ev.zone.total) : 0, heat: g.ev.heat > 0 ? 1 : 0, wind: g.ev.storm > 0 ? 2.4 : 0.8 });
     }, 110);
     return () => { clearInterval(iv); stage.dispose(); stopAmbience(); };
   }, [g]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -378,7 +405,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
       {/* top right: minimap, the zone timer, FieldShift alerts */}
       <div className={`absolute right-3 top-3 flex flex-col items-end gap-2 transition-opacity sm:w-[200px] ${touch ? 'w-[min(32vw,150px)]' : 'w-[min(42vw,184px)]'} ${intro ? 'opacity-0' : ''}`}>
         <div className="g3-hud relative w-full overflow-hidden rounded-2xl p-1">
-          <canvas ref={mapRef} width={360} height={360} className="block aspect-square w-full rounded-xl" aria-label={T('মানচিত্র', 'Map')} />
+          <canvas ref={mapRef} width={360} height={360} className="block aspect-square w-full cursor-pointer rounded-xl" aria-label={T('মানচিত্র: যেখানে চাপবেন, কৃষক রাস্তা ধরে সেখানে হাঁটবেন', 'Map: tap a place and the farmer walks there along the paths')} title={T('মানচিত্রে চাপুন, কৃষক সেখানে হাঁটবেন', 'Tap the map to walk there')} />
           <span className="absolute left-2 top-1.5 text-[10px] font-bold text-white/80">{T('উ', 'N')}↑</span>
         </div>
         {/* on a touch screen the round buttons sit under the map, clear of the mission card and the joystick */}
@@ -438,11 +465,15 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
               })}
             </ul>
           )}
+          <button type="button" onClick={() => { if (st.current?.walkToGoal()) play('tap'); }} className="mr-1.5 mt-1.5 inline-flex items-center gap-1 rounded-full bg-amber-300/90 px-2.5 py-1 text-[11.5px] font-bold text-primary-950 ring-1 ring-amber-200 hover:bg-amber-200"><Footprints size={12} />{T('রাস্তা ধরে হাঁটুন', 'Walk me there')}</button>
           {q.how && <button type="button" onClick={() => setWhy((x) => !x)} aria-expanded={why} className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold text-emerald-200 ring-1 ring-white/15 hover:bg-white/15"><Satellite size={12} />{why ? T('লুকান', 'Hide') : T('কেন? নাসা কী দেখায়', 'Why? What NASA shows')}</button>}
           {why && <div className="mt-1.5 space-y-1 text-[12px] leading-snug">{q.problem && <p className="text-white/75">{L(q.problem)}</p>}<p className="text-emerald-200">{L(q.how)}</p></div>}
           {qNeed && (Object.keys(q.need).length === 1 || qNeed[1] > 1) && <div className="mt-1.5 flex items-center gap-2"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/15"><span className="block h-full rounded-full bg-amber-300 transition-[width] duration-500" style={{ width: `${Math.min(1, hud.count[qNeed[0]] / qNeed[1]) * 100}%` }} /></span><span className="text-[12px] font-semibold tabular text-white/80">{num(Math.min(hud.count[qNeed[0]], qNeed[1]), lang)}/{num(qNeed[1], lang)}</span></div>}
           <div className="mt-1.5 flex flex-wrap gap-1">
             {hud.ev.heat > 0 && <Chip icon={Sun} cls="bg-orange-500/90" text={T('তাপপ্রবাহ', 'Heatwave')} />}
+            {hud.showerSoon > 0 && <Chip icon={CloudLightning} cls="bg-sky-600/90" text={T(`বৃষ্টি আসছে · ${num(Math.ceil(hud.showerSoon), 'bn')} সে.`, `Rain in ${Math.ceil(hud.showerSoon)} s`)} />}
+            {hud.shower > 0 && <Chip icon={Droplets} cls="bg-sky-500/90" text={T('বৃষ্টি: জমি ভিজছে', 'Raining: plots watered')} />}
+            {hud.order && <Chip icon={ShoppingBasket} cls={hud.order.left < 25 ? 'bg-red-600/90' : 'bg-amber-600/90'} text={T(`অর্ডার: ${num(hud.order.n, 'bn')} ${R.crops[hud.order.crop].bn} · +${R.cur}${num(hud.order.bonus, 'bn')} · ${num(Math.ceil(hud.order.left), 'bn')} সে.`, `Order: ${hud.order.n} ${R.crops[hud.order.crop].en} · +${R.cur}${hud.order.bonus} · ${Math.ceil(hud.order.left)} s`)} />}
             {hud.ev.storm > 0 && <Chip icon={CloudLightning} cls="bg-slate-600/90" text={L(R.storm)} />}
             {hud.pests > 0 && <Chip icon={Bug} cls="bg-red-600/90" text={T(`${num(hud.pests, 'bn')} জমিতে ${R.pestWord.bn}`, `${R.pestWord.en} on ${hud.pests}`)} />}
             {hud.ev.glut > 0 && <Chip icon={TrendingDown} cls="bg-rose-700/90" text={T(`${R.crops[R.glut].bn}র দাম পড়েছে`, `${R.crops[R.glut].en} price down`)} />}
@@ -513,10 +544,10 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
               {hud.stamina > 0.05 && hud.running ? (lang === 'bn' ? 'দৌড়' : 'Run') : (lang === 'bn' ? 'হাঁটা' : 'Walk')}
             </span>
           </div>
-          <div className={`g3-hud g3-inventory flex items-stretch gap-1.5 rounded-2xl p-2 shadow-2xl backdrop-blur-2xl ${touch ? 'mb-[150px] sm:mb-0' : ''}`}>
+          <div className={`g3-hud g3-inventory flex max-w-full items-stretch gap-1.5 overflow-x-auto overscroll-x-contain rounded-2xl p-2 shadow-2xl backdrop-blur-2xl ${touch ? 'mb-[150px] sm:mb-0' : ''}`}>
             {Object.entries(R.crops).map(([k, c], n) => (
               <button key={k} type="button" onClick={() => { g.sel = k; play('tap'); }} aria-pressed={hud.sel === k} title={`${L(c)} (${n + 1})`}
-                className={`relative flex min-w-[50px] flex-col items-center rounded-xl px-1.5 pb-1.5 pt-2 text-[11px] font-semibold transition-all duration-200 sm:min-w-[76px] sm:px-2.5 ${hud.sel === k ? 'scale-105 bg-white/95 text-ink shadow-[0_0_0_2px_#ffd24a,0_8px_20px_rgba(255,210,74,0.35)]' : 'bg-white/[.08] text-white/90 hover:bg-white/20 active:scale-95'}`}>
+                className={`relative flex min-w-[50px] shrink-0 flex-col items-center rounded-xl px-1.5 pb-1.5 pt-2 text-[11px] font-semibold transition-all duration-200 sm:min-w-[76px] sm:px-2.5 ${hud.sel === k ? 'scale-105 bg-white/95 text-ink shadow-[0_0_0_2px_#ffd24a,0_8px_20px_rgba(255,210,74,0.35)]' : 'bg-white/[.08] text-white/90 hover:bg-white/20 active:scale-95'}`}>
                 <span className="absolute left-1.5 top-0.5 text-[9.5px] font-bold opacity-60">{n + 1}</span>
                 {c.soil && <span className="absolute right-1 top-0.5 rounded bg-emerald-400/90 px-1 text-[8.5px] font-bold leading-[13px] text-emerald-950">{T('ডাল', 'Pulse')}</span>}
                 {tg?.kind === 'plot' && tg.what === 'plant' && tg.last === k && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-red-600 px-1.5 text-[9.5px] font-bold leading-4 text-white shadow">{T('আগে এটাই ছিল', 'Grown here last')}</span>}
@@ -526,11 +557,18 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, o
               </button>
             ))}
             <span className="mx-0.5 w-px bg-white/20" />
-            <div className="flex min-w-[52px] flex-col items-center justify-center rounded-xl bg-white/[.08] px-1.5 text-[11px] font-semibold sm:min-w-[62px] sm:px-2" title={T('বালতির পানি', 'Water can')}>
+            {Object.entries(FERT).map(([k, f]) => (
+              <button key={k} type="button" onClick={() => { const t = target(g); fertilize(g, k, t?.kind === 'plot' ? t.p : null); }} title={`${L(f.name)}: ${L(f.why)}`} aria-label={`${L(f.name)} × ${hud.fertilizer[k] ?? 0}`}
+                className={`flex min-w-[40px] shrink-0 flex-col items-center justify-center rounded-xl px-1.5 text-[11px] font-semibold transition sm:min-w-[58px] ${k === 'urea' ? 'bg-sky-400/15' : 'bg-amber-700/30'} hover:bg-white/20 active:scale-95`}>
+                <span aria-hidden="true">{k === 'urea' ? '⚗️' : '🍂'}</span><span className="hidden max-w-[56px] truncate sm:block">{k === 'urea' ? T('ইউরিয়া', 'Urea') : T('কম্পোস্ট', 'Compost')}</span><span className="font-display text-[13px] font-bold tabular">×{num(hud.fertilizer[k] ?? 0, lang)}</span>
+              </button>
+            ))}
+            <span className="mx-0.5 w-px bg-white/20" />
+            <div className="flex min-w-[52px] shrink-0 flex-col items-center justify-center rounded-xl bg-white/[.08] px-1.5 text-[11px] font-semibold sm:min-w-[62px] sm:px-2" title={T('বালতির পানি', 'Water can')}>
               <Droplets size={16} className="text-sky-300" /><span className="font-display text-[13px] font-bold tabular">{num(hud.can, lang)}/{num(hud.canMax, lang)}</span>
               <span className="mt-1 h-1.5 w-11 overflow-hidden rounded-full bg-white/20"><span className="block h-full rounded-full bg-gradient-to-r from-sky-400 to-sky-200 transition-[width]" style={{ width: `${(hud.can / hud.canMax) * 100}%` }} /></span>
             </div>
-            <div className="flex min-w-[46px] flex-col items-center justify-center rounded-xl bg-white/[.08] px-1.5 text-[11px] font-semibold sm:min-w-[58px] sm:px-2" title={T('ঝুড়ি', 'Basket')}>
+            <div className="flex min-w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-white/[.08] px-1.5 text-[11px] font-semibold sm:min-w-[58px] sm:px-2" title={T('ঝুড়ি', 'Basket')}>
               <ShoppingBasket size={16} className="text-amber-200" /><span className="font-display text-[13px] font-bold tabular">{num(hud.basketN, lang)}</span>
             </div>
           </div>
@@ -701,6 +739,17 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
               </div>
             ))}
           </div>
+          <p className="mt-4 text-[13px] font-bold uppercase tracking-wide text-white/60">{T('সার: একটা বেছে নিন', 'Fertiliser: choose one')}</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {Object.entries(FERT).map(([k, f]) => (
+              <div key={k} className="rounded-2xl bg-white/[.07] p-3 ring-1 ring-white/10">
+                <p className="text-[16px] font-semibold">{k === 'urea' ? '⚗️ ' : '🍂 '}{L(f.name)} <span className="text-[13px] font-medium text-amber-200">{R.cur}{num(f.cost, lang)}</span></p>
+                <p className="mt-1 text-[12.5px] leading-5 text-white/70">{L(f.why)}</p>
+                <div className="mt-2 flex gap-1.5">{[1, 3].map((n) => <button key={n} type="button" disabled={hud.money < f.cost * n} onClick={() => buyFertilizer(g, k, n)} className="rounded-full bg-emerald-500 px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-35">{T(`${num(n, 'bn')}টি · ${R.cur}${num(f.cost * n, 'bn')}`, `${n} · ${R.cur}${f.cost * n}`)}</button>)}</div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[12px] text-white/55">{T('মাঠে বেড়ে ওঠা ফসলের ওপর দাঁড়িয়ে নিচের সারের বোতাম চাপুন। দাম আর প্রভাব খেলার নিয়ম, আসল দাম নয়।', 'Stand on a growing crop and tap the fertiliser button below. Prices and effects are game rules, not real prices.')}</p>
           <button type="button" onClick={onClose} className="btn-gloss mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 font-semibold text-white">{T('মাঠে ফিরি', 'Back to the field')}<ArrowRight size={16} /></button>
         </>)}
         {kind === 'kiosk' && (<>
@@ -713,7 +762,7 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
               </div>
               <div className="mt-2 rounded-2xl bg-white/[.07] p-3 ring-1 ring-white/10">
                 <p className="text-[13px] font-semibold text-white/60">{T('আজকের বাজারদর', "Today's prices")}</p>
-                <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-[14.5px]">{Object.keys(R.crops).map((k) => <span key={k} className="flex justify-between"><span>{L(R.crops[k])}</span><b className={hud.ev.glut > 0 && k === R.glut ? 'text-red-300' : ''}>{R.cur}{num(priceOf(g, k), lang)}</b></span>)}</div>
+                <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-[14.5px]">{Object.keys(R.crops).map((k) => <span key={k} className="flex justify-between"><span>{L(R.crops[k])}</span><b className={hud.ev.glut > 0 && k === R.glut ? 'text-red-300' : hud.surge === k ? 'text-amber-200' : ''}>{R.cur}{num(priceOf(g, k), lang)} {(() => { const d = priceTrend(g, k); return d > 0 ? <span title={T('আগের হাটের চেয়ে বেশি', 'Up since the last market day')}>▲</span> : d < 0 ? <span title={T('আগের হাটের চেয়ে কম', 'Down since the last market day')}>▼</span> : null; })()}{hud.surge === k ? T(' চাহিদা', ' demand') : ''}</b></span>)}</div>
               </div>
               {next && <p className="mt-2 flex items-start gap-2 rounded-2xl bg-emerald-400/10 p-3 text-[14px] leading-6 text-emerald-100"><Info size={16} className="mt-1 shrink-0" />{fill(L(next), R)}</p>}
               {Object.keys(hud.perks).length > 0 && <p className="mt-2 text-[13.5px] text-white/65">{T('আপনার অর্জন', 'Earned')}: {Object.values(R.quiz).filter((x) => hud.perks[x.perk]).map((x) => L(x.perkText)).join(' · ')}</p>}
@@ -748,6 +797,64 @@ function Panel({ kind, g, hud, R, onClose, onQuizDone, onWhatIf }) {
         </>)}
       </div>
     </div>
+  );
+}
+
+// What this season added to the career: the XP and why, the rank, equipment unlocked, achievements earned.
+function CareerCard({ out }) {
+  const { T, L, s } = useStore();
+  const lang = s.lang;
+  const { xp, rankAfter, rankBefore, unlocked, newAchievements, career } = out;
+  const up = rankAfter.index > rankBefore.index;
+  return (
+    <div className="outcome-in mt-5 rounded-[24px] border border-primary-200 bg-white/85 p-5 shadow-sm">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <p className="text-[12px] font-bold uppercase tracking-[.16em] text-primary-700">{T('আপনার কৃষক-জীবন', 'Your farming career')}</p>
+          <p className="font-display mt-0.5 text-[24px] font-bold text-ink">{up ? T('নতুন পদ! ', 'Promoted! ') : ''}{L(rankAfter.rank.title)}</p>
+        </div>
+        <p className="font-display text-[28px] font-bold tabular text-primary-700">+{num(xp.total, lang)} XP</p>
+      </div>
+      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-primary-100" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(rankAfter.progress * 100)} aria-label={T('পরের পদের দিকে', 'Towards the next rank')}>
+        <span className="block h-full rounded-full bg-gradient-to-r from-primary-500 to-paddy-400" style={{ width: `${Math.round(rankAfter.progress * 100)}%` }} />
+      </div>
+      <p className="mt-1 text-[12.5px] text-ink/60">{rankAfter.next ? T(`মোট ${num(career.xp, 'bn')} XP · পরের পদ "${rankAfter.next.title.bn}" ${num(rankAfter.next.xp, 'bn')} XP-তে`, `${career.xp} XP in all · next rank "${rankAfter.next.title.en}" at ${rankAfter.next.xp} XP`) : T('সর্বোচ্চ পদ!', 'The highest rank!')}</p>
+      <ul className="mt-3 flex flex-wrap gap-1.5">{xp.parts.map((p) => <li key={p.label.en} className={`rounded-full px-2.5 py-1 text-[12.5px] font-semibold ${p.xp < 0 ? 'bg-red-50 text-red-700' : 'bg-primary-50 text-primary-800'}`}>{L(p.label)} {p.xp > 0 ? '+' : '−'}{num(Math.abs(p.xp), lang)}</li>)}</ul>
+      {unlocked.length > 0 && <div className="mt-3 rounded-2xl bg-paddy-50 p-3 text-[14px]"><p className="font-semibold text-ink">{T('নতুন সরঞ্জাম, পরের মৌসুম থেকে:', 'New equipment, from next season:')}</p>{unlocked.map((u) => <p key={u.perk} className="mt-0.5 text-ink/80">🧰 <b>{L(u.title)}</b>: {L(u.what)}</p>)}</div>}
+      {newAchievements.length > 0 && (
+        <div className="mt-3">
+          <p className="text-[13px] font-semibold text-ink">{T('নতুন অর্জন', 'Achievements earned')}</p>
+          <ul className="mt-1.5 grid gap-2 sm:grid-cols-2">{newAchievements.map((a) => <li key={a.id} className="star-pop flex items-center gap-2.5 rounded-2xl bg-amber-50 p-2.5 ring-1 ring-amber-200"><span className="text-[24px]" aria-hidden="true">{a.icon}</span><span><b className="block text-[14px] text-ink">{L(a.title)}</b><span className="text-[12.5px] text-ink/65">{L(a.what)}</span></span></li>)}</ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The career on the farmer picker: rank and XP, every achievement (earned or still to earn), and the equipment ladder.
+function CareerPanel() {
+  const { T, L, s } = useStore();
+  const lang = s.lang;
+  const [c] = useState(readCareer);
+  const rk = rankOf(c.xp), earned = ACHIEVEMENTS.filter((a) => c.achievements[a.id]).length;
+  return (
+    <details className="rounded-2xl border border-border bg-white/80 px-4 py-3 text-[13.5px]">
+      <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 font-semibold text-ink">
+        <span>🏅 {L(rk.rank.title)} · {num(c.xp, lang)} XP</span>
+        <span className="text-primary-700">{T(`${num(earned, 'bn')}/${num(ACHIEVEMENTS.length, 'bn')} অর্জন · ${num(c.seasons, 'bn')} মৌসুম`, `${earned}/${ACHIEVEMENTS.length} achievements · ${c.seasons} seasons`)}</span>
+      </summary>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-primary-100"><span className="block h-full rounded-full bg-gradient-to-r from-primary-500 to-paddy-400" style={{ width: `${Math.round(rk.progress * 100)}%` }} /></div>
+      <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+        {ACHIEVEMENTS.map((a) => { const got = !!c.achievements[a.id]; return (
+          <li key={a.id} className={`flex items-center gap-2 rounded-xl p-2 ${got ? 'bg-amber-50 ring-1 ring-amber-200' : 'bg-ink/[.03]'}`}>
+            <span className={`text-[20px] ${got ? '' : 'opacity-35 grayscale'}`} aria-hidden="true">{a.icon}</span>
+            <span className="min-w-0"><b className="block text-[13px] text-ink">{L(a.title)} <span className="font-medium text-ink/50">{got ? T('· অর্জিত', '· earned') : T('· বাকি', '· to earn')}</span></b><span className="text-[12px] text-ink/60">{L(a.what)}</span></span>
+          </li>
+        ); })}
+      </ul>
+      <p className="mt-3 font-semibold text-ink">{T('পদ অনুযায়ী সরঞ্জাম', 'Equipment by rank')}</p>
+      <ul className="mt-1 space-y-1">{UNLOCKS.map((u) => { const got = rk.index >= u.rank; return <li key={u.perk} className={got ? 'text-ink' : 'text-ink/50'}>{got ? '🧰' : '🔒'} <b>{L(RANKS[u.rank].title)}</b>: {L(u.title)} ({L(u.what)})</li>; })}</ul>
+    </details>
   );
 }
 
@@ -806,6 +913,7 @@ function EndScreen({ who, r, onReplay, onPick, onWhatIf }) {
           </div>
         </div>
       </div>
+      {r?.career && <CareerCard out={r.career} />}
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {[[Coins, T('মোট বিক্রি', 'Sold'), `${R.cur}${num(r?.count.earned ?? 0, lang)}`], [ShoppingBasket, T('ফসল তোলা', 'Harvested'), num(r?.count.harvested ?? 0, lang)], [Sprout, T('হারানো গাছ', 'Plants lost'), num(lost, lang)], [Sun, T('দিন লেগেছে', 'Days'), num(r?.day ?? 1, lang)], [Check, T('প্রশ্নের সঠিক উত্তর', 'Correct quiz answers'), `${num(correctAnswers, lang)}/${num(totalAnswers, lang)}`]].map(([Icon, l, v], k) => (
           <div key={l} className="outcome-in glass rounded-[22px] p-4 text-center" style={{ animationDelay: `${700 + k * 110}ms` }}><Icon size={20} className="mx-auto text-primary-700" /><p className="font-display mt-1.5 text-[24px] font-semibold tabular">{v}</p><p className="text-[13px] text-muted">{l}</p></div>

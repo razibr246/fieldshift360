@@ -9,6 +9,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { BUILD, M, blob, cone, box, cyl } from './props';
 import { FIELD_W, FIELD_D } from '../regions';
 import { inWater } from '../layout';
+import { createNature } from './nature';
 
 const C = (h) => new THREE.Color(h);
 const segDist = (px, pz, [ax, az], [bx, bz]) => {
@@ -168,10 +169,11 @@ const DAYCOL = [
 ];
 const SKYTINT = { hazy: ['#c9c2a6', 0.35], dusty: ['#d8c39a', 0.3], hot: ['#f2e2b8', 0.18], foggy: ['#dfe3e0', 0.45], clear: [null, 0] };
 
-export function createWorld(scene, g) {
+export function createWorld(scene, g, { light = false } = {}) {
   const L = g.L;
   const root = new THREE.Group(); scene.add(root);
   root.add(terrain(L));
+  const nature = createNature(scene, L, { light }); // grass, wildflowers, the neighbours' crops, clouds
   const water = waters(L); water.forEach((w) => root.add(w));
   const skyM = sky(); scene.add(skyM);
   const props = new THREE.Group();
@@ -254,13 +256,14 @@ export function createWorld(scene, g) {
       cTop.set(A[1]).lerp(C(B[1]), f); cMid.set(A[2]).lerp(C(B[2]), f); cLow.set(A[3]).lerp(C(B[3]), f); cSun.set(A[4]).lerp(C(B[4]), f);
       let sunI = A[5] + (B[5] - A[5]) * f, hemiI = A[6] + (B[6] - A[6]) * f;
       if (tint[0]) { cMid.lerp(C(tint[0]), tint[1]); cLow.lerp(C(tint[0]), tint[1]); }
-      const storm = ev.storm > 0 ? 1 : ev.zone ? Math.min(1, 1 - ev.zone.left / ev.zone.total) * 0.7 : 0;
+      const storm = ev.storm > 0 ? 1 : ev.zone ? Math.min(1, 1 - ev.zone.left / ev.zone.total) * 0.7 : ev.shower > 0 ? 0.4 : 0;
       const heat = ev.heat > 0 ? 1 : 0;
       if (heat) { cMid.lerp(C('#f2c88a'), 0.45); cLow.lerp(C('#f0c890'), 0.45); cSun.lerp(C('#ffb060'), 0.4); sunI *= 1.15; }
       if (storm) { const s = C('#4a5566'); cTop.lerp(C('#2e3846'), storm * 0.85); cMid.lerp(s, storm * 0.8); cLow.lerp(s, storm * 0.8); sunI *= 1 - storm * 0.75; hemiI *= 1 - storm * 0.35; }
       flash = Math.max(0, flash - dt); if (flash > 0) { hemiI += flash * 6; cTop.lerp(C('#ffffff'), flash); }
       const day = phase < 0.75;
-      const wet0 = ev.storm > 0, wind0 = wet0 ? 2.4 : 0.8;
+      const wet0 = ev.storm > 0, wind0 = wet0 ? 2.4 : ev.zone ? 1.5 : 0.8;
+      nature.update(t, dt, wind0, cMid, storm, day);
       const ang = day ? (phase / 0.75) * Math.PI : ((phase - 0.75) / 0.25) * Math.PI;
       const dir = new THREE.Vector3(Math.cos(ang) * 0.8, Math.max(0.12, Math.sin(ang)), -0.45).normalize();
       skyM.material.uniforms.top.value.copy(cTop); skyM.material.uniforms.mid.value.copy(cMid); skyM.material.uniforms.low.value.copy(cLow);
@@ -282,7 +285,7 @@ export function createWorld(scene, g) {
       lamp.intensity = day ? 0 : 6;
       // rain or hail around the camera
       const wet = ev.storm > 0;
-      rain.visible = wet && g.R.storm.kind !== 'fog';
+      rain.visible = (wet && g.R.storm.kind !== 'fog') || ev.shower > 0; // the storm's rain, or a passing shower
       if (rain.visible) {
         for (let k = 0; k < RAIN; k++) {
           const d = drops[k]; d[1] -= dt * 26; d[0] -= dt * 6; if (d[1] < -1) { d[1] = 30; d[0] = Math.random() * 70 - 35; d[2] = Math.random() * 70 - 35; }

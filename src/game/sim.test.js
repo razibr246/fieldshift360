@@ -285,3 +285,96 @@ test('agronomic progression: XP, leveling, soil health, and agriScorecard work a
     assert.ok(t.bn && t.en);
   }
 });
+
+test('a career grows across seasons: XP for farming well, ranks, achievements once each, equipment unlocked', async () => {
+  const { recordSeason, rankOf, startPerks, seasonXp, emptyCareer, ACHIEVEMENTS, RANKS, UNLOCKS } = await import('./career.js');
+  const report = { rotated: 3, repeats: 0, legumes: 2, enriched: 6, eroded: 0 };
+  const res = (who, country, extra = {}) => ({ who, country, stars: 3, count: { earned: 2100, satViews: 1, waterLayer: 1, advised: 2 }, report, whatIf: null, ...extra });
+  const good = seasonXp(res('razib', 'bangladesh')), poor = seasonXp({ ...res('razib', 'bangladesh'), stars: 1, report: { rotated: 0, repeats: 5, legumes: 0, enriched: 0, eroded: 4 }, count: {} });
+  assert.ok(good.total > poor.total && poor.total >= 50, 'farming well is worth more, and every win is worth something');
+  for (const p of good.parts) assert.ok(p.label.bn && p.label.en);
+  let c = emptyCareer(), out;
+  out = recordSeason(c, res('razib', 'bangladesh'));
+  assert.deepEqual(c, emptyCareer(), 'never mutates');
+  c = out.career;
+  for (const id of ['first', 'stars3', 'rotator', 'norepeat', 'legume', 'soil', 'covered', 'data', 'harvest']) assert.ok(c.achievements[id], id);
+  assert.equal(recordSeason(c, res('razib', 'bangladesh')).newAchievements.length, 0, 'each achievement once');
+  for (const [who, country] of [['harjinder', 'india'], ['ghulam', 'pakistan'], ['rampyari', 'nepal'], ['kinley', 'bhutan'], ['kyawwin', 'myanmar']]) c = recordSeason(c, res(who, country, { whatIf: { dT: 2, rain: -10 } })).career;
+  assert.ok(c.achievements.world && c.achievements.three && c.achievements.heat);
+  assert.ok(!c.achievements.bangladesh);
+  assert.equal(rankOf(0).index, 0); assert.equal(rankOf(RANKS.at(-1).xp + 1).next, null);
+  assert.deepEqual(startPerks({ xp: 0 }), []);
+  assert.deepEqual(startPerks({ xp: RANKS.at(-1).xp }), UNLOCKS.map((u) => u.perk));
+  for (const a of ACHIEVEMENTS) assert.ok(a.title.bn && a.title.en && a.what.bn && a.what.en && a.icon, a.id);
+});
+
+test('navigation: in every village a route reaches every station on walkable ground, keeps off the crops, and is smooth', async () => {
+  const { bakeNav, findPath, costAt, smooth, pathLength, AREA } = await import('./nav.js');
+  const { layoutFor, WORLD_IDS } = await import('./layout.js');
+  for (const w of WORLD_IDS) {
+    const L = layoutFor(w), t0 = performance.now(), nav = bakeNav(L), ms = performance.now() - t0;
+    assert.ok(ms < 1500, `${w}: baking took ${Math.round(ms)} ms`);
+    for (const [id, s] of Object.entries(L.S)) {
+      if (!s || id === 'start') continue;
+      const p = findPath(nav, L.S.start.x, L.S.start.z, s.x, s.z);
+      assert.ok(p && p.length >= 2, `${w}: no route to ${id}`);
+      for (let k = 1; k < p.length; k++) {
+        const [ax, az] = p[k - 1], [bx, bz] = p[k], d = Math.hypot(bx - ax, bz - az);
+        for (let u = 0; u <= d; u += 0.25) assert.ok(costAt(nav, ax + ((bx - ax) * u) / (d || 1), az + ((bz - az) * u) / (d || 1)) < Infinity, `${w} → ${id}: the route crosses a wall or water`);
+      }
+      assert.ok(pathLength(p) < 3 * Math.hypot(s.x - L.S.start.x, s.z - L.S.start.z) + 20, `${w} → ${id}: a long way round`);
+    }
+  }
+  // the area costs steer a route: a patch of neighbours' crops costs more than the grass beside it
+  const L = layoutFor('dhamrai'), nav = bakeNav(L);
+  const patch = L.patches.find(([x0, x1, z0, z1, k]) => k !== 'bare' && Math.hypot((x0 + x1) / 2, (z0 + z1) / 2) < 70);
+  if (patch) assert.ok(costAt(nav, (patch[0] + patch[1]) / 2, (patch[2] + patch[3]) / 2) === AREA.crops || costAt(nav, (patch[0] + patch[1]) / 2, (patch[2] + patch[3]) / 2) === Infinity);
+  const zig = [[-5, 30], [-4, 31], [-3, 30], [-2, 31], [-1, 30]];
+  assert.ok(smooth(nav, zig).length <= zig.length);
+});
+
+test('the village: haat prices move and recover, a forecast shower waters every plot, compost builds soil, urea speeds a crop, orders pay', async () => {
+  const V = await import('./village.js');
+  const { priceOf } = await import('./sim.js');
+  const g = createGame('rahimu'); g.nextQuestAt = 1e9; g.nextOrder = 1e9;
+  // market days
+  for (let k = 0; k < 6; k++) { g.market.next = 0; update(g, DT, {}); }
+  for (const m of Object.values(g.market.mult)) assert.ok(m >= 0.78 && m <= 1.5);
+  assert.ok(g.out.some((e) => e.type === 'alert' && /Market day/.test(e.title.en)));
+  assert.equal(priceOf(g, 'wheat'), Math.round(g.R.crops.wheat.price * (1 + g.F.sellBonus) * g.market.mult.wheat));
+  // a shower: forecast, then every plot wet; water poured just before it is called out
+  g.nextShower = 0; update(g, DT, {});
+  assert.ok(g.ev.showerSoon > 0, 'forecast first');
+  const p = g.plots[0]; Object.assign(p, { crop: 'wheat', g: 0.2, moist: 0.3 }); g.me.x = p.x; g.me.z = p.z; g.me.act = null; act(g);
+  assert.equal(g.count.wasted, 1);
+  g.plots[1].crop = 'wheat'; g.plots[1].moist = 0.1;
+  for (let k = 0; k < (V.SHOWER.warn + 1) / DT; k++) update(g, DT, {});
+  assert.ok(g.ev.shower > 0 && g.plots[1].moist === 1, 'the rain waters the field');
+  // fertiliser: compost builds the soil, urea speeds this crop and costs soil
+  g.money = 500; assert.ok(V.buyFertilizer(g, 'compost', 1) && V.buyFertilizer(g, 'urea', 1));
+  const a = g.plots[2], b = g.plots[3]; Object.assign(a, { crop: 'wheat', g: 0, moist: 1, fert: 0.1 }); Object.assign(b, { crop: 'wheat', g: 0, moist: 1, fert: 0.1 });
+  const soil0 = g.soilHealth;
+  assert.ok(V.fertilize(g, 'compost', a) && a.fert > 0.1 && g.soilHealth > soil0);
+  assert.ok(V.fertilize(g, 'urea', b) && b.fert < 0.1 && b.feed > a.feed);
+  assert.equal(V.fertilize(g, 'urea', b), false, 'once per crop');
+  // an order: met at the market when the basket holds enough
+  g.order = { crop: 'wheat', n: 2, bonus: 40, who: { bn: 'চাচি', en: 'Auntie' }, left: 50, total: 50 };
+  g.basket.wheat = 2; const m0 = g.money;
+  assert.equal(V.fillOrder(g), 40); assert.equal(g.money, m0 + 40); assert.equal(g.count.orders, 1); assert.equal(g.order, null);
+});
+
+test('a season saves and continues: money, plots, counts, the mission reached and the market come back; events restart cleanly', async () => {
+  const { saveState, restoreState } = await import('./savegame.js');
+  const g = createGame('rahimu'); g.nextQuestAt = 1e9;
+  sowHarvest(g, g.plots[0], 'lentil'); g.money = 321; g.quest = 4; g.market.mult.wheat = 1.27; g.fertilizer.compost = 2;
+  Object.assign(g.plots[5], { crop: 'wheat', g: 0.6, pests: 1 }); g.ev.storm = 5; g.ev.done.heat = true;
+  const s = JSON.parse(JSON.stringify(saveState(g)));
+  const h = createGame('rahimu');
+  assert.ok(restoreState(h, s));
+  assert.equal(h.money, 321); assert.equal(h.quest, 4); assert.equal(h.count.legumes, 1); assert.equal(h.plots[0].last, 'lentil');
+  assert.equal(h.plots[5].crop, 'wheat'); assert.equal(h.plots[5].pests, 0); assert.equal(h.market.mult.wheat, 1.27); assert.equal(h.fertilizer.compost, 2);
+  assert.ok(h.ev.done.heat && !(h.ev.storm > 0) && !h.questStarted && h.timers.length === 0, 'events restart cleanly');
+  assert.equal(restoreState(createGame('razib'), s), false, 'a save belongs to its own farmer');
+  for (let k = 0; k < 200; k++) update(h, DT, {});
+  assert.ok(h.questStarted, 'the mission reached starts again');
+});

@@ -4,12 +4,17 @@
 // choli, a red orhni and silver jewellery; Kinley Wangmo in a woven kira and silk tego with folded wonju cuffs;
 // U Kyaw Win in a checked longyi, a white eingyi and a gaung baung head-wrap. Tools appear for the work: a watering
 // can (a clay pot for the women), a sickle, a sprayer, a phone. animate() poses the figure every frame.
-// Bodies are built for a realistic look: a shaped torso (broader chest on men, a narrower waist on women), smooth
-// tapered limbs with rounded joints, hands with fingers, adult proportions, fabric that catches the light at its edges
+// Bodies are stylised semi-chibi, like a premium designer toy (proportions in ../proportions.js): a large head,
+// broad shoulders, a medium torso, short sturdy legs, big hands and feet; a shaped torso (broader chest on men, a
+// narrower waist on women), smooth tapered limbs with rounded joints, hands with fingers, fabric that catches the light at its edges
 // and skin with a soft sheen, and a painted face on every head (look.face). These are sample game characters, not
 // likenesses of real farmers. The walk sways the hips and counter-turns the shoulders.
 import * as THREE from 'three';
 import { blink, idleGaze, ageStoop, expressionFromState } from '../../engine/motion.js';
+import { STYLE, HIP_Y, DOWN_HIP_Y, SHIN_POS, POCKET, hasPockets } from '../proportions.js';
+
+const ankle = new THREE.Vector3(); // scratch for planting the feet in animate()
+const TH = STYLE.thigh, SH = STYLE.shin, LT = STYLE.legThick, AT = STYLE.armThick, TR = TH / 0.44; // TR: thigh against the old 0.44 m
 
 const geo = {
   sphere: (r, w = 14, h = 10, ...rest) => new THREE.SphereGeometry(r, w, h, ...rest),
@@ -355,11 +360,11 @@ export function buildFarmer(look) {
   body.scale.set(b * frame, b, b * frame);
   const skin = mat(look.skin, { rough: 0.6, sheen: 0.3, sheenRough: 0.55, sheenColor: '#ffe2cf' });
   const female = isFemale(look);
-  const hips = group(body, [0, 0.92, 0]);
+  const hips = group(body, [0, HIP_Y, 0]);
   const torso = group(hips, [0, 0.02, 0]);
   const reducedMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const stoop = ageStoop(look.age ?? (look.beard ? 58 : look.hair === '#efece6' ? 72 : 34));
-  const P = { root, body, hips, torso, look, reducedMotion, ageStoop: stoop, seed: ((look.skin ? look.skin.charCodeAt(1) : 3) + (look.hair ? look.hair.charCodeAt(1) : 7)) % 100 };
+  const P = { root, body, hips, torso, look, reducedMotion, ageStoop: stoop, pockets: hasPockets(look), seed: ((look.skin ? look.skin.charCodeAt(1) : 3) + (look.hair ? look.hair.charCodeAt(1) : 7)) % 100 };
   const lower = look.lower;
   const skirted = lower === 'ghagra' || lower === 'kira' || lower === 'longyi' || lower === 'sari';
   const kneeSkirt = lower === 'lungi' || lower === 'dhoti';
@@ -371,20 +376,21 @@ export function buildFarmer(look) {
   const wide = lower === 'shalwar' ? 1.5 : lower === 'pyjama' ? 1.2 : lower === 'cargo' ? 1.15 : 1;
   const legs = [];
   for (const side of [-1, 1]) {
-    const thigh = group(hips, [side * 0.092, 0, 0]);
-    if (!skirted) mesh(limb(0.076 * wide, 0.056 * wide, 0.44, 1.04), legM, thigh); // a long skirt hides the thigh
-    const knee = group(thigh, [0, -0.44, 0]);
-    mesh(geo.sphere(0.042 * wide, 14, 10), legM, knee, [0, 0, 0], [0, 0, 0], [1, 0.9, 0.92]);
-    mesh(limb(0.058 * wide, lower === 'shalwar' ? 0.048 : wide > 1 ? 0.046 * wide : 0.036, 0.42, wide > 1 ? 1.02 : 1.12), legM, knee);
-    if (lower === 'shalwar') mesh(geo.cyl(0.05, 0.05, 0.05), mat(look.lowB), knee, [0, -0.4, 0]); // gathered cuff
+    const thigh = group(hips, [side * 0.1, 0, 0]); // set a little wider for the sturdier legs
+    if (!skirted) mesh(limb(0.076 * wide * LT, 0.056 * wide * LT, TH, 1.04), legM, thigh); // a long skirt hides the thigh
+    const knee = group(thigh, [0, -TH, 0]);
+    mesh(geo.sphere(0.042 * wide * LT, 14, 10), legM, knee, [0, 0, 0], [0, 0, 0], [1, 0.9, 0.92]);
+    mesh(limb(0.058 * wide * LT, (lower === 'shalwar' ? 0.048 : wide > 1 ? 0.046 * wide : 0.036) * LT, SH, wide > 1 ? 1.02 : 1.12), legM, knee);
+    if (lower === 'shalwar') mesh(geo.cyl(0.05 * LT, 0.05 * LT, 0.05), mat(look.lowB), knee, [0, -(SH - 0.02), 0]); // gathered cuff
     if (lower === 'cargo') {
       // flapped pockets on the outside of each thigh, and a hem at the ankle
-      mesh(geo.box(0.035, 0.13, 0.1), mat(look.lowA), thigh, [side * 0.08, -0.29, 0.005]);
-      mesh(geo.box(0.04, 0.035, 0.108), mat(look.lowB), thigh, [side * 0.082, -0.225, 0.005]);
-      mesh(geo.cyl(0.06, 0.06, 0.03), mat(look.lowB), knee, [0, -0.4, 0]);
+      mesh(geo.box(0.035, 0.13 * TR, 0.1 * LT), mat(look.lowA), thigh, [side * 0.08 * LT, -0.29 * TR, 0.005]);
+      mesh(geo.box(0.04, 0.035, 0.108 * LT), mat(look.lowB), thigh, [side * 0.082 * LT, -0.225 * TR, 0.005]);
+      mesh(geo.cyl(0.06 * LT, 0.06 * LT, 0.03), mat(look.lowB), knee, [0, -(SH - 0.02), 0]);
     }
-    mesh(geo.sphere(0.032 * wide, 12, 8), legM, knee, [0, -0.405, 0], [0, 0, 0], [0.88, 1.1, 0.9]);
-    const foot = group(knee, [0, -0.44, 0.03]);
+    mesh(geo.sphere(0.032 * wide * LT, 12, 8), legM, knee, [0, -(SH - 0.015), 0], [0, 0, 0], [0.88, 1.1, 0.9]);
+    const foot = group(knee, [0, -SHIN_POS, 0.03]);
+    foot.scale.setScalar(STYLE.foot); // large, toy-like feet and shoes
     const fm = mat(look.feetA);
     const shoeG = capsule(0.05, 0.12);
     if (look.feet === 'jutti') {
@@ -411,9 +417,16 @@ export function buildFarmer(look) {
   mesh(geo.sphere(0.12, 20, 14), legM, hips, [0, -0.105, 0], [0, 0, 0], [1.68, 0.88, 1.28]);
   if (lower === 'cargo') mesh(geo.cyl(0.162, 0.16, 0.16, 16), mat(look.lowA, { rough: 0.95 }), hips, [0, -0.05, 0], [0, 0, 0], [1, 1, 0.85]);
   P.skirt = skirted ? 0.45 : longTop || kneeSkirt ? 0.75 : 1;
+  // the front pockets the hands go into when standing (trousers under a short top; a kurta's hem covers them)
+  if ((lower === 'pyjama' || lower === 'shalwar' || lower === 'cargo') && !longTop) {
+    const pk = mat('#' + new THREE.Color(look.lowA).multiplyScalar(0.55).getHexString(), { rough: 1 });
+    for (const sd of [-1, 1]) mesh(geo.box(0.07, 0.011, 0.012), pk, hips, [sd * POCKET.at[0], POCKET.at[1] - 0.005, POCKET.at[2] + 0.012], [0.35, 0, sd * 0.95]);
+  }
+  const legShorter = HIP_Y / 0.92; // skirts and long hems were cut for the 0.92 m legs of the realistic body
 
   // skirts and the hems of long shirts, grouped for organic cloth inertia and sway
   const skirtGroup = group(hips, [0, 0, 0]);
+  skirtGroup.scale.set(1.05, legShorter, 1.05);
   P.skirtGroup = skirtGroup;
   if (lower === 'ghagra') {
     mesh(geo.cyl(0.17, 0.3, 0.86, 18), cloth('#fff', { map: bandTex(look.lowA, look.bands, false) }), skirtGroup, [0, -0.42, 0]);
@@ -440,12 +453,12 @@ export function buildFarmer(look) {
     mesh(geo.sphere(0.05, 10, 8), cloth(look.lowA), skirtGroup, [0.0, -0.02, 0.18], [0, 0, 0], [1, 1.2, 0.8]); // the paso knot
   }
   const topM = look.top === 'polo' ? cloth('#fff', { map: poloTex(look.topA, look.topB, look.topC, look.topD) }) : look.top === 'sweater' ? cloth('#fff', { map: canvasTex(`knit${look.topA}`, 32, 32, (c, w, h) => { c.fillStyle = look.topA; c.fillRect(0, 0, w, h); c.strokeStyle = look.topB; c.lineWidth = 2; for (let x = 0; x < w; x += 4) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); } }, [6, 3]) }) : look.top === 'shirt' ? cloth('#fff', { map: check(look.topA, look.topB, 10, [3, 2]) }) : cloth(look.topA);
-  if (longTop) mesh(geo.cyl(0.18, 0.27, 0.52, 28, true), topM, hips, [0, -0.24, 0], [0, 0, 0], [1, 1, 0.9]);
+  if (longTop) mesh(geo.cyl(0.18, 0.27, 0.52 * legShorter, 28, true), topM, hips, [0, -0.24 * legShorter, 0], [0, 0, 0], [1.05, 1, 0.9]);
 
   // upper body
   // The chest has a little more depth than the old flattened mannequin profile.
   // Keep this in sync with frontOf(), which positions buttons and trim on the cloth.
-  mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [1, 1, 0.86]);
+  mesh(torsoShape(female), topM, torso, [0, 0, 0], [0, 0, 0], [STYLE.torsoWide, 1, 0.88]);
   const fz = frontOf(female);
   const plainTop = look.top === 'polo' ? cloth(look.topA) : topM;
   if (look.top === 'kurta' || look.top === 'kameez' || look.top === 'eingyi') {
@@ -506,7 +519,7 @@ export function buildFarmer(look) {
   // head
   const neck = group(torso, [0, 0.55, 0]);
   mesh(geo.cyl(0.047, 0.056, 0.12, 14), skin, neck, [0, 0.045, 0]);
-  const head = group(neck, [0, 0.18, 0]); head.scale.setScalar(1);
+  const head = group(neck, [0, STYLE.neckY, 0]); head.scale.setScalar(STYLE.head); // the large, friendly head of a designer toy
   P.neck = neck; P.head = head;
   mesh(geo.sphere(0.118, 18, 14), skin, head, [0, 0, 0], [0, 0, 0], [0.95, 1.08, 1]);
   mesh(geo.sphere(0.02, 6, 4), skin, head, [-0.115, 0, 0]); mesh(geo.sphere(0.02, 6, 4), skin, head, [0.115, 0, 0]);
@@ -636,20 +649,21 @@ export function buildFarmer(look) {
   const arms = [];
   const sleeve = look.top === 'choli' || look.top === 'shirt' ? 'short' : look.top === 'genji' ? 'none' : 'long';
   for (const side of [-1, 1]) {
-    const shoulder = group(torso, [side * (female ? 0.19 : 0.205), 0.465, 0]);
+    const shoulder = group(torso, [side * (female ? 0.19 : 0.205) * STYLE.shoulder, 0.465, 0]);
     const upperM = sleeve === 'none' ? skin : look.top === 'polo' ? cloth(look.topA) : topM;
     // Rounded deltoid, blending the chest into the upper arm instead of a ball joint.
-    mesh(geo.sphere(sleeve === 'long' ? 0.069 : 0.064, 20, 14), upperM, torso, [side * (female ? 0.174 : 0.19), 0.475, 0], [0, 0, side * -0.12], [1.12, 0.9, 0.94]);
-    if (sleeve === 'short') { mesh(limb(0.05, 0.04, 0.28), skin, shoulder); mesh(limb(0.06, 0.054, 0.13, 1), upperM, shoulder); }
-    else mesh(limb(sleeve === 'long' ? 0.058 : 0.053, sleeve === 'long' ? 0.048 : 0.04, 0.28), upperM, shoulder);
+    mesh(geo.sphere((sleeve === 'long' ? 0.069 : 0.064) * AT, 20, 14), upperM, torso, [side * (female ? 0.174 : 0.19) * STYLE.shoulder, 0.475, 0], [0, 0, side * -0.12], [1.12, 0.9, 0.94]);
+    if (sleeve === 'short') { mesh(limb(0.05 * AT, 0.04 * AT, 0.28), skin, shoulder); mesh(limb(0.06 * AT, 0.054 * AT, 0.13, 1), upperM, shoulder); }
+    else mesh(limb((sleeve === 'long' ? 0.058 : 0.053) * AT, (sleeve === 'long' ? 0.048 : 0.04) * AT, 0.28), upperM, shoulder);
     const elbow = group(shoulder, [0, -0.28, 0]);
     const lowerM = sleeve === 'long' ? topM : skin;
-    mesh(limb(sleeve === 'long' ? 0.048 : 0.041, sleeve === 'long' ? 0.042 : 0.031, 0.25, 1.1), lowerM, elbow);
+    mesh(limb((sleeve === 'long' ? 0.048 : 0.041) * AT, (sleeve === 'long' ? 0.042 : 0.031) * AT, 0.25, 1.1), lowerM, elbow);
     // A small soft elbow volume keeps the bend closed when the arm swings or reaches.
-    mesh(geo.sphere(sleeve === 'long' ? 0.045 : 0.038, 14, 10), lowerM, elbow, [0, 0.006, 0], [0, 0, 0], [1, 0.86, 0.95]);
+    mesh(geo.sphere((sleeve === 'long' ? 0.045 : 0.038) * AT, 14, 10), lowerM, elbow, [0, 0.006, 0], [0, 0, 0], [1, 0.86, 0.95]);
     mesh(geo.sphere(0.032, 12, 8), skin, elbow, [0, -0.244, 0], [0, 0, 0], [0.9, 1, 0.92]); // wrist transition
-    if (look.cuff) mesh(geo.cyl(0.052, 0.052, 0.07), mat(look.cuff), elbow, [0, -0.2, 0]);
+    if (look.cuff) mesh(geo.cyl(0.052 * AT, 0.052 * AT, 0.07), mat(look.cuff), elbow, [0, -0.2, 0]);
     const hand = group(elbow, [0, -0.27, 0]);
+    hand.scale.setScalar(STYLE.hand); // big, chunky hands
     // palm, four slightly curled fingers and a thumb
     mesh(geo.sphere(0.041, 16, 12), skin, hand, [0, -0.03, 0.004], [0, 0, 0], [0.58, 1, 0.9]);
     for (let f = 0; f < 4; f++) {
@@ -691,6 +705,8 @@ export function buildFarmer(look) {
   mesh(geo.box(0.06, 0.115, 0.002), mat('#57c46a', { emissive: '#3aa857' }), tools.phone, [0, 0.0, 0.007], [-0.4, 0, 0]);
   tools.sack = group(torso, [0, 0.35, -0.22]);
   mesh(geo.sphere(0.2, 10, 8), mat('#d9c08a', { flat: true }), tools.sack, [0, 0, 0], [0, 0, 0], [1, 1.1, 0.7]);
+  // tools held in a hand keep their real size inside the bigger hands
+  for (const t of [tools.can, tools.sickle, tools.spray, tools.phone]) t.scale.setScalar(1 / STYLE.hand);
   for (const t of Object.values(tools)) t.visible = false;
   P.tools = tools;
   P.phase = 0;
@@ -732,7 +748,7 @@ export function animate(P, st, dt) {
 
   // Stride kinematics: double-sinusoidal pelvic bounce
   const bounce = (st.run ? 0.075 : 0.038) * Math.sin(ph * 2 - Math.PI * 0.5) * a;
-  let hipY = 0.92 + bounce;
+  let hipY = HIP_Y + bounce;
 
   // Aerodynamic forward lean and dynamic turn banking
   let lean = (st.run ? 0.28 : 0.07) * a;
@@ -808,10 +824,10 @@ export function animate(P, st, dt) {
     const p = act.p / act.dur, e = Math.sin(Math.min(1, p) * Math.PI);
     switch (act.type) {
       case 'plant': case 'clear':
-        lean = 0.95 * e; hipY -= 0.12 * e; K[0] = K[1] = 0.55 * e; L[0] = L[1] = -0.45 * e;
-        A[1] = -1.1 * e; E[1] = -0.25; A[0] = -0.6 * e; break;
+        lean = 0.45 * e; K[0] = K[1] = 1.8 * e; L[0] = L[1] = 1.2 * e; headX = 0.3 * e; // thighs forward, shins back to the feet: a squat
+        A[1] = -0.8 * e; E[1] = -0.2; A[0] = -0.5 * e; E[0] = -0.4 * e; break;
       case 'harvest':
-        lean = 0.9 * e; hipY -= 0.14 * e; K[0] = K[1] = 0.6 * e; L[0] = L[1] = -0.5 * e;
+        lean = 0.55 * e; K[0] = K[1] = 1.3 * e; L[0] = L[1] = 0.9 * e; headX = 0.25 * e;
         tools.sickle.visible = true; A[1] = -1.0 * e; az[1] = -0.2 + Math.sin(p * Math.PI * 4) * 0.65 * e; E[1] = -0.5; A[0] = -0.9 * e; break;
       case 'water':
         tools.can.visible = true; A[1] = -1.15 * e; E[1] = -0.2; lean = 0.25 * e; headX = 0.35 * e;
@@ -837,7 +853,14 @@ export function animate(P, st, dt) {
   }
   // Let the head anticipate a turn slightly, rather than rotating as one rigid block.
   headY += Math.max(-0.2, Math.min(0.2, (st.turnRate ?? 0) * 0.035));
-  if (st.down > 0) { hipY = 0.3; L[0] = L[1] = -1.45; K[0] = K[1] = 1.5; lean = 0.25; A[1] = -2.4; E[1] = -1.8; A[0] = -0.5; headX = 0.35; }
+  // Standing still: hands in the pockets (or tucked in the lungi's fold), feet a little apart.
+  const idle = a < 0.05 && !act && !(st.down > 0);
+  const pocket = idle && P.pockets;
+  if (pocket) {
+    A[0] = A[1] = POCKET.shoulderX; E[0] = E[1] = POCKET.elbowX;
+    az = [POCKET.shoulderZ, -POCKET.shoulderZ];
+  }
+  if (st.down > 0) { hipY = DOWN_HIP_Y; L[0] = L[1] = -1.45; K[0] = K[1] = 1.5; lean = 0.25; A[1] = -2.4; E[1] = -1.8; A[0] = -0.5; headX = 0.35; }
   lean += (P.ageStoop ?? 0);
   const k = Math.min(1, dt * 14);
   hips.position.y = lerp(hips.position.y, hipY, k);
@@ -863,6 +886,20 @@ export function animate(P, st, dt) {
     arms[i].shoulder.rotation.x = lerp(arms[i].shoulder.rotation.x, A[i], k);
     arms[i].shoulder.rotation.z = lerp(arms[i].shoulder.rotation.z, az[i], k);
     arms[i].elbow.rotation.x = lerp(arms[i].elbow.rotation.x, E[i], k);
+    const side = i ? 1 : -1;
+    legs[i].thigh.rotation.z = lerp(legs[i].thigh.rotation.z, idle ? side * STYLE.stance : 0, k);
+    legs[i].foot.rotation.z = lerp(legs[i].foot.rotation.z, idle ? -side * STYLE.stance : 0, k); // soles stay flat
+    // in the pocket the hand slips out of sight; out of it, it comes back to its full size
+    const hd = arms[i].hand;
+    hd.scale.setScalar(lerp(hd.scale.x, STYLE.hand * (pocket ? POCKET.handIn : 1), k));
+  }
+  // Ground work keeps the feet planted: run the legs' own transforms to find the lower ankle, and set the hips so it
+  // sits at its standing height. Fixed hip drops were fitted to the old longer legs; on these shorter legs they sank
+  // the feet into the soil and folded the figure onto its hands.
+  if (act && (act.type === 'plant' || act.type === 'clear' || act.type === 'harvest')) {
+    let lowest = Infinity;
+    for (const l of legs) { l.thigh.updateMatrix(); l.knee.updateMatrix(); ankle.copy(l.foot.position).applyMatrix4(l.knee.matrix).applyMatrix4(l.thigh.matrix); lowest = Math.min(lowest, ankle.y); }
+    hips.position.y = HIP_Y - TH - SHIN_POS - lowest;
   }
 
   // Secondary cloth inertia and sway for skirts, dhotis, saris, and long garments
