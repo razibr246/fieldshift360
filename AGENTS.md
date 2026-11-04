@@ -52,7 +52,9 @@ added there.
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
 - চক্র এজেন্ট (Chakra Agent), in the farmer and officer headers: rules, permission policy and hash-chained audit log in
   `src/engine/chakra.js` (pure, tested), UI and agent loop in `src/components/chakra/`, conversation through `api/agent.js`
-  (Claude may only propose actions) with `src/voice/brain.js` as the offline fallback. Anything sent in the office's
+  (Claude may only propose actions) with `src/voice/brain.js` as the offline fallback. Every AI answer
+  is checked against the app data it was sent by `src/engine/replyCheck.js` (rule ids such as `R1_RAIN_OFFSET`,
+  `R3_OWN_DOSE`), asked for once more if it fails, then repaired; new rules go there with a test. Anything sent in the office's
   name needs an officer's approval in every mode; keep it that way.
 - Government support (`/farmer/support`, and the India help tab): the programmes are hand-entered records in
   `src/data/support/` (each with its source URL and the `CHECKED` date; re-check them, never guess a figure), matched
