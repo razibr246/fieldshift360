@@ -3,13 +3,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { X, Maximize2, Minimize2, Volume2, VolumeX, Keyboard, SendHorizontal, ShieldCheck, ShieldAlert, ListChecks, MessageCircle, CheckCircle2, ChevronRight, Smartphone, Gavel } from 'lucide-react';
+import { X, Maximize2, Minimize2, Volume2, VolumeX, Keyboard, SendHorizontal, ShieldCheck, ShieldAlert, ListChecks, MessageCircle, CheckCircle2, ChevronRight, Smartphone, Gavel, UsersRound, Route, Target } from 'lucide-react';
 import { useStore } from '../../store';
 import { Tags } from '../ui';
 import { num, bnDigits } from '../../engine/dates';
 import { smsSplit } from '../../engine/text';
 import { AGENT_NAME, POLICY, DAILY_AUTO_LIMIT, autoCountToday } from '../../engine/chakra';
 import { useChakra } from './useChakra';
+import { PROBLEM_PATH } from '../../engine/path';
+import { cropName } from '../../engine/crops';
+import { fmtDate } from '../../engine/dates';
 import ChakraLogo from './ChakraLogo';
 import './chakra.css';
 
@@ -64,6 +67,73 @@ function TaskCard({ c, task, compact }) {
   );
 }
 
+// চক্র দল (engine/crew.js): who worked on the answer, what each read and found, most important first.
+function CrewRun({ run, compact }) {
+  const { T, L, s } = useStore();
+  if (compact) return (
+    <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-white/55"><UsersRound size={13} />{T('দলের কাজ:', 'Crew:')}
+      {run.trace.filter((t) => t.asked).map((t) => <span key={t.member} className="chakra-chip rounded-full px-2 py-0.5">{L(t.name)}{t.notes ? ` · ${num(t.notes, s.lang)}` : ''}</span>)}
+    </div>
+  );
+  return (
+    <div className="space-y-3">
+      <p className="text-[12.5px] leading-5 text-white/60">{T('চক্র দলের প্রত্যেক সদস্যের একটাই কাজ। আগের জনের খবর পরের জন পড়ে, আর সমন্বয়ক সবচেয়ে জরুরি তিনটি কথা বেছে বলে। দল নিজে কিছু পাঠাতে পারে না; কাজ হয় কাজের তালিকা থেকে, অনুমতি মেনে।', 'Each crew member has one job. Each reads what the one before found, and the coordinator picks the three most important points to say. The crew cannot send anything itself; actions go through the task list and its permissions.')}</p>
+      {run.trace.map((t) => (
+        <div key={t.member} className={`rounded-2xl border p-3 ${t.asked ? 'border-white/12 bg-white/[.06]' : 'border-white/5 bg-white/[.02] opacity-70'}`}>
+          <div className="flex items-center justify-between gap-2"><span className="text-[14.5px] font-bold">{L(t.name)}</span><span className="text-[11px] text-white/45">{t.error ? T('সমস্যা হয়েছে', 'failed') : !t.asked ? T('শুধু তথ্য দিয়েছে', 'facts only') : T(`${num(t.notes, s.lang)}টি কথা`, `${t.notes} note(s)`)}</span></div>
+          {t.goal && <p className="mt-0.5 text-[12.5px] text-white/60">{L(t.goal)}</p>}
+          {t.reads && <p className="mt-1 text-[11px] text-white/40">{T('পড়েছে: ', 'Read: ')}{L(t.reads)}</p>}
+          <ul className="mt-1.5 space-y-1">{run.notes.filter((n) => n.member === t.member).map((n) => <li key={n.key} className={`text-[13px] leading-6 ${run.top.includes(n) ? 'text-white' : 'text-white/60'}`}>{run.top.includes(n) ? '★ ' : '· '}{L(n.text)}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// চক্র পথ (engine/path.js): each problem's steps, done, waiting (for whom) or still ahead.
+const PATH_ORDER = ['reported', 'first_look', 'officer', 'advised', 'check_back', 'solved'];
+function PathView({ c }) {
+  const { T, L, s } = useStore();
+  if (!c.caseList.length) return <p className="py-10 text-center text-[14px] text-white/55">{T('কোনো সমস্যা জানানো হয়নি।', 'No problems reported.')}</p>;
+  return (
+    <div className="space-y-3">
+      <p className="text-[12.5px] leading-5 text-white/60">{T('প্রতিটি সমস্যা একই পথে চলে: জানানো, কর্মকর্তার উত্তর, তারপর আপনার কথা যে মিটেছে। যেখানে মানুষের সিদ্ধান্ত লাগে, পথ সেখানে থেমে অপেক্ষা করে।', 'Every problem follows the same path: reported, the officer’s answer, then your word that it is solved. Where a person must decide, the path stops and waits.')}</p>
+      {c.caseList.slice(0, 8).map((k) => {
+        const done = new Set(k.trail.map((t) => t.node));
+        return (
+          <div key={k.id} className="rounded-2xl border border-white/12 bg-white/[.06] p-3">
+            <div className="flex items-center justify-between gap-2 text-[14px] font-bold"><span className="truncate">{cropName(k.crop, s.lang)} · {L(k.text) || k.symptom}</span><span className="shrink-0 text-[11px] font-semibold text-white/45">{fmtDate(k.created, s.lang)}</span></div>
+            <ol className="mt-2 space-y-1">
+              {PATH_ORDER.filter((id) => id !== 'first_look' || done.has(id)).map((id) => {
+                const n = PROBLEM_PATH.nodes[id];
+                const here = k.waiting?.node === id || (id === 'officer' && k.waiting?.node === 'more_info');
+                const state = done.has(id) ? 'done' : here ? 'wait' : 'next';
+                return (
+                  <li key={id} className="flex items-start gap-2 text-[13px] leading-5">
+                    <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${state === 'done' ? 'bg-emerald-300' : state === 'wait' ? 'animate-pulse bg-amber-300' : 'bg-white/15'}`} />
+                    <span className={state === 'next' ? 'text-white/40' : 'text-white/90'}>{L(n.name)}{state === 'wait' && k.waiting?.ask ? <span className="block text-[12px] text-amber-100/80">{L(k.waiting.ask)} · {k.waiting.who === 'officer' ? T('কর্মকর্তার পালা', 'officer’s turn') : T('আপনার পালা', 'your turn')}</span> : null}</span>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// চক্র লক্ষ্য (engine/goal.js): the steps the goal loop took, and where it was careful.
+function GoalRun({ goal }) {
+  const { T, L } = useStore();
+  return (
+    <div className="rounded-2xl border border-white/12 bg-white/[.06] p-3">
+      <div className="flex items-center gap-1.5 text-[13px] font-bold"><Target size={14} />{T('লক্ষ্য: ', 'Goal: ')}{L(goal.goal.name)}</div>
+      <ol className="mt-1.5 space-y-1">{goal.steps.map((st, i) => <li key={i} className="text-[12.5px] leading-5 text-white/75"><span className={st.ok ? 'text-emerald-300' : 'text-amber-300'}>{st.ok ? '✓' : '!'}</span> <b className="font-semibold text-white/90">{L(st.name)}:</b> {L(st.result)}</li>)}</ol>
+    </div>
+  );
+}
+
 function Panel({ c, onClose }) {
   const { s, T, L, today } = useStore();
   const [tab, setTab] = useState('talk');
@@ -77,7 +147,7 @@ function Panel({ c, onClose }) {
   const submit = (e) => { e.preventDefault(); c.send(text); setText(''); };
   const talk = () => (c.phase === 'listening' || c.phase === 'speaking' ? c.stopAll() : c.listen());
   const used = autoCountToday(c.audit, c.role, today);
-  const tabs = [['talk', MessageCircle, T('কথা', 'Talk')], ['tasks', ListChecks, T(`কাজ ${c.tasks.length ? num(c.tasks.length, s.lang) : ''}`, `Tasks ${c.tasks.length || ''}`)], ['safe', ShieldCheck, T('নিরাপত্তা', 'Security')]];
+  const tabs = [['talk', MessageCircle, T('কথা', 'Talk')], ['tasks', ListChecks, T(`কাজ ${c.tasks.length ? num(c.tasks.length, s.lang) : ''}`, `Tasks ${c.tasks.length || ''}`)], ['crew', UsersRound, T('দল', 'Crew')], ['path', Route, T('পথ', 'Path')], ['safe', ShieldCheck, T('নিরাপত্তা', 'Security')]];
   return (
     <div className="fixed inset-0 z-[1700]" role="dialog" aria-modal="true" aria-label={L(AGENT_NAME)} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div className="sheet-fade absolute inset-0 bg-black/30" onClick={onClose} />
@@ -119,6 +189,10 @@ function Panel({ c, onClose }) {
                 <div key={m.id} className="flex justify-end"><span className="chakra-bubble-user max-w-[85%] rounded-[20px] rounded-br-md px-4 py-2.5 text-[15px]">{m.text}</span></div>
               ) : m.who === 'task' ? (
                 <TaskCard key={m.id} c={c} task={m.task} compact />
+              ) : m.who === 'goal' ? (
+                <GoalRun key={m.id} goal={m.goal} />
+              ) : m.who === 'crew' ? (
+                <CrewRun key={m.id} run={m.crew} compact />
               ) : (
                 <div key={m.id}>
                   <p className="text-[17px] leading-8 text-white/95">{m.text}</p>
@@ -142,6 +216,8 @@ function Panel({ c, onClose }) {
               {c.tasks.map((t) => <TaskCard key={t.id} c={c} task={t} />)}
             </div>
           )}
+          {tab === 'crew' && <CrewRun run={c.crew} />}
+          {tab === 'path' && <PathView c={c} />}
           {tab === 'safe' && (
             <div className="space-y-4 text-[13.5px] leading-6">
               <div className={`flex items-center gap-2 rounded-2xl p-3 ${c.auditOk.ok ? 'bg-emerald-400/10 text-emerald-200' : 'bg-red-400/15 text-red-200'}`}>

@@ -3,6 +3,9 @@
 // otherwise the app's own voice brain), spoken both ways through the browser.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore, soilData, demo } from '../../store';
+import { runCrew } from '../../engine/crew';
+import { cases as problemCases, checkBackTasks } from '../../engine/path';
+import { runGoal, understand } from '../../engine/goal';
 import { farmerTasks, officerTasks, problemTask, gateFor, authorize, autoCountToday, sanitize, DAILY_AUTO_LIMIT, verifyAudit } from '../../engine/chakra';
 import { weatherAlerts } from '../../engine/water';
 import { harvestPriceHistory } from '../../engine/glut';
@@ -15,7 +18,11 @@ import { createRecognizer, sttSupported, speakNatural, stopSpeaking } from '../.
 
 let uid = 0;
 const mk = (who, text, extra = {}) => ({ id: `c${++uid}`, who, text, ...extra });
-const bnNum = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+// "What should I do today?" and the like: the crew answers at once from the app's own numbers (no AI call, no quota).
+// A season goal is said with a wish word: "... চাই", "... লাগুক", "... হোক".
+const GOAL_Q = /চাই|লাগুক|হোক|লক্ষ্য|কীভাবে|কিভাবে|i want|goal|how can i|how do i/i;
+const both = (bn, en) => ({ bn, en });
+const BRIEF_Q = /আজ(কে)? কী (কী )?কর|কী করা (উচিত|দরকার)|কী করতে হবে|আজকের কাজ|সব (ঠিক|ভালো) আছে|কী অবস্থা|পরামর্শ দি|what should i do|what to do|today|briefing|how is my field/i;
 const YES = /^(হ্যাঁ|হা|জি|ঠিক আছে|পাঠান|পাঠাও|yes|ok|send)/i;
 const NO = /^(না|থাক|no|cancel)/i;
 // Problems advice.js answers with field practice the farmer can follow today (the rest are the officer's own words).
@@ -33,17 +40,27 @@ export function useChakra(role) {
 
   // ── what the agent sees ──
   const officerUnions = useMemo(() => unionsOf(store.officerUpazila.id).map((u) => u.id), [store.officerUpazila.id]);
+  // The farmer's context, shared by চক্র এজেন্ট's tasks and the crew (engine/crew.js), which also reads the weather numbers.
+  const fctx = useMemo(() => {
+    if (role !== 'farmer') return null;
+    const { farmer: f, chosen, weather, water, today, daysAfter, confirmedPlan, upazila, unreadAdvisories } = store;
+    const hw = chosen.hw;
+    return {
+      farmer: f, today, officer: upazila.officer, water, alerts: weatherAlerts({ tmax: weather.tmax, rainNext3: weather.rainNext3 }),
+      weather: { rain7: weather.rain7, rainNext3: weather.rainNext3, tmax: weather.tmax },
+      plan: { crop: { id: chosen.crop.id, ...chosen.crop.name }, confirmed: !!confirmedPlan, daysToPlant: -daysAfter },
+      harvest: hw ? { daysTo: daysBetween(today, hw.start), glut: chosen.glut?.level, hold: harvestPriceHistory(chosen.crop.id, hw)?.hold ?? null, crop: { id: chosen.crop.id, ...chosen.crop.name } } : null,
+      requests: s.requests.filter((r) => r.farmerId === f.id), unread: unreadAdvisories,
+    };
+  }, [role, store, s.requests]);
+  // চক্র পথ: every problem of this farmer (or of the officer's unions) on its path, replayed from the saved data.
+  const caseList = useMemo(() => {
+    const mine = role === 'farmer' ? s.requests.filter((r) => r.farmerId === store.farmer.id) : s.requests.filter((r) => officerUnions.includes(r.union));
+    const advisories = role === 'farmer' ? [...(store.myAdvisories ?? []), ...s.advisories] : s.advisories;
+    return problemCases(mine, { advisories, escalations: s.escalations, today: store.today });
+  }, [role, s.requests, s.advisories, s.escalations, store.farmer.id, store.myAdvisories, store.today, officerUnions]);
   const all = useMemo(() => {
-    if (role === 'farmer') {
-      const { farmer: f, chosen, weather, water, today, daysAfter, confirmedPlan, upazila, unreadAdvisories } = store;
-      const hw = chosen.hw;
-      return farmerTasks({
-        farmer: f, today, officer: upazila.officer, water, alerts: weatherAlerts({ tmax: weather.tmax, rainNext3: weather.rainNext3 }),
-        plan: { crop: { id: chosen.crop.id, ...chosen.crop.name }, confirmed: !!confirmedPlan, daysToPlant: -daysAfter },
-        harvest: hw ? { daysTo: daysBetween(today, hw.start), glut: chosen.glut?.level, hold: harvestPriceHistory(chosen.crop.id, hw)?.hold ?? null, crop: { id: chosen.crop.id, ...chosen.crop.name } } : null,
-        requests: s.requests.filter((r) => r.farmerId === f.id), unread: unreadAdvisories,
-      });
-    }
+    if (role === 'farmer') return [...farmerTasks(fctx), ...checkBackTasks(caseList, { farmer: fctx.farmer, today: fctx.today })];
     const mine = new Set(officerUnions);
     const hotspots = store.hotspots.flatMap((h) => {
       const members = h.members.filter((m) => mine.has(m.union));
@@ -59,8 +76,10 @@ export function useChakra(role) {
       unions: officerUnions, today: store.today, requests: s.requests, hotspots,
       replyFn: (r) => ({ bn: replyTemplate(r, (b) => b), en: replyTemplate(r, (b, e) => e) }), farmerName: (id) => store.farmerOf(id)?.name,
     });
-  }, [role, store, s.requests, s.advisories, officerUnions]);
+  }, [role, store, fctx, caseList, s.requests, s.advisories, officerUnions]);
   const tasks = useMemo(() => all.filter((t) => !handled.has(t.id)).map((t) => ({ ...t, gate: gateFor(role, mode, t) })), [all, handled, role, mode]);
+  // চক্র দল: the whole crew's briefing on the current state (questions run it again with only the members they need).
+  const crew = useMemo(() => runCrew(role, fctx ?? { today: store.today }, { tasks }), [role, fctx, store.today, tasks]);
   const verdicts = tasks.filter((t) => t.gate === 'verdict');
 
   // ── doing things ──
@@ -85,6 +104,8 @@ export function useChakra(role) {
       else if (e.type === 'addAdvisory') dispatch({ type: 'addAdvisory', adv: { ...e.adv, from: who } });
       else if (e.type === 'updateRequest') dispatch({ type: 'updateRequest', ids: e.ids, patch: e.patch });
       else if (e.type === 'escalate' || e.type === 'followUp') dispatch({ type: 'escalate', esc: e.esc });
+      else if (e.type === 'closeRequest') dispatch({ type: 'updateRequest', ids: [e.id], patch: { status: 'resolved', resolvedAt: Date.now() } });
+      else if (e.type === 'setPriority' && !ref.current.s.priorities.includes(e.id)) dispatch({ type: 'togglePriority', id: e.id });
     }
     log(task.id, effects.map((e) => e.type).join('+') || 'notify', gate, 'done');
     return true;
@@ -185,8 +206,9 @@ export function useChakra(role) {
     // A yes or no to a report the agent prepared.
     if (pending.current) {
       const p = pending.current;
+      if (YES.test(text) && p.kind === 'goal') { pending.current = null; run(p, 'confirm'); return reply(T('পরিকল্পনাটা এই লক্ষ্যের দিকে ঝুঁকিয়ে দিয়েছি। পরিকল্পনা পাতায় নতুন সুপারিশ দেখুন।', 'I have weighted the plan towards this goal. See the new recommendation on the plan page.'), { nav: '/farmer/plan' }); }
       if (YES.test(text)) { pending.current = null; run(p, 'confirm'); return reply(T(`পাঠিয়ে দিয়েছি। উপজেলা কৃষি অফিসার ${c.upazila.officer.bn} দেখে উত্তর দেবেন।`, `Sent. The upazila agriculture officer, ${c.upazila.officer.en}, will reply.`)); }
-      if (NO.test(text)) { pending.current = null; log(p.id, 'decline', 'confirm', 'not sent'); return reply(T('ঠিক আছে, পাঠাইনি।', 'Okay, I did not send it.')); }
+      if (NO.test(text)) { pending.current = null; log(p.id, 'decline', 'confirm', 'not sent'); return reply(p.kind === 'goal' ? T('ঠিক আছে, পরিকল্পনা যেমন ছিল তেমনই থাকল।', 'Okay, the plan stays as it was.') : T('ঠিক আছে, পাঠাইনি।', 'Okay, I did not send it.')); }
     }
     // The farmer describes a field problem: the agent looks first and reports it (on its own in agent mode).
     if (role === 'farmer' && !session.current.state) {
@@ -198,16 +220,38 @@ export function useChakra(role) {
         return reply(`${head} ${offer(t)}`);
       }
     }
-    // Claude when api/agent.js is on; the app's own brain otherwise (and whenever the network or the key fails).
+    // A briefing question, or one about weather, water, prices, planting or the office, goes to the crew members it is
+    // about; an answer with nothing to say falls through to the AI or the brain.
+    // A goal for the season ("বেশি লাভ চাই"): the goal loop plans and runs its checks, then asks before changing the plan.
+    if (role === 'farmer' && understand(text) && GOAL_Q.test(text)) {
+      const g = runGoal(text, { options: c.decision.options, chosen: c.chosen, priorities: c.s.priorities });
+      if (g) {
+        setMessages((m) => [...m, mk('goal', '', { goal: g })]);
+        if (g.proposal) {
+          const task = { id: `goal-${g.goal.id}-${Date.now().toString(36)}`, kind: 'goal', risk: 'low', tags: ['MODEL', 'RULE'], title: both(`পরিকল্পনায় ${g.goal.name.bn} আগে`, `Weight the plan to ${g.goal.name.en}`), body: g.say, why: both('আপনার বলা লক্ষ্য থেকে', 'From the goal you gave'), nav: '/farmer/plan', effects: [g.proposal] };
+          offer(task); // always a "yes" from the farmer (POLICY.confirm); g.say already asks for it
+        }
+        return reply(lang === 'bn' ? g.say.bn : g.say.en, { tags: ['MODEL', 'RULE'], nav: g.proposal ? undefined : '/farmer/plan' });
+      }
+    }
+    if (BRIEF_Q.test(text)) {
+      const q = runCrew(role, role === 'farmer' ? fctx : { today: c.today }, { question: text, tasks });
+      if (q.top.length) {
+        const nav = q.top.find((n) => n.nav)?.nav;
+        setMessages((m) => [...m, mk('crew', '', { crew: q })]);
+        return reply(lang === 'bn' ? q.say.bn : q.say.en, { nav, tags: [...new Set(q.top.flatMap((n) => n.tags))] });
+      }
+    }
+    // Gemini (or Claude) when api/agent.js is on; the app's own brain otherwise (and whenever the network or the key fails).
     if (ai !== 'off' && navigator.onLine !== false) {
       setPhase('thinking');
       try {
         const sn = snap();
         const data = role === 'farmer'
-          ? { farmer: sn.farmer, plan: sn.plan, today: sn.today, soil: sn.soil, rotation: sn.rotation, requests: sn.requests, advisories: sn.advisories, compare: sn.compare, agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, title: t.title, body: t.body })) }
-          : { area: sn.area, upazila: sn.upazila, agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, request: t.request, title: t.title, body: t.body })) };
+          ? { farmer: sn.farmer, plan: sn.plan, today: sn.today, soil: sn.soil, rotation: sn.rotation, requests: sn.requests, advisories: sn.advisories, compare: sn.compare, crew_findings: crew.top.map((n) => ({ by: n.member, text: n.text })), agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, title: t.title, body: t.body })) }
+          : { area: sn.area, upazila: sn.upazila, crew_findings: crew.top.map((n) => ({ by: n.member, text: n.text })), agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, request: t.request, title: t.title, body: t.body })) };
         // Gemini can be slow to start; after half a minute the app's own engine answers instead of keeping the farmer waiting.
-        const r = await fetch('/api/agent', { signal: AbortSignal.timeout(32000), method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role, lang, message: text, history: messages.filter((m) => m.who !== 'task').slice(-8), data }) });
+        const r = await fetch('/api/agent', { signal: AbortSignal.timeout(32000), method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role, lang, message: text, history: messages.filter((m) => m.who === 'user' || m.who === 'bot').slice(-8), data }) });
         if (r.status === 503 || r.status === 404) setAi('off');
         else if (r.ok) {
           const j = await r.json();
@@ -233,7 +277,7 @@ export function useChakra(role) {
       }
     }
     return reply(res.say, { chips: res.chips, nav: res.nav });
-  }, [T, ai, dispatch, fromProposal, log, messages, offer, reply, role, run, scope, snap, tasks]);
+  }, [T, ai, crew, dispatch, fctx, fromProposal, log, messages, offer, reply, role, run, scope, snap, tasks]);
   const sendRef = useRef(send);
   sendRef.current = send;
 
@@ -242,20 +286,17 @@ export function useChakra(role) {
   const start = useCallback(() => {
     if (messages.length) return;
     const g = greeting(snap(), session.current);
-    const top = tasks.slice(0, 3);
-    const n = tasks.length;
-    const brief = !n ? null : role === 'farmer'
-      ? T(`আজ আপনার জন্য ${bnNum(n)}টি কাজ আছে। ${top.map((t) => t.title.bn).join('। ')}।${flags.current.mode === 'agent' ? ' এজেন্ট চালু আছে, জরুরি কিছু হলে আমি নিজেই অফিসে জানাব।' : ''}`,
-        `You have ${n} thing(s) today. ${top.map((t) => t.title.en).join('. ')}.${flags.current.mode === 'agent' ? ' The agent is on: I will tell the office myself if something is urgent.' : ''}`)
-      : T(`আপনার অনুমোদনের অপেক্ষায় ${bnNum(verdicts.length)}টি খসড়া, মোট ${bnNum(n)}টি কাজ। প্রথমটি: ${top[0].title.bn}।`, `${verdicts.length} draft(s) wait for your approval, ${n} task(s) in all. First: ${top[0].title.en}.`);
+    // The crew's three most important points, with a word on the agent when it is on.
+    const brief = crew.top.length ? T(`${crew.say.bn}${flags.current.mode === 'agent' && role === 'farmer' ? ' এজেন্ট চালু আছে, জরুরি কিছু হলে আমি নিজেই অফিসে জানাব।' : ''}`,
+      `${crew.say.en}${flags.current.mode === 'agent' && role === 'farmer' ? ' The agent is on: I will tell the office myself if something is urgent.' : ''}`) : null;
     setMessages([mk('bot', g.say, { chips: g.chips }), ...(brief ? [mk('bot', brief)] : [])]);
     say(brief ?? g.say);
-  }, [T, messages.length, role, say, snap, tasks, verdicts.length]);
+  }, [T, crew, messages.length, role, say, snap]);
   const stopAll = useCallback(() => { stopSpeaking(); try { rec.current?.abort(); } catch { /* idle */ } setPhase('idle'); }, []);
   useEffect(() => () => stopAll(), [stopAll]);
 
   return {
-    role, mode, setMode, tasks, verdicts, approve, act, reject, dismiss, audit, auditOk: verifyAudit(audit),
+    role, mode, setMode, tasks, verdicts, crew, caseList, approve, act, reject, dismiss, audit, auditOk: verifyAudit(audit),
     messages, phase, interim, voiceOn, setVoiceOn, voiceNote, ai, send, listen, stopAll, start,
   };
 }

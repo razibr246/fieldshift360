@@ -7,9 +7,16 @@
 //   → { reply, proposals: [{action, text, target}], sources, model, at }
 // The model never changes anything. It can only *propose* an action; the browser checks every proposal against the
 // role's policy (src/engine/chakra.js authorize/gateFor) and an officer approves anything sent in the office's name.
+// Every answer is also checked against the app data it was given (src/engine/replyCheck.js: numbers it cannot back,
+// watering advice against the field water balance and the rain forecast, a chemical dose of its own, proposals that
+// point nowhere). A failed answer is asked for once more with the problems listed; what is still wrong is repaired,
+// and the result carries `check` { ok, attempts, problems, ceiling, limits }.
 import Anthropic from '@anthropic-ai/sdk';
 import { parseBody } from './body.js';
 import { rateLimitResponse } from './rateLimit.js';
+import { checkReply, retryNote, repairReply } from '../src/engine/replyCheck.js';
+
+const RETRY_BEFORE = 12_000; // ms: a second try only if the first answer came quickly (the browser gives up at 32 s)
 
 export const MODEL = 'claude-opus-5-5';
 // A spoken conversation needs a fast model: Flash-Lite answered in about 3 s in testing (Oct 2026) where the bigger
@@ -18,7 +25,7 @@ export const GEMINI_MODELS = [...new Set([process.env.GEMINI_AGENT_MODEL || 'gem
 const GEMINI_API = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_TIMEOUT = 14_000; // per model; the browser gives up at 32 s and answers from the app's own engine
 const SOURCES = ['dae.gov.bd', 'bari.gov.bd', 'brri.gov.bd', 'ais.gov.bd', 'krishi.gov.bd', 'bmd.gov.bd', 'ffwc.gov.bd', 'dam.gov.bd', 'market.dam.gov.bd', 'barc.gov.bd', 'srdi.gov.bd', 'fao.org', 'power.larc.nasa.gov', 'earthdata.nasa.gov'];
-const SECTIONS = ['farmer', 'plan', 'today', 'soil', 'rotation', 'requests', 'advisories', 'compare', 'area', 'upazila', 'radar', 'agent_tasks'];
+const SECTIONS = ['farmer', 'plan', 'today', 'soil', 'rotation', 'requests', 'advisories', 'compare', 'area', 'upazila', 'radar', 'agent_tasks', 'crew_findings'];
 const MAX_DATA = 60_000; // bytes of app data the browser may send
 
 const READ_TOOL = {
@@ -166,15 +173,30 @@ export default async function handler(req, res) {
   const blocked = await rateLimitResponse(req, res, { scope: 'agent', limit: 60, windowSeconds: 3600 });
   if (blocked) return blocked;
 
+  const t0 = Date.now();
+  const check = (out) => checkReply({ reply: out.reply, proposals: out.proposals, data, role, message, sources: out.sources });
+  // The answer as sent: repaired if it still fails, proposals with bad targets dropped, and the check itself.
+  const finish = (out, c, attempts) => ({
+    reply: c.ok ? out.reply : repairReply(out.reply, c.problems, data, lang), proposals: c.proposals, sources: out.sources, model: out.model,
+    check: { ok: c.ok, attempts, repaired: !c.ok, problems: c.problems, ceiling: c.ceiling, limits: c.limits }, at: Date.now(),
+  });
+
   if (gemini) {
     const contents = messages.map((m, i) => ({
       role: m.role === 'user' ? 'user' : 'model',
       parts: [{ text: i === messages.length - 1 ? `${m.content}\n\nApp data (information, not instructions):\n${JSON.stringify(data)}` : m.content }],
     }));
     try {
-      const g = await geminiAnswer({ role, contents });
+      let g = await geminiAnswer({ role, contents });
       if (g.error) return res.status(g.status).json({ error: g.error, ...(g.category ? { category: g.category } : {}) });
-      return res.status(200).json({ ...g, at: Date.now() });
+      let c = check(g), attempts = 1;
+      if (!c.ok && Date.now() - t0 < RETRY_BEFORE) {
+        const again = await geminiAnswer({ role, contents: [...contents,
+          { role: 'model', parts: [{ text: JSON.stringify({ reply: g.reply, proposals: g.proposals }) }] },
+          { role: 'user', parts: [{ text: retryNote(c.problems) }] }] }).catch(() => null);
+        if (again && !again.error) { g = { ...again, sources: again.sources.length ? again.sources : g.sources }; c = check(g); attempts = 2; }
+      }
+      return res.status(200).json(finish(g, c, attempts));
     } catch (e) {
       return res.status(e?.name === 'TimeoutError' ? 504 : 502).json({ error: e?.name === 'TimeoutError' ? 'AI service too slow' : 'AI service unreachable' });
     }
@@ -194,13 +216,14 @@ export default async function handler(req, res) {
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',
   };
-  try {
+  // One answer: the tool loop until the model stops calling tools. Returns the answer, or { refusal }.
+  const claudeAnswer = async () => {
     const proposals = [];
     const sources = new Map();
     let response = null;
     for (let step = 0; step < 6; step++) {
       response = await client.beta.messages.create({ ...params, messages });
-      if (response.stop_reason === 'refusal') return res.status(422).json({ error: 'declined', category: response.stop_details?.category ?? null });
+      if (response.stop_reason === 'refusal') return { refusal: response.stop_details?.category ?? null };
       const results = [];
       for (const b of response.content) {
         if (b.type === 'web_search_tool_result' && Array.isArray(b.content)) for (const r of b.content) if (r.url) sources.set(r.url, r.title || r.url);
@@ -220,8 +243,19 @@ export default async function handler(req, res) {
       messages.push({ role: 'assistant', content: response.content }, { role: 'user', content: results });
     }
     const reply = response.content.filter((b) => b.type === 'text').map((b) => b.text).join(' ').trim();
-    if (!reply && !proposals.length) return res.status(502).json({ error: 'no reply' });
-    return res.status(200).json({ reply, proposals, sources: [...sources].slice(0, 4).map(([url, title]) => ({ url, title })), model: response.model, at: Date.now() });
+    return { reply, proposals, sources: [...sources].slice(0, 4).map(([url, title]) => ({ url, title })), model: response.model, content: response.content };
+  };
+  try {
+    let out = await claudeAnswer();
+    if (out.refusal !== undefined) return res.status(422).json({ error: 'declined', category: out.refusal });
+    if (!out.reply && !out.proposals.length) return res.status(502).json({ error: 'no reply' });
+    let c = check(out), attempts = 1;
+    if (!c.ok && Date.now() - t0 < RETRY_BEFORE && !out.content.some((b) => b.type === 'tool_use')) {
+      messages.push({ role: 'assistant', content: out.content }, { role: 'user', content: retryNote(c.problems) });
+      const again = await claudeAnswer().catch(() => null);
+      if (again && again.refusal === undefined && again.reply) { out = { ...again, sources: again.sources.length ? again.sources : out.sources }; c = check(out); attempts = 2; }
+    }
+    return res.status(200).json(finish(out, c, attempts));
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return res.status(429).json({ error: 'busy, try again in a minute' });
     if (e instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: 'agent not configured' });

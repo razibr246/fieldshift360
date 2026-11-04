@@ -17,10 +17,13 @@ export const MODES = ['manual', 'agent'];
 // What the agent may do on its own per role; anything outside a list is refused by authorize().
 // Farmers' own agent may tell them things, report their problem to the office and chase an unanswered one.
 // The officer's agent only drafts: every message to farmers, status change or escalation waits for the officer.
+// `confirm` actions are allowed but never automatic, not even in agent mode: marking one's own problem solved
+// (engine/path.js) and changing one's own plan priorities (engine/goal.js) are the farmer's word, not the agent's.
 export const POLICY = {
-  farmer: { auto: ['notify', 'addRequest', 'followUp'], verdict: [] },
-  officer: { auto: ['notify'], verdict: ['addAdvisory', 'updateRequest', 'escalate'] },
+  farmer: { auto: ['notify', 'addRequest', 'followUp'], confirm: ['closeRequest', 'setPriority'], verdict: [] },
+  officer: { auto: ['notify'], confirm: [], verdict: ['addAdvisory', 'updateRequest', 'escalate'] },
 };
+const PRIORITIES = ['water', 'income', 'risk', 'soil', 'early'];
 export const DAILY_AUTO_LIMIT = 12; // a runaway rule cannot flood the office: at most this many automatic actions a day
 const DAY = 86400000;
 
@@ -186,17 +189,23 @@ export function gateFor(role, mode, task) {
   const types = task.effects.map((e) => e.type);
   if (types.some((t) => POLICY[role]?.verdict.includes(t))) return 'verdict';
   if (types.every((t) => t === 'notify')) return 'auto'; // telling the person something never needs a yes
+  if (types.some((t) => POLICY[role]?.confirm?.includes(t))) return 'confirm';
   return mode === 'agent' && types.every((t) => POLICY[role]?.auto.includes(t)) ? 'auto' : 'confirm';
 }
 
 // scope: farmer/request ownership for a farmer; assigned unions and farmer lookup for an officer.
 export function authorize(role, effect = {}, scope = {}) {
   const p = POLICY[role];
-  if (!p || ![...p.auto, ...p.verdict].includes(effect.type)) return { ok: false, reason: 'not allowed for this role' };
+  if (!p || ![...p.auto, ...(p.confirm ?? []), ...p.verdict].includes(effect.type)) return { ok: false, reason: 'not allowed for this role' };
   if (role === 'farmer') {
     if (effect.type === 'addRequest' && effect.req?.farmerId !== scope.farmerId) return { ok: false, reason: 'another farmer’s request' };
     if (effect.type === 'addRequest' && effect.req?.union !== scope.union) return { ok: false, reason: 'another farmer’s union' };
     if (effect.type === 'addRequest' && (sanitize(effect.req?.text?.bn, 400) !== effect.req?.text?.bn || sanitize(effect.req?.text?.en, 400) !== effect.req?.text?.en)) return { ok: false, reason: 'unclean text' };
+    if (effect.type === 'closeRequest') {
+      const request = scope.requestOf?.(effect.id);
+      if (!request || request.farmerId !== scope.farmerId) return { ok: false, reason: 'another farmer’s request' };
+    }
+    if (effect.type === 'setPriority' && !PRIORITIES.includes(effect.id)) return { ok: false, reason: 'unknown priority' };
     if (effect.type === 'followUp') {
       const request = scope.requestOf?.(effect.esc?.request);
       if (!request || request.farmerId !== scope.farmerId || request.union !== effect.esc?.union) return { ok: false, reason: 'another farmer’s request' };
