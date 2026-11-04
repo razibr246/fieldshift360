@@ -33,6 +33,7 @@ const Support = load(() => import('./pages/farmer/Support'));
 const Profile = load(() => import('./pages/farmer/Profile'));
 const Harvest = load(() => import('./pages/farmer/Harvest'));
 const FieldFuture = load(() => import('./pages/farmer/FieldFuture'));
+const Signals = load(() => import('./pages/farmer/Signals'));
 const MyFarm = load(() => import('./pages/farmer/MyFarm'));
 const FarmerVoice = load(() => import('./pages/farmer/Voice'));
 const SmsMode = load(() => import('./pages/farmer/SmsMode'));
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="profile" element={page(<Profile />)} />
           <Route path="harvest" element={page(<Harvest />)} />
           <Route path="future" element={page(<FieldFuture />)} />
+          <Route path="signals" element={page(<Signals />)} />
           <Route path="farm" element={page(<MyFarm />)} />
           <Route path="voice" element={page(<FarmerVoice />)} />
           <Route path="sms" element={page(<SmsMode />)} />

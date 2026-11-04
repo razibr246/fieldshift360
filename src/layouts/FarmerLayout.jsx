@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
-import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, HandCoins, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText } from 'lucide-react';
+import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, HandCoins, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText, Satellite } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, ResetDemo, BackButton, SkipToMain } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
@@ -26,6 +26,7 @@ export function useFarmerNav() {
     { to: '/farmer/help', icon: LifeBuoy, label: T('সাহায্য', 'Help') },
     { to: '/farmer/support', icon: HandCoins, label: T('সরকারি সহায়তা', 'Govt support'), short: T('সহায়তা', 'Support') },
     { to: '/farmer/harvest', icon: Wheat, label: T('ফসল তোলা ও বিক্রি', 'Harvest'), mid: T('ফসল তোলা', 'Harvest'), short: T('ফসল তোলা', 'Harvest') },
+    { to: '/farmer/signals', icon: Satellite, label: T('মাঠের সংকেত', 'Field signals'), short: T('সংকেত', 'Signals') },
   ];
 }
 

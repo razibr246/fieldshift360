@@ -63,6 +63,20 @@ export function cropWaterNeed(clim, crop, t0) {
   return seen.get(key);
 }
 
+// Each recent season's own irrigation need (mm, puddling included) for the same planting day: the spread behind the
+// median above, for showing how much the need moves from one year's weather to the next.
+export function seasonNeeds(clim, crop, t0) {
+  if (!FAO56[crop.id]) return [];
+  const m = new Date(t0).getUTCMonth(), d = new Date(t0).getUTCDate();
+  const puddle = FAO56[crop.id].puddle ?? 0;
+  const out = [];
+  for (let y = 2013; y <= 2026; y++) {
+    const r = seasonNeed(clim, crop.id, ymd(m >= 8 ? y - 1 : y, m + 1, d), crop.days);
+    if (r) out.push({ season: y, mm: r.need + puddle, rain: r.rain });
+  }
+  return out;
+}
+
 function waterNeed(clim, crop, t0) {
   const m = new Date(t0).getUTCMonth(), d = new Date(t0).getUTCDate();
   const rows = [];
