@@ -89,6 +89,22 @@ Yields are FAOSTAT 2024 national averages (real data), not thresholds.
 | Heavy and very heavy rain | 44 mm or more, and 89 mm or more, in a day (June–September) | Bangladesh Meteorological Department rainfall classes | |
 | Cold at flowering | Days with mean temperature below 20 °C | Consistent with BRRI's cold-injury guidance for rice at booting and flowering | |
 
+## Spraying weather (`src/engine/spray.js`)
+
+Each daylight hour (6:00–18:00) of the next two days with daylight, from the live Open-Meteo forecast, is marked
+"good", "take care" or "not now" before a pesticide, fungicide or foliar feed goes on (Today and the crop doctor).
+The product label always decides; this only reads the weather.
+
+| Rule | Good | Take care | Not now | Source |
+| --- | --- | --- | --- | --- |
+| Wind at 10 m | 3–15 km/h | under 3 km/h (still air, possible inversion) | over 15 km/h (drift) | GRDC "Managing spray drift"; Ontario OMAFA "Pesticide drift from ground applications" |
+| Delta T (air minus wet-bulb, Stull 2011) | 2–8 °C | 8–10 °C (use coarse drops), under 2 °C (run-off) | over 10 °C (drops evaporate) | GRDC |
+| Rain chance, this hour and the next 4 | under 30% | 30–49% | 50% or more (washed off) | Common label rain-fast advice; the label's own rain-fast time overrides |
+
+A good window is two or more good hours in a row; the longest (then earliest) is named. Known limits: the forecast
+wind is at 10 m over a 9–11 km grid cell, not at boom height in the field; the 4-hour rain window is a single rule
+for products whose rain-fast times range from under an hour to a day.
+
 ## What a reviewer should send back
 
 For each line: agree, or the corrected value with its source (a BARI/BRRI/DAE guide, a crop calendar, local

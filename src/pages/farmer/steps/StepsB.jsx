@@ -97,7 +97,7 @@ function FieldBasis({ rec }) {
   const total = rec.bt.then.n + rec.bt.now.n, safe = rec.bt.then.safe + rec.bt.now.safe;
   const station = clim.prov.corrected?.station;
   const ph = phWord(soil.ph);
-  const fp = fertilizerPlan(srdiUnion, rec.crop.id, { areaDec: farmer.area_dec, landform: soil.landform });
+  const fp = fertilizerPlan(srdiUnion, rec.crop.id, { land: soil.tested?.land, areaDec: farmer.area_dec, landform: soil.landform });
   const fert = fp && !fp.none ? fp.items.filter((i) => i.kg > 0).slice(0, 3) : [];
   const m = rec.money;
   const rows = [
@@ -107,10 +107,10 @@ function FieldBasis({ rec }) {
       src: activeParcel && !activeParcel.pending && activeParcel.verified
         ? T(`উপজেলা কৃষি অফিসের নিবন্ধন, যাচাই ${fmtDate(Date.parse(activeParcel.verified), 'bn')}`, `Upazila agriculture office registry, checked ${fmtDate(Date.parse(activeParcel.verified), 'en')}`)
         : T('আপনার দেওয়া তথ্য; কৃষি অফিসের যাচাই বাকি', 'From you; the agriculture office has not checked it yet') },
-    soil.ph != null && { icon: Layers, k: T('মাটি', 'Soil'), tag: 'MODEL',
+    soil.ph != null && { icon: Layers, k: T('মাটি', 'Soil'), tag: soil.tested ? 'RECORD' : 'MODEL',
       v: T(`pH ${num(soil.ph, 'bn', { dp: 1 })} (${ph.bn})${TEXTURE[soil.texture] ? `, ${TEXTURE[soil.texture].bn}` : ''}`, `pH ${num(soil.ph, 'en', { dp: 1 })} (${ph.en})${TEXTURE[soil.texture] ? `, ${TEXTURE[soil.texture].en.toLowerCase()}` : ''}`),
       sub: rec.soilNotes.slice(1).map(L).join('। ') || L(rec.soilNotes[0]),
-      src: soil.scope === 'field'
+      src: soil.tested ? T(`আপনার মাটি পরীক্ষা (${soil.tested.date}${soil.tested.lab ? `, ${soil.tested.lab}` : ''}): pH আর জৈব পদার্থ মাপা`, `Your soil test (${soil.tested.date}${soil.tested.lab ? `, ${soil.tested.lab}` : ''}): measured pH and organic matter`) : soil.scope === 'field'
         ? T('ISRIC SoilGrids, আপনার জমির ২৫০ মিটারের ঘর। উপগ্রহ-মডেলের হিসাব, মাটি পরীক্ষা নয়।', 'ISRIC SoilGrids, your field’s 250 m cell. A model estimate, not a soil test.')
         : T('ISRIC SoilGrids, ইউনিয়নের মাঝখান। আপনার জমির নিজের মাপ নয়।', 'ISRIC SoilGrids at the union centre, not your own field.') },
     { icon: CloudSun, k: T('আবহাওয়া', 'Weather'), tag: clim.prov.status === 'REAL' ? 'MODEL' : 'PLACEHOLDER',
@@ -335,7 +335,7 @@ export function StepRotation() {
     { icon: Layers, k: T('আপনার জমির মাটি', 'Your field’s soil'), tag: soilTag(),
       v: T(`pH ${num(soil.ph, 'bn', { dp: 1 })}${DRAIN_WORD[soil.drainage] ? `, ${DRAIN_WORD[soil.drainage].bn}` : ''}`, `pH ${num(soil.ph, 'en', { dp: 1 })}${DRAIN_WORD[soil.drainage] ? `, ${DRAIN_WORD[soil.drainage].en}` : ''}`),
       sub: b.soilNotes.slice(1).map(L).join('। ') || L(b.soilNotes[0]),
-      src: soil.scope === 'field' ? T('ISRIC SoilGrids, আপনার জমির ২৫০ মিটারের ঘর; মডেলের হিসাব, মাটি পরীক্ষা নয়', 'ISRIC SoilGrids, your field’s 250 m cell; a model estimate, not a soil test') : T('ISRIC SoilGrids, ইউনিয়নের মাঝখান', 'ISRIC SoilGrids, union centre') },
+      src: soil.tested ? T(`আপনার মাটি পরীক্ষা (${soil.tested.date}${soil.tested.lab ? `, ${soil.tested.lab}` : ''}): pH আর জৈব পদার্থ মাপা`, `Your soil test (${soil.tested.date}${soil.tested.lab ? `, ${soil.tested.lab}` : ''}): measured pH and organic matter`) : soil.scope === 'field' ? T('ISRIC SoilGrids, আপনার জমির ২৫০ মিটারের ঘর; মডেলের হিসাব, মাটি পরীক্ষা নয়', 'ISRIC SoilGrids, your field’s 250 m cell; a model estimate, not a soil test') : T('ISRIC SoilGrids, ইউনিয়নের মাঝখান', 'ISRIC SoilGrids, union centre') },
     { icon: Droplet, k: T('পানি', 'Water'), tag: 'RULE',
       v: b.water ? T(`পুরো ফলনে প্রায় ${num(b.water.mm, 'bn')} মিমি`, `About ${b.water.mm} mm for a full yield`) : T('মিলিমিটারে মাপা হয়নি', 'Not estimated in mm'),
       sub: b.water ? T(`বিঘায় ${num(b.water.m3PerBigha, 'bn')} ঘনমিটার, বৃষ্টি বাদ দিয়ে`, `${b.water.m3PerBigha} m³ a bigha, after rain`) : T('FAO-56-এ এই ফসলের সহগ নেই', 'FAO-56 has no coefficients for this crop'),

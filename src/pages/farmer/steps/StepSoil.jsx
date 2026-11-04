@@ -23,7 +23,7 @@ export default function StepSoil() {
   const { s, T, L, soil, union, chosen, farmer, activeParcel, srdiUnion } = useStore();
   const lang = s.lang;
   const [crop, setCrop] = useState(chosen.crop.id);
-  const [land, setLand] = useState(null);
+  const [land, setLand] = useState(soil.tested?.land ?? null);
   const [phys, setPhys] = useState(null);
   const area = activeParcel?.area_dec ?? farmer.area_dec;
   const plan = fertilizerPlan(srdiUnion, crop, { land, areaDec: area, phys, landform: soil.landform });
@@ -55,7 +55,7 @@ export default function StepSoil() {
       <Card className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-[17px] font-bold"><Layers size={18} className="text-clay-500" />{T('মাটির ধরন, ওপরের ৩০ সেমি', 'The soil, top 30 cm')}</h3>
-          <span className="text-[12.5px] text-muted">{soil.scope === 'field' ? T('আপনার জমির ২৫০ মিটারের ঘর', 'Your field’s 250 m cell') : T('ইউনিয়নের মাঝখান', 'Union centre')}</span>
+          <span className="text-[12.5px] text-muted">{soil.tested ? T('pH ও জৈব পদার্থ: আপনার মাটি পরীক্ষা', 'pH and organic matter: your soil test') : soil.scope === 'field' ? T('আপনার জমির ২৫০ মিটারের ঘর', 'Your field’s 250 m cell') : T('ইউনিয়নের মাঝখান', 'Union centre')}</span>
         </div>
 
         <div className="mt-4">
@@ -64,7 +64,7 @@ export default function StepSoil() {
             <span className="flex items-baseline gap-2"><span className="font-display text-[22px] font-bold">{num(soil.ph, lang, { dp: 1 })}</span>{ph && <span className={`rounded-full px-2 py-0.5 text-[12.5px] font-semibold ring-1 ${TONE[ph.tone]}`}>{L(ph)}</span>}</span>
           </div>
           <PhBar ph={soil.ph} range={soil.ph_range} lang={lang} T={T} />
-          <p className="mt-1.5 text-[12.5px] text-muted">{T(`সবুজ ঘর: SRDI-র হিসাবে pH ${num(PH_GOOD[0], 'bn', { dp: 1 })}–${num(PH_GOOD[1], 'bn', { dp: 1 })}-এ ফসল সবচেয়ে সহজে খাবার পায়। ধূসর দাগ: মানচিত্রের ৯০% অনিশ্চয়তা (${num(soil.ph_range?.[0], 'bn', { dp: 1 })}–${num(soil.ph_range?.[1], 'bn', { dp: 1 })})।`, `Green band: SRDI’s pH ${PH_GOOD[0]}–${PH_GOOD[1]}, where crops take up nutrients most easily. Grey: the map’s 90% range (${soil.ph_range?.[0]}–${soil.ph_range?.[1]}).`)}</p>
+          <p className="mt-1.5 text-[12.5px] text-muted">{T(`সবুজ ঘর: SRDI-র হিসাবে pH ${num(PH_GOOD[0], 'bn', { dp: 1 })}–${num(PH_GOOD[1], 'bn', { dp: 1 })}-এ ফসল সবচেয়ে সহজে খাবার পায়। ${soil.ph_range ? `ধূসর দাগ: মানচিত্রের ৯০% অনিশ্চয়তা (${num(soil.ph_range[0], 'bn', { dp: 1 })}–${num(soil.ph_range[1], 'bn', { dp: 1 })})।` : 'কালো দাগ: আপনার মাটি পরীক্ষার pH।'}`, `Green band: SRDI’s pH ${PH_GOOD[0]}–${PH_GOOD[1]}, where crops take up nutrients most easily.${soil.ph_range ? ` Grey: the map’s 90% range (${soil.ph_range[0]}–${soil.ph_range[1]}).` : ' The mark is your soil test’s pH.'}`)}</p>
         </div>
         {soil.ph_range && soil.ph_range[1] - soil.ph_range[0] > 2 && (
           <p className="mt-2 flex gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[13px] leading-5 text-amber-900 ring-1 ring-amber-200"><AlertTriangle size={15} className="mt-0.5 shrink-0" />

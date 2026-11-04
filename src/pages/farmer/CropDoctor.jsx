@@ -17,6 +17,7 @@ import { readField } from '../../engine/fieldwatch';
 import { num, bnDigits, fmtDate } from '../../engine/dates';
 import { bnOf } from '../../engine/text';
 import { clockText } from '../../engine/forecast';
+import SprayCheck from '../../components/fields/SprayCheck';
 
 const THRESHOLD = 0.7;
 const MAX_SIDE = 1568; // cap upload size before the server-side image review
@@ -632,6 +633,7 @@ export default function CropDoctor() {
                     <div><b>{T('ওষুধ লাগলে', 'If a chemical is needed')}: </b>{rep.treatment_note}</div>
                   </div>
                 )}
+                {rep.treatment_note && <div className="mt-3"><SprayCheck lat={farmer.lat} lon={farmer.lon} compact /></div>}
 
                 {rep.call_officer_if && (
                   <p className="mt-3.5 flex items-center gap-2 text-[14px] leading-6 text-ink/80">

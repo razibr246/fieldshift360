@@ -11,9 +11,11 @@ import { PageHeader, Card, Note, Tags, Tag } from '../../components/ui';
 import { IRRIGATION } from '../../engine/crops';
 import { bnOf } from '../../engine/text';
 import { num, fmtDate, parseISO } from '../../engine/dates';
-import { supportProfile, matchSupport, askSupport, firstSteps, countFits, KINDS, STATUS, FIT } from '../../engine/support';
+import { supportProfile, matchSupport, askSupport, firstSteps, countFits, evalAsk, KINDS, STATUS, FIT } from '../../engine/support';
+import { ASK_EVAL } from '../../data/support/ask_eval';
 import { BD_SUPPORT, AREA_TYPE, CHECKED } from '../../data/support/bd_support';
 
+const ASK_SCORE = evalAsk(ASK_EVAL, BD_SUPPORT); // measured once, on questions it was not tuned to
 const AMAN = { id: 'aman', name: { bn: 'আমন ধান', en: 'Aman rice' } };
 const FIT_STYLE = {
   yes: { icon: CheckCircle2, ring: 'ring-primary-200', chip: 'bg-primary-100 text-primary-800' },
@@ -115,7 +117,7 @@ export default function Support() {
                   {hits.map(({ p }) => <li key={p.id}><a href={`#sp-${p.id}`} onClick={(e) => { e.preventDefault(); document.getElementById(`sp-${p.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="flex min-h-[44px] items-center gap-2 rounded-xl px-2 text-[14.5px] font-semibold text-primary-800 hover:bg-primary-50"><ArrowRight size={14} aria-hidden="true" />{L(p.name)}</a></li>)}
                 </ul>
               ) : <p className="text-[14px] text-muted">{T('এই তালিকায় মিল পাওয়া গেল না। কৃষি কল সেন্টার ১৬১২৩-এ ফোন করুন, বা কর্মকর্তাকে জিজ্ঞেস করুন।', 'Nothing in this list matches. Call the Krishi Call Centre on 16123, or ask your officer.')}</p>}
-              <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-muted"><Tags list={['RULE']} />{T('শব্দ মিলিয়ে খোঁজা, ইন্টারনেট ছাড়াই', 'Word matching, works offline')}</p>
+              <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[12px] text-muted"><Tags list={['RULE']} />{T(`শব্দ মিলিয়ে খোঁজা, ইন্টারনেট ছাড়াই। কৃষকের ভাষায় লেখা ${num(ASK_SCORE.n, 'bn')}টি প্রশ্নে পরীক্ষা: ${num(Math.round(ASK_SCORE.hit1 * ASK_SCORE.n), 'bn')}টিতে ঠিক উত্তর প্রথমে, ${num(Math.round(ASK_SCORE.hit3 * ASK_SCORE.n), 'bn')}টিতে প্রথম তিনের মধ্যে।`, `Word matching, works offline. Tested on ${ASK_SCORE.n} questions in farmers' words: right answer first in ${Math.round(ASK_SCORE.hit1 * ASK_SCORE.n)}, in the top three in ${Math.round(ASK_SCORE.hit3 * ASK_SCORE.n)}.`)}</p>
             </div>
           )}
         </Card>

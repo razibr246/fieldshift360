@@ -52,6 +52,7 @@ a tag: **NASA/real data**, **rule** (our calculation or threshold), **AI**, or *
 
 | Dataset | Real/Sample | Source | URL | Date fetched | Used where |
 | --- | --- | --- | --- | --- | --- |
+| The farmer's own soil test (`soilTests` in the saved state; not a file): pH, organic matter %, total N %, SRDI land type and test date, typed in from an SRDI or other lab report | Real when the report is real (hand-entered; checked for typing slips, `src/engine/soiltest.js`) | The farmer's lab report | — | entered by the user | Replaces SoilGrids pH, organic matter and N for that field in every calculation; the SRDI land type picks the fertiliser row; the estimate is shown beside it on My field |
 | `src/data/soil/soil_godagari.json`, `soil_dhamrai.json` (and the five other upazilas): pH, organic carbon/matter, total N, texture, CEC, bulk density, WRB soil group per union | Real (model estimate, not a soil test) | ISRIC SoilGrids 2.0, 250 m, thickness-weighted 0–30 cm (CC BY 4.0) | https://soilgrids.org | 2026-10-19 | Crop suitability (pH, drainage), soil panels, voice answers |
 | `drainage` in the soil files | Rule | Derived from the dominant WRB group (`scripts/build/build_soil.py`: Gleysols/Planosols/Stagnosols/Histosols = poor; Arenosols/Regosols/Leptosols = good; else imperfect) | — | — | Well-drained crop check |
 | `src/data/soil/soil_fields.json` | Real (model estimate) | ISRIC SoilGrids at each registered field | as above | 2026-10-19 | Field pages |

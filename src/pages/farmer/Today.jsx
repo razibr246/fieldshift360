@@ -13,6 +13,7 @@ import { readField } from '../../engine/fieldwatch';
 import { WATER_COLORS, fetchLiveWeather } from '../../engine/water';
 import { FIELD_EFF, ROOTS } from '../../engine/fieldwater';
 import { fertilizerPlan } from '../../engine/soil';
+import SprayCheck from '../../components/fields/SprayCheck';
 import { num, fmtDate, fmtBangla, bnDigits, iso, parseISO, daysBetween } from '../../engine/dates';
 
 const WEEKDAY = { bn: ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র', 'শনি'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] };
@@ -118,7 +119,7 @@ export default function Today() {
   const wx = liveWeather ? s.live : null;
   const alerts = forecastAlerts(wx, crop, dToday);
   const fieldName = activeParcel ? L(activeParcel.name) : T('আপনার জমি', 'your field');
-  const fp = dToday < 0 ? fertilizerPlan(srdiUnion, crop.id, { areaDec: farmer.area_dec, landform: soil.landform }) : null;
+  const fp = dToday < 0 ? fertilizerPlan(srdiUnion, crop.id, { land: soil.tested?.land, areaDec: farmer.area_dec, landform: soil.landform }) : null;
   const irrigatedOn = s.irrigated[farmer.id];
 
   // A red signal tells the farmer's officer automatically (once per farmer).
@@ -289,6 +290,7 @@ export default function Today() {
               {alerts.map((a, i) => <Note key={i} tone={a.tone === 'warn' ? 'warn' : 'gold'}>{L(a)}</Note>)}
               {chosen.glut.level !== 'Low' && <Note tone="gold">{T(`ফসল তোলার সময় আপনার ইউনিয়নে দাম পড়ার ঝুঁকি ${chosen.glut.level === 'High' ? 'বেশি' : 'মাঝারি'}। পরিকল্পনার শেষ ধাপে তারিখ বদলে দেখুন।`, `${chosen.glut.level} price-drop risk in your union at harvest. Try another date in the last planning step.`)}</Note>}
             </div>
+            <div className="mt-4"><SprayCheck lat={farmer.lat} lon={farmer.lon} /></div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button to="/farmer/doctor" variant="secondary"><ScanLine size={16} />{T('পাতার ছবি পরীক্ষা', 'Check a leaf photo')}</Button>
               <Button to="/farmer/help" variant="ghost"><AlertTriangle size={16} />{T('কর্মকর্তাকে জানান', 'Tell your officer')}</Button>

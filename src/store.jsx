@@ -33,6 +33,7 @@ import { loadSharedPlans, sendSharedPlan } from './engine/sharedPlans.js';
 import { loadMessages, postMessage } from './engine/sharedMessages.js';
 import { PLAN_SEASON } from './engine/climate.js';
 import { appendAudit } from './engine/chakra.js';
+import { applyTest } from './engine/soiltest.js';
 
 // One NASA POWER record per upazila (60–100 KB each over the wire), fetched only when a page needs it: Godagari before
 // the first screen (the default farmer and the public pages' `clim` / `tm`), any other upazila when a farmer or officer
@@ -64,7 +65,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies', 'chakra'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies', 'chakra', 'soilTests'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 
@@ -81,6 +82,7 @@ const fresh = () => ({
   pick: null, // {crop, shift} chosen by the farmer; null = follow the recommendation
   confirmed: [], // plans confirmed by demo farmers -> added to union supply
   harvests: {}, // farmerId -> { qty, price }
+  soilTests: {}, // parcel id (or farmer id without a parcel) -> the farmer's own soil test (engine/soiltest.js)
   fieldCheck: null,
   irrigated: {}, // farmerId -> 'YYYY-MM-DD' the farmer last irrigated (restarts the field water balance)
   whatIf: 'normal', // what-if season for the recommendation: normal | dry | hot1 | hot2, or the sliders' 'c:<°C>:<rain factor>' (not saved)
@@ -141,6 +143,8 @@ function reducer(s, a) {
     }
     // A field marked or moved by the farmer waits for the upazila office (pending); the office verifies it or puts
     // it back where the registry has it.
+    case 'saveSoilTest': return { ...s, soilTests: { ...s.soilTests, [a.id]: a.test } };
+    case 'clearSoilTest': { const { [a.id]: _gone, ...rest } = s.soilTests ?? {}; return { ...s, soilTests: rest }; }
     case 'saveParcel': return { ...s, parcelEdits: { ...s.parcelEdits, [a.parcel.id]: { ...s.parcelEdits[a.parcel.id], ...a.parcel } } };
     case 'verifyParcel': return { ...s, parcelEdits: { ...s.parcelEdits, [a.id]: { ...s.parcelEdits[a.id], pending: false, source: 'office', verified: a.date } } };
     case 'resetParcel': {
@@ -211,8 +215,10 @@ export function StoreProvider({ children }) {
     const phys = (srdiUnion?.physiography ?? []).filter(Boolean);
     // SRDI's soil types: river silt (পলি মাটি) everywhere, and khiyar soil (খিয়ার মাটি) on Godagari's Barind uplands.
     const landform = upazilaOfUnion(farmer.union).id === 'godagari' && phys.some((x) => has(x, 'খিয়ার')) ? 'barind' : phys.length ? 'floodplain' : null;
-    return { ...unionSoil, ...(here ? fs : {}), scope: here ? 'field' : 'union', landform, physiography: phys };
-  }, [unionSoil, activeParcel, farmer.lat, farmer.lon, farmer.union, srdiUnion]);
+    // The farmer's own soil test, where entered, is laid over the estimate (the estimate kept in soil.tested).
+    const test = s.soilTests?.[activeParcel?.id ?? farmer.id];
+    return applyTest({ ...unionSoil, ...(here ? fs : {}), scope: here ? 'field' : 'union', landform, physiography: phys }, test);
+  }, [unionSoil, activeParcel, farmer.lat, farmer.lon, farmer.union, farmer.id, srdiUnion, s.soilTests]);
   // The farmer's upazila (from their union) sets the climate and neighbours they are planned against.
   const upazila = upazilaOfUnion(farmer.union);
   const officerUpazila = UPAZILAS[s.officerUpazila] ?? UPAZILAS.godagari;

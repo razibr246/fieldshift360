@@ -19,7 +19,7 @@ export default function ActCard() {
   const nav = useNavigate();
   const rec = chosen;
   const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(activeParcel?.id), tm, land: landSummary(upazila.id), field: fieldGreen(activeParcel?.id, upazila.id) }), [activeParcel?.id, tm, upazila.id]);
-  const checks = beforeYouAct({ rec, soilScope: soil.scope, risks, irrigation: farmer.irrigation, glutLevel: rec.glut.level });
+  const checks = beforeYouAct({ rec, soilScope: soil.scope, soilTested: soil.tested?.date, risks, irrigation: farmer.irrigation, glutLevel: rec.glut.level });
   const [done, setDone] = useState({});
   const field = activeParcel ? L(activeParcel.name) : T('আমার জমি', 'My field');
   const text = compareText({ cols: seasonColumns(d, farmer.last_crop), lang, field, firm: margin(d.options).close ? 'close' : 'fair' });

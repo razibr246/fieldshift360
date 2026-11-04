@@ -21,7 +21,7 @@ export default function DataCoverage() {
   const { T, L, clim, soil, upazila, activeParcel, today, liveWeather } = useStore();
   const p = activeParcel;
   const rows = coverage({
-    today, climEnd: clim?.prov?.end, soilScope: soil?.scope, srdi: true,
+    today, climEnd: clim?.prov?.end, soilScope: soil?.scope, soilTested: soil?.tested?.date, srdi: true,
     terrain: !!fieldTerrain(p?.id), fieldNdvi: !!fieldGreen(p?.id, upazila.id), landsat: !!landsatThenNow(p?.id, upazila.id),
     watch: !!(p && savedWatch(p)), watchEnd: WATCH_PROV.window?.[1],
     cmip6: !!deltas.upazilas?.[upazila.id], priceYearMin: years.length ? Math.min(...years) : null,

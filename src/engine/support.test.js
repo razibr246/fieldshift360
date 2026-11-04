@@ -2,7 +2,7 @@
 // programme sourced and dated.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { holdingClass, supportProfile, matchOne, matchSupport, askSupport, firstSteps, countFits, KINDS, STATUS } from './support.js';
+import { holdingClass, supportProfile, matchOne, matchSupport, askSupport, firstSteps, countFits, evalAsk, KINDS, STATUS } from './support.js';
 import { BD_SUPPORT, AREA_TYPE, CHECKED } from '../data/support/bd_support.js';
 import { IN_SUPPORT } from '../data/support/in_support.js';
 
@@ -91,4 +91,16 @@ test('the question box finds programmes in Bangla, English and Bangla digits', (
   assert.equal(askSupport('বিমা', BD_SUPPORT)[0].p.id, 'wibci');
   assert.deepEqual(askSupport('   ', BD_SUPPORT), []);
   assert.deepEqual(askSupport('xyzzy', BD_SUPPORT), []);
+});
+
+test('the question box is measured on farmer-style questions it was not tuned to', async () => {
+  const { ASK_EVAL } = await import('../data/support/ask_eval.js');
+  const r = evalAsk(ASK_EVAL, BD_SUPPORT);
+  assert.ok(r.n >= 20);
+  for (const c of ASK_EVAL) assert.ok(byId(BD_SUPPORT, c.want), c.want);
+  // Floors, not targets: a change to the keywords or the scoring must not make it worse than measured on 2026-11-04
+  // (hit@1 21/24, hit@3 24/24, MRR 0.94).
+  assert.ok(r.hit1 >= 0.85, `hit@1 ${r.hit1}`);
+  assert.ok(r.hit3 >= 0.95, `hit@3 ${r.hit3}`);
+  assert.ok(r.mrr >= 0.9, `MRR ${r.mrr}`);
 });

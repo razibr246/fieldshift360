@@ -3,6 +3,7 @@
 import { WHAT_IFS, whatIf } from './climate.js';
 import { decide } from './decision.js';
 import { bnOf } from './text.js';
+import { bnDigits } from './dates.js';
 
 export const FACTORS = ['C', 'W', 'S', 'P', 'R', 'G', 'E', 'F'];
 // Two options whose scores are this close (of 100) are a tie for practical purposes: the inputs (25 seasons of
@@ -82,7 +83,7 @@ export const DECISION_INPUTS = {
 
 // What to check on the ground before acting on the advice. Each item says why it is needed for this field.
 // risks: fieldRisks() items (may be empty); soilScope: 'field' | 'union'.
-export function beforeYouAct({ rec, soilScope = 'field', risks = [], irrigation = null, glutLevel = 'Low' }) {
+export function beforeYouAct({ rec, soilScope = 'field', soilTested = null, risks = [], irrigation = null, glutLevel = 'Low' }) {
   const id = rec.crop.id;
   const out = [
     { k: 'soil', bn: 'মাটির সংখ্যাগুলো উপগ্রহ-মডেলের আনুমানিক হিসাব, আপনার জমির মাটি পরীক্ষা নয়। সার দেওয়ার আগে উপজেলা কৃষি অফিস বা SRDI-এর ভ্রাম্যমাণ ল্যাবে মাটি পরীক্ষা করিয়ে নিন।', en: 'The soil numbers are a model estimate, not a test of your field. Have the soil tested (upazila agriculture office or SRDI’s mobile lab) before you buy fertiliser.' },
@@ -90,6 +91,7 @@ export function beforeYouAct({ rec, soilScope = 'field', risks = [], irrigation 
     { k: 'date', bn: 'লাগানোর তারিখে জমি খালি হবে কি না দেখুন: আগের ফসল উঠে গেছে, জমি চাষের মতো শুকিয়েছে।', en: 'Make sure the field is free on the planting date: the last crop is off and the soil is dry enough to plough.' },
   ];
   if (soilScope !== 'field') out[0] = { k: 'soil', bn: 'মাটির তথ্য ইউনিয়নের মাঝখানের, আপনার জমির নয়। জমি মানচিত্রে দিলে জমির নিজের ঘরের হিসাব আসবে; তবু সারের আগে মাটি পরীক্ষা করান।', en: 'The soil figures are for the union centre, not your field. Put your field on the map for its own cell, and still test the soil before fertilising.' };
+  if (soilTested) out[0] = { k: 'soil', bn: bnDigits(`আপনার মাটি পরীক্ষার (${soilTested}) pH আর জৈব পদার্থ ধরে হিসাব হয়েছে। সারের মাত্রা রিপোর্টের সঙ্গে মিলিয়ে নিন; ৩ বছর পর আবার পরীক্ষা করান।`), en: `Worked on your soil test (${soilTested}) for pH and organic matter. Match the fertiliser to the report; test again after 3 years.` };
   if (['boro', 'tomato', 'wheat'].includes(id) || irrigation === 'rain') out.push({ k: 'water', bn: 'পুরো মৌসুমে সেচের পানি পাবেন কি না, পাম্প বা গভীর নলকূপের পালা আর খরচ নিশ্চিত করুন।', en: 'Confirm you will have water all season: your pump or deep tube well turn, and its cost.' });
   const wet = risks.find((r) => r.k === 'wet' && r.level >= 1);
   if (wet && !['boro', 'aus', 'aman', 'jute'].includes(id)) out.push({ k: 'drain', bn: 'জমিতে পানি জমার ঝুঁকি আছে: ভারী বৃষ্টির পর পানি বের করার নালা আছে কি না দেখুন।', en: 'Water can stand on this field: check there is a drain to let it out after heavy rain.' });

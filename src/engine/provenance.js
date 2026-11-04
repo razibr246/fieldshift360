@@ -30,6 +30,9 @@ export const DATASETS = [
   { id: 'soilgrids', kind: 'MODEL', use: 'calc', name: t('ISRIC SoilGrids মাটি', 'ISRIC SoilGrids soil'), years: t('মানচিত্র ২০২০', 'map of 2020'), scale: t('২৫০ মিটার ঘর, ওপরের ৩০ সেমি', '250 m cell, top 30 cm'),
     what: t('pH, বুনট, জৈব কার্বন, ঘনত্ব: বিশ্বের মাটির নমুনা থেকে মেশিন লার্নিং দিয়ে আনুমানিক মানচিত্র', 'pH, texture, organic carbon, density: a machine-learning estimate from soil samples worldwide'),
     limit: t('মডেলের আনুমানিক হিসাব, আপনার জমির মাটি পরীক্ষা নয়', 'A model estimate, not a test of your field’s soil'), src: 'https://soilgrids.org/' },
+  { id: 'soiltest', kind: 'RECORD', use: 'calc', name: t('আপনার মাটি পরীক্ষা', 'Your soil test'), years: t('রিপোর্টের তারিখ', 'the report’s date'), scale: t('আপনার জমি', 'your field'),
+    what: t('SRDI বা অন্য গবেষণাগারের রিপোর্ট থেকে নিজে লেখা pH, জৈব পদার্থ, নাইট্রোজেন আর জমির ধরন; থাকলে SoilGrids-এর জায়গায় এটাই হিসাবে যায়', 'pH, organic matter, nitrogen and land type typed in from an SRDI or other lab report; when present it replaces SoilGrids in the calculation'),
+    limit: t('হাতে লেখা; ভুল হলে হিসাবও ভুল। ৩ বছর পর আবার পরীক্ষা করান', 'Typed by hand, so a slip carries through. Test again after 3 years'), src: 'https://srdi.gov.bd' },
   { id: 'srdi', kind: 'RECORD', use: 'calc', name: t('SRDI ইউনিয়ন সহায়িকা', 'SRDI union guides'), years: t('প্রকাশের বছর ভিন্ন', 'year varies'), scale: t('ইউনিয়নের মাটির দল', 'the union’s soil groups'),
     what: t('মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউটের মাটি পরীক্ষা থেকে সারের মাত্রা', 'Fertiliser doses from the Soil Resource Development Institute’s soil tests'),
     limit: t('ইউনিয়নের গড়, আপনার জমির পরীক্ষা নয়', 'The union’s typical soil, not your field’s test'), src: 'https://srdi.gov.bd/' },
@@ -72,7 +75,7 @@ export const DATASETS = [
 export const datasetOf = (id) => DATASETS.find((d) => d.id === id);
 
 // Status of each dataset for one field: 'ok', 'coarse' (only an area value), 'stale', 'sample' or 'missing'.
-// facts: { today (ms), climEnd ('YYYY-MM-DD'), soilScope ('field' | 'union'), terrain, fieldNdvi, watch, cmip6,
+// facts: { today (ms), climEnd ('YYYY-MM-DD'), soilScope ('field' | 'union'), soilTested ('YYYY-MM-DD' of the farmer's test), terrain, fieldNdvi, watch, cmip6,
 //          priceYearMin, radarThrough } — every one optional; a missing fact is reported as missing.
 const DAY = 864e5;
 export function coverage(facts = {}) {
@@ -84,6 +87,7 @@ export function coverage(facts = {}) {
     bmd: 'ok',
     imerg: !facts.climEnd ? 'missing' : 'coarse',
     soilgrids: facts.soilScope === 'field' ? 'ok' : facts.soilScope ? 'coarse' : 'missing',
+    soiltest: !facts.soilTested ? 'missing' : age(facts.soilTested) > 3 * 365.25 ? 'stale' : 'ok',
     srdi: facts.srdi ? 'coarse' : 'missing',
     s2: facts.watch ? (age(facts.watchEnd) > 60 ? 'stale' : 'ok') : 'missing',
     s1: facts.radarThrough ? 'coarse' : 'missing',

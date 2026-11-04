@@ -9,6 +9,7 @@ import FieldSatellite from '../../components/fields/FieldSatellite';
 import FieldRisks from '../../components/fields/FieldRisks';
 import FieldRiskMap from '../../components/fields/FieldRiskMap';
 import LandsatThen from '../../components/fields/LandsatThen';
+import SoilTestCard from '../../components/fields/SoilTestCard';
 import { seriesNow } from '../../components/fields/useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { num, fmtDate, fmtBangla, todayDhaka } from '../../engine/dates';
@@ -189,7 +190,8 @@ export default function MyFarm() {
             {soil.wrb?.[0] && <span className="chip bg-black/5 text-ink/75">{soil.wrb[0].name}</span>}
             {soil.physiography?.[0] && <span className="chip bg-black/5 text-ink/75">SRDI: {soil.physiography[0]}</span>}
           </div>
-          <p className="mt-3 text-[13.5px] text-muted">{soil.scope === 'field' ? T('আপনার জমির ২৫০ মিটারের ঘরের হিসাব (ISRIC SoilGrids), মাঠের মাটি পরীক্ষা নয়।', 'For your field’s 250 m cell (ISRIC SoilGrids), not a field soil test.') : T('ইউনিয়নের মাঝখানের হিসাব (ISRIC SoilGrids), মাঠের মাটি পরীক্ষা নয়।', 'For the union centre (ISRIC SoilGrids), not a field soil test.')}</p>
+          <p className="mt-3 text-[13.5px] text-muted">{soil.tested ? T('pH আর জৈব পদার্থ আপনার মাটি পরীক্ষার; বাকিটা ISRIC SoilGrids-এর আনুমানিক হিসাব।', 'pH and organic matter are from your soil test; the rest is the ISRIC SoilGrids estimate.') : (soil.scope === 'field' ? T('আপনার জমির ২৫০ মিটারের ঘরের হিসাব (ISRIC SoilGrids), মাঠের মাটি পরীক্ষা নয়।', 'For your field’s 250 m cell (ISRIC SoilGrids), not a field soil test.') : T('ইউনিয়নের মাঝখানের হিসাব (ISRIC SoilGrids), মাঠের মাটি পরীক্ষা নয়।', 'For the union centre (ISRIC SoilGrids), not a field soil test.'))}</p>
+          <SoilTestCard />
           <Button to="/farmer/plan" variant="secondary" onClick={() => dispatch({ type: 'set', patch: { step: 2 } })} className="mt-3 w-full">{T('মাটি আর সারের পুরো হিসাব', 'Full soil and fertiliser advice')}</Button>
         </Card>
       </div>

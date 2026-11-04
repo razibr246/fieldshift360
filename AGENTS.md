@@ -57,7 +57,12 @@ added there.
 - Government support (`/farmer/support`, and the India help tab): the programmes are hand-entered records in
   `src/data/support/` (each with its source URL and the `CHECKED` date; re-check them, never guess a figure), matched
   to the farmer's land, crops, water and place by `src/engine/support.js`. A pilot, announced or ended programme is never
-  shown as a plain yes.
+  shown as a plain yes. The question box's score on `src/data/support/ask_eval.js` is a floor in the tests: add a
+  question it fails rather than tuning keywords to that list.
+- A farmer's own soil test (`soilTests` in the store, `engine/soiltest.js`, entered on My field) is laid over the
+  SoilGrids soil, so `soil.tested` is set and pH / organic matter / N are measured; code that says "estimate, not a
+  soil test" must check `soil.tested`. The spray check (`engine/spray.js`, `components/fields/SprayCheck.jsx`) reads
+  the live forecast; its limits are in `docs/THRESHOLDS.md`.
 - `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
   project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in
   `services/voice-agent/lib/agent/field/shared/` are generated, never edit them. `public/radar/` is the original Ropon

@@ -122,3 +122,18 @@ export function firstSteps(ms) {
   const want = new Set(ms.filter((m) => m.fit !== 'no').flatMap((m) => m.first));
   return ms.filter((m) => want.has(m.p.id)).map((m) => m.p);
 }
+
+// How well the question box answers: over a list of { q, want }, the share answered right first (hit@1), in the
+// top 3 (hit@3), and the mean reciprocal rank (1 for first, 1/2 for second, 1/3 for third, 0 if missed). The
+// misses are returned too, so a page can say honestly where it fails.
+export function evalAsk(cases, list) {
+  let h1 = 0, h3 = 0, rr = 0;
+  const misses = [];
+  for (const c of cases) {
+    const rank = askSupport(c.q, list).findIndex((x) => x.p.id === c.want) + 1;
+    if (rank === 1) h1++;
+    if (rank >= 1) { h3++; rr += 1 / rank; } else misses.push(c.q);
+  }
+  const n = cases.length || 1;
+  return { n: cases.length, hit1: h1 / n, hit3: h3 / n, mrr: rr / n, misses };
+}
