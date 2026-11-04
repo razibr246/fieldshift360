@@ -21,6 +21,8 @@ npm run fetch:* / data:* / photos:*  # data and photo scripts, listed in scripts
 There is no linter or formatter. `npm test` plus `npm run build` is the validation path; for UI changes also open
 the affected farmer, officer or public page. Tests import engine modules and JSON (via `readFileSync`) only: Node
 cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. `smsSplit` lives in `engine/text.js`).
+`npm test` runs an explicit file list in `package.json` `"test"`, not a glob: a new `*.test.js` runs only once it is
+added there.
 
 ## Layout
 
@@ -42,7 +44,9 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   series reaches the app only once it is added there too.
 - `scripts/`: `fetch/`, `build/`, `onset/` (the rain-onset rule, also imported by `src/radar/onset.test.js`),
   `photos/`, `lib/`; index in `scripts/README.md`. Do not hand-edit generated data: change the script and re-run it.
-  Moving a script changes its depth, so check its `ROOT` path and relative imports.
+  Moving a script changes its depth, so check its `ROOT` path and relative imports. The crop-stress model is generated
+  too: `npm run train:stress` (`scripts/build/train_stress_model.mjs`) writes `src/data/models/stress_model.json`,
+  which `src/engine/stressModel.js` reads for `/science#ml`. Its skill is reported per place, as measured.
 - `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`, `agent` with
   `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`, `tts` (natural Bangla / British English voice) with `GEMINI_API_KEY`); `vite.config.js`
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
@@ -50,12 +54,18 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   `src/engine/chakra.js` (pure, tested), UI and agent loop in `src/components/chakra/`, conversation through `api/agent.js`
   (Claude may only propose actions) with `src/voice/brain.js` as the offline fallback. Anything sent in the office's
   name needs an officer's approval in every mode; keep it that way.
+- Government support (`/farmer/support`, and the India help tab): the programmes are hand-entered records in
+  `src/data/support/` (each with its source URL and the `CHECKED` date; re-check them, never guess a figure), matched
+  to the farmer's land, crops, water and place by `src/engine/support.js`. A pilot, announced or ended programme is never
+  shown as a plain yes.
 - `src/voice/brain.js` answers voice and SMS from the same engine numbers; `services/voice-agent/` is a separate
   project with its own guide. After editing `src/voice/{bn,lexicon,brain}.js`, run `npm run sync:voice`; the copies in
   `services/voice-agent/lib/agent/field/shared/` are generated, never edit them. `public/radar/` is the original Ropon
   Radar prototype (Apache-2.0); `src/radar/` is the in-app radar and onset logic.
 - `src/components/`: shared UI (`ui.jsx`, `Motion.jsx`, `SectionNav.jsx` with `LazyMount`), charts in `charts/`, maps in
   `map/`, and the guided tours in `tour/` (demo, farmer, officer; the farmer tour's steps are `src/data/farmer_tour.js`).
+  Every Leaflet map needs `<StopOnLeave />` (`map/StopOnLeave.jsx`, already inside `MapFrame`); without it, a
+  zoom animation still running when the page changes throws `_leaflet_pos` / `getZoom` errors after the map is gone.
 - `src/game/`: "মাঠের মানুষ", the 3D farm game (three.js in `game/three/`). Its simulation (`sim.js`) and story
   campaign (`saga.js`) are pure and tested like the engine; keep rendering out of them. `three/stage.js` runs the
   loop through `renderer.setAnimationLoop` (WebXR needs it), so an exception in a frame stops the game rather than
@@ -73,6 +83,9 @@ cannot import `.jsx`, so logic that needs a test belongs in `src/engine/` (e.g. 
   `STATION`, `MODEL`, `RECORD`, `RULE`, `AI`, `DEMO`); NASA POWER weather and SoilGrids soil are `MODEL` (real data,
   not field measurements). Keep them truthful; the dataset register behind `/science#coverage` is
   `src/engine/provenance.js`.
+- Never invent evidence. `docs/USER_TESTING.md` (filled from the `/testkit` export) and `docs/REVIEW_LOG.md` record
+  only real sessions and real reviewers; claims in `docs/SUBMISSION.md` and `docs/EVIDENCE.md` must trace to a file
+  or script. When something needs people, credentials or an expert, build the tooling and say what is missing.
 - Before changing behaviour, check `docs/THRESHOLDS.md` (crop thresholds), `docs/DATA_SOURCES.md` (update it when
   data changes), `docs/RADAR.md` (onset rule), `docs/VOICE.md` and `docs/MERGE.md`.
 - Style: ES modules and JSX as the surrounding code; PascalCase component files, lowercase engine and script files;

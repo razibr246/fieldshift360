@@ -29,6 +29,7 @@ const Plan = load(() => import('./pages/farmer/Plan'));
 const Today = load(() => import('./pages/farmer/Today'));
 const CropDoctor = load(() => import('./pages/farmer/CropDoctor'));
 const Help = load(() => import('./pages/farmer/Help'));
+const Support = load(() => import('./pages/farmer/Support'));
 const Profile = load(() => import('./pages/farmer/Profile'));
 const Harvest = load(() => import('./pages/farmer/Harvest'));
 const FieldFuture = load(() => import('./pages/farmer/FieldFuture'));
@@ -113,6 +114,7 @@ export default function App() {
           <Route path="today" element={page(<Today />)} />
           <Route path="doctor" element={page(<CropDoctor />)} />
           <Route path="help" element={page(<Help />)} />
+          <Route path="support" element={page(<Support />)} />
           <Route path="profile" element={page(<Profile />)} />
           <Route path="harvest" element={page(<Harvest />)} />
           <Route path="future" element={page(<FieldFuture />)} />

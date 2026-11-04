@@ -10,6 +10,9 @@ import { num, bnDigits } from '../../engine/dates';
 import { weatherOf } from '../../engine/forecast';
 import { todaysCall, PLANS, seasonWater, addDaysIso } from '../../engine/abroad';
 import { areaIn } from '../../data/abroad';
+import { IN_SUPPORT, CHECKED as IN_CHECKED } from '../../data/support/in_support';
+import { supportProfile, matchSupport, FIT, KINDS, STATUS } from '../../engine/support';
+import { Tags } from '../../components/ui';
 import { useAbroad } from '../../layouts/AbroadLayout';
 import { WeatherIcon } from '../../components/charts/LiveWeather';
 import FarmerAvatar from '../../components/brand/FarmerAvatar';
@@ -323,6 +326,34 @@ const TOPICS = [
   { k: 'loss', bn: 'ক্ষতি বা বিমা', en: 'Loss or insurance' },
   { k: 'other', bn: 'অন্য কিছু', en: 'Something else' },
 ];
+// Government support for the sample farmer in India (Punjab, rice–wheat), matched by engine/support.js.
+const IN_PROFILE = supportProfile({ area_dec: 1000, crops: [{ id: 'rice', name: { bn: 'ধান', en: 'Rice' } }, { id: 'wheat', name: { bn: 'গম', en: 'Wheat' } }], state: 'Punjab' });
+const FIT_CHIP = { yes: 'bg-primary-100 text-primary-800', maybe: 'bg-amber-100 text-amber-900', no: 'bg-black/[.05] text-ink/65' };
+function IndiaSupport() {
+  const { T, L } = useStore();
+  const ms = matchSupport(IN_SUPPORT, IN_PROFILE);
+  return (
+    <Section icon={Scale} title={T('সরকারি সহায়তা', 'Government support')} sub={T(`পাঞ্জাবের ধান–গম চাষির জন্য মিলিয়ে দেখা · তালিকা দেখা হয়েছে ${bnDigits(IN_CHECKED)}`, `Matched for a Punjab rice–wheat farmer · list checked ${IN_CHECKED}`)} tag={<Tags list={['RECORD', 'RULE']} />}>
+      <ul className="grid gap-2.5 sm:grid-cols-2">
+        {ms.map(({ p, fit, why }) => (
+          <li key={p.id} className={`rounded-2xl bg-white/80 p-3.5 ring-1 ring-white/80 ${fit === 'no' ? 'opacity-80' : ''}`}>
+            <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] font-semibold">
+              <span className={`rounded-full px-2 py-0.5 ${FIT_CHIP[fit]}`}>{L(FIT[fit])}</span>
+              <span className="rounded-full bg-canvas px-2 py-0.5 text-ink/70">{L(KINDS[p.kind])}</span>
+              {p.status !== 'running' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-900">{L(STATUS[p.status])}</span>}
+            </div>
+            <p className="mt-1.5 text-[15px] font-bold leading-6">{L(p.name)}</p>
+            <p className="text-[13.5px] leading-6 text-ink/80">{L(p.benefit)}</p>
+            {why.length > 0 && <p className="mt-1 text-[12.5px] leading-5 text-muted">{why.map((w) => L(w)).join(' · ')}</p>}
+            {p.note && <p className="mt-1 text-[12.5px] leading-5 text-amber-900">{L(p.note)}</p>}
+            <a href={p.src} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-[44px] items-center text-[12.5px] font-semibold text-primary-700 sm:min-h-0">{T('উৎস', 'Source')} ↗</a>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-[12.5px] leading-5 text-muted">{T('নিয়ম আর দাম বদলায়; আবেদনের আগে ব্লক কৃষি অফিসে জেনে নিন।', 'Rules and prices change; check with the block agriculture office before applying.')}</p>
+    </Section>
+  );
+}
 export function Help() {
   const { s, T, L } = useStore();
   const lang = s.lang;
@@ -372,6 +403,7 @@ export function Help() {
           </ul>
         )}
       </Section>
+      {c.id === 'india' && <div className="lg:col-span-2"><IndiaSupport /></div>}
       <Link to={`/abroad/${c.id}/officer`} className="lift flex items-center gap-3 rounded-2xl p-4 text-white lg:col-span-2" style={{ background: c.tone }}>
         <Building2 size={22} /><span className="text-[14.5px] font-bold leading-5">{T('কর্মকর্তার চোখে দেখুন', 'See it as the officer')}<span className="block text-[12.5px] font-semibold text-white/80">{L(c.local.role)}</span></span><ArrowRight size={18} className="ml-auto" />
       </Link>
