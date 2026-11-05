@@ -6,6 +6,7 @@ import { useStore, soilData, demo } from '../../store';
 import { runCrew } from '../../engine/crew';
 import { cases as problemCases, checkBackTasks } from '../../engine/path';
 import { runGoal, understand } from '../../engine/goal';
+import { knowledgePack } from '../../engine/knowledge';
 import { farmerTasks, officerTasks, problemTask, gateFor, authorize, autoCountToday, sanitize, DAILY_AUTO_LIMIT, verifyAudit } from '../../engine/chakra';
 import { weatherAlerts } from '../../engine/water';
 import { harvestPriceHistory } from '../../engine/glut';
@@ -22,6 +23,8 @@ const mk = (who, text, extra = {}) => ({ id: `c${++uid}`, who, text, ...extra })
 // A season goal is said with a wish word: "... চাই", "... লাগুক", "... হোক".
 const GOAL_Q = /চাই|লাগুক|হোক|লক্ষ্য|কীভাবে|কিভাবে|i want|goal|how can i|how do i/i;
 const both = (bn, en) => ({ bn, en });
+// Questions that need weighing, not a lookup, go to the largest model with deep thinking (api/agent.js `deep`).
+const DEEP_Q = /কেন|কারণ|তুলনা|কোনটা ভালো|কোনটা লাগাব|কী করলে|কীভাবে|কিভাবে|পরিকল্পনা|ভবিষ্যৎ|লাভ বেশি|ঝুঁকি|why|compare|which is better|should i|how can|plan|future|risk/i;
 const BRIEF_Q = /আজ(কে)? কী (কী )?কর|কী করা (উচিত|দরকার)|কী করতে হবে|আজকের কাজ|সব (ঠিক|ভালো) আছে|কী অবস্থা|পরামর্শ দি|what should i do|what to do|today|briefing|how is my field/i;
 const YES = /^(হ্যাঁ|হা|জি|ঠিক আছে|পাঠান|পাঠাও|yes|ok|send)/i;
 const NO = /^(না|থাক|no|cancel)/i;
@@ -131,14 +134,16 @@ export function useChakra(role) {
   if (!session.current || session.current.role !== brainRole) session.current = createSession({ role: brainRole, lang: s.lang });
   const [messages, setMessages] = useState([]);
   const [phase, setPhase] = useState('idle'); // idle | listening | thinking | speaking
+  const [thinkingDeep, setThinkingDeep] = useState(false); // the current question went to the largest model
   const [interim, setInterim] = useState('');
   const [voiceOn, setVoiceOn] = useState(true); // speak answers aloud and listen again: the hands-free mode
+  const [deepOn, setDeepOn] = useState(false); // the farmer's own "গভীর ভাবনা": every AI question to the largest model
   const [voiceNote, setVoiceNote] = useState(null); // why the natural voice is off this visit ('quota' | 'no-key'), shown under the orb
   const [ai, setAi] = useState('unknown'); // unknown | on | off (api/agent.js not switched on)
   const pending = useRef(null); // a problem report waiting for the farmer's yes
   const rec = useRef(null);
   const flags = useRef({});
-  flags.current = { voiceOn, mode };
+  flags.current = { voiceOn, mode, deepOn };
 
   const snap = useCallback(() => {
     const c = ref.current;
@@ -251,7 +256,12 @@ export function useChakra(role) {
           ? { farmer: sn.farmer, plan: sn.plan, today: sn.today, soil: sn.soil, rotation: sn.rotation, requests: sn.requests, advisories: sn.advisories, compare: sn.compare, crew_findings: crew.top.map((n) => ({ by: n.member, text: n.text })), agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, title: t.title, body: t.body })) }
           : { area: sn.area, upazila: sn.upazila, crew_findings: crew.top.map((n) => ({ by: n.member, text: n.text })), agent_tasks: tasks.map((t) => ({ id: t.id, kind: t.kind, request: t.request, title: t.title, body: t.body })) };
         // Gemini can be slow to start; after half a minute the app's own engine answers instead of keeping the farmer waiting.
-        const r = await fetch('/api/agent', { signal: AbortSignal.timeout(32000), method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role, lang, message: text, history: messages.filter((m) => m.who === 'user' || m.who === 'bot').slice(-8), data }) });
+        // More to think with: every season option, soil, price seasons, the crop's problems, programmes, cases.
+        const pack = knowledgePack({ options: c.decision?.options, chosen: c.chosen, soil: c.soil, cropNow: c.daysAfter >= 0 ? c.chosen.crop.id : 'aman', cases: caseList, farmer: role === 'farmer' ? c.farmer : null, upazila: role === 'farmer' ? c.upazila : c.officerUpazila });
+        Object.assign(data, pack.sections);
+        const deep = flags.current.deepOn || DEEP_Q.test(text);
+        setThinkingDeep(deep);
+        const r = await fetch('/api/agent', { signal: AbortSignal.timeout(deep ? 70000 : 32000), method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ role, lang, deep, message: text, history: messages.filter((m) => m.who === 'user' || m.who === 'bot').slice(-8), data }) });
         if (r.status === 503 || r.status === 404) setAi('off');
         else if (r.ok) {
           const j = await r.json();
@@ -260,7 +270,7 @@ export function useChakra(role) {
           const nav = made.find((x) => x.nav)?.nav;
           const extra = made.filter((x) => !x.nav).map(offer);
           for (const t of made.filter((x) => x.effects && gateFor(role, flags.current.mode, x) !== 'verdict')) setMessages((m) => [...m, mk('task', '', { task: { ...t, gate: gateFor(role, flags.current.mode, t) } })]);
-          return reply([j.reply, ...extra].filter(Boolean).join(' '), { nav, sources: j.sources, tags: ['AI'] });
+          return reply([j.reply, ...extra].filter(Boolean).join(' '), { nav, sources: j.sources, tags: ['AI'], model: j.model, deep: !!j.deep });
         }
       } catch { /* offline or unreachable: the local brain answers below */ }
     }
@@ -277,7 +287,7 @@ export function useChakra(role) {
       }
     }
     return reply(res.say, { chips: res.chips, nav: res.nav });
-  }, [T, ai, crew, dispatch, fctx, fromProposal, log, messages, offer, reply, role, run, scope, snap, tasks]);
+  }, [T, ai, caseList, crew, dispatch, fctx, fromProposal, log, messages, offer, reply, role, run, scope, snap, tasks]);
   const sendRef = useRef(send);
   sendRef.current = send;
 
@@ -296,7 +306,7 @@ export function useChakra(role) {
   useEffect(() => () => stopAll(), [stopAll]);
 
   return {
-    role, mode, setMode, tasks, verdicts, crew, caseList, approve, act, reject, dismiss, audit, auditOk: verifyAudit(audit),
+    role, mode, setMode, tasks, verdicts, crew, caseList, deepOn, setDeepOn, thinkingDeep, approve, act, reject, dismiss, audit, auditOk: verifyAudit(audit),
     messages, phase, interim, voiceOn, setVoiceOn, voiceNote, ai, send, listen, stopAll, start,
   };
 }

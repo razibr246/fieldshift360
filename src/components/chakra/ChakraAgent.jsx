@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { X, Maximize2, Minimize2, Volume2, VolumeX, Keyboard, SendHorizontal, ShieldCheck, ShieldAlert, ListChecks, MessageCircle, CheckCircle2, ChevronRight, Smartphone, Gavel, UsersRound, Route, Target } from 'lucide-react';
+import { X, Maximize2, Minimize2, Volume2, VolumeX, Keyboard, SendHorizontal, ShieldCheck, ShieldAlert, ListChecks, MessageCircle, CheckCircle2, ChevronRight, Smartphone, Gavel, UsersRound, Route, Target, Brain } from 'lucide-react';
 import { useStore } from '../../store';
 import { Tags } from '../ui';
 import { num, bnDigits } from '../../engine/dates';
@@ -158,7 +158,7 @@ function Panel({ c, onClose }) {
             <ChakraLogo size={30} spin={c.phase === 'thinking'} />
             <div className="min-w-0 leading-tight">
               <div className="truncate text-[16px] font-bold">{L(AGENT_NAME)}</div>
-              <div className="truncate text-[11.5px] text-white/55">{c.role === 'farmer' ? T('আপনার জমির সহকারী', 'Your field assistant') : T('অফিসের সহকারী', 'Office assistant')}{c.ai === 'on' ? ' · Claude' : ''}</div>
+              <div className="truncate text-[11.5px] text-white/55">{c.role === 'farmer' ? T('আপনার জমির সহকারী', 'Your field assistant') : T('অফিসের সহকারী', 'Office assistant')}{c.ai === 'on' ? ' · AI' : ''}</div>
             </div>
           </div>
           <button type="button" onClick={() => setBig(!big)} className="hidden h-11 w-11 place-items-center rounded-full bg-white/10 hover:bg-white/20 sm:grid" aria-label={big ? T('ছোট করুন', 'Smaller') : T('বড় করুন', 'Larger')}>{big ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
@@ -175,6 +175,11 @@ function Panel({ c, onClose }) {
             ? (c.role === 'farmer' ? T('এজেন্ট নিজে থেকে আপনার সমস্যা অফিসে পাঠাবে, উত্তর না এলে মনে করাবে আর পরামর্শ জানাবে।', 'The agent reports your problems to the office, chases late replies and tells you what to do, on its own.') : T('এজেন্ট উত্তর আর পরামর্শের খসড়া করবে; পাঠানোর আগে আপনার অনুমোদন চাইবে।', 'The agent drafts replies and advice, and asks your approval before anything goes out.'))
             : T('এজেন্ট শুধু পরামর্শ দেবে; প্রতিটি কাজ আপনি নিজে করবেন।', 'The agent only suggests; you do every step yourself.')}
         </p>
+        {/* গভীর ভাবনা: every AI question goes to the largest model and thinks hard (slower, and only when the AI is on). */}
+        <button type="button" onClick={() => c.setDeepOn(!c.deepOn)} aria-pressed={c.deepOn}
+          className={`mx-auto mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold ${c.deepOn ? 'bg-paddy-300 text-primary-950' : 'chakra-chip text-white/75'}`}>
+          <Brain size={13} />{c.deepOn ? T('গভীর ভাবনা চালু: সবচেয়ে বড় মডেল', 'Deep thinking on: the largest model') : T('গভীর ভাবনা', 'Deep thinking')}
+        </button>
 
         <div className="mx-4 mt-2 flex gap-1 border-b border-white/10">
           {tabs.map(([id, Icon, label]) => (
@@ -196,7 +201,7 @@ function Panel({ c, onClose }) {
               ) : (
                 <div key={m.id}>
                   <p className="text-[17px] leading-8 text-white/95">{m.text}</p>
-                  {m.tags && <span className="mt-1 inline-block [&_*]:!text-[11px]"><Tags list={m.tags} /></span>}
+                  {m.tags && <span className="mt-1 inline-flex flex-wrap items-center gap-1.5 [&_*]:!text-[11px]"><Tags list={m.tags} />{m.model && <span className="text-white/40">{m.deep ? T('গভীর ভাবনা · ', 'Deep · ') : ''}{m.model}</span>}</span>}
                   {!!m.sources?.length && <div className="mt-1.5 flex flex-wrap gap-1.5">{m.sources.map((x) => <a key={x.url} href={x.url} target="_blank" rel="noreferrer" className="chakra-chip max-w-[220px] truncate rounded-full px-2.5 py-1 text-[11.5px] text-white/70">{x.title}</a>)}</div>}
                   {(m.chips?.length || m.nav) && (
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -207,7 +212,7 @@ function Panel({ c, onClose }) {
                 </div>
               )))}
               {c.interim && <p className="text-[17px] italic text-white/50">{c.interim}…</p>}
-              {c.phase === 'thinking' && <p className="text-[14px] text-white/50">{T('ভাবছি…', 'Thinking…')}</p>}
+              {c.phase === 'thinking' && <p className="text-[14px] text-white/50">{c.thinkingDeep ? T('গভীরভাবে ভাবছি, সব তথ্য মিলিয়ে দেখছি… (এক মিনিট পর্যন্ত লাগতে পারে)', 'Thinking deeply over all the data… (can take up to a minute)') : T('ভাবছি…', 'Thinking…')}</p>}
             </div>
           )}
           {tab === 'tasks' && (
