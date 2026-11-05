@@ -14,6 +14,8 @@ import { WATER_COLORS, fetchLiveWeather } from '../../engine/water';
 import { FIELD_EFF, ROOTS } from '../../engine/fieldwater';
 import { fertilizerPlan } from '../../engine/soil';
 import SprayCheck from '../../components/fields/SprayCheck';
+import AquiferDepthMeter from '../../components/charts/AquiferDepthMeter';
+import SpokenTodayBrief from '../../components/voice/SpokenTodayBrief';
 import { num, fmtDate, fmtBangla, bnDigits, iso, parseISO, daysBetween } from '../../engine/dates';
 
 const WEEKDAY = { bn: ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র', 'শনি'], en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] };
@@ -186,7 +188,12 @@ export default function Today() {
           ? T(`${fieldName}, ${bnDigits(farmer.area_dec)} শতক: ${crop.name.bn} ${crop.action.bn} ${fmtDate(chosen.t0, 'bn')}, আর ${bnDigits(-dToday)} দিন বাকি।`, `${fieldName}, ${farmer.area_dec} decimal: ${crop.action.en.toLowerCase()} the ${crop.name.en.toLowerCase()} on ${fmtDate(chosen.t0, 'en')}, ${-dToday} days from now.`)
           : T(`${fieldName}, ${bnDigits(farmer.area_dec)} শতক: ${crop.name.bn}, লাগানোর ${bnDigits(dToday)} দিন পর${fw?.stage ? `, ${fw.stage.bn}` : ''}।`, `${fieldName}, ${farmer.area_dec} decimal: ${crop.name.en.toLowerCase()}, ${dToday} days after planting${fw?.stage ? `, ${fw.stage.en.toLowerCase()}` : ''}.`)}
         tags={[liveWeather ? 'REAL' : 'PLACEHOLDER', 'RULE']}
-        action={<WhyButton payload={why} />}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <SpokenTodayBrief crop={crop} water={water} weather={wx} dToday={dToday} />
+            <WhyButton payload={why} />
+          </div>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-[.95fr_1.05fr]">
@@ -299,6 +306,7 @@ export default function Today() {
               {chosen.glut.level !== 'Low' && <Note tone="gold">{T(`ফসল তোলার সময় আপনার ইউনিয়নে দাম পড়ার ঝুঁকি ${chosen.glut.level === 'High' ? 'বেশি' : 'মাঝারি'}। পরিকল্পনার শেষ ধাপে তারিখ বদলে দেখুন।`, `${chosen.glut.level} price-drop risk in your union at harvest. Try another date in the last planning step.`)}</Note>}
             </div>
             <div className="mt-4"><SprayCheck lat={farmer.lat} lon={farmer.lon} /></div>
+            <div className="mt-4"><AquiferDepthMeter upazilaId={farmer.upazila} cropId={crop.id} /></div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button to="/farmer/doctor" variant="secondary"><ScanLine size={16} />{T('পাতার ছবি পরীক্ষা', 'Check a leaf photo')}</Button>
               <Button to="/farmer/help" variant="ghost"><AlertTriangle size={16} />{T('কর্মকর্তাকে জানান', 'Tell your officer')}</Button>
