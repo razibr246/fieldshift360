@@ -22,6 +22,8 @@ import SoilVerdict from '../../components/future/SoilVerdict';
 import StrategyCompare from '../../components/future/StrategyCompare';
 import ParetoFrontier from '../../components/future/ParetoFrontier';
 import StressChaosTest from '../../components/future/StressChaosTest';
+import CarbonFinance from '../../components/future/CarbonFinance';
+import TopographyInundation from '../../components/future/TopographyInundation';
 import BoroSensitivity from '../../components/future/BoroSensitivity';
 import SrdiCalibrationCard from '../../components/future/SrdiCalibrationCard';
 import JudgementNote from '../../components/explain/JudgementNote';
@@ -125,7 +127,9 @@ export default function FieldFuture() {
         { id: 'ff-why', label: T('কেন ও কী ঝুঁকি', 'Why and risks') },
         { id: 'ff-chaos', label: T('স্ট্রেস পরীক্ষা', 'Stress shocks') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
+        { id: 'ff-carbon', label: T('কার্বন অর্থায়ন', 'Carbon finance') },
         { id: 'ff-land', label: T('মহাকাশ থেকে', 'From space') },
+        { id: 'ff-topo', label: T('উচ্চতা ও প্লাবন', 'Elevation & floods') },
         { id: 'ff-water', label: T('মাটির পানি', 'Soil water') },
         { id: 'ff-build', label: T('নিজে বানান', 'Build your own') },
         { id: 'ff-all', label: T('সব ফসলচক্র', 'Every rotation') },
@@ -175,8 +179,10 @@ export default function FieldFuture() {
       ]} />
       <StressChaosTest ff={ff} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
+      <CarbonFinance ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
       <LazyMount id="ff-land" height={560}><LandFromSpace upazila={upazila.id} place={upazila.name} /></LazyMount>
+      <LazyMount id="ff-topo" height={560}><TopographyInundation parcelId={activeParcel?.id} /></LazyMount>
       <LazyMount id="ff-water" height={760}><SoilWater ff={ff} sumOf={sumOf} /></LazyMount>
       <div ref={builder}><Builder ctx={ctx} rot={ownRot} setRot={setOwn} e={ownE} sumOf={sumOf} best={ff.best} /></div>
       <LazyMount id="ff-all" height={820}><Charts ff={ff} ownE={ownE} rowsOf={rowsOf} sumOf={sumOf} ctx={ctx} rotName={rotName} w={w} /></LazyMount>
