@@ -83,20 +83,24 @@ function makeButterflyGeo() {
     0, 0, 0,   0.14, 0.02, -0.07,   0.12, 0.04, 0.09,
     0, 0, 0,   0.06, 0.01, -0.11,   0.14, 0.02, -0.07,
   ];
+  const uvs = [
+    0.5, 0.5,  0, 1,  0, 0,
+    0.5, 0.5,  0, 0,  0.2, 0,
+    0.5, 0.5,  1, 0,  1, 1,
+    0.5, 0.5,  0.8, 0,  1, 0,
+  ];
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   g.computeVertexNormals();
   return g;
 }
 
 function makeBirdGeo() {
-  const body = new THREE.ConeGeometry(0.065, 0.22, 5).rotateX(Math.PI / 2);
-  const head = new THREE.SphereGeometry(0.048, 6, 5).translate(0, 0.035, 0.12);
-  const beak = new THREE.ConeGeometry(0.016, 0.06, 4).rotateX(Math.PI / 2).translate(0, 0.02, 0.175);
-  const tail = new THREE.BufferGeometry();
-  tail.setAttribute('position', new THREE.Float32BufferAttribute([
-    0, 0.01, -0.1,  -0.05, 0.02, -0.22,  0.05, 0.02, -0.22
-  ], 3));
-  return mergeGeometries([body, head, beak, tail.toNonIndexed()]);
+  const body = new THREE.ConeGeometry(0.065, 0.22, 5).rotateX(Math.PI / 2).toNonIndexed();
+  const head = new THREE.SphereGeometry(0.048, 6, 5).translate(0, 0.035, 0.12).toNonIndexed();
+  const beak = new THREE.ConeGeometry(0.016, 0.06, 4).rotateX(Math.PI / 2).translate(0, 0.02, 0.175).toNonIndexed();
+  const tail = new THREE.BoxGeometry(0.08, 0.01, 0.12).translate(0, 0.02, -0.16).toNonIndexed();
+  return mergeGeometries([body, head, beak, tail]);
 }
 
 export function createNature(scene, L, { light = false } = {}) {
@@ -227,9 +231,11 @@ export function createNature(scene, L, { light = false } = {}) {
   const BFLY_COUNT = light ? 6 : 16;
   const bflyGeo = makeButterflyGeo();
   const bflyMat = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1, side: THREE.DoubleSide });
-  const bflyMesh = new THREE.InstancedMesh(bflyGeo, bflyMat, BFLY_COUNT);
-  bflyMesh.castShadow = false; bflyMesh.receiveShadow = false; bflyMesh.frustumCulled = false;
-  scene.add(bflyMesh);
+  const bflyMesh = bflyGeo ? new THREE.InstancedMesh(bflyGeo, bflyMat, BFLY_COUNT) : null;
+  if (bflyMesh) {
+    bflyMesh.castShadow = false; bflyMesh.receiveShadow = false; bflyMesh.frustumCulled = false;
+    scene.add(bflyMesh);
+  }
 
   const bflyDummy = new THREE.Object3D();
   const bflyPalette = ['#f4a226', '#fcd34d', '#38bdf8', '#4ade80', '#fb7185', '#e879f9'];
@@ -237,7 +243,7 @@ export function createNature(scene, L, { light = false } = {}) {
     const a = rng() * Math.PI * 2, r = 8 + rng() * 45;
     const cx = Math.cos(a) * r, cz = Math.sin(a) * r;
     const col = C(bflyPalette[i % bflyPalette.length]);
-    bflyMesh.setColorAt(i, col);
+    if (bflyMesh) bflyMesh.setColorAt(i, col);
     return {
       cx, cz,
       rx: 2.5 + rng() * 2.5, rz: 2.5 + rng() * 2.5,
@@ -246,15 +252,17 @@ export function createNature(scene, L, { light = false } = {}) {
       flapSpeed: 16 + rng() * 6,
     };
   });
-  if (bflyMesh.instanceColor) bflyMesh.instanceColor.needsUpdate = true;
+  if (bflyMesh?.instanceColor) bflyMesh.instanceColor.needsUpdate = true;
 
   // ---- ambient perching & scattering birds ----
   const BIRD_COUNT = light ? 4 : 9;
   const birdGeo = makeBirdGeo();
   const birdMat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.1, color: '#4a3828' });
-  const birdMesh = new THREE.InstancedMesh(birdGeo, birdMat, BIRD_COUNT);
-  birdMesh.castShadow = true; birdMesh.receiveShadow = false; birdMesh.frustumCulled = false;
-  scene.add(birdMesh);
+  const birdMesh = birdGeo ? new THREE.InstancedMesh(birdGeo, birdMat, BIRD_COUNT) : null;
+  if (birdMesh) {
+    birdMesh.castShadow = true; birdMesh.receiveShadow = false; birdMesh.frustumCulled = false;
+    scene.add(birdMesh);
+  }
 
   const birdDummy = new THREE.Object3D();
   const perches = [];

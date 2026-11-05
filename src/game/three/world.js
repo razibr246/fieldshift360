@@ -343,7 +343,7 @@ export function createWorld(scene, g, { light = false } = {}) {
           continue;
         }
 
-        if (A.kind === 'grazer') {
+        if (A.kind === 'grazer' && A.head && A.tail) {
           // Grazing head cycle + cud chewing + curious gaze toward player + ear twitches
           const grazeX = 0.05 + Math.max(0, Math.sin(A.ph * 0.5)) * 1.05 + Math.sin(A.ph * 3.1) * 0.03;
           A.head.rotation.x = grazeX;
