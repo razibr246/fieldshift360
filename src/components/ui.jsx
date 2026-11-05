@@ -166,7 +166,7 @@ export function Tags({ list }) {
   return <span className="inline-flex flex-wrap gap-1">{[...new Set(list)].map((t) => <Tag key={t} t={t} />)}</span>;
 }
 
-export function ScoreRing({ value, size = 48, color = '#2f6e2f', track = '#e5ece1', textColor = '#13261b' }) {
+export function ScoreRing({ value, size = 48, color, track = '#e5ece1', textColor = '#13261b' }) {
   const { s } = useStore();
   const [drawn, setDrawn] = useState(false);
   useEffect(() => {
@@ -174,11 +174,12 @@ export function ScoreRing({ value, size = 48, color = '#2f6e2f', track = '#e5ece
     return () => cancelAnimationFrame(frame);
   }, []);
   const r = (size - 6) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, value));
+  const strokeColor = color ?? (v >= 80 ? '#2f6e2f' : v >= 60 ? '#b8761b' : '#a8552a');
   const txt = Math.round(v);
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${s.lang === 'bn' ? 'স্কোর' : 'score'} ${txt}`} className="shrink-0">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${s.lang === 'bn' ? 'স্কোর' : 'score'} ${txt}`} className="shrink-0 transition-transform duration-300 hover:scale-105">
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth="5" />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * v) / 100} ${c}`} strokeDashoffset={drawn ? 0 : (c * v) / 100} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .7s cubic-bezier(.22,1,.36,1), stroke-dashoffset .7s cubic-bezier(.22,1,.36,1)' }} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={strokeColor} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${(c * v) / 100} ${c}`} strokeDashoffset={drawn ? 0 : (c * v) / 100} transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dasharray .7s cubic-bezier(.22,1,.36,1), stroke-dashoffset .7s cubic-bezier(.22,1,.36,1)' }} />
       <text x="50%" y="54%" textAnchor="middle" dominantBaseline="middle" fontSize={size * 0.32} fontWeight="700" fill={textColor}>{s.lang === 'bn' ? bnDigits(txt) : txt}</text>
     </svg>
   );

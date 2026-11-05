@@ -8,6 +8,7 @@ import Photo from '../../components/Photo';
 import { onScroll } from '../../components/Motion';
 import SeasonRibbon from '../../components/charts/SeasonRibbon';
 import LiveWeather from '../../components/charts/LiveWeather';
+import LiveSatellitePassTracker from '../../components/home/LiveSatellitePassTracker';
 import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
@@ -108,6 +109,7 @@ export default function Home() {
           </div>
 
           <LiveWeather className="mt-12 lg:mt-16" />
+          <LiveSatellitePassTracker />
 
           <div className="surface-card lift mt-5 rounded-[28px] border border-primary-200/70 bg-white/90 p-5 sm:p-7 shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-xl" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
             <div className="flex flex-wrap items-center justify-between gap-4">

@@ -179,8 +179,8 @@ export default function FarmerLayout() {
             <BackButton />
             <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
             {upazila && (
-              <div className="hidden xl:flex items-center gap-2 rounded-full border border-primary-200/70 bg-primary-50/80 px-3 py-1 text-[12px] font-semibold text-primary-900 shadow-2xs backdrop-blur-xs">
-                <span className="live-dot shrink-0" />
+              <div className="hidden md:flex items-center gap-2 rounded-full border border-primary-200/70 bg-primary-50/80 px-3 py-1 text-[12px] font-semibold text-primary-900 shadow-2xs backdrop-blur-xs">
+                <span className="telemetry-pulse shrink-0" />
                 <span className="truncate max-w-[150px]">{L(upazila.name)}, {L(upazila.district)}</span>
                 <span className="text-primary-300">·</span>
                 <span className="tabular font-bold">{weather?.tmax ? Math.round(weather.tmax) : 23}°C</span>

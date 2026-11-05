@@ -197,6 +197,10 @@ export default function OfficerLayout() {
                 <span>⌘K</span>
               </button>
             </form>
+            <div className="hidden 2xl:flex items-center gap-2 rounded-full border border-primary-200/60 bg-primary-50/70 px-3 py-1 text-[12px] font-semibold text-primary-900 shadow-2xs backdrop-blur-xs">
+              <span className="telemetry-pulse shrink-0" />
+              <span>{T('সেন্টিনেল ও নাসা রাডার সরাসরি সংযুক্ত', 'Sentinel & NASA Radar Connected')}</span>
+            </div>
             <div className="ml-auto flex items-center gap-2">
               {alertsCount > 0 && (
                 <button
