@@ -1,6 +1,6 @@
 // World-class precision agricultural GIS map: individual parcel polygons, intelligent boundaries,
 // live weather telemetry bar, crop development stages (BBCH), Sentinel-2 NDVI crop intelligence,
-// variable application rate recommendations, and switchable geospatial layers.
+// variable application rate recommendations, switchable geospatial layers, and mobile-adaptive HUD.
 import { useMemo, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Polygon, Tooltip } from 'react-leaflet';
@@ -17,9 +17,10 @@ import {
   EyeOff,
   Sparkles,
   ArrowUpRight,
-  TrendingUp,
   ShieldCheck,
   CheckCircle2,
+  ChevronRight,
+  Info,
 } from 'lucide-react';
 import { LEVEL_LOOK } from './look';
 import { useStore } from '../../store';
@@ -27,12 +28,11 @@ import MapFrame from '../map/MapFrame';
 import { Recenter } from '../map/MapView';
 import UpazilaBoundary from '../map/UpazilaBoundary';
 import { plotSquare } from '../../engine/world';
-import { num, bnDigits, fmtDate, fmtBangla } from '../../engine/dates';
-import { cropName } from '../../engine/crops';
+import { num, bnDigits } from '../../engine/dates';
 
 export { LEVEL_LOOK } from './look';
 
-// Crisp circular pin marker with bilingual number and status halo
+// Crisp circular pin marker with bilingual number and radiant status halo
 const numIcon = (n, color, selected, lang, cropLabel) => L.divIcon({
   className: 'fs-field-num-pin',
   html: `
@@ -43,18 +43,18 @@ const numIcon = (n, color, selected, lang, cropLabel) => L.divIcon({
         border-radius:999px;background:${selected ? '#163020' : color};
         color:#ffffff;font:700 ${selected ? 15 : 13}px/1 system-ui,sans-serif;
         border:2.5px solid ${selected ? '#edc067' : '#ffffff'};
-        box-shadow:0 3px 12px rgba(0,0,0,0.35), ${selected ? '0 0 0 4px rgba(237,192,103,0.45)' : 'none'};
-        transition:transform .2s ease;
+        box-shadow:0 3px 12px rgba(0,0,0,0.4), ${selected ? '0 0 0 5px rgba(237,192,103,0.5), 0 0 20px rgba(237,192,103,0.3)' : 'none'};
+        transition:transform .2s cubic-bezier(.34,1.4,.64,1);
       ">
         ${lang === 'bn' ? bnDigits(n) : n}
       </div>
       ${selected && cropLabel ? `
         <div style="
           margin-top:3px;padding:2px 8px;border-radius:999px;
-          background:rgba(22,48,32,0.92);color:#ffffff;
+          background:rgba(22,48,32,0.94);color:#ffffff;
           font:700 11px/1.2 system-ui,sans-serif;white-space:nowrap;
-          border:1px solid rgba(255,255,255,0.4);
-          box-shadow:0 2px 8px rgba(0,0,0,0.35);backdrop-filter:blur(4px);
+          border:1px solid rgba(255,255,255,0.45);
+          box-shadow:0 2px 8px rgba(0,0,0,0.4);backdrop-filter:blur(6px);
         ">${cropLabel}</div>
       ` : ''}
     </div>
@@ -73,13 +73,15 @@ export default function FieldsMap({
   height = 480,
   upazila,
 }) {
-  const { s, T, L: tr, weather, chosen, soil, water } = useStore();
+  const { s, T, L: tr, weather, chosen } = useStore();
   const lang = s.lang;
 
   // Active layer mode: 'satellite' | 'ndvi' | 'terrain' | 'moisture'
   const [mapMode, setMapMode] = useState('satellite');
-  // HUD cards visibility toggle (matching user image 3 recommendations)
+  // HUD cards visibility toggle
   const [showHud, setShowHud] = useState(true);
+  // Active HUD tab on compact/mobile screens: 'bbch' | 'vra' | 'ndvi' | 'tasks'
+  const [activeMobileHud, setActiveMobileHud] = useState('ndvi');
 
   const squares = useMemo(
     () => Object.fromEntries(parcels.map((p) => [p.id, plotSquare(p.lat, p.lon, p.area_dec)])),
@@ -107,7 +109,7 @@ export default function FieldsMap({
   const humidityPct = 58;
   const windSpeedKmh = 2.4;
 
-  // Color styles based on active layer mode
+  // Dynamic polygon styles based on active layer mode
   const getPolygonStyle = (p, isSelected) => {
     const look = LEVEL_LOOK[levels[p.id] ?? 'none'];
     if (mapMode === 'ndvi') {
@@ -116,7 +118,7 @@ export default function FieldsMap({
         color: isSelected ? '#ffffff' : '#a7f3d0',
         weight: isSelected ? 3.5 : 2,
         fillColor: fill,
-        fillOpacity: 0.55,
+        fillOpacity: isSelected ? 0.65 : 0.45,
         dashArray: p.pending ? '6 5' : undefined,
       };
     }
@@ -125,7 +127,7 @@ export default function FieldsMap({
         color: isSelected ? '#edc067' : '#d97706',
         weight: isSelected ? 3.5 : 2,
         fillColor: '#b45309',
-        fillOpacity: 0.4,
+        fillOpacity: isSelected ? 0.5 : 0.35,
         dashArray: p.pending ? '6 5' : undefined,
       };
     }
@@ -134,7 +136,7 @@ export default function FieldsMap({
         color: isSelected ? '#38bdf8' : '#0284c7',
         weight: isSelected ? 3.5 : 2,
         fillColor: '#0369a1',
-        fillOpacity: 0.45,
+        fillOpacity: isSelected ? 0.55 : 0.38,
         dashArray: p.pending ? '6 5' : undefined,
       };
     }
@@ -144,12 +146,12 @@ export default function FieldsMap({
       weight: isSelected ? 3.5 : 2.5,
       dashArray: p.pending ? '6 5' : undefined,
       fillColor: look.color,
-      fillOpacity: isSelected ? 0.42 : 0.28,
+      fillOpacity: isSelected ? 0.45 : 0.28,
     };
   };
 
   return (
-    <div className="relative isolate w-full overflow-hidden rounded-2xl border border-white/80 bg-slate-900 shadow-xl">
+    <div className="relative isolate w-full overflow-hidden rounded-2xl border border-white/80 bg-slate-900 shadow-xl transition-all duration-300">
       <MapFrame
         center={centerCoord}
         zoom={14}
@@ -269,12 +271,49 @@ export default function FieldsMap({
         ))}
       </MapFrame>
 
+      {/* Mode-specific Legend Bar */}
+      {mapMode !== 'satellite' && (
+        <div className="pointer-events-none absolute bottom-3 left-3 z-[401]">
+          <div className="pointer-events-auto rounded-xl border border-white/20 bg-[#163020]/90 px-3 py-1.5 text-white shadow-lg backdrop-blur-md text-[11.5px]">
+            {mapMode === 'ndvi' && (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-emerald-300">NDVI:</span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2.5 w-4 rounded-sm bg-amber-500" />
+                  <span className="tabular text-[10.5px]">0.3 ({T('কম', 'Low')})</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2.5 w-4 rounded-sm bg-lime-500" />
+                  <span className="tabular text-[10.5px]">0.6 ({T('মধ্যম', 'Mid')})</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2.5 w-4 rounded-sm bg-emerald-500" />
+                  <span className="tabular text-[10.5px]">0.8+ ({T('চমৎকার', 'High')})</span>
+                </span>
+              </div>
+            )}
+            {mapMode === 'terrain' && (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-300">{T('ভূমিরূপ:', 'Terrain:')}</span>
+                <span>{T('ঢাল ও পানি নামার দিক নির্ধারিত', 'Slope & drainage mapped')}</span>
+              </div>
+            )}
+            {mapMode === 'moisture' && (
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sky-300">{T('আর্দ্রতা:', 'Moisture:')}</span>
+                <span>{T('শিকড় অঞ্চলের পানি সন্তোষজনক', 'Root zone moisture adequate')}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Floating HUD Cockpit Overlays (Matching user image 3 recommendations) */}
       {showHud && (
         <div className="pointer-events-none absolute inset-0 z-[400] flex flex-col justify-between p-3">
           {/* Top Floating Weather Telemetry Bar */}
           <div className="flex justify-center">
-            <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/30 bg-[#163020]/90 px-4 py-2 text-white shadow-xl backdrop-blur-xl transition-all duration-300">
+            <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/30 bg-[#163020]/92 px-4 py-2 text-white shadow-xl backdrop-blur-xl transition-all duration-300">
               <div className="flex items-center gap-2 border-r border-white/20 pr-3">
                 <CloudSun size={20} className="text-paddy-300" />
                 <span className="text-[15px] font-black tabular">
@@ -301,10 +340,34 @@ export default function FieldsMap({
             </div>
           </div>
 
+          {/* Mobile HUD Tab Selector (for compact screens < sm) */}
+          <div className="pointer-events-auto flex justify-center gap-1 sm:hidden">
+            {[
+              { id: 'bbch', label: T('BBCH', 'BBCH'), icon: Sprout },
+              { id: 'vra', label: T('সার', 'Dose'), icon: Droplets },
+              { id: 'ndvi', label: T('NDVI', 'NDVI'), icon: Activity },
+              { id: 'tasks', label: T('কাজ', 'Tasks'), icon: Calendar },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveMobileHud(t.id)}
+                className={`flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold shadow-md backdrop-blur-md transition-all ${
+                  activeMobileHud === t.id
+                    ? 'border border-primary-300 bg-primary-800 text-white'
+                    : 'border border-white/20 bg-[#163020]/80 text-white/70'
+                }`}
+              >
+                <t.icon size={12} />
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Bottom Floating Telemetry Cards Grid */}
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: BBCH Growth Stage */}
-            <div className="pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/90 p-3 text-white shadow-xl backdrop-blur-xl">
+            <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'bbch' ? 'hidden sm:block' : 'block'}`}>
               <div className="flex items-center justify-between text-[11.5px] font-bold text-paddy-300">
                 <span className="flex items-center gap-1.5">
                   <Sprout size={14} />
@@ -334,7 +397,7 @@ export default function FieldsMap({
             </div>
 
             {/* Card 2: Precision Nutrient Dosage (Application Rates) */}
-            <div className="pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/90 p-3 text-white shadow-xl backdrop-blur-xl">
+            <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'vra' ? 'hidden sm:block' : 'block'}`}>
               <div className="flex items-center justify-between text-[11.5px] font-bold text-sky-300">
                 <span className="flex items-center gap-1.5">
                   <Droplets size={14} />
@@ -374,7 +437,7 @@ export default function FieldsMap({
             </div>
 
             {/* Card 3: NDVI Vegetation Intelligence */}
-            <div className="pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/90 p-3 text-white shadow-xl backdrop-blur-xl">
+            <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'ndvi' ? 'hidden sm:block' : 'block'}`}>
               <div className="flex items-center justify-between text-[11.5px] font-bold text-emerald-300">
                 <span className="flex items-center gap-1.5">
                   <Activity size={14} />
@@ -408,7 +471,7 @@ export default function FieldsMap({
             </div>
 
             {/* Card 4: Scheduled Field Activities */}
-            <div className="pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/90 p-3 text-white shadow-xl backdrop-blur-xl">
+            <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'tasks' ? 'hidden sm:block' : 'block'}`}>
               <div className="flex items-center justify-between text-[11.5px] font-bold text-amber-300">
                 <span className="flex items-center gap-1.5">
                   <Calendar size={14} />

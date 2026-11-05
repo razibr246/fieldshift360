@@ -218,6 +218,20 @@ html { zoom: var(--ui-zoom); }
   transition-duration: .12s;
 }
 
+/* Performance & Rendering Acceleration:
+   content-visibility skips off-screen layout reflows until scrolled into view;
+   gpu-layer forces composite thread isolation for ultra-smooth 60/120fps motion. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 340px;
+}
+.gpu-layer {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+
 .page-header-eyebrow {
   width: fit-content;
   max-width: 100%;
