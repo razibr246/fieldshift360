@@ -510,7 +510,6 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
         stepT = me.run ? 0.22 : 0.36;
         const surf = surfaceAt(L, g, me.x, me.z);
         onEvent({ type: 'sound', s: 'step', surface: surf, run: me.run });
-        burst(surf === 'water' ? 'water' : 'dust', me.x, me.z);
       }
     } else {
       stepT = 0.08;

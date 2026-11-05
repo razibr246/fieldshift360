@@ -348,11 +348,11 @@ export function createNature(scene, L, { light = false } = {}) {
           const dPlayer = Math.hypot(bd.x - px, bd.z - pz);
           if (bd.state === 'perch') {
             bd.timer -= dt;
-            if (dPlayer < 4.8 || bd.timer <= 0) {
+            if (bd.timer <= 0) {
               bd.state = 'fly';
-              bd.timer = 4 + Math.random() * 4;
+              bd.timer = 5 + Math.random() * 5;
               const nextP = perches[Math.floor(Math.random() * perches.length)];
-              bd.target = [nextP[0], nextP[1] + (dPlayer < 4.8 ? 0.3 : 0), nextP[2]];
+              bd.target = [nextP[0], nextP[1], nextP[2]];
             }
           } else {
             const dx = bd.target[0] - bd.x, dz = bd.target[2] - bd.z;
