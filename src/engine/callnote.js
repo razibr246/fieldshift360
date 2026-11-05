@@ -179,6 +179,7 @@ export async function verifyCallNote(sealed) {
 }
 
 // A request for the officer's queue, in the shape the rest of the app uses (see FieldSatellite's tellOffice).
+// `today` is a day timestamp in milliseconds (todayDhaka()), as every request's `created` is.
 export function callNoteToRequest(sealed, farmer, today) {
   const { record } = sealed;
   const n = record.note;

@@ -120,7 +120,7 @@ function RequestDetailInner({ id }) {
                 <div key={k} className="rounded-xl bg-canvas p-2.5"><div className="flex items-center gap-1 text-muted"><Icon size={13} />{k}</div><div className="mt-0.5 font-semibold">{v}</div></div>
               ))}
             </div>
-            <h3 className="mt-5 text-[14.5px] font-bold">{T('কৃষক যা লিখেছেন', 'What the farmer wrote')}</h3>
+            <h3 className="mt-5 flex flex-wrap items-center gap-2 text-[14.5px] font-bold">{r.type === 'call' ? <>{T('কৃষকের সাথে কথা থেকে (আপনি দেখে নিয়েছেন)', 'From your call with the farmer (checked by you)')} <Tags list={['AI']} /> <Link to="/officer/calls" className="text-[13px] font-semibold text-primary-700 underline">{T('কথার নোট', 'Call note')}</Link></> : T('কৃষক যা লিখেছেন', 'What the farmer wrote')}</h3>
             <p className="mt-2 rounded-xl bg-canvas p-4 text-[16px] leading-7">“{L(r.text)}”</p>
             <div className="mt-3 flex flex-wrap gap-2 text-[12.5px]">
               <span className="chip bg-black/[.04] text-ink/75"><Camera size={13} />{r.image ? T('ছবি আছে', 'Photo') : r.ai && !r.doctor ? T('ছবি (নমুনা)', 'Photo (sample)') : r.imageDropped ? T('ছবি সংরক্ষিত হয়নি', 'Photo not kept') : T('ছবি নেই', 'No photo')}</span>

@@ -54,6 +54,7 @@ async function geminiHear({ audio, mime, lang, crop }) {
     } catch { last = { busy: true }; continue; }
     if (r.status === 401 || r.status === 403) return { auth: true };
     if (r.status === 429 || r.status >= 500) { last = { busy: true }; continue; }
+    if (r.status === 404) { last = { error: `gemini model ${model} not found` }; continue; } // a mistyped GEMINI_MODEL
     if (!r.ok) return { error: `gemini ${r.status}` };
     const data = await r.json();
     const text = data?.candidates?.[0]?.content?.parts?.map((p) => p?.text).filter((p) => typeof p === 'string').join('\n');

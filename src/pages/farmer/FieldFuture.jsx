@@ -23,6 +23,7 @@ import StrategyCompare from '../../components/future/StrategyCompare';
 import ParetoFrontier from '../../components/future/ParetoFrontier';
 import StressChaosTest from '../../components/future/StressChaosTest';
 import CarbonFinance from '../../components/future/CarbonFinance';
+import GeochemicalSoilProfile from '../../components/future/GeochemicalSoilProfile';
 import TopographyInundation from '../../components/future/TopographyInundation';
 import BoroSensitivity from '../../components/future/BoroSensitivity';
 import SrdiCalibrationCard from '../../components/future/SrdiCalibrationCard';
@@ -128,6 +129,7 @@ export default function FieldFuture() {
         { id: 'ff-chaos', label: T('স্ট্রেস পরীক্ষা', 'Stress shocks') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
         { id: 'ff-carbon', label: T('কার্বন অর্থায়ন', 'Carbon finance') },
+        { id: 'ff-geochem', label: T('মৃত্তিকা রসায়ন ও জীবাশ্ম স্তর', 'Soil Chemistry & Paleosol') },
         { id: 'ff-land', label: T('মহাকাশ থেকে', 'From space') },
         { id: 'ff-topo', label: T('উচ্চতা ও প্লাবন', 'Elevation & floods') },
         { id: 'ff-water', label: T('মাটির পানি', 'Soil water') },
@@ -180,6 +182,9 @@ export default function FieldFuture() {
       <StressChaosTest ff={ff} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       <CarbonFinance ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
+      <div id="ff-geochem" className="scroll-mt-24">
+        <GeochemicalSoilProfile soil={soil} farmer={farmer} waterSavedMm={135} />
+      </div>
       {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
       <LazyMount id="ff-land" height={560}><LandFromSpace upazila={upazila.id} place={upazila.name} /></LazyMount>
       <LazyMount id="ff-topo" height={560}><TopographyInundation parcelId={activeParcel?.id} /></LazyMount>

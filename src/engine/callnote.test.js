@@ -88,10 +88,11 @@ test('a sealed note verifies, and any edit to it breaks the seal', async () => {
   assert.equal(await verifyCallNote({ ...sealed, hash: 'nope' }), false);
   await assert.rejects(sealCallNote({ id: 'n2', consent: makeConsent({ given: false }), transcript, note }), /consent/);
 
-  const req = callNoteToRequest(sealed, { id: 'F1', union: 'Deopara', village: 'V', villageBn: 'ভি', lat: 1, lon: 2 }, '2026-11-05');
+  const req = callNoteToRequest(sealed, { id: 'F1', union: 'Deopara', village: 'V', villageBn: 'ভি', lat: 1, lon: 2 }, Date.UTC(2026, 10, 5));
   assert.equal(req.id, 'C-n1');
   assert.equal(req.priority, 'High');
   assert.equal(req.crop, 'tomato');
   assert.equal(req.type, 'call');
   assert.equal(req.text.bn, 'টমেটোর পাতায় দাগ');
+  assert.equal(req.created, Date.UTC(2026, 10, 5));
 });

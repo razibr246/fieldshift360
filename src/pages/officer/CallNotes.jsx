@@ -5,7 +5,7 @@ import { useStore } from '../../store';
 import { PageHeader, Card, Badge, Button, Tags, Note, Select, Textarea, EmptyState } from '../../components/ui';
 import { SYMPTOMS } from '../../data/demo';
 import { cropName } from '../../engine/crops';
-import { num, iso, todayDhaka, bnDigits } from '../../engine/dates';
+import { num, todayDhaka, bnDigits } from '../../engine/dates';
 import { speakNatural, stopSpeaking } from '../../voice/speech';
 import {
   CONSENT_NOTICE, MAX_RECORD_SECONDS, MAX_AUDIO_B64, AUDIO_TYPES, makeConsent, canRecord, normalizeCallNote,
@@ -148,7 +148,7 @@ export default function CallNotes() {
     });
     dispatch({ type: 'addCallNote', note: sealed });
     if (asRequest) {
-      const req = callNoteToRequest(sealed, farmer, iso(todayDhaka()));
+      const req = callNoteToRequest(sealed, farmer, todayDhaka());
       dispatch({ type: 'addRequest', req });
       dispatch({ type: 'linkCallNote', id: sealed.id, requestId: req.id });
       reset();
@@ -170,7 +170,7 @@ export default function CallNotes() {
         <div className="space-y-4">
           <Card className="p-5">
             <h2 className="text-[17px] font-bold">{num(1, lang)}. {T('কোন কৃষক?', 'Which farmer?')}</h2>
-            <Select className="mt-3 w-full" value={farmerId} disabled={!!consent} onChange={(e) => setFarmerId(e.target.value)}>
+            <Select className="mt-3 w-full" aria-label={T('কৃষক', 'Farmer')} value={farmerId} disabled={!!consent} onChange={(e) => setFarmerId(e.target.value)}>
               <option value="">{T('কৃষক বেছে নিন', 'Choose a farmer')}</option>
               {farmers.map((f) => <option key={f.id} value={f.id}>{L(f.name)} · {lang === 'bn' ? f.villageBn : f.village}{f.crop ? ` · ${cropName(f.crop, lang)}` : ''}</option>)}
             </Select>
@@ -209,6 +209,7 @@ export default function CallNotes() {
                 <div className="mt-4 space-y-3">
                   <audio controls src={audio.url} className="w-full" />
                   <Button onClick={send} loading={busy}><Send size={16} />{T('লেখায় রূপান্তর করুন', 'Transcribe')}</Button>
+                  {busy && <p className="text-[13px] font-semibold text-primary-700" role="status">{T('এআই শুনছে… এক-দুই মিনিট লাগতে পারে, পাতা বন্ধ করবেন না।', 'The AI is listening… this can take a minute or two; keep the page open.')}</p>}
                   <p className="text-[13px] text-muted">{T('অডিওটা একবার এআই-এর কাছে যায়, কোথাও রাখা হয় না। নোটে শুধু তার আঙুলের ছাপ (SHA-256) থাকে।', 'The audio goes to the AI once and is not stored anywhere. The note keeps only its fingerprint (SHA-256).')}</p>
                 </div>
               )}

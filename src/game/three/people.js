@@ -793,9 +793,10 @@ export function animate(P, st, dt) {
     -L[1] * 0.72 - K[1] * 0.25,
   ];
 
-  // Athletic contralateral arm swing
+  // Athletic contralateral arm swing with natural idle respiration drape
   const armSwing = (st.run ? 1.05 : 0.58) * a;
-  const A = [-s * armSwing, s * armSwing];
+  const idleArmDrape = (1 - a) * Math.sin((st.t ?? 0) * 2.1) * 0.024;
+  const A = [-s * armSwing + idleArmDrape, s * armSwing - idleArmDrape];
   const E = [
     -(st.run ? 1.38 : 0.38) - Math.max(0, -A[0]) * (st.run ? 0.58 : 0.44),
     -(st.run ? 1.38 : 0.38) - Math.max(0, -A[1]) * (st.run ? 0.58 : 0.44),

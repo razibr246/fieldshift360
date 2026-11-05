@@ -13,7 +13,7 @@ import { readField } from '../../engine/fieldwatch';
 import { pictureBox } from '../../engine/sentinel';
 import { plotSquare } from '../../engine/world';
 import { cropName, IRRIGATION } from '../../engine/crops';
-import { num, fmtDate, parseISO, iso, todayDhaka } from '../../engine/dates';
+import { num, fmtDate, parseISO, todayDhaka } from '../../engine/dates';
 import { WATCH_PROV } from '../../data/fieldWatch';
 
 const pctLabel = (p, lang) => `${num(Math.round(p * 100), lang)}%`;
@@ -126,7 +126,7 @@ export default function FieldSatellite({ parcel, index, active, onPlan, onEdit, 
     dispatch({ type: 'addRequest', req: {
       id: `S-${parcel.id}-${Date.now().toString(36)}`, farmerId: farmer.id, union: parcel.union, village: parcel.village, villageBn: parcel.villageBn, lat: parcel.lat, lon: parcel.lon,
       crop: r.top?.pattern.crops.at(-1) ?? parcel.last_crop, symptom: notField ? 'question' : 'satellite', type: 'help', parcel: parcel.id,
-      text: { bn: body('bn'), en: body('en') }, ai: null, created: iso(todayDhaka()), status: 'open', priority: r.level === 'warn' ? 'High' : 'Medium', mine: true } });
+      text: { bn: body('bn'), en: body('en') }, ai: null, created: todayDhaka(), status: 'open', priority: r.level === 'warn' ? 'High' : 'Medium', mine: true } });
     toast('উপজেলা কৃষি অফিসে জানানো হয়েছে', 'Sent to the upazila agriculture office');
   };
 

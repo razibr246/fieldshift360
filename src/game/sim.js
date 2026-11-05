@@ -43,7 +43,7 @@ export function createGame(id, mods = {}) {
     id, R, F, L, S: L.S, t: 0, paused: false, ndvi: false,
     me: { x: L.S.start.x, z: L.S.start.z, yaw: 0.6, vx: 0, vz: 0, speed: 0, act: null, stamina: 1, down: 0, idle: -5, run: false },
     can: F.can, seeds, sel: Object.keys(R.crops)[0], basket: { ...seeds }, money: 150,
-    count: { bought: 0, planted: 0, watered: 0, harvested: 0, sold: 0, earned: 0, pestsCleared: 0, lost: 0, hurt: 0, rotated: 0, repeats: 0, legumes: 0, eroded: 0, satViews: 0, advised: 0, waterLayer: 0 },
+    count: { bought: 0, planted: 0, watered: 0, harvested: 0, sold: 0, earned: 0, pestsCleared: 0, lost: 0, hurt: 0, rotated: 0, repeats: 0, legumes: 0, eroded: 0, satViews: 0, advised: 0, waterLayer: 0, dieselSaved: 0 },
     soilHealth: 50, carbonScore: 25, xp: 0, level: 1,
     forecast: [
       { day: 1, hazard: 'heat', title: { bn: 'তাপপ্রবাহের শঙ্কা', en: 'Heat Risk' } },
@@ -172,6 +172,7 @@ function plotAction(g, p) {
       g.count.rotated++;
       g.soilHealth = Math.min(100, g.soilHealth + 3);
       g.carbonScore = Math.min(100, g.carbonScore + 2);
+      g.count.dieselSaved = Math.round((g.count.dieselSaved + 1.2) * 10) / 10;
       gainXp(g, 15, { bn: 'ফসলচক্র', en: 'Crop Rotation' });
     }
     floater(g, p.repeat ? { bn: `আবার ${C[p.crop].bn}: পোকা জমে উঠবে`, en: `${C[p.crop].en} again: pests build up` } : p.last ? { bn: `${C[p.crop].bn} বোনা হলো · ফসল বদল`, en: `${C[p.crop].en} sown · crop rotated` } : { bn: `${C[p.crop].bn} বোনা হলো`, en: `${C[p.crop].en} sown` }, p.x, p.z, p.repeat ? 'bad' : 'info'); return;
@@ -182,6 +183,7 @@ function plotAction(g, p) {
     if (C[k].soil) {
       g.soilHealth = Math.min(100, g.soilHealth + 4);
       g.carbonScore = Math.min(100, g.carbonScore + 3);
+      g.count.dieselSaved = Math.round((g.count.dieselSaved + 2.5) * 10) / 10;
       gainXp(g, 25, { bn: 'ডাল ফসল বোনাস', en: 'Legume Bonus' });
     } else {
       gainXp(g, 10, { bn: 'ফসল তোলা', en: 'Harvest' });
