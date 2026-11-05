@@ -96,6 +96,80 @@ export default function Science() {
         </div>
       </section>
 
+      {/* NASA Earthdata Architecture & In-Browser Fusion Pipeline */}
+      <section className="mt-12">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-[24px] font-bold"><Database size={20} className="text-primary-700" />{T('নাসা তথ্যের আর্কিটেকচার ও ডেটা ফিউশন', 'NASA Earthdata Architecture & Data Fusion')}</h2>
+          <Tags list={['SAT', 'MODEL', 'RULE']} />
+        </div>
+        <p className="mt-2 max-w-3xl text-[15px] leading-7 text-ink/75">
+          {T('মহাকাশ থেকে সরাসরি কৃষকের হাতে: ৮টি নাসা ও আন্তর্জাতিক উপগ্রহ মিশন কীভাবে ব্রাউজারের ভেতর এক সেকেন্ডের কম সময়ে বৈজ্ঞানিক সিদ্ধান্তে পরিণত হয়।',
+            'From orbit to the farmer’s palm: how 8 NASA and partner satellite missions are ingested, harmonized, and computed directly in the browser in under a second.')}
+        </p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-stagger>
+          <div className="surface-card rounded-[22px] border border-border/80 bg-white p-5 shadow-xs transition-all hover:border-primary-400 hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-sky-100 text-[13px] font-bold text-sky-800">১</span>
+              <Satellite size={18} className="text-sky-700" />
+            </div>
+            <h3 className="mt-3 text-[16px] font-bold text-ink">{T('১. নাসা উপগ্রহ ও মডেল', '1. NASA Satellites')}</h3>
+            <p className="mt-1 text-[13px] text-muted">{T('কাঁচা উপগ্রহ তথ্য', 'Raw Earth observations')}</p>
+            <ul className="mt-3 space-y-1.5 text-[12.5px] leading-5 text-ink/80">
+              <li>• <b>NASA POWER:</b> {T('২৫ বছরের তাপ ও বৃষ্টি (৫০ কিমি)', '25yr heat & rain (50 km)')}</li>
+              <li>• <b>GPM IMERG:</b> {T('বৃষ্টি ও বর্ষা শুরু (১০ কিমি)', 'Daily rain & onset (10 km)')}</li>
+              <li>• <b>MODIS/Landsat:</b> {T('সবুজ ও খরা (২৫০ মি)', 'NDVI & stress (250 m)')}</li>
+              <li>• <b>SMAP & GRACE:</b> {T('মাটির পানি ও ভূগর্ভস্থ স্তর', 'Soil wetness & aquifer')}</li>
+            </ul>
+          </div>
+
+          <div className="surface-card rounded-[22px] border border-border/80 bg-white p-5 shadow-xs transition-all hover:border-primary-400 hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary-100 text-[13px] font-bold text-primary-800">২</span>
+              <GitCompare size={18} className="text-primary-700" />
+            </div>
+            <h3 className="mt-3 text-[16px] font-bold text-ink">{T('২. রেজোলিউশন হারমোনাইজেশন', '2. Spatial Harmonization')}</h3>
+            <p className="mt-1 text-[13px] text-muted">{T('একই বিশ্লেষণ গ্রিডে মেলানো', 'Downscaled to analysis grid')}</p>
+            <ul className="mt-3 space-y-1.5 text-[12.5px] leading-5 text-ink/80">
+              <li>• <b>BMD Normals:</b> {T('আবহাওয়া কেন্দ্রের তাপ মেলানো', 'Station temperature calibration')}</li>
+              <li>• <b>SoilGrids 2.0:</b> {T('মাটির কাদা-বালি-কার্বন (২৫০ মি)', 'Clay/sand/carbon pedotransfer')}</li>
+              <li>• <b>DEM Consensus:</b> {T('SRTM ও ASTER উচ্চতার গড়', 'SRTM + ASTER 30 m elevation')}</li>
+              <li>• <b>Sentinel-2:</b> {T('জমির ভেতরের ১০ মিটার পিক্সেল', 'Field boundary polygon pixel extraction')}</li>
+            </ul>
+          </div>
+
+          <div className="surface-card rounded-[22px] border border-border/80 bg-white p-5 shadow-xs transition-all hover:border-primary-400 hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-amber-100 text-[13px] font-bold text-amber-800">৩</span>
+              <FlaskConical size={18} className="text-amber-700" />
+            </div>
+            <h3 className="mt-3 text-[16px] font-bold text-ink">{T('৩. ব্রাউজারে বৈজ্ঞানিক ইঞ্জিন', '3. In-Browser Physics Engine')}</h3>
+            <p className="mt-1 text-[13px] text-muted">{T('নিখুঁত বিজ্ঞানভিত্তিক গণনা', 'Zero-latency deterministic execution')}</p>
+            <ul className="mt-3 space-y-1.5 text-[12.5px] leading-5 text-ink/80">
+              <li>• <b>FAO-56:</b> {T('দৈনিক শিকড়ের পানির ব্যালেন্স', 'Daily Penman-Monteith ET₀ & root water')}</li>
+              <li>• <b>ICBM Model:</b> {T('১০ বছরের মাটির কার্বন সঞ্চয়', '10-yr humified & young carbon')}</li>
+              <li>• <b>BRRI AWD:</b> {T('বোরো ধানের ভেজানো-শুকানো', 'Alternate wetting & drying rice water')}</li>
+              <li>• <b>40 Futures:</b> {T('৮টি CMIP6 মডেল × ৫ ফলন বছর', '8 NEX-GDDP-CMIP6 models × 5 yield yrs')}</li>
+            </ul>
+          </div>
+
+          <div className="surface-card rounded-[22px] border border-border/80 bg-white p-5 shadow-xs transition-all hover:border-primary-400 hover:shadow-md">
+            <div className="flex items-center justify-between">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-[13px] font-bold text-emerald-800">৪</span>
+              <Sprout size={18} className="text-emerald-700" />
+            </div>
+            <h3 className="mt-3 text-[16px] font-bold text-ink">{T('৪. কৃষকের সিদ্ধান্তে রূপান্তর', '4. Human Action Delivery')}</h3>
+            <p className="mt-1 text-[13px] text-muted">{T('সহজ ও সবার জন্য উন্মুক্ত', 'Multichannel accessible output')}</p>
+            <ul className="mt-3 space-y-1.5 text-[12.5px] leading-5 text-ink/80">
+              <li>• <b>KEEP/ADJUST/SHIFT:</b> {T('স্পষ্ট তিন পরামর্শ ও কারণ', 'Transparent advice with evidence')}</li>
+              <li>• <b>Bilingual Cockpit:</b> {T('বাংলা ও ইংরেজি ইন্টারফেস', 'Rural Bangla numerals & voice')}</li>
+              <li>• <b>SAAO Alert Triage:</b> {T('ইউনিয়ন অফিসারের কমান্ড সেন্টার', 'Officer outbreak cluster detection')}</li>
+              <li>• <b>Offline Support:</b> {T('ভয়েস সহকারী, এসএমএস ও প্রিন্ট', 'Voice assistant, SMS mode, print/PDF')}</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section className="mt-12 grid gap-5 lg:grid-cols-2">
         <div className="glass flat rounded-[24px] p-6">
           <h2 className="flex items-center gap-2 text-[22px] font-bold"><Satellite size={20} className="text-sky-700" />{T('উপগ্রহ বনাম মাটির মাপ', 'Satellite versus ground')}</h2>
