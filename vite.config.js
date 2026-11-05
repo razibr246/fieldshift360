@@ -110,9 +110,10 @@ const devDoctorApi = (env) => ({
   name: 'dev-doctor-api',
   apply: 'serve',
   configureServer(server) {
-    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_AGENT_MODEL', 'GEMINI_TTS_MODEL', 'GEMINI_TTS_VOICE', 'GEMINI_TTS_VOICE_BN', 'GEMINI_TTS_VOICE_EN', 'ANTHROPIC_API_KEY']) if (env[k] && !process.env[k]) process.env[k] = env[k];
-    // api/agent.js (Chakra Agent) and api/tts.js (its natural voice) are served the same way, with the same keys.
-    for (const name of ['doctor', 'agent', 'tts']) server.middlewares.use(`/api/${name}`, async (req, res) => {
+    for (const k of ['GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_AGENT_MODEL', 'GEMINI_TTS_MODEL', 'GEMINI_TTS_VOICE', 'GEMINI_TTS_VOICE_BN', 'GEMINI_TTS_VOICE_EN', 'ANTHROPIC_API_KEY', 'GROQ_API_KEY']) if (env[k] && !process.env[k]) process.env[k] = env[k];
+    // api/agent.js (Chakra Agent), api/tts.js (its natural voice) and api/transcribe.js (call notes, also GROQ_API_KEY)
+    // are served the same way, with the same keys.
+    for (const name of ['doctor', 'agent', 'tts', 'transcribe']) server.middlewares.use(`/api/${name}`, async (req, res) => {
       const { default: handler } = await import(`./api/${name}.js`);
       let raw = '';
       for await (const c of req) raw += c;

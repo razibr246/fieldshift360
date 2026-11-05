@@ -18,6 +18,9 @@
   "functions": {
     "api/doctor.js": {
       "maxDuration": 300
+    },
+    "api/transcribe.js": {
+      "maxDuration": 180
     }
   }
 }

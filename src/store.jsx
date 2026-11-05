@@ -65,7 +65,7 @@ const Ctx = createContext(null);
 // ---- saved demo state (per browser; safe to lose) ----
 const STATE_KEY = `${STORAGE_PREFIX}.demo.v5`; // v5: every farmer's fields from the upazila office registry
 const LANG_KEY = `${STORAGE_PREFIX}.lang`;
-const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies', 'chakra', 'soilTests'];
+const SAVED_KEYS = ['seenMsgs', 'irrigated', 'farmerId', 'profiles', 'priorities', 'exclude', 'pick', 'confirmed', 'fields', 'requests', 'advisories', 'escalations', 'seenAdvisories', 'officerUpazila', 'officerUnion', 'step', 'fieldCheck', 'scenario', 'harvests', 'parcelEdits', 'activeParcel', 'savedCompares', 'sawStrategies', 'chakra', 'soilTests', 'callNotes'];
 const readJSON = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const savedLang = () => { try { return localStorage.getItem(LANG_KEY) || 'bn'; } catch { return 'bn'; } };
 
@@ -82,6 +82,7 @@ const fresh = () => ({
   pick: null, // {crop, shift} chosen by the farmer; null = follow the recommendation
   confirmed: [], // plans confirmed by demo farmers -> added to union supply
   harvests: {}, // farmerId -> { qty, price }
+  callNotes: [], // sealed officer call notes (engine/callnote.js), newest first; the audio itself is never kept
   soilTests: {}, // parcel id (or farmer id without a parcel) -> the farmer's own soil test (engine/soiltest.js)
   fieldCheck: null,
   irrigated: {}, // farmerId -> 'YYYY-MM-DD' the farmer last irrigated (restarts the field water balance)
@@ -163,6 +164,9 @@ function reducer(s, a) {
     case 'updateRequest': return { ...s, requests: s.requests.map((r) => (a.ids.includes(r.id) ? { ...r, ...a.patch } : r)) };
     case 'addAdvisory': return { ...s, advisories: [a.adv, ...s.advisories.filter((x) => x.id !== a.adv.id)] };
     case 'escalate': return { ...s, escalations: [a.esc, ...s.escalations.filter((e) => e.id !== a.esc.id)] };
+    case 'addCallNote': return { ...s, callNotes: [a.note, ...s.callNotes.filter((n) => n.id !== a.note.id)].slice(0, 50) };
+    case 'linkCallNote': return { ...s, callNotes: s.callNotes.map((n) => (n.id === a.id ? { ...n, requestId: a.requestId } : n)) };
+    case 'removeCallNote': return { ...s, callNotes: s.callNotes.filter((n) => n.id !== a.id) };
     case 'recordHarvest': return { ...s, harvests: { ...s.harvests, [a.id]: a.value } };
     case 'chakraMode': return { ...s, chakra: { ...s.chakra, mode: { ...s.chakra.mode, [a.role]: a.mode } } };
     // One step the agent took or a person decided: the task is handled and the audit log gets an entry.

@@ -3,7 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, ScrollProgress, useScrollOnNavigate } from '../components/Motion';
 import { BackToTop } from '../components/SectionNav';
 import OfficerTour, { startOfficerTour } from '../components/tour/OfficerTour';
-import { Bell, Compass, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, Radar as RadarIcon } from 'lucide-react';
+import { Bell, Compass, Menu, Search, X, LayoutDashboard, LifeBuoy, UsersRound, Map as MapIcon, BellRing, CalendarRange, Building2, Truck, UserRound, Mic, PhoneCall, Radar as RadarIcon } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, DataStatusChips, ResetDemo, BackButton, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
@@ -47,6 +47,7 @@ function Sidebar({ onNavigate }) {
       { to: '/officer', end: true, icon: LayoutDashboard, label: T('আজকের চিত্র', 'Overview') },
       { to: '/officer/alerts', icon: BellRing, label: T('এলাকার সতর্কতা', 'Area alerts'), badge: alerts, hot: true },
       { to: '/officer/requests', icon: LifeBuoy, label: T('কৃষকের অনুরোধ', 'Farmer requests'), badge: open },
+      { to: '/officer/calls', icon: PhoneCall, label: T('কথার নোট', 'Call notes') },
     ] },
     { title: T('আমার এলাকা', 'My area'), items: [
       { to: '/officer/farmers', icon: UsersRound, label: T('কৃষক ও জমি', 'Farmers and fields') },
