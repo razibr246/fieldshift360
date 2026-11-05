@@ -159,6 +159,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const bubble = el('g3-bubble'); bubble.style.display = 'none';
   const life = createLife(scene, g, overlay, lang);
   const tag = el('g3-tag'); tag.style.display = 'none';
+  const actionTag = el('g3-action-tag'); actionTag.style.display = 'none';
+  actionTag.onclick = (e) => { e.stopPropagation(); if (cam.intro === 0) simAct(g); };
   const floats = [];
   let bubbleT = 0;
   const T = (o) => (o ? o[lang] ?? o.bn : '');
@@ -598,6 +600,55 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       const dm = Math.round(Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z));
       tag.textContent = lang === 'bn' ? `${String(dm).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])} মি` : `${dm} m`;
     } else tag.style.display = 'none';
+
+    // In-world contextual 3D action prompt directly over active target
+    const curTarget = cam.intro ? null : target(g);
+    if (curTarget && !cam.sat) {
+      let tx, ty, tz, actionTxt;
+      if (curTarget.kind === 'plot') {
+        const p = curTarget.p;
+        tx = p.x; tz = p.z;
+        ty = L.ground(tx, tz) + 0.95;
+        const cName = curTarget.crop ? (lang === 'bn' ? curTarget.crop.name.bn : curTarget.crop.name.en) : '';
+        const acts = {
+          spray: lang === 'bn' ? 'বালাই দমন' : 'Treat plot',
+          clear: lang === 'bn' ? 'মরা গাছ সরান' : 'Clear dead',
+          plant: lang === 'bn' ? `${cName} বুনুন` : `Sow ${cName}`,
+          harvest: lang === 'bn' ? `${cName} তুলুন` : `Harvest ${cName}`,
+          water: lang === 'bn' ? 'পানি দিন' : 'Water plot',
+          wet: lang === 'bn' ? 'মাটি ভেজা' : 'Soil wet',
+          nowater: lang === 'bn' ? 'পানি আনুন' : 'Fetch water',
+          noseed: lang === 'bn' ? 'দোকানে যান' : 'Go to shop',
+        };
+        actionTxt = acts[curTarget.what] ?? (lang === 'bn' ? 'কাজ করুন' : 'Act');
+      } else if (curTarget.kind === 'station') {
+        const s = g.S[curTarget.id];
+        tx = s.x; tz = s.z;
+        ty = L.ground(tx, tz) + 1.85;
+        const stActs = {
+          shed: lang === 'bn' ? 'বীজের দোকান' : 'Seed shed',
+          water: lang === 'bn' ? 'সেচ পাম্প' : 'Water pump',
+          market: lang === 'bn' ? (g.basket && Object.values(g.basket).some(Boolean) ? 'ফসল বিক্রি' : 'হাটবাজার') : (g.basket && Object.values(g.basket).some(Boolean) ? 'Sell harvest' : 'Market'),
+          kiosk: lang === 'bn' ? 'FieldShift কিওস্ক' : 'FieldShift Kiosk',
+        };
+        actionTxt = stActs[curTarget.id] ?? (lang === 'bn' ? 'দেখুন' : 'Open');
+      }
+      if (tx !== undefined) {
+        const [x, y, vis] = project(tx, ty, tz);
+        if (vis) {
+          actionTag.style.display = '';
+          actionTag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+          actionTag.innerHTML = `<span class="g3-action-kbd">E</span> <span>${actionTxt}</span>`;
+        } else {
+          actionTag.style.display = 'none';
+        }
+      } else {
+        actionTag.style.display = 'none';
+      }
+    } else {
+      actionTag.style.display = 'none';
+    }
+
     if (compass) compass.style.setProperty('--heading', String((((-cam.yaw * 180) / Math.PI) % 360 + 540) % 360 - 180));
     mapT -= dt; if (mapT <= 0) { mapT = 0.08; drawMap(t, goalPos); }
   }

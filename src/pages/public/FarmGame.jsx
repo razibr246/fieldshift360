@@ -530,10 +530,15 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, r
             </div>
           )}
           {prompt && !touch && (
-            <div className="g3-hud flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold shadow-lg backdrop-blur-xl animate-bounce">
-              <kbd className="grid h-6 min-w-6 place-items-center rounded-md bg-white px-1.5 text-[12px] font-bold text-ink shadow-2xs">E</kbd>
-              {prompt}
-            </div>
+            <button
+              type="button"
+              onClick={() => st.current?.act()}
+              className="g3-hud group flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer ring-1 ring-white/30 hover:ring-amber-300"
+              title={T('ক্লিক করুন বা [E] চাপুন', 'Click or press [E]')}
+            >
+              <kbd className="grid h-6 min-w-6 place-items-center rounded-md bg-white px-1.5 text-[12px] font-bold text-ink shadow-2xs transition-transform duration-200 group-hover:scale-110">E</kbd>
+              <span>{prompt}</span>
+            </button>
           )}
           <div className="flex items-center gap-2">
             <Footprints size={12} className={hud.running ? 'text-amber-300 animate-pulse' : 'text-white/60'} />

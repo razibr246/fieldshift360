@@ -285,6 +285,29 @@ export function createNature(scene, L, { light = false } = {}) {
     };
   });
 
+  // ---- ambient nocturnal fireflies (জোনাকি পোকা) dancing at dusk and night ----
+  const FIREFLY_COUNT = light ? 14 : 36;
+  const fireflyGeo = new THREE.SphereGeometry(0.045, 6, 5);
+  const fireflyMat = new THREE.MeshBasicMaterial({ color: '#dcfc44', transparent: true, opacity: 0.95 });
+  const fireflyMesh = new THREE.InstancedMesh(fireflyGeo, fireflyMat, FIREFLY_COUNT);
+  fireflyMesh.castShadow = false; fireflyMesh.receiveShadow = false; fireflyMesh.frustumCulled = false;
+  scene.add(fireflyMesh);
+
+  const fireflyDummy = new THREE.Object3D();
+  const fireflies = Array.from({ length: FIREFLY_COUNT }, () => {
+    const a = rng() * Math.PI * 2, r = 5 + rng() * 45;
+    return {
+      cx: Math.cos(a) * r,
+      cz: Math.sin(a) * r,
+      rx: 2.2 + rng() * 3.5,
+      rz: 2.2 + rng() * 3.5,
+      yBase: 0.45 + rng() * 1.35,
+      speed: 0.45 + rng() * 0.5,
+      offset: rng() * 20,
+      blinkRate: 2.4 + rng() * 2.6,
+    };
+  });
+
   return {
     // w: the weather's wind (0.8 breeze, 2.4 storm); sky: the sky's middle colour; storm 0–1; day: is the sun up; focus: player position
     update(t, dt, w, sky, storm, day, focus) {
@@ -359,12 +382,37 @@ export function createNature(scene, L, { light = false } = {}) {
         });
         birdMesh.instanceMatrix.needsUpdate = true;
       }
+
+      // Fireflies update: active during dusk, dawn, and night (when !day or in heavy storm)
+      if (fireflyMesh) {
+        if (day && storm < 0.7) {
+          fireflyMesh.visible = false;
+        } else {
+          fireflyMesh.visible = true;
+          fireflies.forEach((f, i) => {
+            const angle = t * f.speed + f.offset;
+            const fx = f.cx + Math.cos(angle) * f.rx + Math.sin(angle * 2.1) * 0.5;
+            const fz = f.cz + Math.sin(angle * 1.3) * f.rz + Math.cos(angle * 1.7) * 0.5;
+            const gy = L.ground(fx, fz);
+            const fy = gy + f.yBase + Math.sin(t * 1.8 + f.offset) * 0.35;
+            const glow = Math.max(0, Math.sin(t * f.blinkRate + f.offset));
+            const sz = glow > 0.15 ? (0.6 + glow * 0.8) : 0;
+
+            fireflyDummy.position.set(fx, fy, fz);
+            fireflyDummy.scale.setScalar(sz);
+            fireflyDummy.updateMatrix();
+            fireflyMesh.setMatrixAt(i, fireflyDummy.matrix);
+          });
+          fireflyMesh.instanceMatrix.needsUpdate = true;
+        }
+      }
     },
     dispose() {
       group.traverse((o) => { if (o.isInstancedMesh) o.dispose(); });
       Object.values(geos).forEach((g) => g.dispose()); mats.forEach((m) => m.dispose()); cloudMat.dispose(); puff.dispose();
       if (bflyMesh) { bflyMesh.dispose(); bflyGeo.dispose(); bflyMat.dispose(); scene.remove(bflyMesh); }
       if (birdMesh) { birdMesh.dispose(); birdGeo.dispose(); birdMat.dispose(); scene.remove(birdMesh); }
+      if (fireflyMesh) { fireflyMesh.dispose(); fireflyGeo.dispose(); fireflyMat.dispose(); scene.remove(fireflyMesh); }
       scene.remove(group); scene.remove(clouds);
     },
   };
