@@ -49,7 +49,15 @@ export default function Dashboard() {
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[13px] font-semibold text-white/90 backdrop-blur-md ring-1 ring-white/20">{T(`আসসালামু আলাইকুম, ${farmer.name.bn}`, `Assalamu alaikum, ${farmer.name.en}`)}</p>
             <h1 className="mt-3 text-[30px] font-bold leading-tight sm:text-[42px]">{L(st)}<span className="grad-shine block">{T(`${chosen.crop.name.bn}, ${chosen.crop.action.bn} ${fmtBangla(chosen.t0, 'bn')}`, `${chosen.crop.name.en}, ${chosen.crop.action.en.toLowerCase()} ${fmtDate(chosen.t0, 'en')}`)}</span></h1>
             <p className="mt-3.5 max-w-xl text-[15.5px] leading-7 text-white/85">{T(`${farmer.villageBn}, ${union.meta.full.bn}। আপনার জমির জায়গা, মাটি, সেচের উৎস, ২৫ মৌসুমের আবহাওয়া আর পাশের কৃষকদের পরিকল্পনা মিলিয়ে এই পরামর্শ।`, `${farmer.village}, ${union.meta.full.en}. Based on your field, soil, water source, 25 seasons of weather and your neighbours’ plans.`)}</p>
-            <div className="mt-4"><Tags list={[climateTag(), 'RULE']} /></div>
+            <div className="mt-4 flex flex-wrap items-center gap-2.5">
+              <Tags list={[climateTag(), 'RULE']} />
+              {chosen?.score && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/20 px-2.5 py-0.5 text-[12px] font-semibold text-emerald-200 backdrop-blur-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  {T(`উপযুক্ততা স্কোর: ${num(chosen.score, 'bn')}/১০০`, `Suitability: ${chosen.score}/100`)}
+                </span>
+              )}
+            </div>
           </div>
           <div data-tour="dash-next" className="keep-solid glass rounded-[24px] !bg-white/95 p-5 text-ink shadow-[0_12px_36px_rgba(0,0,0,0.18)] border border-white/90 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl">
             <div className="flex items-start gap-3.5">

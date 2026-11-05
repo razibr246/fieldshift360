@@ -145,7 +145,7 @@ function MoreSheet({ items, onClose }) {
 }
 
 export default function FarmerLayout() {
-  const { s, T, unreadAdvisories } = useStore();
+  const { s, T, L, unreadAdvisories, upazila, weather } = useStore();
   const nav = useFarmerNav();
   const loc = useLocation();
   const navigate = useNavigate();
@@ -178,6 +178,14 @@ export default function FarmerLayout() {
           <div className="flex min-w-0 items-center gap-2.5">
             <BackButton />
             <Link to="/" aria-label={T('প্রথম পাতা', 'Home page')} className="shrink-0"><span className="hidden sm:block"><BrandMark /></span><span className="sm:hidden"><BrandMark compact size={38} /></span></Link>
+            {upazila && (
+              <div className="hidden xl:flex items-center gap-2 rounded-full border border-primary-200/70 bg-primary-50/80 px-3 py-1 text-[12px] font-semibold text-primary-900 shadow-2xs backdrop-blur-xs">
+                <span className="live-dot shrink-0" />
+                <span className="truncate max-w-[150px]">{L(upazila.name)}, {L(upazila.district)}</span>
+                <span className="text-primary-300">·</span>
+                <span className="tabular font-bold">{weather?.tmax ? Math.round(weather.tmax) : 23}°C</span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <ChakraAgent role="farmer" />
