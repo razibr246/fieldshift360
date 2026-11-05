@@ -27,7 +27,7 @@ function soup(pos, col, up = true) {
 }
 // a closed shape (flower, ear, head) as a non-indexed geometry with a flat colour, ready to merge with blades
 function part(geo, color, at = [0, 0, 0], scale = [1, 1, 1]) {
-  const g = geo.toNonIndexed(); g.deleteAttribute('uv');
+  const g = geo.index ? geo.toNonIndexed() : geo.clone(); g.deleteAttribute('uv');
   g.scale(...scale); g.translate(...at);
   const c = C(color), n = g.attributes.position.count;
   g.setAttribute('color', new THREE.Float32BufferAttribute(Array.from({ length: n * 3 }, (_, i) => [c.r, c.g, c.b][i % 3]), 3));
@@ -321,7 +321,7 @@ export function createNature(scene, L, { light = false } = {}) {
       // Birds update: idle perch with scattering response to player proximity
       if (birdMesh) {
         const px = focus ? focus.x : 0, pz = focus ? focus.z : 0;
-        birds.forEach((bd) => {
+        birds.forEach((bd, i) => {
           const dPlayer = Math.hypot(bd.x - px, bd.z - pz);
           if (bd.state === 'perch') {
             bd.timer -= dt;
