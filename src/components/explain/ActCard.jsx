@@ -2,7 +2,7 @@
 // to keep the comparison or talk it over: save it on this phone, share it with family, or send it to the officer.
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Footprints, CheckSquare, Square, Share2, Save, UserRoundCheck, Copy } from 'lucide-react';
+import { Footprints, CheckSquare, Square, Share2, Save, UserRoundCheck, Copy, CalendarClock, Compass, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, Button } from '../ui';
 import { beforeYouAct, seasonColumns, compareText, margin } from '../../engine/explain';
@@ -13,6 +13,49 @@ import { fmtDate, fmtBangla, fmtRange, num } from '../../engine/dates';
 
 const DAY = 864e5;
 
+const SOP_PHASES = [
+  {
+    phaseBn: 'T-৩০ দিন: প্রাক-মৌসুম প্রস্তুতি',
+    phaseEn: 'T-30 Days: Pre-Season Diagnostic',
+    tagBn: 'মাটি ও বীজ',
+    tagEn: 'Soil & Seed',
+    actionBn: 'এসআরডিআই কিট বা সয়েলগ্রিডস দিয়ে জমির অম্লতা (pH) যাচাই; বারি/বিএডিসির প্রত্যয়িত বীজ সংগ্রহ এবং সেচ নালা পরিষ্কার।',
+    actionEn: 'Calibrate pH via SRDI test kit or SoilGrids; secure certified seeds; desilt field channels.',
+  },
+  {
+    phaseBn: 'T-০ দিন: বোনা ও রোপণ উইন্ডো',
+    phaseEn: 'T-0 Days: Sowing Launch Window',
+    tagBn: 'GPM স্যাটেলাইট',
+    tagEn: 'GPM IMERG',
+    actionBn: 'নাসা GPM IMERG বৃষ্টি-শুরুর সম্ভাব্য উইন্ডোর সঙ্গে মিলিয়ে সঠিক দিনে বীজ বপন। অতিরিক্ত আর্দ্রতা এড়াতে হালকা জো-অবস্থায় বীজ দেওয়া।',
+    actionEn: 'Sow strictly aligned with GPM IMERG onset probability window; ensure proper soil moisture tilth.',
+  },
+  {
+    phaseBn: 'T+৩০ থেকে ৬০ দিন: শিকড় ও পানি ব্যবস্থাপনা',
+    phaseEn: 'T+30 to 60 Days: AWD & Root-Zone',
+    tagBn: 'SMAP আর্দ্রতা',
+    tagEn: 'SMAP Wetness',
+    actionBn: 'নাসা SMAP রুট-জোন আর্দ্রতা পর্যবেক্ষণ; ব্রি এডাব্লিউডি (AWD) পাইপ বসিয়ে সেচের পানি ২৫-৩০% সাশ্রয় করা।',
+    actionEn: 'Monitor SMAP root-zone moisture; deploy BRRI Alternate Wetting & Drying (AWD) perforated pipes.',
+  },
+  {
+    phaseBn: 'T+৯০ থেকে ১২০ দিন: তাপদাহ ও ফসল তোলা',
+    phaseEn: 'T+90 to 120 Days: Terminal Heat Guard',
+    tagBn: 'POWER তাপসীমা',
+    tagEn: 'POWER 35°C',
+    actionBn: 'নাসা পাওয়ার ৩৫° সেলসিয়াস তাপসীমা নজরদারি; ফুল ফোটার সময় তাপজনিত ক্ষতি এড়াতে আগেভাগে তোলা ও দাম পড়ার আগে বিক্রি।',
+    actionEn: 'Track NASA POWER 35 °C flowering threshold; harvest timely before peak regional market glut.',
+  },
+  {
+    phaseBn: 'T+পোস্ট: মাটির কার্বন চক্র সমাপ্তি',
+    phaseEn: 'T+Post: Carbon Loop Closure',
+    tagBn: 'ICBM কার্বন',
+    tagEn: 'ICBM Soil Carbon',
+    actionBn: 'জমির খড় ও ফসলের অবশিষ্টাংশ পুড়িয়ে না ফেলে জমিতে মিশিয়ে দেওয়া (ICBM মডেলে আগামী ১০ বছরে কার্বন সঞ্চয়)।',
+    actionEn: 'Retain crop residues and incorporate stubble; close the ICBM organic carbon loop with zero burning.',
+  },
+];
+
 export default function ActCard() {
   const { s, T, L, dispatch, toast, decision: d, chosen, farmer, soil, tm, upazila, activeParcel } = useStore();
   const lang = s.lang;
@@ -21,6 +64,7 @@ export default function ActCard() {
   const risks = useMemo(() => fieldRisks({ terrain: fieldTerrain(activeParcel?.id), tm, land: landSummary(upazila.id), field: fieldGreen(activeParcel?.id, upazila.id) }), [activeParcel?.id, tm, upazila.id]);
   const checks = beforeYouAct({ rec, soilScope: soil.scope, soilTested: soil.tested?.date, risks, irrigation: farmer.irrigation, glutLevel: rec.glut.level });
   const [done, setDone] = useState({});
+  const [showSop, setShowSop] = useState(false);
   const field = activeParcel ? L(activeParcel.name) : T('আমার জমি', 'My field');
   const text = compareText({ cols: seasonColumns(d, farmer.last_crop), lang, field, firm: margin(d.options).close ? 'close' : 'fair' });
   const saved = (s.savedCompares ?? []).filter((x) => x.farmerId === farmer.id);
@@ -64,6 +108,45 @@ export default function ActCard() {
         })}
       </ul>
       <p className="mt-1 text-[12.5px] text-muted">{T(`${num(checks.length, 'bn')}টির মধ্যে ${num(Object.values(done).filter(Boolean).length, 'bn')}টি দেখা হয়েছে`, `${Object.values(done).filter(Boolean).length} of ${checks.length} checked`)}</p>
+
+      {/* NASA Mission-Grade Standard Operating Procedure (SOP) */}
+      <div className="mt-4 rounded-2xl border border-primary-200/90 bg-white p-3.5 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setShowSop(!showSop)}
+          className="flex w-full items-center justify-between text-left text-[14px] font-bold text-primary-950"
+        >
+          <span className="flex items-center gap-2">
+            <Compass size={16} className="text-primary-700" />
+            {T('মাঠের এসওপি: সিজন ফ্লাইট প্ল্যান (Standard Operating Procedure)', 'Field SOP: Seasonal Flight Plan (Standard Operating Procedure)')}
+          </span>
+          {showSop ? <ChevronUp size={16} className="text-primary-700" /> : <ChevronDown size={16} className="text-primary-700" />}
+        </button>
+        {showSop && (
+          <div className="mt-3 space-y-2 border-t border-primary-100 pt-3">
+            <p className="text-[12.5px] text-muted leading-5">
+              {T(
+                'নাসার মিশন অপারেশন প্রটোকল অনুসারে বীজ বপনের ৩০ দিন পূর্ব থেকে ফসল তোলা পর্যন্ত ৫ ধাপের অ্যাকশন মাইলস্টোন:',
+                'NASA mission operation protocol: 5 sequenced agronomic milestones from T-30 days to post-harvest closure:'
+              )}
+            </p>
+            <ol className="space-y-2.5 pt-1">
+              {SOP_PHASES.map((p, idx) => (
+                <li key={idx} className="rounded-xl bg-canvas p-2.5 text-[13px] border border-border/70">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-primary-900">{T(p.phaseBn, p.phaseEn)}</span>
+                    <span className="rounded-md bg-primary-100 px-2 py-0.5 text-[11px] font-bold text-primary-800">
+                      {T(p.tagBn, p.tagEn)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12.5px] leading-5 text-ink/80">{T(p.actionBn, p.actionEn)}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+      </div>
+
       <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={() => nav('/farmer/help', { state: { ask: text } })}><UserRoundCheck size={16} />{T('কর্মকর্তার সঙ্গে আলোচনা', 'Discuss with my officer')}</Button>
         <Button variant="secondary" onClick={share}>{navigator.share ? <Share2 size={16} /> : <Copy size={16} />}{T('পরিবারকে পাঠান', 'Share with family')}</Button>

@@ -20,6 +20,8 @@ import StrategyBriefs from '../../components/future/StrategyBriefs';
 import LandFromSpace from '../../components/future/LandFromSpace';
 import SoilVerdict from '../../components/future/SoilVerdict';
 import StrategyCompare from '../../components/future/StrategyCompare';
+import ParetoFrontier from '../../components/future/ParetoFrontier';
+import StressChaosTest from '../../components/future/StressChaosTest';
 import BoroSensitivity from '../../components/future/BoroSensitivity';
 import SrdiCalibrationCard from '../../components/future/SrdiCalibrationCard';
 import JudgementNote from '../../components/explain/JudgementNote';
@@ -117,9 +119,11 @@ export default function FieldFuture() {
         { id: 'ff-time', label: T('মাটির টাইম মেশিন', 'Soil time machine') },
         { id: 'ff-best', label: T('সেরা ফসলচক্র', 'Best rotation') },
         { id: 'ff-strategies', label: T('ফসলচক্র পাশাপাশি', 'Rotations compared') },
+        { id: 'ff-pareto', label: T('প্যারেটো বিশ্লেষণ', 'Pareto trade-off') },
         { id: 'ff-compare', label: T('পাশাপাশি', 'Side by side') },
         { id: 'ff-verdict', label: T('মাটির রায়', 'Soil verdict') },
         { id: 'ff-why', label: T('কেন ও কী ঝুঁকি', 'Why and risks') },
+        { id: 'ff-chaos', label: T('স্ট্রেস পরীক্ষা', 'Stress shocks') },
         { id: 'ff-ledger', label: T('জলবায়ু খাতা', 'Climate account') },
         { id: 'ff-land', label: T('মহাকাশ থেকে', 'From space') },
         { id: 'ff-water', label: T('মাটির পানি', 'Soil water') },
@@ -162,12 +166,14 @@ export default function FieldFuture() {
       {show === 'poster' && <RotationPoster ff={ff} ctx={ctx} onClose={() => setShow(null)} />}
       <StrategyCompare sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} list={strategies}
         onDetails={(id) => { setBrief(id); scrollToEl(document.getElementById('ff-why')); }} />
+      <ParetoFrontier list={strategies} sumOf={sumOf} rotName={rotName} />
       <Compare ff={ff} ownE={ownE} second={second} sumOf={sumOf} ctx={ctx} rotName={rotName} />
       <SoilVerdict ff={ff} second={second} sumOf={sumOf} rotName={rotName} />
       <StrategyBriefs sumOf={sumOf} world={w} terrain={fieldTerrain(activeParcel?.id)} rotName={rotName} at={brief} setAt={setBrief} list={[
         ...strategies,
         { id: 'own', kind: 'own', e: ownE, name: T('আপনার বানানো', 'Your own'), tone: GOLD },
       ]} />
+      <StressChaosTest ff={ff} rotName={rotName} />
       <Ledger ff={ff} ownE={ownE} ctx={ctx} w={w} rotName={rotName} />
       {/* Further down, the charts and the 40-future test mount only as they near the screen. */}
       <LazyMount id="ff-land" height={560}><LandFromSpace upazila={upazila.id} place={upazila.name} /></LazyMount>
