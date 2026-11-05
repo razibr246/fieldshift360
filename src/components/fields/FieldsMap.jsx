@@ -368,16 +368,16 @@ export default function FieldsMap({
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: BBCH Growth Stage */}
             <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'bbch' ? 'hidden sm:block' : 'block'}`}>
-              <div className="flex items-center justify-between text-[11.5px] font-bold text-paddy-300">
-                <span className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[12px] font-bold leading-snug text-paddy-300">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
                   <Sprout size={14} />
                   {T('বৃদ্ধির ধাপ (BBCH)', 'Crop Stage (BBCH)')}
                 </span>
-                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white">
+                <span className="whitespace-nowrap rounded-full bg-white/10 px-2 py-0.5 text-[10.5px] text-white">
                   BBCH 41–50
                 </span>
               </div>
-              <p className="mt-1.5 text-[13px] font-bold leading-tight">
+              <p className="mt-2 text-[13.5px] font-bold leading-snug">
                 {T('ফুল ও উদ্ভিজ্জ বিকাশ পর্যায়', 'Vegetative development')}
               </p>
               <div className="mt-2 flex items-center gap-1">
@@ -385,12 +385,12 @@ export default function FieldsMap({
                   <div
                     key={step}
                     className={`h-1.5 flex-1 rounded-full ${
-                      idx < 4 ? 'bg-paddy-400' : 'bg-white/20'
+                      idx < 4 ? 'bg-paddy-300' : 'bg-white/20'
                     }`}
                   />
                 ))}
               </div>
-              <div className="mt-1.5 flex justify-between text-[11px] text-white/70">
+              <div className="mt-1.5 flex justify-between gap-2 whitespace-nowrap text-[11px] text-white/70">
                 <span>{T('রোপণ সম্পন্ন', 'Planted')}</span>
                 <span>{T('তোলার অপেক্ষা', 'Harvest soon')}</span>
               </div>
@@ -398,38 +398,38 @@ export default function FieldsMap({
 
             {/* Card 2: Precision Nutrient Dosage (Application Rates) */}
             <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'vra' ? 'hidden sm:block' : 'block'}`}>
-              <div className="flex items-center justify-between text-[11.5px] font-bold text-sky-300">
-                <span className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[12px] font-bold leading-snug text-sky-300">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
                   <Droplets size={14} />
                   {T('সারের প্রয়োগ মাত্রা', 'Application Rates')}
                 </span>
-                <span className="text-[10.5px] text-white/70">N-P-K</span>
+                <span className="whitespace-nowrap text-[10.5px] text-white/70">N-P-K</span>
               </div>
-              <div className="mt-1.5 space-y-1 text-[11.5px]">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-white/80">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    {T('উচ্চ বৃদ্ধি অঞ্চল', 'High vigour')}
+              <div className="mt-2 space-y-1.5 text-[12px] leading-snug">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5 text-white/80">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+                    {T('জোরালো অংশ', 'Strong patch')}
                   </span>
-                  <span className="font-bold tabular text-white">
+                  <span className="shrink-0 whitespace-nowrap font-bold tabular text-white">
                     {num(70, lang)} {T('কেজি/হে.', 'kg/ha')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-white/80">
-                    <span className="h-2 w-2 rounded-full bg-amber-400" />
-                    {T('মধ্যম অঞ্চল', 'Medium zone')}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5 text-white/80">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+                    {T('মাঝারি অংশ', 'Medium patch')}
                   </span>
-                  <span className="font-bold tabular text-white">
+                  <span className="shrink-0 whitespace-nowrap font-bold tabular text-white">
                     {num(80, lang)} {T('কেজি/হে.', 'kg/ha')}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-white/80">
-                    <span className="h-2 w-2 rounded-full bg-red-400" />
-                    {T('কম অঞ্চল', 'Low zone')}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-1.5 text-white/80">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-red-400" />
+                    {T('দুর্বল অংশ', 'Weak patch')}
                   </span>
-                  <span className="font-bold tabular text-white">
+                  <span className="shrink-0 whitespace-nowrap font-bold tabular text-white">
                     {num(20, lang)} {T('কেজি/হে.', 'kg/ha')}
                   </span>
                 </div>
@@ -438,20 +438,20 @@ export default function FieldsMap({
 
             {/* Card 3: NDVI Vegetation Intelligence */}
             <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'ndvi' ? 'hidden sm:block' : 'block'}`}>
-              <div className="flex items-center justify-between text-[11.5px] font-bold text-emerald-300">
-                <span className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[12px] font-bold leading-snug text-emerald-300">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
                   <Activity size={14} />
                   {T('NDVI সূচক ও স্বাস্থ্য', 'NDVI & Crop Health')}
                 </span>
-                <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] text-emerald-300">
+                <span className="whitespace-nowrap rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10.5px] text-emerald-300">
                   {T('সেন্টিনেল-২', 'Sentinel-2')}
                 </span>
               </div>
-              <div className="mt-1 flex items-baseline gap-2">
+              <div className="mt-1 flex flex-wrap items-baseline gap-x-2">
                 <span className="font-display text-[26px] font-black text-emerald-400 tabular">
                   {num(ndviValue, lang, { dp: 2 })}
                 </span>
-                <span className="text-[12px] font-bold text-emerald-200">
+                <span className="whitespace-nowrap text-[12.5px] font-bold text-emerald-200">
                   {parcelVigor === 'vigorous'
                     ? T('চমৎকার স্বাস্থ্য', 'High vigour')
                     : parcelVigor === 'normal'
@@ -464,39 +464,39 @@ export default function FieldsMap({
                 <div className="bg-amber-400" style={{ width: '25%' }} />
                 <div className="bg-red-500" style={{ width: '10%' }} />
               </div>
-              <div className="mt-1 flex justify-between text-[10.5px] text-white/60">
-                <span>{T('রেজোলিউশন ১০ মি.', 'Res. 10m')}</span>
-                <span className="tabular">{T('ক্লাউড <৫%', 'Cloud <5%')}</span>
+              <div className="mt-1.5 flex flex-wrap justify-between gap-x-2 text-[11px] text-white/65">
+                <span className="whitespace-nowrap">{T('রেজোলিউশন ১০ মি.', 'Res. 10m')}</span>
+                <span className="whitespace-nowrap tabular">{T('মেঘ <৫%', 'Cloud <5%')}</span>
               </div>
             </div>
 
             {/* Card 4: Scheduled Field Activities */}
             <div className={`pointer-events-auto rounded-2xl border border-white/25 bg-[#163020]/92 p-3 text-white shadow-xl backdrop-blur-xl ${activeMobileHud !== 'tasks' ? 'hidden sm:block' : 'block'}`}>
-              <div className="flex items-center justify-between text-[11.5px] font-bold text-amber-300">
-                <span className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[12px] font-bold leading-snug text-amber-300">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
                   <Calendar size={14} />
                   {T('আসন্ন মাঠের কাজ', 'Scheduled Work')}
                 </span>
-                <span className="text-[10.5px] text-white/70">
+                <span className="max-w-full truncate whitespace-nowrap text-[10.5px] text-white/70">
                   {sel ? tr(sel.name) : ''}
                 </span>
               </div>
-              <div className="mt-1.5 space-y-1.5 text-[12px]">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                  <span className="truncate text-white/90">
+              <div className="mt-2 space-y-1.5 text-[12px] leading-snug">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-emerald-400" />
+                  <span className="min-w-0 text-white/90">
                     {T('সেচ প্রয়োগ (কাল সকালে)', 'Irrigation (Tomorrow AM)')}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={13} className="text-sky-300 shrink-0" />
-                  <span className="truncate text-white/90">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck size={13} className="mt-0.5 shrink-0 text-sky-300" />
+                  <span className="min-w-0 text-white/90">
                     {T('আগাছা দমন ও তদারকি', 'Weeding & Scouting')}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpRight size={13} className="text-paddy-300 shrink-0" />
-                  <span className="truncate text-white/90">
+                <div className="flex items-start gap-2">
+                  <ArrowUpRight size={13} className="mt-0.5 shrink-0 text-paddy-300" />
+                  <span className="min-w-0 text-white/90">
                     {T('টপ ড্রেসিং সার প্রয়োগ', 'Top dressing dosage')}
                   </span>
                 </div>
