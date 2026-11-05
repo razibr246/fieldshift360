@@ -18,6 +18,7 @@ import { savedWatch } from '../../data/fieldWatch';
 import { readField } from '../../engine/fieldwatch';
 import { graceRecord } from '../../engine/soilwater';
 import { climateChange, fieldContext, fieldFuture, climateLedger, cropOf } from '../../engine/soilfuture';
+import EdibleOilDividend from '../../components/officer/EdibleOilDividend';
 
 // BBS official area, km² (areaOfficialKm2 in src/data/geo/<upazila>_boundary.json, kept here so the maps stay unloaded).
 const AREA_KM2 = { godagari: 475.26, dhamrai: 307.41, sitakunda: 483.96, dacope: 991.56, bakerganj: 411.36, gangachara: 269.67, gowainghat: 481.12 };
@@ -112,6 +113,8 @@ export default function RotationImpact() {
         <Out icon={Scale} tone="text-primary-800" label={T('গ্রিনহাউস গ্যাস কমে, বছরে', 'Greenhouse gas cut a year')} value={`${mil(co2)} ${T('টন CO₂e', 't CO₂e')}`} sub={T('মিথেন কমে আর মাটিতে কার্বন জমে', 'less methane, more carbon in the soil')} />
         <Out icon={Leaf} tone="text-primary-800" label={T('মাটিতে বাড়তি কার্বন, ১০ বছরে', 'Extra soil carbon, 10 years')} value={`${mil(socT)} ${T('টন CO₂', 't CO₂')}`} sub={T('এখনকার চাষের তুলনায়', 'against farming as now')} />
       </div>
+
+      <EdibleOilDividend switchedHa={ha} upazilaName={upz.name} />
 
       {g?.trend && g.trend.perDecade < 0 && (
         <>

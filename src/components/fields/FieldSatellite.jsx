@@ -6,6 +6,7 @@ import { Satellite, RefreshCw, Sprout, ScanLine, Send, Pencil, Sparkles, Loader2
 import { useStore, demo } from '../../store';
 import { Card, Badge, Button, Note, Tags, Segmented } from '../ui';
 import NdviChart from './NdviChart';
+import MultiSpectralInspector from './MultiSpectralInspector';
 import { LEVEL_LOOK } from './FieldsMap';
 import { useFieldWatch } from './useFieldWatch';
 import { readField } from '../../engine/fieldwatch';
@@ -239,6 +240,7 @@ export default function FieldSatellite({ parcel, index, active, onPlan, onEdit, 
           </div>
         </div>
       )}
+      <MultiSpectralInspector parcel={parcel} />
     </Card>
   );
 }
