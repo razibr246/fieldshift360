@@ -520,6 +520,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, r
                   <span className="flex items-center gap-1">{T('উর্বরতা', 'Fertility')}: <b className="text-white">{num(Math.round(((tg.p.fert ?? 0) / 0.6) * 100), lang)}%</b></span>
                   {tg.p.mulch && <span className="rounded bg-emerald-500/80 px-1 text-[9.5px] font-bold text-white">{T('মালচ', 'Mulch')}</span>}
                   {tg.p.pests > 0 && <span className="rounded bg-red-500/90 px-1 text-[9.5px] font-bold text-white animate-pulse">{T('পোকা', 'Pest')}</span>}
+                  {tg.p.g >= ripeAt(g) && <span className="rounded bg-amber-400 px-1 text-[9.5px] font-bold text-primary-950 animate-pulse">{T('পাকা ফসল', 'Ripe')}</span>}
                 </>
               ) : (
                 <>

@@ -3,7 +3,7 @@
 // bank; a faint, quicker high layer gives the trickle over stones. Starts only from a click (browsers block sound
 // otherwise), fades in and out, and goes quiet while the tab is hidden.
 let ctx = null, master = null, nodes = [];
-const LEVEL = 0.16;
+const LEVEL = 0.45; // soft: about 0.15 of full scale at the loudest swell, measured offline
 
 function noise(c, seconds = 4, brown = true) {
   const len = c.sampleRate * seconds, b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
@@ -58,7 +58,7 @@ let level = 1;
 // 1 while a photo with water is on screen, lower over the other photos.
 export function setRiverLevel(k) {
   level = k;
-  if (!ctx || ctx.state !== 'running' || !master) return;
+  if (!ctx || !master) return;
   const now = ctx.currentTime;
   master.gain.cancelScheduledValues(now);
   master.gain.setTargetAtTime(LEVEL * k, now, 0.9);

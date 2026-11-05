@@ -691,15 +691,21 @@ export function buildFarmer(look) {
     const cm = mat('#9aa3a8', { rough: 0.35, metal: 0.6 });
     mesh(geo.cyl(0.08, 0.09, 0.2, 12), cm, tools.can, [0, -0.12, 0.06]);
     mesh(geo.cyl(0.012, 0.018, 0.26, 6), cm, tools.can, [0, -0.08, 0.2], [-1.1, 0, 0]);
+    mesh(geo.cyl(0.024, 0.016, 0.04, 8), cm, tools.can, [0, -0.19, 0.32], [-1.1, 0, 0]); // sprinkler rose
     mesh(geo.torus(0.06, 0.01, 6, 12, Math.PI), cm, tools.can, [0, 0.0, 0.06], [0, Math.PI / 2, 0]);
   }
   tools.sickle = group(handR, [0, -0.04, 0.02]);
   mesh(geo.cyl(0.016, 0.016, 0.12, 6), mat('#6b4a2b'), tools.sickle, [0, 0.0, 0]);
-  mesh(geo.torus(0.1, 0.012, 4, 14, Math.PI * 1.15), mat('#9aa3a8', { rough: 0.3, metal: 0.8 }), tools.sickle, [0.0, -0.13, 0.08], [Math.PI / 2, 0, 0.4]);
+  mesh(geo.cyl(0.018, 0.018, 0.02, 8), mat('#b45309', { metal: 0.85, rough: 0.25 }), tools.sickle, [0, -0.06, 0]); // brass ferrule
+  mesh(geo.torus(0.1, 0.012, 4, 14, Math.PI * 1.15), mat('#e2e8f0', { rough: 0.18, metal: 0.95 }), tools.sickle, [0.0, -0.13, 0.08], [Math.PI / 2, 0, 0.4]);
   tools.spray = group(handR, [0, -0.04, 0.02]);
   mesh(geo.cyl(0.008, 0.008, 0.5, 5), mat('#d9d9d9'), tools.spray, [0, -0.05, 0.22], [-1.3, 0, 0]);
+  mesh(geo.cyl(0.014, 0.014, 0.03, 6), mat('#d97706', { metal: 0.85, rough: 0.25 }), tools.spray, [0, -0.05, 0.48], [-1.3, 0, 0]); // brass nozzle tip
   tools.tank = group(torso, [0, 0.3, -0.2]);
   mesh(geo.box(0.26, 0.36, 0.13), mat('#e9c23a'), tools.tank, [0, 0, 0]);
+  mesh(geo.box(0.025, 0.34, 0.24), mat('#1f2937'), tools.tank, [0.09, 0.02, 0.07]); // shoulder harness straps
+  mesh(geo.box(0.025, 0.34, 0.24), mat('#1f2937'), tools.tank, [-0.09, 0.02, 0.07]);
+  mesh(geo.cyl(0.009, 0.009, 0.24, 5), mat('#374151'), tools.tank, [0.15, 0.02, 0]); // pressure lever
   tools.phone = group(handL, [0.03, -0.05, 0.06]);
   mesh(geo.box(0.07, 0.13, 0.012), mat('#111'), tools.phone, [0, 0, 0], [-0.4, 0, 0]);
   mesh(geo.box(0.06, 0.115, 0.002), mat('#57c46a', { emissive: '#3aa857' }), tools.phone, [0, 0.0, 0.007], [-0.4, 0, 0]);

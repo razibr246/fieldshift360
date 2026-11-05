@@ -139,6 +139,9 @@ export function createField(scene, g) {
         const base = P.soil.material.color;
         base.copy(dry).lerp(wet, Math.min(1, p.moist));
         if (p.mulch && p.crop) base.lerp(straw, 0.5);
+        // physical wetness sheen: wet mud glistens under sunlight
+        P.soil.material.roughness = THREE.MathUtils.lerp(0.96, 0.38, Math.min(1, p.moist));
+        P.soil.material.metalness = THREE.MathUtils.lerp(0.0, 0.06, Math.min(1, p.moist));
         P.ring.visible = scanner && !!p.crop && !p.dead; if (P.ring.visible) P.ring.material.color.set(p.moist > 0.4 ? '#3aa0e0' : p.moist > 0.15 ? '#e0b43a' : '#e04a3a');
         P.ndvi.visible = sat;
         if (sat) {

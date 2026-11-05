@@ -34,6 +34,14 @@ const W = 220, H = 320, DEPTH = 30;
 const PX = (H - SKY) / DEPTH; // pixels per centimetre of soil
 const ycm = (cm) => SKY + cm * PX;
 const rnd = (i, s = 1) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+// Soil horizons are never ruler-straight: a boundary across the column at y px, wandering by up to amp px, smoothed.
+const edgePts = (y, amp, seed) => Array.from({ length: W / 11 + 2 }, (_, i) => [Math.min(W, i * 11), y + (rnd(i, seed) - 0.5) * 2 * amp]);
+const smoothD = (pts, move = true) => pts.reduce((d, [x, y], i) => {
+  if (i === 0) return `${move ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`;
+  const [px, py] = pts[i - 1];
+  return `${d} Q${px.toFixed(1)} ${py.toFixed(1)} ${((px + x) / 2).toFixed(1)} ${((py + y) / 2).toFixed(1)}`;
+}, '') + ` L${pts.at(-1)[0].toFixed(1)} ${pts.at(-1)[1].toFixed(1)}`;
+const band = (top, bottom, seed) => `${smoothD(top)} ${smoothD([...bottom].reverse(), false)} Z`;
 
 // How each crop stands and roots. n: plants across the cut (by its usual spacing); h: height in px;
 // root: 'fibrous' or 'tap' and how deep in cm (past 30 runs out of the picture).
@@ -134,12 +142,30 @@ export function Plant({ x, look, k }) {
       {[-5, 3].map((dx, i) => <ellipse key={`p${i}`} cx={x + dx} cy={b - h * (0.42 + i * 0.12)} rx="2.2" ry="1.2" fill={C} stroke="#7d9a4a" strokeWidth=".3" />)}
     </>;
   } else if (look.kind === 'mung') {
-    // Trifoliate leaves and clusters of slim black pods.
-    const tri = (cx, cy, i) => <g key={`t${i}`}>{[-3.2, 0, 3.2].map((d, j) => <ellipse key={j} cx={cx + d} cy={cy - (j === 1 ? 2.4 : 0)} rx="2.6" ry="1.8" fill={L} />)}</g>;
+    // An erect, bushy plant: a main stem and two side branches, trifoliate leaves on long stalks (broad ovate leaflets
+    // with a midrib), and slim pods in clusters of three to five on stalks in the upper canopy, black when ripe.
+    const leaflet = (cx, cy, a, sz, key) => <g key={key} transform={`rotate(${a} ${cx} ${cy})`}>
+      <path d={`M${cx} ${cy} q${-sz * 0.55} ${-sz * 0.5} 0 ${-sz * 1.25} q${sz * 0.55} ${sz * 0.75} 0 ${sz * 1.25}z`} fill={L} />
+      <path d={`M${cx} ${cy} l0 ${-sz * 1.1}`} stroke="#3c6f25" strokeWidth=".35" opacity=".7" />
+    </g>;
+    const tri = (px, py, dir, sz, key) => {
+      const ex = px + dir * sz * 1.5, ey = py - sz * 0.9; // the end of the leaf stalk
+      return <g key={key}>
+        <path d={`M${px} ${py} q${dir * sz * 0.8} ${-sz * 0.2} ${dir * sz * 1.5} ${-sz * 0.9}`} stroke="#4a7a2c" strokeWidth=".6" {...stroke} />
+        {leaflet(ex, ey, dir * 58, sz, 'a')}{leaflet(ex, ey, dir * 12, sz * 1.1, 'b')}{leaflet(ex, ey, dir * -34 + 180 * 0, sz * 0.95, 'c')}
+      </g>;
+    };
+    const pods = (px, py, dir, key) => <g key={key}>
+      <path d={`M${px} ${py} q${dir * 2} -4 ${dir * 3} -7`} stroke="#4a7a2c" strokeWidth=".55" {...stroke} />
+      {[-30, -8, 14, 34].map((a, j) => <path key={j} className="soil-ripen-stroke" style={{ '--ripe': C }} d={`M${px + dir * 3} ${py - 7} q${Math.sin((a * Math.PI) / 180) * 5} 3 ${Math.sin((a * Math.PI) / 180) * 7 + dir * 1.5} 9`} stroke={C} strokeWidth="1.05" {...stroke} />)}
+    </g>;
     body = <>
-      <path d={`M${x} ${b} Q${x - 2} ${b - h * 0.5} ${x} ${b - h}`} stroke="#4a7a2c" strokeWidth="1.6" {...stroke} />
-      {tri(x - 6, b - h * 0.55, 0)}{tri(x + 6, b - h * 0.72, 1)}{tri(x, b - h * 0.98, 2)}
-      {[-1, 1].map((sg) => [0, 1, 2].map((j) => <path key={`${sg}${j}`} d={`M${x} ${b - h * 0.4} q${sg * (4 + j * 2)} 2 ${sg * (7 + j * 2)} 8`} stroke={C} strokeWidth="1.1" {...stroke} />))}
+      <path d={`M${x} ${b} Q${x - 1.5} ${b - h * 0.5} ${x} ${b - h}`} stroke="#4a7a2c" strokeWidth="1.5" {...stroke} />
+      <path d={`M${x} ${b - h * 0.32} q-5 -4 -8 -${h * 0.38}M${x} ${b - h * 0.4} q5 -4 8 -${h * 0.34}`} stroke="#4a7a2c" strokeWidth="1" {...stroke} />
+      {tri(x - 1, b - h * 0.3, -1, 3.2, 't0')}{tri(x + 1, b - h * 0.42, 1, 3.4, 't1')}
+      {tri(x - 7, b - h * 0.62, -1, 3, 't2')}{tri(x + 7, b - h * 0.7, 1, 3, 't3')}
+      {tri(x, b - h * 0.92, -1, 3.3, 't4')}{tri(x + 1, b - h * 0.98, 1, 2.8, 't5')}
+      {pods(x - 7, b - h * 0.76, -1, 'pa')}{pods(x + 8, b - h * 0.8, 1, 'pb')}{pods(x + 1, b - h * 1.02, 1, 'pc')}
     </>;
   } else if (look.kind === 'sesame') {
     body = <>
@@ -157,17 +183,21 @@ export function Plant({ x, look, k }) {
       <circle cx={x + 1.5} cy={b - h - 1} r="1.6" fill={C} />
     </>;
   }
-  return <g className="soil-grow" style={{ transformOrigin: `${x}px ${b}px`, animationDelay: `${(k % 5) * 60}ms` }}>{body}</g>;
+  return <g className="soil-grow" style={{ transformOrigin: `${x}px ${b}px`, animationDelay: `${(k % 5) * 60}ms` }}>
+    <g className="soil-sway" style={{ transformOrigin: `${x}px ${b}px`, animationDelay: `${-(k * 0.83) % 4}s`, animationDuration: `${3.6 + (k % 3) * 0.5}s` }}>{body}</g>
+  </g>;
 }
 
 // Roots for one plant. pan: { top, bottom } in cm or null; legume nodules when fixing nitrogen.
-function Roots({ x, look, k, pan, nodules, density, disease, flooded }) {
+function Roots({ x, look, k, pan, nodules, density, disease, flooded, nodFill }) {
   const out = [];
   const end = (cm) => Math.min(ycm(cm), H + 8);
   const plaque = flooded && look.kind === 'rice'; // rice roots leak oxygen into reduced soil: rust-orange iron plaque
   const root = (key, d, w, o = 0.85) => {
     if (plaque) out.push(<path key={`${key}-fe`} d={d} stroke="#c47a35" strokeWidth={w + 0.9} fill="none" opacity=".2" strokeLinecap="round" pathLength="1" />);
-    out.push(<path key={key} d={d} stroke="#f1e2c6" strokeWidth={w} fill="none" opacity={o} strokeLinecap="round" pathLength="1" />);
+    // a darker rim under a pale core, so a root reads as round and alive rather than a flat line
+    out.push(<path key={`${key}-rim`} d={d} stroke="#9c8159" strokeWidth={w + 0.55} fill="none" opacity={o * 0.38} strokeLinecap="round" pathLength="1" />);
+    out.push(<path key={key} d={d} stroke="#f3e6cc" strokeWidth={w} fill="none" opacity={o} strokeLinecap="round" pathLength="1" />);
   };
   if (look.root === 'fibrous') {
     // Rice and wheat: a mat of fine roots, most of them in the top 10 cm. Rice roots meet the pan and run along it;
@@ -197,13 +227,20 @@ function Roots({ x, look, k, pan, nodules, density, disease, flooded }) {
     // A taproot that thins with depth and wanders a little, laterals that curve down and shorten with depth.
     const d = look.depth, wob = (rnd(k, 31) - 0.5) * 12;
     const pts = [0, 0.33, 0.66, 1].map((f, i) => [x + (i ? wob * Math.sin(i * 1.7 + k) : 0), f === 1 ? end(d) : ycm(d * f)]);
-    [1.7, 1.1, 0.6].forEach((w, i) => root(`t${i}`, `M${pts[i][0]} ${pts[i][1]} Q${pts[i][0] - wob * (i % 2 ? 0.6 : -0.6)} ${(pts[i][1] + pts[i + 1][1]) / 2} ${pts[i + 1][0]} ${pts[i + 1][1]}`, w, 0.9 - i * 0.2));
+    [2, 1.25, 0.65].forEach((w, i) => root(`t${i}`, `M${pts[i][0]} ${pts[i][1]} Q${pts[i][0] - wob * (i % 2 ? 0.6 : -0.6)} ${(pts[i][1] + pts[i + 1][1]) / 2} ${pts[i + 1][0]} ${pts[i + 1][1]}`, w, 0.9 - i * 0.2));
     for (let i = 0; i < 7; i++) {
       const cm = 1.5 + i * (d / 8), sg = (i + k) % 2 ? 1 : -1, len = (6 + rnd(i, k) * 7) * (1 - i / 10);
       const yy = ycm(cm), xx = x + wob * (cm / d) * 0.6;
       root(`l${i}`, `M${xx} ${yy} c${sg * len * 0.35} ${len * 0.05} ${sg * len * 0.75} ${len * 0.2} ${sg * len} ${len * 0.75}`, 0.6, 0.75);
-      if (i < 4) root(`ls${i}`, `M${xx + sg * len * 0.55} ${yy + len * 0.18} q${sg * 2} 1 ${sg * 3} 4`, 0.35, 0.55);
-      if (nodules && cm < 14) out.push(<circle key={`n${i}`} cx={xx + sg * len * 0.6} cy={yy + len * 0.28} r="1.5" fill="#e0828a" stroke="#fff" strokeWidth=".4" />);
+      // secondary branches off each lateral, and fine root hairs near its tip where water and nutrients go in
+      if (i < 5) root(`ls${i}`, `M${xx + sg * len * 0.55} ${yy + len * 0.18} q${sg * 2} 1 ${sg * 3} 4`, 0.35, 0.55);
+      if (i < 5) root(`lt${i}`, `M${xx + sg * len * 0.3} ${yy + len * 0.07} q${sg * 2.4} -0.4 ${sg * 3.6} 2.6`, 0.28, 0.5);
+      if (i < 4) for (let hh = 0; hh < 3; hh++) root(`lh${i}${hh}`, `M${xx + sg * len * (0.8 + hh * 0.07)} ${yy + len * (0.45 + hh * 0.09)} l${sg * (1.4 + hh * 0.3)} ${-0.6 + hh * 0.5}`, 0.16, 0.45);
+      // Nodules: round, pink-brown, clustered on the upper laterals near the crown (most in the top 10 cm)
+      if (nodules && cm < 14) for (let nd = 0; nd < (cm < 8 ? 3 : 2); nd++) {
+        const f = 0.25 + nd * 0.22;
+        out.push(<circle key={`n${i}${nd}`} cx={xx + sg * len * f} cy={yy + len * (0.05 + f * f * 0.55) + (nd % 2 ? 0.9 : -0.6)} r={1.05 + rnd(i * 3 + nd, k) * 0.75} fill={nodFill} stroke="#8a4f45" strokeWidth=".25" />);
+      }
     }
   }
   // Root disease from a crop family following itself: brown lesions on the upper roots.
@@ -288,6 +325,30 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
               <stop offset={pan ? pan.top / DEPTH : 0.5} stopColor={mix(gley, '#5d6359', 0.3)} />
               <stop offset="1" stopColor={drainage === 'poor' ? '#9a958a' : '#b0916b'} />
             </linearGradient>
+            {/* Soil is never flat colour: fine grain (silt and sand catching light) and coarse patches of darker
+                humus and lighter mineral soil, from fractal noise, laid over the horizon colours. */}
+            <filter id={`grain-${uid}`} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="2" seed={3} result="fine" />
+              <feColorMatrix in="fine" type="matrix" values="0 0 0 0 .1  0 0 0 0 .07  0 0 0 0 .04  0 0 0 1.4 -.62" />
+            </filter>
+            <filter id={`patch-${uid}`} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency=".045 .07" numOctaves="3" seed={11} result="coarse" />
+              <feColorMatrix in="coarse" type="matrix" values="0 0 0 0 .14  0 0 0 0 .09  0 0 0 0 .05  0 0 0 1.3 -.5" />
+            </filter>
+            <linearGradient id={`light-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#fff" stopOpacity=".14" /><stop offset=".22" stopColor="#fff" stopOpacity="0" />
+              <stop offset=".8" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".18" />
+            </linearGradient>
+            <linearGradient id={`side-${uid}`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#000" stopOpacity=".16" /><stop offset=".08" stopColor="#000" stopOpacity="0" />
+              <stop offset=".92" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".16" />
+            </linearGradient>
+            <radialGradient id={`nod-${uid}`} cx=".38" cy=".35" r=".7">
+              <stop offset="0" stopColor="#f6c9bd" /><stop offset=".55" stopColor="#d98c80" /><stop offset="1" stopColor="#9c5a4f" />
+            </radialGradient>
+            <linearGradient id={`worm-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#e8a596" /><stop offset=".5" stopColor="#c8746a" /><stop offset="1" stopColor="#a1544d" />
+            </linearGradient>
             <linearGradient id={`water-${uid}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="#9cc7e0" stopOpacity=".55" /><stop offset="1" stopColor="#5f9cc4" stopOpacity=".8" />
             </linearGradient>
@@ -300,8 +361,13 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
 
           {/* Soil: horizons, then what lives and grows in them. */}
           <rect y={SKY} width={W} height={H - SKY} fill={`url(#${flooded ? 'gley' : 'soil'}-${uid})`} />
+          <rect y={SKY} width={W} height={H - SKY} filter={`url(#patch-${uid})`} opacity=".32" />
+          <rect y={SKY} width={W} height={H - SKY} filter={`url(#grain-${uid})`} opacity={flooded ? 0.35 : 0.6} />
+          {/* the subsoil below the tilled layer, under an uneven boundary */}
+          <path d={band(edgePts(ycm(pan ? pan.bottom : 17) + 2, 1.6, 71), [[0, H + 2], [W, H + 2]], 0)} fill={drainage === 'poor' ? '#8f8a7e' : '#a98a64'} opacity=".28" />
           {pan && <>
-            <rect y={ycm(pan.top)} width={W} height={(pan.bottom - pan.top) * PX} fill="#4e3d2d" opacity=".28" />
+            <path d={band(edgePts(ycm(pan.top), 1.3, 31), edgePts(ycm(pan.bottom), 1.1, 37), 0)} fill="#4e3d2d" opacity=".3" />
+            <path d={smoothD(edgePts(ycm(pan.top), 1.3, 31))} stroke="#2e2117" strokeWidth=".6" opacity=".35" fill="none" />
             {/* Platy structure: thin flattened lenses packed by the puddling. */}
             {Array.from({ length: 30 }, (_, i) => {
               const px = rnd(i, 41) * W, py = ycm(pan.top + 0.4 + rnd(i, 42) * (pan.bottom - pan.top - 0.8)), len = 6 + rnd(i, 43) * 12;
@@ -334,12 +400,26 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
           {straw && !flooded && Array.from({ length: 18 }, (_, i) => <path key={`st${i}`} d={`M${4 + i * 12 + rnd(i, 15) * 5} ${SKY - 1.2} l${7 + rnd(i, 16) * 5} ${-1 + rnd(i, 17) * 2}`} stroke="#d6b467" strokeWidth="1.3" strokeLinecap="round" />)}
           {straw && flooded && Array.from({ length: 14 }, (_, i) => <path key={`si${i}`} d={`M${8 + rnd(i, 18) * (W - 16)} ${ycm(1 + rnd(i, 19) * 6)} l4 1`} stroke="#c9a85c" strokeWidth="1" opacity=".8" />)}
           <g key={`r-${key}`} className="soil-roots">
-            {look && ps.map((x, i) => <Roots key={i} x={x} k={i} look={look} pan={pan} nodules={nodules} density={density} disease={pests > 0} flooded={flooded} />)}
+            {look && ps.map((x, i) => <Roots key={i} x={x} k={i} look={look} pan={pan} nodules={nodules} density={density} disease={pests > 0} flooded={flooded} nodFill={`url(#nod-${uid})`} />)}
           </g>
-          {Array.from({ length: worms }, (_, i) => (
-            <path key={`w${i}`} className="soil-worm" style={{ animationDelay: `${i * 0.7}s` }}
-              d={`M${24 + ((i * 53) % 150)} ${ycm(flooded ? 22 : 3 + ((i * 37) % 11))} q5 -4 10 0 t10 0 t10 0`} stroke="#d58a7f" strokeWidth="3.4" strokeLinecap="round" fill="none" />
-          ))}
+          {Array.from({ length: worms }, (_, i) => {
+            // An earthworm: a rounded, segmented body (rings), the pale saddle (clitellum) a third of the way back,
+            // crawling by waves of contraction along its burrow.
+            const wx = 24 + ((i * 53) % 150), wy = ycm(3 + ((i * 37) % 11)), dir = i % 2 ? -1 : 1;
+            const d = `M${wx} ${wy} c${dir * 4} -3.5 ${dir * 8} 2.5 ${dir * 12} -0.5 s${dir * 8} 3 ${dir * 13} 0.5`;
+            return <g key={`w${i}`} className="soil-worm" style={{ animationDelay: `${i * 0.7}s` }}>
+              <path d={d} stroke="#1f150d" strokeWidth="4.6" strokeLinecap="round" fill="none" opacity=".18" transform="translate(.4 .9)" />
+              <path d={d} stroke={`url(#worm-${uid})`} strokeWidth="3.6" strokeLinecap="round" fill="none" />
+              <path className="soil-peristalsis" d={d} stroke="#7d3b35" strokeWidth="3.6" strokeDasharray=".45 1.35" fill="none" opacity=".35" />
+              <path d={d} stroke="#f6c8bb" strokeWidth="2.6" strokeDasharray={`0 ${dir > 0 ? 7 : 18} 3.2 40`} fill="none" opacity=".75" />
+              <path d={d} stroke="#fff" strokeWidth=".6" strokeLinecap="round" fill="none" opacity=".35" transform="translate(0 -1)" />
+            </g>;
+          })}
+          {/* Worm casts: little coiled heaps of soil they leave on the surface, a sign of a living soil */}
+          {!flooded && Array.from({ length: Math.min(4, worms) }, (_, i) => {
+            const cx = 30 + ((i * 71 + 17) % (W - 60));
+            return <path key={`cast${i}`} d={`M${cx - 3} ${SKY} q.5 -2.4 2 -2.6 q1 -1.6 2.2 -.4 q1.6 -.4 1.8 1.4 q1 .8 .6 1.6z`} fill={mix(top, '#2a1c11', 0.35)} opacity=".9" />;
+          })}
 
           {Array.from({ length: bubbles }, (_, i) => {
             const fromStem = i % 3 === 2 && ps.length, bx = fromStem ? ps[i % ps.length] + 2 : 8 + rnd(i, 61) * (W - 16);
@@ -358,7 +438,14 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
             {look && ps.map((x, i) => <Plant key={i} k={i} x={x} look={look} />)}
             {!look && <>
               {Array.from({ length: 16 }, (_, i) => <path key={i} d={`M${8 + i * 13} ${SKY} l${rnd(i, 21) - 0.5} -5`} stroke="#c8a85e" strokeWidth="1.5" strokeLinecap="round" />)}
-              {[40, 150].map((x) => <path key={x} d={`M${x} ${SKY} q-4 -6 -6 -10 M${x} ${SKY} q3 -7 7 -9 M${x} ${SKY} l0 -11`} stroke="#6e9a46" strokeWidth="1.2" fill="none" />)}
+              {[40, 150].map((x) => <g key={x} className="soil-sway" style={{ transformOrigin: `${x}px ${SKY}px` }}>
+                {[-9, -5, -2, 1, 4, 8].map((a, j) => <path key={j} d={`M${x + a * 0.15} ${SKY} q${a * 0.45} ${-5 - (j % 3) * 2} ${a * 0.95} ${-9 - (j % 3) * 2.5}`} stroke={j % 2 ? '#6e9a46' : '#5d8a3b'} strokeWidth=".9" strokeLinecap="round" fill="none" />)}
+              </g>)}
+              <g className="soil-sway" style={{ transformOrigin: `96px ${SKY}px` }}>
+                <path d={`M96 ${SKY} l0 -6`} stroke="#5f8a3c" strokeWidth=".8" />
+                {[-1, 1].map((sg) => <path key={sg} d={`M96 ${SKY - 4} q${sg * 4} -3 ${sg * 6} -1 q${-sg * 3} 2.5 ${-sg * 6} 1z`} fill="#72a24c" />)}
+                <path d={`M96 ${SKY - 6} q-2.4 -3 0 -5 q2.4 2 0 5z`} fill="#7fb055" />
+              </g>
             </>}
           </g>
           {Array.from({ length: pests }, (_, i) => (
@@ -369,7 +456,20 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
               </g>
             </g>
           ))}
-          <line x1="0" x2={W} y1={SKY} y2={SKY} stroke="#4d3a28" strokeWidth="1.2" />
+          {/* The surface: a crumbly tilth with small clods on a dry field, a smooth mud skin under water. */}
+          {(() => {
+            const pts = edgePts(SKY, flooded ? 0.25 : 0.9, 5);
+            return <>
+              <path d={`${smoothD(pts)} L${W} ${SKY + 3} L0 ${SKY + 3} Z`} fill={flooded ? '#7b5b3b' : top} />
+              <path d={smoothD(pts)} stroke="#3d2c1d" strokeWidth=".9" fill="none" opacity=".75" />
+              {!flooded && Array.from({ length: 16 }, (_, i) => {
+                const cx = 4 + rnd(i, 81) * (W - 8), r = 0.9 + rnd(i, 82) * 1.6;
+                return <g key={`cl${i}`}><ellipse cx={cx} cy={SKY - r * 0.35} rx={r * 1.25} ry={r * 0.75} fill={mix(top, '#2a1c11', 0.25 + rnd(i, 83) * 0.25)} /><ellipse cx={cx - r * 0.35} cy={SKY - r * 0.65} rx={r * 0.5} ry={r * 0.28} fill="#fff" opacity=".18" /></g>;
+              })}
+            </>;
+          })()}
+          <rect y={SKY} width={W} height={H - SKY} fill={`url(#light-${uid})`} pointerEvents="none" />
+          <rect y={SKY} width={W} height={H - SKY} fill={`url(#side-${uid})`} pointerEvents="none" />
 
           {/* Depth scale. */}
           {[10, 20].map((cm) => <g key={cm}><line x1="0" x2="6" y1={ycm(cm)} y2={ycm(cm)} stroke="#fff" strokeWidth=".8" opacity=".8" /><text x="8" y={ycm(cm) + 3} fontSize="8" fill="#fff" opacity=".8">{lang === 'bn' ? bnDigits(cm) : cm}</text></g>)}

@@ -153,6 +153,25 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     }
   }
 
+  function footDust(x, y, z, n = 3, hex = '#a08060', isRunning = false) {
+    if (parts.length >= MAXP - 15) return;
+    const c = new THREE.Color(hex);
+    const speedMult = isRunning ? 1.5 : 0.85;
+    for (let k = 0; k < n; k++) {
+      const a = Math.random() * Math.PI * 2, s = Math.random();
+      parts.push({
+        x: x + (Math.random() - 0.5) * 0.22,
+        y: y + 0.04,
+        z: z + (Math.random() - 0.5) * 0.22,
+        vx: Math.cos(a) * (0.3 + s * 0.7) * speedMult,
+        vy: 0.5 + s * 0.8 * (isRunning ? 1.4 : 1.0),
+        vz: Math.sin(a) * (0.3 + s * 0.7) * speedMult,
+        life: 0.32 + s * 0.22,
+        c,
+      });
+    }
+  }
+
   // ---- overlay: names, bubble, floaters, marker tag ----
   const el = (cls, html = '') => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; overlay.appendChild(d); return d; };
   const labels = STATIONS.concat('safe').map((id) => ({ id, d: el('g3-label') }));
@@ -511,6 +530,8 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
           stepT = me.run ? 0.22 : 0.36;
           const surf = surfaceAt(L, g, me.x, me.z);
           onEvent({ type: 'sound', s: 'step', surface: surf, run: me.run });
+          const dustCol = surf === 'water' ? '#7dd3fc' : surf === 'mud' ? '#4a301a' : surf === 'grass' ? '#8cb852' : surf === 'wood' ? '#8c6d48' : '#c4ad84';
+          footDust(me.x, gy, me.z, me.run ? 4 : 2, dustCol, me.run);
         }
       } else {
         stepT = 0.08;
@@ -560,6 +581,47 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       field.update(t, wind, g.ndvi || cam.sat, g.F.scanner, cam.layer);
       life.update(t, paused || cam.intro ? 0 : dt, project, eye);
       if (sign.visible) { signT -= dt; sign.position.set(me.x, gy + (xr.mode === 'ar' ? 8 : 3.3), me.z); if (signT <= 0 || !xrOn) sign.visible = false; }
+      // Action-driven dynamic particles (water stream from can, aerosol spray from lance)
+      if (me.act && parts.length < MAXP - 15) {
+        const actProg = me.act.p / me.act.dur;
+        const yw = me.yaw;
+        if (me.act.type === 'water' && actProg > 0.22 && actProg < 0.82) {
+          const sx = me.x + Math.sin(yw) * 0.45 + Math.cos(yw) * 0.25;
+          const sz = me.z + Math.cos(yw) * 0.45 - Math.sin(yw) * 0.25;
+          const sy = gy + 0.82;
+          const c = new THREE.Color('#7dd3fc');
+          for (let k = 0; k < 2; k++) {
+            parts.push({
+              x: sx + (Math.random() - 0.5) * 0.08,
+              y: sy + (Math.random() - 0.5) * 0.08,
+              z: sz + (Math.random() - 0.5) * 0.08,
+              vx: Math.sin(yw) * (1.6 + Math.random() * 0.6) + (Math.random() - 0.5) * 0.3,
+              vy: 0.3 + Math.random() * 0.4,
+              vz: Math.cos(yw) * (1.6 + Math.random() * 0.6) + (Math.random() - 0.5) * 0.3,
+              life: 0.45,
+              c,
+            });
+          }
+        } else if (me.act.type === 'spray' && actProg > 0.15 && actProg < 0.88) {
+          const sx = me.x + Math.sin(yw) * 0.55;
+          const sz = me.z + Math.cos(yw) * 0.55;
+          const sy = gy + 0.72;
+          const c = new THREE.Color('#bbf7d0');
+          for (let k = 0; k < 2; k++) {
+            const spread = yw + (Math.random() - 0.5) * 0.5;
+            parts.push({
+              x: sx,
+              y: sy,
+              z: sz,
+              vx: Math.sin(spread) * (1.9 + Math.random() * 0.7),
+              vy: -0.1 - Math.random() * 0.3,
+              vz: Math.cos(spread) * (1.9 + Math.random() * 0.7),
+              life: 0.38,
+              c,
+            });
+          }
+        }
+      }
       // particles
       for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vy -= 9 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.life <= 0 || p.y < -1) parts.splice(i, 1); }
       for (let i = 0; i < parts.length; i++) {
@@ -649,7 +711,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
             if (vis) {
               actionTag.style.display = '';
               actionTag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
-              actionTag.innerHTML = `<span class="g3-action-kbd">E</span> <span>${actionTxt}</span>`;
+              actionTag.innerHTML = `<span class="g3-action-kbd">${touch ? '👆' : 'E'}</span> <span>${actionTxt}</span>`;
             } else {
               actionTag.style.display = 'none';
             }

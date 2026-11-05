@@ -9,7 +9,7 @@ import { IMAGES } from '../../assets/images';
 // Ellipses over the water, in photo fractions: [centre x, centre y, radius x, radius y, weight]. A negative weight
 // cuts a hole (a boat). flow: which way and how fast the water moves; amp: how far it shifts, as a fraction of the photo.
 export const WATER = {
-  dhamraiBridge: { flow: [0.35, 0.12], amp: 0.0035, e: [[0.40, 0.91, 0.40, 0.11, 1], [0.80, 0.36, 0.17, 0.17, 1]] },
+  dhamraiBridge: { flow: [0.35, 0.12], amp: 0.0035, e: [[0.46, 0.93, 0.35, 0.1, 1], [0.80, 0.36, 0.17, 0.17, 1]] },
   guavaBoat: { flow: [0.25, 0.1], amp: 0.004, e: [[0.5, 0.92, 0.78, 0.24, 1], [0.57, 0.78, 0.31, 0.07, -1.4]] },
   teestaBarrage: { flow: [0.3, 0.15], amp: 0.003, e: [[0.27, 0.83, 0.3, 0.19, 1]] },
   wetlandBoardwalk: { flow: [0.15, 0.08], amp: 0.0025, e: [[0.5, 0.47, 0.17, 0.11, 1], [0.52, 0.89, 0.4, 0.1, 1]] },
@@ -58,17 +58,24 @@ function compile(gl, type, src) {
 export default function RiverWater({ name }) {
   const ref = useRef(null);
   useEffect(() => {
-    const canvas = ref.current;
+    const host = ref.current;
     const spec = WATER[name], img = IMAGES[name];
-    if (!canvas || !spec || !img) return undefined;
+    if (!host || !spec || !img) return undefined;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    // A fresh canvas per run: the old one's WebGL context is released on cleanup, and a released context cannot be
+    // used again (React runs effects twice in development).
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.className = 'absolute inset-0 h-full w-full opacity-0 transition-opacity duration-[1600ms]';
+    host.appendChild(canvas);
     const gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
-    if (!gl) return undefined;
+    const bail = () => { canvas.remove(); return undefined; };
+    if (!gl) return bail();
     const vs = compile(gl, gl.VERTEX_SHADER, VERT), fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return undefined;
+    if (!vs || !fs) return bail();
     const prog = gl.createProgram();
     gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return undefined;
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return bail();
     gl.useProgram(prog);
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -139,7 +146,8 @@ export default function RiverWater({ name }) {
       document.removeEventListener('visibilitychange', onVis);
       photo.onload = null;
       gl.getExtension('WEBGL_lose_context')?.loseContext();
+      canvas.remove();
     };
   }, [name]);
-  return <canvas ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full opacity-0 transition-opacity duration-[1600ms]" />;
+  return <div ref={ref} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }

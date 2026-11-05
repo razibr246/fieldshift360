@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy, Clapperboard, Sparkles, Activity, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy, Clapperboard, Sparkles, Activity, Volume2, VolumeX, Ruler } from 'lucide-react';
 import { Button, Tags, LABEL_STYLE, ScoreRing, climateTag } from '../../components/ui';
 import BrandMark from '../../components/brand/BrandMark';
 import { IMAGES } from '../../assets/images';
@@ -12,6 +12,7 @@ import LiveSatellitePassTracker from '../../components/home/LiveSatellitePassTra
 import DecisionSandbox from '../../components/home/DecisionSandbox';
 import AgroAtmosphereCanvas from '../../components/home/AgroAtmosphereCanvas';
 import RiverWater, { hasWater } from '../../components/home/RiverWater';
+import FieldPinDemo from '../../components/home/FieldPinDemo';
 import { startRiver, stopRiver, closeRiver, setRiverLevel, riverSoundSupported } from '../../components/home/riverSound';
 import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
@@ -166,23 +167,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Your field: the aerial with outlined plots. */}
+      {/* Your field: the aerial photo, with a pin dropping onto one plot to show what to do, beside three short steps. */}
       <section id="land" className="scroll-mt-20 py-16 sm:py-20">
         <div className="page-shell">
-          <div data-reveal className="relative overflow-hidden rounded-[26px] bg-primary-950">
+          <div data-reveal className="relative overflow-hidden rounded-[26px] bg-primary-950 shadow-[0_30px_60px_-30px_rgba(13,38,20,.55)]">
             <div className="relative aspect-[16/11] sm:aspect-[16/8] lg:aspect-[16/7]">
-              <Photo name="landParcels" fill sizes="(min-width: 1200px) 1200px, 100vw" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,38,20,0)_45%,rgba(13,38,20,.75)_100%)] lg:bg-[linear-gradient(90deg,rgba(13,38,20,.0)_40%,rgba(13,38,20,.82)_100%)]" />
+              <Photo name="landParcels" fill focus="50% 50%" sizes="(min-width: 1200px) 1200px, 100vw" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,38,20,0)_55%,rgba(13,38,20,.7)_100%)] lg:bg-[linear-gradient(270deg,rgba(13,38,20,0)_45%,rgba(13,38,20,.78)_100%)]" />
+              <FieldPinDemo />
             </div>
-            <div className="relative bg-primary-950 p-6 text-white sm:p-8 lg:absolute lg:inset-y-6 lg:right-6 lg:flex lg:w-[40%] lg:flex-col lg:justify-center lg:rounded-[24px] lg:border lg:border-white/20 lg:bg-primary-950/35 lg:shadow-[inset_0_1px_0_rgba(255,255,255,.28),0_20px_50px_-20px_rgba(0,0,0,.6)] lg:backdrop-blur-2xl lg:backdrop-saturate-150">
-              <h2 className="text-[30px] font-bold sm:text-[36px]">{T('আগে নিজের জমিটা দেখিয়ে দিন', 'Start by showing us your field')}</h2>
-              <p className="mt-3 text-[16px] leading-8 text-white/85">{T('উপগ্রহের ছবিতে নিজের জমি খুঁজে পিন বসান, অথবা গ্রামের নাম লিখে খুঁজুন। জমি কোন ইউনিয়নে, সেখানকার মাটি কেমন — সব এখান থেকেই ঠিক হয়।', 'Find your field on the satellite map and drop a pin, or search by village name. Your union and its soil are worked out from there.')}</p>
-              <ul className="mt-4 space-y-1.5 text-[15px] text-white/85">
-                <li>{T('পিন টেনে সরানো যায়, মানচিত্রে চাপ দিলেও বসে', 'Drag the pin, or tap the map to place it')}</li>
-                <li>{T('জমির মাপ শতক বা বিঘায় দিন', 'Enter the size in decimal or bigha')}</li>
-                <li>{T('ফোনের লোকেশন দিয়েও খোঁজা যায়', 'Or use your phone’s location')}</li>
-              </ul>
-              <div className="mt-6"><Button to="/farmer/farm" variant="light" className="px-5 py-3"><MapPinned size={18} />{T('মানচিত্রে জমি বাছাই করুন', 'Mark my field on the map')}</Button></div>
+            <div className="relative bg-primary-950 p-6 text-white sm:p-8 lg:absolute lg:inset-y-6 lg:left-6 lg:flex lg:w-[35%] lg:flex-col lg:justify-center lg:rounded-[24px] lg:border lg:border-white/15 lg:bg-primary-950/55 lg:p-7 lg:shadow-[inset_0_1px_0_rgba(255,255,255,.22),0_20px_50px_-20px_rgba(0,0,0,.6)] lg:backdrop-blur-xl xl:p-8">
+              <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white/12 px-3 py-1 text-[12.5px] font-semibold text-amber-200 ring-1 ring-white/15"><MapPinned size={14} />{T('প্রথম ধাপ', 'First step')}</p>
+              <h2 className="mt-3 text-[28px] font-bold leading-tight sm:text-[34px]">{T('আগে নিজের জমিটা দেখিয়ে দিন', 'Start by showing us your field')}</h2>
+              <p className="mt-2 text-[15.5px] leading-7 text-white/80">{T('উপগ্রহের ছবিতে জমিতে একটা পিন — বাকি হিসাব সেখান থেকেই।', 'One pin on the satellite map — the rest is worked out from there.')}</p>
+              <ol className="mt-5 space-y-3.5">
+                {[
+                  [MapPinned, T('জমিতে পিন বসান', 'Drop a pin on your field'), T('পিন টেনে সরান বা মানচিত্রে চাপ দিন; গ্রামের নাম বা ফোনের লোকেশন দিয়েও খোঁজা যায়।', 'Drag it or tap the map; or search a village, or use your phone’s location.')],
+                  [Ruler, T('জমির মাপ দিন', 'Enter the size'), T('শতক বা বিঘায়, যেটা আপনি জানেন।', 'In decimal or bigha, whichever you know.')],
+                  [Layers, T('বাকিটা অ্যাপ বের করে', 'The app works out the rest'), T('কোন ইউনিয়ন, সেখানকার মাটি আর ২৫ বছরের নাসার আবহাওয়া।', 'Your union, its soil and 25 years of NASA weather.')],
+                ].map(([Icon, head, body], i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/12 text-amber-200 ring-1 ring-white/20"><Icon size={17} /><span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-amber-400 text-[10px] font-bold text-primary-950">{num(i + 1, lang)}</span></span>
+                    <div className="min-w-0"><p className="text-[15.5px] font-semibold leading-6">{head}</p><p className="text-[14px] leading-6 text-white/70">{body}</p></div>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button to="/farmer/farm" variant="light" className="px-5 py-3"><MapPinned size={18} />{T('মানচিত্রে জমি বাছাই করুন', 'Mark my field on the map')}</Button>
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-white/65"><Tags list={['SAT', 'MODEL']} /></span>
+              </div>
             </div>
           </div>
         </div>
