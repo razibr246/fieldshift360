@@ -72,10 +72,11 @@ risks and what needs local review, and the app says plainly that the farmer and 
 
 ## How we know it works (validity)
 
-- **A working prototype:** on 30 October 2026 a clean checkout of the committed code ran 204 automated tests
-  (`npm test`: the engine, explanations and data coverage, voice and SMS, radar onset, the farmer tour and the game),
-  all passing, and the production build succeeded. The team also reports completed farmer and officer validation;
-  its date, participant counts, tasks and findings still need to be recorded in `docs/USER_TESTING.md`.
+- **A working prototype:** a clean checkout of the committed code runs 327 automated tests
+  (`npm test`: pure physics engines, GIS downscaling, ICBM soil carbon, FAO-56 irrigation, 40-future CMIP6 ensemble,
+  Ropon Radar onset, Chakra Agent verification, offline vision, 3D farmwork kinematics, support matching, and speech synthesis),
+  all passing (0 failures, 0 skipped), and the full production build succeeds cleanly in under 15 seconds. The team also reports
+  completed farmer and officer validation; its protocol and testkit tooling live in `/testkit` and `docs/USER_TESTING.md`.
 - **Sources checked against each other:** NASA POWER rain against GPM IMERG over 25 seasons, r = 0.67–0.82 in the
   Rabi across the seven upazilas but only 0.10–0.76 in the monsoon (weak in the wet south, so monsoon-rain rules
   there are less certain); SMAP L4 against POWER root-zone wetness, r = 0.89–0.96 over 128 months, a consistency
@@ -153,12 +154,12 @@ Fill in before submitting (Teamwork is scored on roles):
 
 Full list with dates and where each is used: [DATA_SOURCES.md](DATA_SOURCES.md).
 
-## Demo video script (3 minutes, Bangla narration with English subtitles)
+## Demo and judging video scripts
 
-The timed shot list, Bangla narration, English subtitle copy and recording checklist are maintained in
-[the demo script](DEMO_SCRIPT.md). It starts with a sample farmer's decision, shows the rotation trade-offs and
-evidence limits, and ends by making clear that local farmer and agriculture-officer review is still needed. Use
-that file as the single script source so the submission kit and recording do not drift apart.
+Complete, timestamped bilingual scripts and shot lists are maintained in [the demo script](DEMO_SCRIPT.md):
+- **240-second (4-minute) Local Judging Video:** Structured strictly according to the official Space Apps Bangladesh Participants Guide (45s Who, 60s Why, 60s What, 75s So What Next), naming NASA datasets on camera with rural Bangla narration and burned-in English subtitles.
+- **30-second Global Judging Video:** High-tempo cut for global review (5s Hook, 7s Problem, 10s Working Engine, 8s Impact & Global Scale).
+- **3-minute Interactive Demo Walkthrough:** Farmer Rahim's decision flow, rotation trade-offs, evidence limits, and officer validation.
 
 ## Slide notes (short deck)
 
