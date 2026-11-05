@@ -1262,18 +1262,103 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 
 /* Farmer workspace: strengthen card hierarchy and keep the mobile navigation feeling anchored and responsive. */
 .farmer-header {
-  box-shadow: 0 8px 24px -20px rgba(13, 38, 20, .45), inset 0 -1px 0 rgba(255, 255, 255, .7);
+  background: rgba(255, 255, 255, .78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, .88);
+  box-shadow: 0 10px 30px -18px rgba(13, 38, 20, .18), inset 0 1px 0 rgba(255, 255, 255, .95);
 }
 .farmer-desktop-nav {
-  background: linear-gradient(180deg, rgba(255, 255, 255, .78), rgba(255, 255, 255, .58));
+  background: linear-gradient(180deg, rgba(255, 255, 255, .72), rgba(255, 255, 255, .5));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, .75);
 }
 .farmer-experience main {
   min-height: calc(100svh - 132px);
 }
 .farmer-experience main .surface-card {
-  border-color: rgba(255, 255, 255, .82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .92), 0 12px 30px -20px rgba(13, 38, 20, .32);
+  border-color: rgba(255, 255, 255, .9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .92) 0%, rgba(255, 255, 255, .78) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .98), 0 14px 34px -20px rgba(13, 38, 20, .26);
   transition: transform .32s var(--ease-spring), box-shadow .32s var(--ease-smooth), border-color .25s var(--ease-smooth);
+}
+
+/* Farmer Atmosphere: living agro-climatic ambient canvas */
+.farmer-atmosphere {
+  background-color: #f6f8f4;
+  contain: strict;
+}
+.farmer-aura-orb {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(72px);
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+.farmer-aura-emerald {
+  top: -10vmax;
+  left: -8vmax;
+  width: 58vmax;
+  height: 48vmax;
+  background: radial-gradient(circle, rgba(67, 134, 58, .26) 0%, rgba(67, 134, 58, .09) 50%, transparent 72%);
+  animation: farmer-drift-primary 24s ease-in-out infinite alternate;
+}
+.farmer-aura-gold {
+  top: -6vmax;
+  right: -10vmax;
+  width: 54vmax;
+  height: 46vmax;
+  background: radial-gradient(circle, rgba(218, 155, 46, .22) 0%, rgba(218, 155, 46, .07) 52%, transparent 70%);
+  animation: farmer-drift-secondary 28s ease-in-out -6s infinite alternate-reverse;
+}
+.farmer-aura-river {
+  top: 34%;
+  left: -12vmax;
+  width: 52vmax;
+  height: 48vmax;
+  background: radial-gradient(circle, rgba(47, 138, 143, .18) 0%, rgba(47, 138, 143, .05) 55%, transparent 74%);
+  animation: farmer-drift-secondary 30s ease-in-out -12s infinite alternate;
+}
+.farmer-aura-silt {
+  top: 50%;
+  right: -8vmax;
+  width: 50vmax;
+  height: 44vmax;
+  background: radial-gradient(circle, rgba(168, 85, 42, .14) 0%, rgba(168, 85, 42, .03) 50%, transparent 70%);
+  animation: farmer-drift-primary 26s ease-in-out -4s infinite alternate-reverse;
+}
+.farmer-aura-canopy {
+  bottom: -14vmax;
+  left: 20%;
+  width: 62vmax;
+  height: 42vmax;
+  background: radial-gradient(circle, rgba(52, 119, 55, .18) 0%, rgba(52, 119, 55, .04) 60%, transparent 75%);
+  animation: farmer-drift-primary 32s ease-in-out -15s infinite alternate;
+}
+
+@keyframes farmer-drift-primary {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(2vmax, 1.8vmax, 0) scale(1.04); }
+  100% { transform: translate3d(-1.5vmax, 2.5vmax, 0) scale(.97); }
+}
+
+@keyframes farmer-drift-secondary {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-1.8vmax, 2vmax, 0) scale(1.03); }
+  100% { transform: translate3d(1.5vmax, -1.8vmax, 0) scale(.96); }
+}
+
+.farmer-atmosphere-vignette {
+  background: radial-gradient(ellipse at 50% 28%, transparent 45%, rgba(246, 248, 244, .45) 80%, rgba(246, 248, 244, .85) 100%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .farmer-aura-orb { animation: none !important; }
 }
 
 /* Field Folk selection: make choosing a farmer feel like entering their world. */
@@ -1526,11 +1611,6 @@ li:nth-child(3n) .fa-eyes, button:nth-child(3n) .fa-eyes { animation-delay: 3.1s
 }
 
 /* A shared, calm visual frame across the farmer's planning and field-work pages. */
-.farmer-experience main {
-  background-image:
-    radial-gradient(ellipse at 4% 2%, rgba(141, 190, 120, .11), transparent 34rem),
-    radial-gradient(ellipse at 96% 8%, rgba(120, 184, 185, .1), transparent 32rem);
-}
 .farmer-plan-page,
 .farmer-future-page,
 .farmer-today-page,

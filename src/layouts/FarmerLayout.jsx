@@ -12,6 +12,7 @@ import FarmerAvatar from '../components/brand/FarmerAvatar';
 import FarmerTour, { startFarmerTour } from '../components/tour/FarmerTour';
 import ChakraAgent from '../components/chakra/ChakraAgent';
 import { openCommandPalette } from '../components/CommandPalette';
+import FarmerAtmosphere from '../components/brand/FarmerAtmosphere';
 
 export function useFarmerNav() {
   const { T } = useStore();
@@ -167,7 +168,8 @@ export default function FarmerLayout() {
   const rest = nav.filter((n) => !bottom.some((b) => b.to === n.to));
   const restActive = rest.some((n) => loc.pathname.startsWith(n.to));
   return (
-    <div className="farmer-experience min-h-screen">
+    <div className="farmer-experience relative min-h-screen">
+      <FarmerAtmosphere />
       <SkipToMain />
       <MessagePopup />
       <FarmerTour />

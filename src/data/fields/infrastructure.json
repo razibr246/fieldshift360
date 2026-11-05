@@ -1,0 +1,162 @@
+{
+  "about": "Agricultural water infrastructure and drainage network: pumps, wells, storage ponds, irrigation distribution channels and natural drainage flowpaths.",
+  "dhamrai": {
+    "waterSources": [
+      {
+        "id": "WS-DHM-01",
+        "kind": "dtw",
+        "name": { "bn": "চৌহাট বিএডিসি গভীর নলকূপ", "en": "Chauhat BADC Deep Tube Well" },
+        "lat": 24.0225,
+        "lon": 90.0782,
+        "capacity": "2 cusec",
+        "power": "Electric 3-Phase",
+        "status": "operational",
+        "serves": ["DHM-CH-0142"]
+      },
+      {
+        "id": "WS-DHM-02",
+        "kind": "stw",
+        "name": { "bn": "নিকলা মাঠের শ্যালো পাম্প", "en": "Nikla Field Shallow Tube Well" },
+        "lat": 24.0092,
+        "lon": 90.0348,
+        "capacity": "0.5 cusec",
+        "power": "Diesel Engine",
+        "status": "operational",
+        "serves": ["DHM-CH-0377"]
+      },
+      {
+        "id": "WS-DHM-03",
+        "kind": "pond",
+        "name": { "bn": "বালিয়া খাঁড়ার দিঘি", "en": "Balia Water Storage Dighi" },
+        "lat": 23.9898,
+        "lon": 90.0762,
+        "capacity": "Reservoir",
+        "power": "Low Lift Pump (LLP)",
+        "status": "operational",
+        "serves": ["DHM-BL-0218"]
+      },
+      {
+        "id": "WS-DHM-04",
+        "kind": "dtw",
+        "name": { "bn": "যাদবপুর বরেন্দ্র/বিএডিসি গভীর নলকূপ", "en": "Jadabpur BADC Deep Tube Well" },
+        "lat": 24.0058,
+        "lon": 90.1128,
+        "capacity": "2 cusec",
+        "power": "Electric",
+        "status": "operational",
+        "serves": ["DHM-JD-0093"]
+      }
+    ],
+    "irrigationChannels": [
+      {
+        "id": "IRR-DHM-01",
+        "name": { "bn": "চৌহাট মূল সেচ নালা", "en": "Chauhat Main Irrigation Channel" },
+        "kind": "concrete_flume",
+        "coords": [
+          [24.0225, 90.0782],
+          [24.0228, 90.0786],
+          [24.0232, 90.0789],
+          [24.0235, 90.0792]
+        ],
+        "status": "good"
+      },
+      {
+        "id": "IRR-DHM-02",
+        "name": { "bn": "নিকলা ভূগর্ভস্থ পাইপলাইন", "en": "Nikla Buried Pipe Network" },
+        "kind": "pvc_pipe",
+        "coords": [
+          [24.0092, 90.0348],
+          [24.0089, 90.0351],
+          [24.0086, 90.0354]
+        ],
+        "status": "good"
+      },
+      {
+        "id": "IRR-DHM-03",
+        "name": { "bn": "যাদবপুর শাখা নালা", "en": "Jadabpur Branch Channel" },
+        "kind": "earthen_ditch",
+        "coords": [
+          [24.0058, 90.1128],
+          [24.0062, 90.1131],
+          [24.0066, 90.1135]
+        ],
+        "status": "moderate"
+      }
+    ],
+    "drainageRoutes": [
+      {
+        "id": "DRN-DHM-01",
+        "name": { "bn": "চৌহাট বিলমুখী নিষ্কাশন খাঁড়ি", "en": "Chauhat Beel Drainage Creek" },
+        "kind": "natural_creek",
+        "coords": [
+          [24.0245, 90.0798],
+          [24.0240, 90.0805],
+          [24.0233, 90.0815],
+          [24.0222, 90.0830]
+        ]
+      },
+      {
+        "id": "DRN-DHM-02",
+        "name": { "bn": "বালিয়া পানি নামার খাল", "en": "Balia Natural Drainage Runoff" },
+        "kind": "natural_creek",
+        "coords": [
+          [23.9915, 90.0745],
+          [23.9902, 90.0752],
+          [23.9890, 90.0768],
+          [23.9875, 90.0785]
+        ]
+      }
+    ]
+  },
+  "godagari": {
+    "waterSources": [
+      {
+        "id": "WS-GDG-01",
+        "kind": "dtw",
+        "name": { "bn": "দেওপাড়া বিএমডিএ গভীর নলকূপ", "en": "Deopara BMDA Deep Tube Well" },
+        "lat": 24.4121,
+        "lon": 88.5018,
+        "capacity": "2 cusec",
+        "power": "BMDA Prepaid Solar/Grid",
+        "status": "operational",
+        "serves": ["GDG-DP-0311"]
+      },
+      {
+        "id": "WS-GDG-02",
+        "kind": "dtw",
+        "name": { "bn": "পশ্চিম মাঠ বিএমডিএ ডিপ", "en": "West Field BMDA Tube Well" },
+        "lat": 24.4246,
+        "lon": 88.4795,
+        "capacity": "2 cusec",
+        "power": "Electric",
+        "status": "operational",
+        "serves": ["GDG-DP-0587"]
+      }
+    ],
+    "irrigationChannels": [
+      {
+        "id": "IRR-GDG-01",
+        "name": { "bn": "বিএমডিএ ভূগর্ভস্থ পাইপলাইন", "en": "BMDA Buried Irrigation Pipeline" },
+        "kind": "pvc_pipe",
+        "coords": [
+          [24.4121, 88.5018],
+          [24.4123, 88.5021],
+          [24.4125, 88.5023]
+        ],
+        "status": "good"
+      }
+    ],
+    "drainageRoutes": [
+      {
+        "id": "DRN-GDG-01",
+        "name": { "bn": "দেওপাড়া খাঁড়ি নালা", "en": "Deopara Natural Drainage Route" },
+        "kind": "natural_creek",
+        "coords": [
+          [24.4135, 88.5035],
+          [24.4128, 88.5042],
+          [24.4115, 88.5060]
+        ]
+      }
+    ]
+  }
+}
