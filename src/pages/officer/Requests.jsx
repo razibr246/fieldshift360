@@ -34,20 +34,41 @@ export default function Requests() {
             <input value={q} onChange={(e) => setQ(e.target.value)} className="w-full bg-transparent text-[15px] outline-none" placeholder={T('কৃষক, গ্রাম বা সমস্যার নাম', 'Farmer, village or problem')} />
           </label>
         </div>
-        <div className="mt-4 divide-y divide-border">
+        <div className="mt-4 space-y-2.5">
           {list.length === 0 && <EmptyState icon={Inbox} title={tab === 'open' ? T('সব অনুরোধের উত্তর দেওয়া হয়েছে', 'Every request has been answered') : T('কিছু পাওয়া যায়নি', 'Nothing found')} text={T('অন্য তালিকা বা অন্য নাম দিয়ে দেখুন।', 'Try the other list or another name.')} />}
           {list.map((r) => {
             const f = farmerOf(r.farmerId);
+            const isUrgent = r.priority === 'High' && isOpen(r);
             return (
-              <Link key={r.id} to={`/officer/requests/${r.id}`} className={`flex items-center gap-3 rounded-lg px-1.5 py-3.5 transition hover:bg-primary-50/50 ${r.mine ? 'bg-sky-50/50' : ''}`}>
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700"><LifeBuoy size={20} /></div>
+              <Link
+                key={r.id}
+                to={`/officer/requests/${r.id}`}
+                className={`group flex items-center gap-3.5 rounded-xl border p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                  isUrgent
+                    ? 'border-l-4 !border-l-red-500 border-border bg-white hover:border-red-300'
+                    : r.mine
+                      ? 'border-l-4 !border-l-sky-500 border-sky-200 bg-sky-50/40 hover:bg-sky-50/70'
+                      : isOpen(r)
+                        ? 'border-l-4 !border-l-amber-500 border-border bg-white hover:border-amber-300'
+                        : 'border-l-4 !border-l-transparent border-border/80 bg-white/70 hover:border-primary-300 hover:bg-primary-50/30'
+                }`}
+              >
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-50 text-primary-700 shadow-2xs transition-transform duration-200 group-hover:scale-105">
+                  <LifeBuoy size={20} />
+                </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5"><span className="text-[15.5px] font-bold">{L(f?.name)}</span><Badge tone={PRIORITY[r.priority].tone}>{L(PRIORITY[r.priority])}</Badge>{r.status !== 'open' && <Badge tone={REQ_STATUS[r.status].tone}>{L(REQ_STATUS[r.status])}</Badge>}{r.mine && <Badge tone="blue">{T('নতুন', 'New')}</Badge>}{r.visit && <Badge tone="violet">{T('জমিতে যাবেন', 'Visit')}</Badge>}</div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[15.5px] font-bold text-ink group-hover:text-primary-950 transition-colors">{L(f?.name)}</span>
+                    <Badge tone={PRIORITY[r.priority].tone}>{L(PRIORITY[r.priority])}</Badge>
+                    {r.status !== 'open' && <Badge tone={REQ_STATUS[r.status].tone}>{L(REQ_STATUS[r.status])}</Badge>}
+                    {r.mine && <Badge tone="blue">{T('নতুন', 'New')}</Badge>}
+                    {r.visit && <Badge tone="violet">{T('জমিতে যাবেন', 'Visit')}</Badge>}
+                  </div>
                   <p className="mt-0.5 text-[13px] text-muted">{cropName(r.crop, lang)}, {lang === 'bn' ? r.villageBn : r.village}, {ageLabel(r.created, T)}</p>
                   <p className="mt-1 truncate text-[14.5px] text-ink/80">{L(SYMPTOMS[r.symptom])}: {L(r.text)}</p>
                   {r.ai && <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[13px] font-semibold text-violet-700">{T(`ছবি দেখে: ${aiLabel(r.ai[0]).bn}, ${num(r.ai[0].p * 100, 'bn')}%`, `Photo suggests: ${aiLabel(r.ai[0]).en.toLowerCase()}, ${num(r.ai[0].p * 100, 'en')}%`)} <Tags list={[r.doctor ? 'AI' : 'DEMO']} /></p>}
                 </div>
-                <ChevronRight size={18} className="shrink-0 text-muted" />
+                <ChevronRight size={18} className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary-700" />
               </Link>
             );
           })}

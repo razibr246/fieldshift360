@@ -87,8 +87,16 @@ function FieldNow({ parcel, crop, dToday }) {
               <p className="mt-1 text-[13px] text-muted">{T(`সেন্টিনেল-২, ${fmtDate(parseISO(r.last.d), 'bn')} (${bnDigits(r.ageDays)} দিন আগে), ১০ মিটার। হলুদ রেখা আপনার জমি।`, `Sentinel-2, ${fmtDate(parseISO(r.last.d), 'en')} (${r.ageDays} days ago), 10 m. The yellow line is your field.`)}
                 {fw.status === 'loading' && <span className="ml-1 inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" />{T('নতুন ছবি খোঁজা হচ্ছে', 'looking for a newer pass')}</span>}</p>
               <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-                {[[T('সবুজ (NDVI)', 'Green (NDVI)'), num(r.last.ndvi, lang, { dp: 2 })], [T('আর্দ্রতা (NDMI)', 'Moisture (NDMI)'), num(r.last.ndmi, lang, { dp: 2 })], [T('পানি জমা', 'Standing water'), `${num(Math.round((r.last.water ?? 0) * 100), lang)}%`]].map(([k, v]) => (
-                  <div key={k} className="rounded-xl bg-canvas px-2 py-2"><dt className="text-[11.5px] leading-tight text-muted">{k}</dt><dd className="font-display text-[18px] font-bold tabular">{v}</dd></div>
+                {[
+                  [T('সবুজ (NDVI)', 'Green (NDVI)'), num(r.last.ndvi, lang, { dp: 2 }), r.last.ndvi >= 0.5 ? 'text-primary-800 bg-primary-100/70 border-primary-200' : 'text-amber-800 bg-amber-100/70 border-amber-200', r.last.ndvi >= 0.5 ? T('সতেজ', 'Vigorous') : T('মাঝারি', 'Moderate')],
+                  [T('আর্দ্রতা (NDMI)', 'Moisture (NDMI)'), num(r.last.ndmi, lang, { dp: 2 }), r.last.ndmi >= 0.15 ? 'text-sky-800 bg-sky-100/70 border-sky-200' : 'text-amber-800 bg-amber-100/70 border-amber-200', r.last.ndmi >= 0.15 ? T('আর্দ্র', 'Moist') : T('শুকনো', 'Dryish')],
+                  [T('পানি জমা', 'Standing water'), `${num(Math.round((r.last.water ?? 0) * 100), lang)}%`, (r.last.water ?? 0) > 0.1 ? 'text-blue-800 bg-blue-100/70 border-blue-200' : 'text-muted bg-canvas border-border/70', (r.last.water ?? 0) > 0.1 ? T('পানি আছে', 'Standing') : T('নেই', 'None')]
+                ].map(([k, v, badgeCls, statusText]) => (
+                  <div key={k} className="rounded-xl border border-border/80 bg-canvas/80 px-2 py-2.5 transition-all hover:bg-canvas">
+                    <dt className="text-[11.5px] leading-tight text-muted">{k}</dt>
+                    <dd className="font-display mt-0.5 text-[18px] font-bold tabular text-ink">{v}</dd>
+                    <span className={`mt-1 inline-block rounded-full border px-2 py-0.2 text-[10px] font-semibold ${badgeCls}`}>{statusText}</span>
+                  </div>
                 ))}
               </dl>
               {r.top && !r.top.pattern.notField && (

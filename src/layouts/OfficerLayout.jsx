@@ -112,7 +112,7 @@ function Sidebar({ onNavigate }) {
 }
 
 export default function OfficerLayout() {
-  const { s, T, L, officerUpazila: upz } = useStore();
+  const { s, T, L, hotspots, officerUpazila: upz } = useStore();
   const [drawer, setDrawer] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [q, setQ] = useState('');
@@ -168,6 +168,7 @@ export default function OfficerLayout() {
     };
   }, [drawer]);
   const open = s.requests.filter((r) => r.status === 'open' && r.union === s.officerUnion).length;
+  const alertsCount = hotspots.filter((h) => h.members.some((m) => m.union === s.officerUnion)).length;
   const name = L(upz.officer);
   const search = (e) => { e.preventDefault(); navigate(`/officer/farmers?q=${encodeURIComponent(q.trim())}`); setShowSearch(false); };
   return (
@@ -196,6 +197,17 @@ export default function OfficerLayout() {
               </button>
             </form>
             <div className="ml-auto flex items-center gap-2">
+              {alertsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/officer/alerts')}
+                  className="hidden items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-2.5 py-2 text-[13px] font-bold text-red-700 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-red-100 active:scale-95 xl:inline-flex"
+                  title={T('এলাকার সতর্কতা দেখুন', 'View area alerts')}
+                >
+                  <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
+                  <span>{T(`${num(alertsCount, s.lang)}টি সতর্কতা`, `${alertsCount} alerts`)}</span>
+                </button>
+              )}
               <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')} aria-expanded={showSearch}>
                 <Search size={18} />
               </button>

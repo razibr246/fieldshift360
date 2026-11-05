@@ -63,6 +63,7 @@ export default function Support() {
   const lang = s.lang;
   const nav = useNavigate();
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState('all');
   const crops = useMemo(() => [chosen.crop, rotation?.best?.crop, AMAN].filter(Boolean), [chosen.crop, rotation?.best?.crop]);
   const area = AREA_TYPE[upazila.id] ?? null;
   const prof = useMemo(() => supportProfile({ area_dec: farmer.area_dec, crops, irrigation: farmer.irrigation, area, district: upazila.district.en }), [farmer.area_dec, crops, farmer.irrigation, area, upazila.district.en]);
@@ -71,7 +72,28 @@ export default function Support() {
   const first = firstSteps(ms);
   const hits = useMemo(() => askSupport(q, BD_SUPPORT), [q]);
   const ask = (p) => nav('/farmer/help', { state: { ask: T(`"${p.name.bn}" সম্পর্কে জানতে চাই: আমি কি পাব, কবে আর কোথায় আবেদন করব?`, `I would like to know about "${p.name.en}": do I qualify, and when and where do I apply?`) } });
-  const group = (f) => ms.filter((m) => m.fit === f);
+  
+  const filteredMs = useMemo(() => {
+    if (cat === 'all') return ms;
+    if (cat === 'input') return ms.filter((m) => m.p.kind === 'input');
+    if (cat === 'credit') return ms.filter((m) => m.p.kind === 'credit' || m.p.kind === 'insurance');
+    if (cat === 'machinery') return ms.filter((m) => m.p.kind === 'machinery' || m.p.kind === 'irrigation');
+    if (cat === 'price') return ms.filter((m) => m.p.kind === 'price');
+    if (cat === 'soil_advice') return ms.filter((m) => m.p.kind === 'soil' || m.p.kind === 'advice');
+    if (cat === 'register') return ms.filter((m) => m.p.kind === 'register' || m.p.kind === 'cash');
+    return ms;
+  }, [ms, cat]);
+
+  const group = (f) => filteredMs.filter((m) => m.fit === f);
+
+  const categories = [
+    { id: 'all', label: T('সব', 'All'), count: ms.length },
+    { id: 'input', label: T('বীজ ও সার', 'Seed & fertiliser'), count: ms.filter((m) => m.p.kind === 'input').length },
+    { id: 'credit', label: T('ঋণ ও বিমা', 'Credit & insurance'), count: ms.filter((m) => m.p.kind === 'credit' || m.p.kind === 'insurance').length },
+    { id: 'machinery', label: T('যন্ত্রপাতি', 'Machinery'), count: ms.filter((m) => m.p.kind === 'machinery' || m.p.kind === 'irrigation').length },
+    { id: 'price', label: T('ধানের সরকারি দাম', 'Crop price'), count: ms.filter((m) => m.p.kind === 'price').length },
+    { id: 'soil_advice', label: T('মাটি ও পরামর্শ', 'Soil & advice'), count: ms.filter((m) => m.p.kind === 'soil' || m.p.kind === 'advice').length },
+  ];
 
   return (
     <div className="page-shell">
@@ -121,6 +143,28 @@ export default function Support() {
             </div>
           )}
         </Card>
+
+        <div className="flex flex-wrap items-center gap-2 print:hidden" role="tablist" aria-label={T('সহায়তার ধরন ছাঁকা', 'Filter support category')}>
+          {categories.map((cTab) => (
+            <button
+              key={cTab.id}
+              type="button"
+              role="tab"
+              aria-selected={cat === cTab.id}
+              onClick={() => setCat(cTab.id)}
+              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13.5px] font-semibold transition-all duration-200 active:scale-95 ${
+                cat === cTab.id
+                  ? 'bg-primary-700 text-white shadow-sm ring-2 ring-primary-700/20'
+                  : 'border border-border bg-white text-ink/75 hover:border-primary-300 hover:bg-canvas'
+              }`}
+            >
+              <span>{cTab.label}</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${cat === cTab.id ? 'bg-white/25 text-white' : 'bg-black/5 text-muted'}`}>
+                {num(cTab.count, lang)}
+              </span>
+            </button>
+          ))}
+        </div>
 
         {['yes', 'maybe'].map((f) => group(f).length > 0 && (
           <section key={f} aria-labelledby={`sp-h-${f}`}>
