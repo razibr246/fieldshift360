@@ -6,6 +6,7 @@ import { PageHeader, Card, Badge, Tags } from '../../components/ui';
 import MapView from '../../components/map/MapView';
 import { UnionLayer } from '../../components/map/UpazilaLayers';
 import AmanHazards from '../../components/charts/AmanHazards';
+import CycloneTrajectoryRadar from '../../components/radar/CycloneTrajectoryRadar';
 import { SectionNav, LazyMount, Skeleton } from '../../components/SectionNav';
 import RadarStory from '../../components/charts/RadarStory';
 import RadarBrief from '../../components/charts/RadarBrief';
@@ -84,6 +85,7 @@ function RadarPage() {
         { id: 'rd-story', label: T('জেলার গল্প', 'District story') },
         { id: 'rd-progress', label: T('অগ্রগতি ও বৃষ্টি', 'Progress and rain') },
         { id: 'rd-hazards', label: T('খরা-বন্যা ঝুঁকি', 'Hazards') },
+        { id: 'rd-cyclone', label: T('ঘূর্ণিঝড় ট্র্যাকার', 'Cyclone radar') },
         { id: 'rd-fields', label: T('নমুনা জমি', 'Sample fields') },
         { id: 'rd-history', label: T('রাডার ছবি ও ইতিহাস', 'Radar and history') },
         { id: 'rd-rain', label: T('২৫ বছরের বৃষ্টি', '25 years of rain') },
@@ -167,6 +169,8 @@ function RadarPage() {
           </div>
 
           <div id="rd-hazards"><LazyMount height={900}><AmanHazards key={view} id={view} /></LazyMount></div>
+
+          <div id="rd-cyclone"><LazyMount height={650}><CycloneTrajectoryRadar key={view} upazilaId={view} /></LazyMount></div>
 
           <div id="rd-fields"><LazyMount height={620}><FieldsSection key={view} detail={detail.data} row={row} year={year} /></LazyMount></div>
 
