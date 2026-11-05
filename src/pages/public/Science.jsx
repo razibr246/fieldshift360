@@ -23,6 +23,7 @@ import TrendMap from '../../components/map/TrendMap';
 import SatelliteInspector from '../../components/science/SatelliteInspector';
 import EarthdataSTAC from '../../components/science/EarthdataSTAC';
 import ChallengeDossier from '../../components/science/ChallengeDossier';
+import GlobalAwardMatrix from '../../components/science/GlobalAwardMatrix';
 
 const t = (bn, en) => ({ bn, en });
 const TERMS = [
@@ -237,6 +238,8 @@ export default function Science() {
       <MachineLearning />
 
       <ChallengeDossier />
+
+      <GlobalAwardMatrix />
 
       <section id="rules" className="mt-12 scroll-mt-28">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><ClipboardCheck size={20} className="text-primary-700" />{T('ফসলের নিয়ম আর তাদের যাচাই', 'The crop rules and who has checked them')}</h2>
