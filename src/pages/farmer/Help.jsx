@@ -209,22 +209,32 @@ export default function Help() {
           <Card data-tour="help-reqs" className="p-5 sm:p-6">
             <h3 className="text-[15px] font-bold">{T('আমার পাঠানো অনুরোধ', 'Requests I have sent')}</h3>
             {myReqs.length === 0 ? <div className="mt-3"><EmptyState icon={Clock} title={T('কোনো অনুরোধ পাঠাননি', 'No requests yet')} text={T('সমস্যা হলে পাশের ফর্ম থেকে পাঠান।', 'Use the form to send one when you need help.')} /></div> : (
-              <ul className="mt-2 divide-y divide-border">
+              <ul className="mt-3 space-y-3">
                 {myReqs.map((r) => {
                   const d = Math.max(0, daysBetween(r.created, today));
                   const replies = myAdvisories.filter((a) => a.request === r.id);
                   // A reply that came through the message store answers the request even before the office's status reaches this phone.
                   const status = replies.length && r.status === 'open' ? 'answered' : r.status;
+                  const isUrgent = r.priority === 'High' && status === 'open';
                   return (
-                    <li key={r.id} className="py-3.5">
+                    <li
+                      key={r.id}
+                      className={`rounded-2xl border p-4 transition-all duration-200 hover:shadow-md ${
+                        isUrgent
+                          ? 'border-l-4 !border-l-red-500 border-border bg-white'
+                          : status === 'answered'
+                            ? 'border-l-4 !border-l-primary-600 border-border bg-primary-50/20'
+                            : 'border-l-4 !border-l-amber-500 border-border bg-white'
+                      }`}
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 gap-3">
-                          {r.image && <img src={r.image} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />}
+                          {r.image && <img src={r.image} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover ring-1 ring-border shadow-2xs" />}
                           <div className="min-w-0">
-                            <div className="text-[15px] font-semibold">{L(SYMPTOMS[r.symptom] ?? SYMPTOMS.question)}</div>
-                            <div className="text-[13.5px] leading-5 text-muted">{L(r.text)}</div>
-                            <div className="mt-0.5 flex flex-wrap gap-1.5 text-[12.5px] text-muted">
-                              <span>{d === 0 ? T('আজ', 'Today') : T(`${num(d, 'bn')} দিন আগে`, `${d} days ago`)}</span>
+                            <div className="text-[15px] font-bold text-ink">{L(SYMPTOMS[r.symptom] ?? SYMPTOMS.question)}</div>
+                            <div className="mt-0.5 text-[13.5px] leading-5 text-muted">{L(r.text)}</div>
+                            <div className="mt-1.5 flex flex-wrap gap-1.5 text-[12px] text-muted">
+                              <span className="font-medium">{d === 0 ? T('আজ', 'Today') : T(`${num(d, 'bn')} দিন আগে`, `${d} days ago`)}</span>
                               {r.priority === 'High' && <span className="chip bg-red-50 text-red-700 ring-1 ring-red-200">{T('জরুরি', 'Urgent')}</span>}
                               {r.context && <span className="chip bg-sky-50 text-sky-800 ring-1 ring-sky-200">{T('জমির তথ্য সঙ্গে', 'Field details attached')}</span>}
                             </div>
@@ -233,9 +243,9 @@ export default function Help() {
                         <Badge tone={STATUS[status].tone}>{L(STATUS[status])}</Badge>
                       </div>
                       {replies.map((a) => (
-                        <div key={a.id} className="ml-0 mt-2.5 rounded-xl bg-primary-50 p-3 sm:ml-4">
-                          <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-primary-700"><CheckCircle2 size={13} />{T('কর্মকর্তার উত্তর', 'Officer’s reply')}, {fmtDate(a.at, lang)}</div>
-                          <div className="mt-1 whitespace-pre-line text-[14.5px] leading-6">{a.text}</div>
+                        <div key={a.id} className="mt-3 rounded-xl border border-primary-200/80 bg-primary-50/80 p-3.5 shadow-2xs">
+                          <div className="flex items-center gap-1.5 text-[12.5px] font-bold text-primary-800"><CheckCircle2 size={14} className="text-primary-700" />{T('কর্মকর্তার উত্তর', 'Officer’s reply')} · <span className="font-normal text-muted">{fmtDate(a.at, lang)}</span></div>
+                          <div className="mt-1.5 whitespace-pre-line text-[14.5px] leading-6 text-ink/90">{a.text}</div>
                         </div>
                       ))}
                     </li>

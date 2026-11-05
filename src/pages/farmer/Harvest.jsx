@@ -110,7 +110,12 @@ export default function Harvest() {
               {[[CalendarDays, T('ফসল তোলার সময়', 'Harvest weeks'), fmtRange(hw.start, hw.end, lang), T(`${fmtBangla(hw.start, 'bn')} থেকে`, `from ${fmtBangla(hw.start, 'en')}`)],
                 [PackageCheck, T('আনুমানিক ফলন', 'Likely yield'), T(`${num(y.maundLow, 'bn')}–${num(y.maundHigh, 'bn')} মণ`, `${num(y.maundLow, 'en')}–${num(y.maundHigh, 'en')} maund`), T(`${num(farmer.area_dec, 'bn')} শতকে, খারাপ থেকে ভালো বছর`, `on ${farmer.area_dec} decimal, poor to good year`)],
                 [Scale, T('কেজিতে', 'In kilograms'), `${num(Math.round(y.kgLow / 10) * 10, lang)}–${num(Math.round(y.kgHigh / 10) * 10, lang)}`, y.years ? T(`দেশের গড় ফলন, ${bnDigits(y.years[0])}–${bnDigits(y.years[1])}`, `national yields, ${y.years[0]}–${y.years[1]}`) : T('মোটামুটি', 'roughly')]].map(([Icon, l, v, sub]) => (
-                <div key={l} className="rounded-xl border border-border p-4"><Icon size={19} className="text-paddy-500" /><div className="mt-3 text-[13px] text-muted">{l}</div><div className="font-display mt-0.5 text-[18px] font-bold tabular">{v}</div><div className="text-[12.5px] text-muted">{sub}</div></div>
+                <div key={l} className="rounded-xl border border-border/80 bg-canvas/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs hover:border-primary-300">
+                  <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary-100/60 text-primary-800 shadow-2xs"><Icon size={19} /></div>
+                  <div className="mt-2.5 text-[12.5px] font-semibold text-muted">{l}</div>
+                  <div className="font-display mt-0.5 text-[18px] font-bold tabular text-ink">{v}</div>
+                  <div className="mt-0.5 text-[12px] text-muted">{sub}</div>
+                </div>
               ))}
             </div>
             {m && (
