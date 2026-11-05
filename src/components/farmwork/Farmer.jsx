@@ -19,6 +19,8 @@ export const LOOKS = {
     hat: 'band', hatColor: '#c23d34', hatLine: '#8c2621', mustache: '#231c18' },
   wheat: { skin: '#9d6340', hair: '#221b17', shirt: '#e4e8e1', shirtLine: '#aab1a6', sleeve: true, lungi: '#7a3833', check: '#d6a08f',
     hat: 'gamcha', hatColor: '#eef3e4', hatLine: '#3d7a46', mustache: '#2a221d', stubble: '#5f5650' },
+  mustard: { skin: '#94593a', hair: '#6e6863', shirt: '#86abc9', shirtLine: '#557a99', sleeve: true, lungi: '#5d6b2c', check: '#c9d47e',
+    hat: 'mathal', hatColor: '#d4ae62', hatLine: '#9c7836', mustache: '#8d8781', stubble: '#8a837d' },
   sesame: { skin: '#a46a45', hair: '#1d1814', vest: '#efe2c0', vestLine: '#c6b385', lungi: '#4a4f86', check: '#aab0dc',
     hat: 'band', hatColor: '#2f7fa8', hatLine: '#1d5b78' },
 };

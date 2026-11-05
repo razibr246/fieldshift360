@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clampProgress, dateAtProgress, stageAtProgress, TOMATO_HARVEST_STAGES, MUNGBEAN_SOWING_STAGES, AMAN_TRANSPLANT_STAGES, WHEAT_HARVEST_STAGES, SESAME_SOWING_STAGES } from './farmTimeline.js';
+import { clampProgress, dateAtProgress, stageAtProgress, TOMATO_HARVEST_STAGES, MUNGBEAN_SOWING_STAGES, AMAN_TRANSPLANT_STAGES, WHEAT_HARVEST_STAGES, SESAME_SOWING_STAGES, MUSTARD_HARVEST_STAGES } from './farmTimeline.js';
 
 test('tomato harvest stages are ordered across one complete loop', () => {
   assert.equal(TOMATO_HARVEST_STAGES[0].at, 0);
@@ -9,7 +9,7 @@ test('tomato harvest stages are ordered across one complete loop', () => {
 });
 
 test('mungbean, sesame, wheat and Aman stages are chronological and complete', () => {
-  for (const stages of [MUNGBEAN_SOWING_STAGES, AMAN_TRANSPLANT_STAGES, WHEAT_HARVEST_STAGES, SESAME_SOWING_STAGES]) {
+  for (const stages of [MUNGBEAN_SOWING_STAGES, AMAN_TRANSPLANT_STAGES, WHEAT_HARVEST_STAGES, SESAME_SOWING_STAGES, MUSTARD_HARVEST_STAGES]) {
     assert.equal(stages[0].at, 0);
     assert.equal(stages.at(-1).at < 1, true);
     assert.equal(stages.every((stage, i) => i === 0 || stage.at > stages[i - 1].at), true);

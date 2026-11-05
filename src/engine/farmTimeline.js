@@ -35,6 +35,17 @@ export const WHEAT_HARVEST_STAGES = [
   { id: 'stack', at: 0.82, label: { bn: 'আঁটি সরিয়ে সামনে এগোনো', en: 'Setting the sheaf aside, moving on' } },
 ];
 
+// Mustard is cut the same way as wheat (low with a sickle, bundled, carried to the threshing floor), so the scene
+// reuses the wheat harvest's motion and timings; the check is a pod rubbed open to see the seed has gone dark.
+export const MUSTARD_HARVEST_STAGES = [
+  { id: 'check', at: 0, label: { bn: '৮০% ফল খড়ের রঙের হলে, ফল ঘষে কালো দানা দেখা', en: 'When 4 in 5 pods are straw-coloured, rubbing one to see dark seed' } },
+  { id: 'grab', at: 0.14, label: { bn: 'মুঠো করে গাছ ধরা', en: 'Gathering a handful of plants' } },
+  { id: 'cut', at: 0.25, label: { bn: 'সকালে, কাস্তে দিয়ে গোড়ার কাছে কাটা', en: 'Cutting low with the sickle, in the morning' } },
+  { id: 'lay', at: 0.45, label: { bn: 'কাটা গাছ আলতো করে বিছিয়ে রাখা', en: 'Laying the cut plants down gently' } },
+  { id: 'bundle', at: 0.6, label: { bn: 'আঁটি বাঁধা', en: 'Tying a bundle' } },
+  { id: 'stack', at: 0.82, label: { bn: 'আঁটি সরিয়ে সামনে এগোনো (পরে রোদে শুকিয়ে মাড়াই)', en: 'Setting the bundle aside and moving on (sun-dried and threshed later)' } },
+];
+
 export const SESAME_SOWING_STAGES = [
   { id: 'clods', at: 0, label: { bn: 'ঢেলা ভেঙে মাটি ঝুরঝুরে করা', en: 'Breaking clods for a fine bed' } },
   { id: 'mix', at: 0.2, label: { bn: 'ছোট বীজ বালুর সাথে মেশানো', en: 'Mixing the tiny seed with dry sand' } },
