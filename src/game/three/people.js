@@ -927,10 +927,12 @@ export function animate(P, st, dt) {
   torso.rotation.y = lerp(torso.rotation.y, act ? 0 : -hipYaw * 1.35, k);
   torso.rotation.z = lerp(torso.rotation.z, act ? 0 : -hipRoll * 0.8 + bank * 0.45, k);
 
+  const slopePitch = (st.slopeZ ?? 0) * 0.45;
+
   for (let i = 0; i < 2; i++) {
     legs[i].thigh.rotation.x = lerp(legs[i].thigh.rotation.x, -L[i], k);
     legs[i].knee.rotation.x = lerp(legs[i].knee.rotation.x, K[i] + (idle ? idleKneeRelax[i] : 0), k);
-    legs[i].foot.rotation.x = lerp(legs[i].foot.rotation.x, footRoll[i], k);
+    legs[i].foot.rotation.x = lerp(legs[i].foot.rotation.x, footRoll[i] + (still ? -slopePitch : 0), k);
     arms[i].shoulder.rotation.x = lerp(arms[i].shoulder.rotation.x, A[i], k);
     arms[i].shoulder.rotation.z = lerp(arms[i].shoulder.rotation.z, az[i], k);
     arms[i].elbow.rotation.x = lerp(arms[i].elbow.rotation.x, E[i], k);

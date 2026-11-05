@@ -5,6 +5,7 @@ import Home from './pages/public/Home';
 import { WhyDrawer, DataInfo, Toast } from './components/Overlays';
 import { MotionManager } from './components/Motion';
 import DemoTour from './components/tour/DemoTour';
+import CommandPalette from './components/CommandPalette';
 
 // Every page except Home loads on first visit, so the landing page does not download the whole app. The service
 // worker caches each route's assets when that route is first opened instead of downloading every page up front.
@@ -161,6 +162,7 @@ export default function App() {
       <DataInfo />
       <Toast />
       <DemoTour />
+      <CommandPalette />
     </>
   );
 }

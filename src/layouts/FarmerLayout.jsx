@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { PageOutlet, useScrollOnNavigate } from '../components/Motion';
-import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, HandCoins, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText, Satellite } from 'lucide-react';
+import { Bell, Compass, ChevronDown, Home, ScanLine, Sprout, Droplets, LifeBuoy, HandCoins, Wheat, Telescope, MapPinned, Ellipsis, X, Mic, UserRound, LogOut, MessageSquareText, Satellite, Search } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, ResetDemo, BackButton, SkipToMain } from '../components/chrome';
 import MessagePopup from '../components/MessagePopup';
@@ -11,6 +11,7 @@ import { num, bnDigits } from '../engine/dates';
 import FarmerAvatar from '../components/brand/FarmerAvatar';
 import FarmerTour, { startFarmerTour } from '../components/tour/FarmerTour';
 import ChakraAgent from '../components/chakra/ChakraAgent';
+import { openCommandPalette } from '../components/CommandPalette';
 
 export function useFarmerNav() {
   const { T } = useStore();
@@ -178,6 +179,19 @@ export default function FarmerLayout() {
           </div>
           <div className="flex items-center gap-2">
             <ChakraAgent role="farmer" />
+            <button
+              type="button"
+              onClick={openCommandPalette}
+              className="hidden h-10 items-center gap-1.5 rounded-xl border border-border bg-white px-2.5 text-[13px] font-medium text-ink/80 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-primary-50 hover:text-primary-800 active:scale-95 md:inline-flex cursor-pointer"
+              aria-label={T('খুঁজুন (Cmd+K)', 'Search (Cmd+K)')}
+              title={T('খুঁজুন (Cmd+K)', 'Search (Cmd+K)')}
+            >
+              <Search size={16} className="text-primary-700" />
+              <span className="hidden xl:inline text-muted font-normal text-[12.5px]">{T('খুঁজুন', 'Search')}</span>
+              <kbd className="hidden xl:inline-flex items-center rounded border border-border/80 bg-black/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-muted">
+                ⌘K
+              </kbd>
+            </button>
             <button type="button" onClick={() => startFarmerTour()} data-tour="tour-btn"
               className="hidden h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 shadow-2xs transition-all duration-200 hover:scale-105 hover:bg-primary-50 hover:text-primary-800 active:scale-95 sm:grid"
               aria-label={T('অ্যাপের পুরো সফর', 'Tour of the whole app')} title={T('অ্যাপের পুরো সফর', 'Tour of the whole app')}>

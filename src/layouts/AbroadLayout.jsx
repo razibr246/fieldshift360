@@ -3,7 +3,7 @@
 // once here and handed to every tab (useAbroad()).
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useParams, Navigate, useOutletContext } from 'react-router-dom';
-import { ChevronLeft, UserRound, Building2, Home, MapPinned, Sprout, ShieldAlert, Telescope, LifeBuoy, LayoutDashboard, BellRing, UsersRound, Globe2, Map as MapIcon, CalendarRange } from 'lucide-react';
+import { ChevronLeft, UserRound, Building2, Home, MapPinned, Sprout, ShieldAlert, Telescope, LifeBuoy, LayoutDashboard, BellRing, UsersRound, Globe2, Map as MapIcon, CalendarRange, Search } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
@@ -11,6 +11,7 @@ import { ABROAD, ABROAD_ORDER } from '../data/abroad';
 import { useScrollOnNavigate } from '../components/Motion';
 import { useCountry, useLiveForecast, useBoard } from '../pages/abroad/parts';
 import { localAlerts, localNow } from '../engine/abroad';
+import { openCommandPalette } from '../components/CommandPalette';
 
 export const useAbroad = () => useOutletContext();
 
@@ -109,6 +110,18 @@ function Shell({ c }) {
               );
             })}
           </nav>
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            className="glass-pill inline-flex h-9 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold text-ink/80 transition-all hover:bg-white/80 hover:text-ink hover:scale-105 active:scale-95 shadow-2xs cursor-pointer"
+            aria-label={T('খুঁজুন (Cmd+K)', 'Search (Cmd+K)')}
+            title={T('খুঁজুন (Cmd+K)', 'Search (Cmd+K)')}
+          >
+            <Search size={15} className="text-primary-700" />
+            <kbd className="hidden md:inline-flex items-center rounded border border-border/80 bg-black/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-muted">
+              ⌘K
+            </kbd>
+          </button>
           <LangToggle glass />
         </div>
         <div className="page-shell flex items-center gap-2 pb-2">

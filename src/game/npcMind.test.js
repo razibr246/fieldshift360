@@ -6,6 +6,8 @@ import {
   createNpcMind,
   updateNpcNeeds,
   getNpcActionGoal,
+  getNpcEmotionalState,
+  computeObstacleAvoidance,
   recordPlayerInteraction,
   generateContextualDialogue,
 } from './npcMind.js';
@@ -34,6 +36,8 @@ test('createNpcMind initializes realistic biological needs, personality, and cle
   assert.equal(mind.name.bn, 'ভ্যানচালক করিম');
   assert.ok(mind.needs.energy >= 80 && mind.needs.energy <= 100);
   assert.ok(mind.needs.social >= 50 && mind.needs.social <= 100);
+  assert.ok(mind.needs.hunger >= 20 && mind.needs.hunger <= 50);
+  assert.ok(mind.needs.thirst >= 20 && mind.needs.thirst <= 45);
   assert.equal(mind.memory.playerInteractions, 0);
   assert.equal(mind.memory.playerBumps, 0);
   assert.equal(mind.memory.affinity, 20);
@@ -43,19 +47,60 @@ test('updateNpcNeeds accurately depletes energy during work and replenishes in r
   let mind = createNpcMind({ does: 'work' });
   mind.needs.energy = 50;
 
-  // Working for 10 seconds drains energy
+  // Working for 10 seconds drains energy and increases hunger
   mind = updateNpcNeeds(mind, 10, { isWorking: true });
   assert.ok(mind.needs.energy < 50);
+  assert.ok(mind.needs.hunger > 20);
 
-  // Resting for 10 seconds restores energy
+  // Resting for 10 seconds restores energy and satisfies hunger
   const beforeRest = mind.needs.energy;
   mind = updateNpcNeeds(mind, 10, { isResting: true });
   assert.ok(mind.needs.energy > beforeRest);
 
-  // Severe heat accelerates fatigue
+  // Severe heat accelerates fatigue and thirst
   const beforeHeat = mind.needs.energy;
+  const beforeThirst = mind.needs.thirst;
   mind = updateNpcNeeds(mind, 10, { isMoving: true, weather: { heat: 1 } });
   assert.ok(mind.needs.energy < beforeHeat);
+  assert.ok(mind.needs.thirst > beforeThirst);
+});
+
+test('getNpcEmotionalState derives realistic emotions from needs and environment', () => {
+  const mind = createNpcMind({ does: 'walk' });
+
+  // Normal calm condition
+  assert.equal(getNpcEmotionalState(mind, {}).state, 'content');
+
+  // Storm causes alarm
+  assert.equal(getNpcEmotionalState(mind, { storm: 1 }).state, 'alarmed');
+
+  // Severe fatigue
+  mind.needs.energy = 15;
+  assert.equal(getNpcEmotionalState(mind, {}).state, 'exhausted');
+
+  // Repeated player bumps cause irritation
+  mind.needs.energy = 80;
+  mind.memory.playerBumps = 4;
+  mind.memory.affinity = -20;
+  assert.equal(getNpcEmotionalState(mind, {}).state, 'irritated');
+});
+
+test('computeObstacleAvoidance calculates courteous lateral steering vectors', () => {
+  const pos = [0, 0];
+  const headingYaw = 0; // facing +Z: forward is (0, 1), right is (1, 0)
+
+  // Obstacle right in front at (0.2, 1.5)
+  const obstacles = [{ x: 0.2, z: 1.5 }];
+  const avoidance = computeObstacleAvoidance(pos, headingYaw, obstacles, 2.5);
+
+  assert.equal(avoidance.mustSteer, true);
+  // Obstacle is slightly to the right, so character must steer left (negative X)
+  assert.ok(avoidance.avoidX < 0);
+
+  // Obstacle far away or behind does not trigger steering
+  const farObstacles = [{ x: 0, z: -3.0 }, { x: 10, z: 10 }];
+  const noAvoidance = computeObstacleAvoidance(pos, headingYaw, farObstacles, 2.5);
+  assert.equal(noAvoidance.mustSteer, false);
 });
 
 test('getNpcActionGoal enforces life preservation during storms and circadian rhythm', () => {
@@ -110,4 +155,3 @@ test('generateContextualDialogue delivers appropriate bilingual text for weather
   const duskText = generateContextualDialogue(mind, 0.80, {});
   assert.ok(duskText.bn.length > 0 && duskText.en.length > 0);
 });
-

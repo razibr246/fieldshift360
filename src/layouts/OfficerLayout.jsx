@@ -10,6 +10,7 @@ import { useStore } from '../store';
 import { num } from '../engine/dates';
 import { unionsOf } from '../data/demo';
 import ChakraAgent from '../components/chakra/ChakraAgent';
+import { openCommandPalette } from '../components/CommandPalette';
 
 // The white highlight behind the current page's link glides from item to item instead of jumping.
 function useNavThumb(navRef, deps) {
@@ -190,7 +191,9 @@ export default function OfficerLayout() {
             <form onSubmit={search} className="hidden max-w-md flex-1 items-center gap-2 rounded-xl bg-black/[.05] px-3 transition-all duration-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary-500/25 focus-within:shadow-sm md:flex" role="search">
               <Search size={17} className="text-muted transition-colors duration-200 group-focus-within:text-primary-600" />
               <input ref={searchRef} type="search" aria-label={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} value={q} onChange={(e) => setQ(e.target.value)} className="h-10 w-full bg-transparent text-[14.5px] outline-none" placeholder={T('কৃষক বা গ্রামের নাম খুঁজুন', 'Search a farmer or village')} aria-keyshortcuts="/" />
-              <kbd className="hidden shrink-0 rounded-md border border-border bg-white/70 px-1.5 text-[11.5px] font-semibold text-muted shadow-2xs lg:inline" aria-hidden="true">/</kbd>
+              <button type="button" onClick={openCommandPalette} className="hidden shrink-0 items-center gap-1 rounded-md border border-border bg-white/80 px-1.5 py-0.5 text-[11px] font-semibold text-muted shadow-2xs hover:text-ink hover:bg-white lg:inline-flex cursor-pointer" title={T('কমান্ড প্যালেট খুলুন (Cmd+K)', 'Open Command Palette (Cmd+K)')}>
+                <span>⌘K</span>
+              </button>
             </form>
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setShowSearch(!showSearch)} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-white text-ink/75 hover:bg-primary-50 active:scale-95 md:hidden" aria-label={T('খুঁজুন', 'Search')} aria-expanded={showSearch}>

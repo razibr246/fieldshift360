@@ -14,6 +14,40 @@ const noise = (d, v = 0.05, freq = 1200) => {
   const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = v; src.buffer = buf; src.connect(f).connect(g).connect(ctx.destination); src.start(t0);
 };
+let stepAlt = 0;
+function playStep(surf = 'grass', isRun = false) {
+  stepAlt = 1 - stepAlt;
+  const pitchVar = 0.94 + Math.random() * 0.12 + (stepAlt ? 0.03 : -0.03);
+  const volScale = isRun ? 1.4 : 1.0;
+  switch (surf) {
+    case 'water':
+      // viscous water splash & fluid droplets
+      noise(isRun ? 0.08 : 0.05, 0.038 * volScale, 1500 * pitchVar);
+      tone(1400 * pitchVar, 0.04, 'sine', 0.016 * volScale, 0.01, -300);
+      break;
+    case 'mud':
+      // deep squishy suction & low damp thud
+      noise(0.06, 0.035 * volScale, 420 * pitchVar);
+      tone(95 * pitchVar, 0.05, 'triangle', 0.032 * volScale, 0.01, -35);
+      break;
+    case 'path':
+      // crisp granular earth crunch & fine stone grit
+      noise(0.04, 0.026 * volScale, 1900 * pitchVar);
+      noise(0.02, 0.014 * volScale, 3600 * pitchVar);
+      break;
+    case 'wood':
+      // hollow resonant timber tap
+      tone(230 * pitchVar, 0.06, 'triangle', 0.04 * volScale, 0, -50);
+      noise(0.03, 0.018 * volScale, 1200 * pitchVar);
+      break;
+    case 'grass':
+    default:
+      // soft foliage blade rustle
+      noise(0.045, 0.02 * volScale, 920 * pitchVar);
+      break;
+  }
+}
+
 const FX = {
   tap: () => tone(660, 0.06, 'square', 0.03),
   plant: () => { tone(320, 0.08, 'triangle', 0.08); tone(480, 0.08, 'triangle', 0.06, 0.06); },
@@ -30,15 +64,32 @@ const FX = {
   bump: () => { noise(0.12, 0.09, 380); tone(110, 0.14, 'sine', 0.09, 0, -50); },
   chime: () => [880, 1108, 1318, 1760].forEach((f, i) => tone(f, 0.22, 'sine', 0.05, i * 0.05)),
   levelUp: () => [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, 0.25, 'triangle', 0.06, i * 0.07)),
-  step: () => noise(0.04, 0.015, 260),
+  step: (opts) => playStep(opts?.surface ?? 'grass', !!opts?.run),
+  step_water: (opts) => playStep('water', !!opts?.run),
+  step_mud: (opts) => playStep('mud', !!opts?.run),
+  step_path: (opts) => playStep('path', !!opts?.run),
+  step_wood: (opts) => playStep('wood', !!opts?.run),
+  step_grass: (opts) => playStep('grass', !!opts?.run),
   hoe: () => { noise(0.08, 0.04, 800); tone(180, 0.09, 'sine', 0.05, 0, -60); },
+  // Living fauna sound effects
+  chicken_cluck: () => { tone(720, 0.05, 'triangle', 0.025); tone(610, 0.06, 'triangle', 0.022, 0.04); },
+  chicken_flutter: () => { noise(0.09, 0.035, 650); noise(0.08, 0.03, 800); },
+  cow_low: () => { tone(115, 0.45, 'sine', 0.028, 0, -20); tone(82, 0.4, 'triangle', 0.018, 0.08, -12); },
+  goat_bleat: () => { tone(330, 0.16, 'sawtooth', 0.024, 0, -30); tone(310, 0.13, 'sawtooth', 0.02, 0.08, -20); },
+  duck_quack: () => { tone(410, 0.11, 'sawtooth', 0.03, 0, -70); },
+  splash: () => { noise(0.2, 0.06, 1100); tone(320, 0.1, 'sine', 0.035, 0.02, -160); },
 };
-export function play(s) {
-  if (muted || !FX[s]) return;
+export function play(s, opts = {}) {
+  if (muted || !s) return;
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') ctx.resume();
-    FX[s]();
+    if (s === 'step' || s.startsWith('step_')) {
+      const surf = opts.surface || (s.startsWith('step_') ? s.slice(5) : 'grass');
+      playStep(surf, opts.run);
+      return;
+    }
+    if (FX[s]) FX[s](opts);
   } catch { /* audio unavailable */ }
 }
 

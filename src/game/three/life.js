@@ -10,8 +10,10 @@ import { spot } from '../places';
 import {
   createNpcMind,
   updateNpcNeeds,
+  getNpcActionGoal,
   recordPlayerInteraction,
   generateContextualDialogue,
+  computeObstacleAvoidance,
 } from '../npcMind';
 import { dayPhase } from '../sim';
 
@@ -91,6 +93,7 @@ export function createLife(scene, g, overlay, lang = 'bn') {
       bubble: el('g3-bubble g3-npc'),
       bubT: 0,
       mind: createNpcMind(f),
+      baseSpeed: (f.look?.build ?? 1) * (1.1 + ((f.industriousness ?? 0.6) - 0.5) * 0.35),
       lookTarget: null,
       npcChatCool: 4 + i * 3,
     };
@@ -99,14 +102,26 @@ export function createLife(scene, g, overlay, lang = 'bn') {
   setNames();
   const home = (n) => n.at ?? n.route[0];
 
-  function walkTo(n, gx, gz, dt, fast) {
+  function walkTo(n, gx, gz, dt, fast, obstacles = []) {
     const dx = gx - n.x, dz = gz - n.z, d = Math.hypot(dx, dz);
     if (d < 0.25) { n.speed = 0; return true; }
-    const sp = Math.min(d / dt, fast ? 3.4 : 1.25);
-    const want = Math.atan2(dx, dz); let dy = want - n.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); n.yaw += dy * Math.min(1, dt * 8);
-    const nx = n.x + (dx / d) * sp * dt, nz = n.z + (dz / d) * sp * dt;
+    const maxSp = fast ? 3.4 : (n.baseSpeed ?? 1.25);
+    const sp = Math.min(d / dt, maxSp);
+    const avoid = computeObstacleAvoidance([n.x, n.z], n.yaw, obstacles, 2.3);
+    const wantX = dx + (avoid.mustSteer ? avoid.avoidX * 1.6 : 0);
+    const wantZ = dz + (avoid.mustSteer ? avoid.avoidZ * 1.6 : 0);
+    const want = Math.atan2(wantX, wantZ);
+    let dy = want - n.yaw;
+    dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+    n.yaw += dy * Math.min(1, dt * 7.5);
+
+    // Natural deceleration when approaching destination
+    const targetSp = d < 0.8 ? Math.min(sp, d * (fast ? 3.6 : 1.8)) : sp;
+    n.speed = THREE.MathUtils.lerp(n.speed, targetSp, Math.min(1, dt * 8));
+    n.run = fast;
+
+    const nx = n.x + Math.sin(n.yaw) * n.speed * dt, nz = n.z + Math.cos(n.yaw) * n.speed * dt;
     if (!inWater(L, nx, nz)) [n.x, n.z] = resolve(L, nx, nz, 0.3);
-    n.speed = sp; n.run = fast;
     return false;
   }
 
@@ -186,20 +201,22 @@ export function createLife(scene, g, overlay, lang = 'bn') {
         n.mind = updateNpcNeeds(n.mind, dt, { isSocializing: true });
       }
 
+      const obstacles = [me, ...folk.filter((_, idx) => idx !== i).map((o) => ({ x: o.x, z: o.z }))];
+
       if (storm) {
         // to the safe ground, each to their own spot inside the circle
         const z = g.ev.zone, a = i * 2.1 + 0.6;
-        walkTo(n, z.x + Math.cos(a) * z.r * 0.45, z.z + Math.sin(a) * z.r * 0.45, dt, true);
+        walkTo(n, z.x + Math.cos(a) * z.r * 0.45, z.z + Math.sin(a) * z.r * 0.45, dt, true, obstacles);
         n.away = true; n.act = null;
       } else if (n.hold > 0) {
         let dy = Math.atan2(me.x - n.x, me.z - n.z) - n.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); n.yaw += dy * Math.min(1, dt * 6);
       } else if (n.away) {
-        const [hx, hz] = home(n); if (walkTo(n, hx, hz, dt, false)) { n.away = false; n.seg = 1; n.dir = 1; }
+        const [hx, hz] = home(n); if (walkTo(n, hx, hz, dt, false, obstacles)) { n.away = false; n.seg = 1; n.dir = 1; }
       } else if (n.f.does === 'walk') {
         if (n.wait > 0) n.wait -= dt;
         else {
           const r = n.route, [gx, gz] = r[n.seg];
-          if (walkTo(n, gx, gz, dt, false)) {
+          if (walkTo(n, gx, gz, dt, false, obstacles)) {
             if (n.seg + n.dir >= r.length || n.seg + n.dir < 0) { n.dir *= -1; n.wait = 2 + Math.random() * 4; }
             n.seg += n.dir;
           }

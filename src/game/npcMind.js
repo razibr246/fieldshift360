@@ -1,7 +1,8 @@
 // Pure NPC mind and behavioral simulation for FieldShift 360:
-// Simulates human biological needs (energy, social, duty, comfort), daily circadian routines
+// Simulates human biological needs (energy, hunger, thirst, social, duty, comfort), daily circadian routines
 // (dawn field check, morning trade, midday shaded rest, afternoon work, dusk gathering, night shelter),
-// memory of player interactions, social affinity, and context-aware bilingual dialogue generation.
+// memory of player interactions, social affinity, emotional states, proactive obstacle avoidance,
+// and context-aware bilingual dialogue generation.
 // Pure functions only; testable in Node with zero WebGL/DOM dependencies.
 
 export const SCHEDULE_PHASES = {
@@ -31,6 +32,8 @@ export function createNpcMind(npcDef = {}) {
     // Core human biological and social needs (0 to 100)
     needs: {
       energy: 85 + Math.random() * 15,
+      hunger: 20 + Math.random() * 25,
+      thirst: 20 + Math.random() * 20,
       social: 60 + Math.random() * 25,
       duty: 70 + Math.random() * 20,
       comfort: 80,
@@ -41,6 +44,7 @@ export function createNpcMind(npcDef = {}) {
       industriousness: npcDef.industriousness ?? (npcDef.does === 'work' ? 0.85 : 0.6),
       patience: npcDef.patience ?? 0.6,
       warmth: npcDef.warmth ?? 0.75,
+      curiosity: npcDef.curiosity ?? 0.5,
     },
     // Memory & relationships
     memory: {
@@ -56,14 +60,47 @@ export function createNpcMind(npcDef = {}) {
   };
 }
 
+export function getNpcEmotionalState(mind, weather = {}) {
+  const { energy, hunger, social, comfort } = mind.needs;
+  const { playerBumps, affinity } = mind.memory;
+
+  if (weather.storm > 0) {
+    return { state: 'alarmed', label: { bn: 'উদ্বিগ্ন', en: 'Alarmed' } };
+  }
+  if (playerBumps >= 3 && affinity < 0) {
+    return { state: 'irritated', label: { bn: 'বিরক্ত', en: 'Irritated' } };
+  }
+  if (energy < 25) {
+    return { state: 'exhausted', label: { bn: 'ক্লান্ত', en: 'Exhausted' } };
+  }
+  if (hunger > 75) {
+    return { state: 'hungry', label: { bn: 'ক্ষুধার্ত', en: 'Hungry' } };
+  }
+  if (social < 25) {
+    return { state: 'lonely', label: { bn: 'একাকী', en: 'Lonely' } };
+  }
+  if (affinity > 50) {
+    return { state: 'friendly', label: { bn: 'বন্ধুভাবাপন্ন', en: 'Friendly' } };
+  }
+  return { state: 'content', label: { bn: 'স্বাভাবিক', en: 'Content' } };
+}
+
 export function updateNpcNeeds(mind, dt, context = {}) {
   const { isMoving = false, isWorking = false, isResting = false, weather = {} } = context;
   const n = { ...mind.needs };
   const p = mind.personality;
 
+  // Hunger & thirst increase over time, faster in heat and manual labor
+  const workMultiplier = isWorking ? 1.6 : isMoving ? 1.2 : 0.8;
+  const heatMultiplier = weather.heat > 0 ? 2.0 : 1.0;
+  n.hunger = Math.min(100, (n.hunger ?? 20) + dt * 0.4 * workMultiplier);
+  n.thirst = Math.min(100, (n.thirst ?? 20) + dt * 0.5 * workMultiplier * heatMultiplier);
+
   // Energy depletion / replenishment
   if (isResting) {
     n.energy = Math.min(100, n.energy + dt * 4.5);
+    n.hunger = Math.max(0, n.hunger - dt * 2.0); // eating during designated rest
+    n.thirst = Math.max(0, n.thirst - dt * 3.0);
   } else if (isWorking) {
     n.energy = Math.max(10, n.energy - dt * (1.2 * (2 - p.industriousness * 0.5)));
   } else if (isMoving) {
@@ -145,19 +182,63 @@ export function recordPlayerInteraction(mind, type = 'talk', currentTime = 0) {
   return { ...mind, memory: mem };
 }
 
+// Proactive obstacle avoidance steering (Reynolds separation force)
+// Computes lateral evasion vector when an entity is directly in path
+export function computeObstacleAvoidance(pos, headingYaw, obstacles, radius = 2.4) {
+  const [px, pz] = pos;
+  const fwdX = Math.sin(headingYaw), fwdZ = Math.cos(headingYaw);
+  const rightX = fwdZ, rightZ = -fwdX; // perpendicular right vector
+
+  let closestDist = 999;
+  let steerDir = 0; // -1 for left, +1 for right
+
+  for (const obs of obstacles) {
+    if (!obs) continue;
+    const ox = obs.x ?? obs[0], oz = obs.z ?? obs[1];
+    const dx = ox - px, dz = oz - pz;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.1 || dist > radius) continue;
+
+    // Project onto forward and right vectors
+    const fwdProj = dx * fwdX + dz * fwdZ;
+    const rightProj = dx * rightX + dz * rightZ;
+
+    // Obstacle is ahead and laterally obstructing path
+    if (fwdProj > 0.1 && Math.abs(rightProj) < 1.3) {
+      if (dist < closestDist) {
+        closestDist = dist;
+        // Steer away from obstacle side
+        steerDir = rightProj >= 0 ? -1 : 1;
+      }
+    }
+  }
+
+  if (closestDist < 999) {
+    const strength = (1 - closestDist / radius) * 1.6;
+    return {
+      avoidX: rightX * steerDir * strength,
+      avoidZ: rightZ * steerDir * strength,
+      mustSteer: true,
+    };
+  }
+
+  return { avoidX: 0, avoidZ: 0, mustSteer: false };
+}
+
 export function generateContextualDialogue(mind, dayPhase, weather = {}, defaultHello = null) {
   const phaseName = getDayPhaseName(dayPhase);
   const { affinity, playerBumps } = mind.memory;
+  const emo = getNpcEmotionalState(mind, weather);
 
-  // If player bumped into this NPC repeatedly
-  if (playerBumps >= 3 && Math.random() < 0.6) {
+  // If player repeatedly bumped into this NPC
+  if (playerBumps >= 3 && Math.random() < 0.7) {
     return {
-      bn: 'আরে ভাই! একটু সাবধানে হাটো, বারবার ধাক্কা খাচ্ছ কেন?',
+      bn: 'আরে ভাই! একটু সাবধানে চলো, বারবার ধাক্কা লাগাচ্ছ কেন?',
       en: 'Hey friend! Watch your steps, why keep bumping into people?',
     };
   }
 
-  // Weather urgency
+  // Extreme weather urgency
   if (weather.storm > 0) {
     return {
       bn: 'ঝড় এসে গেছে! জলদি পাকা আশ্রয়ে যাও!',
@@ -172,30 +253,44 @@ export function generateContextualDialogue(mind, dayPhase, weather = {}, default
   }
 
   // High affinity greeting
-  if (affinity >= 50 && Math.random() < 0.5) {
+  if (affinity >= 50 && Math.random() < 0.55) {
     return {
-      bn: 'সুস্বাগতম ভাই! তোমার জমির কাজ কেমন চলছে?',
-      en: 'Warm welcome brother! How is work going on your plots?',
+      bn: 'সুস্বাগতম ভাই! তোমার জমির কাজ কেমন চলছে? এবার ভালো ফলন হোক!',
+      en: 'Warm welcome brother! How is work on your land? Wishing you a bountiful harvest!',
+    };
+  }
+
+  // Hunger or thirst remarks
+  if (emo.state === 'hungry' && Math.random() < 0.4) {
+    return {
+      bn: 'কাজের চাপে নাওয়া-খাওয়া ভুলেছি, একটু ভাত খাওয়ার সময় হলো।',
+      en: 'Lost track of time with field chores, finally time for some food.',
     };
   }
 
   // Circadian greetings
   if (phaseName === SCHEDULE_PHASES.DAWN) {
     return {
-      bn: 'শুভ সকাল! ভোরের বাতাসটা বেশ ঠান্ডা, মাঠের দিকে যাচ্ছ?',
-      en: 'Good morning! The dawn breeze is cool, heading out to the field?',
+      bn: 'শুভ সকাল! ভোরের বাতাসটা বেশ ঠান্ডা, আজ কোন জমিতে সেচ দেবে?',
+      en: 'Good morning! The dawn breeze is refreshing, which plot are you irrigating today?',
     };
   }
   if (phaseName === SCHEDULE_PHASES.MIDDAY) {
     return {
-      bn: 'দুপুর গড়িয়ে গেল, একটু পানি খেয়ে ভাত খাওয়ার সময় হয়েছে।',
-      en: 'Midday is here, time for a drink of water and lunch.',
+      bn: 'দুপুর গড়িয়ে গেল, বটের ছায়ায় একটু বিশ্রাম নিয়ে ভাত খেয়ে নাও।',
+      en: 'Midday is here, catch some shade under the banyan and enjoy your meal.',
     };
   }
   if (phaseName === SCHEDULE_PHASES.DUSK) {
     return {
-      bn: 'সন্ধ্যা নামছে ভাই, আজকের মতো কাজ শেষ করে ঘরে ফেরা যাক।',
-      en: 'Evening is falling, brother. Time to wrap up and head home.',
+      bn: 'সন্ধ্যা নামছে ভাই, হাটে এক কাপ গরম চা খেয়ে ঘরে ফিরব।',
+      en: 'Dusk is settling in, brother. Having a warm cup of tea at the market before heading home.',
+    };
+  }
+  if (phaseName === SCHEDULE_PHASES.NIGHT) {
+    return {
+      bn: 'রাত হয়ে এলো ভাই, কুপি জ্বালিয়ে এবার বিশ্রামের সময়।',
+      en: 'Night has fallen, brother. Time to light the lantern and rest.',
     };
   }
 
@@ -205,4 +300,3 @@ export function generateContextualDialogue(mind, dayPhase, weather = {}, default
     en: 'How are you brother? How are things going?',
   };
 }
-

@@ -283,7 +283,7 @@ export function GameStage({ who, mods: modsIn, whatIf = null, onWhatIf = null, r
       stage = createStage({
         canvas: cv.current, overlay: overlay.current, minimap: mapRef.current, compass: compassRef.current, g, lang,
         onEvent: (e) => {
-          if (e.type === 'sound') play(e.s);
+          if (e.type === 'sound') play(e.s, e);
           else if (e.type === 'toast') setToast({ text: e.text, k: Math.random() });
           else if (e.type === 'alert') { const id = Math.random(); setAlerts((a) => [{ ...e, id }, ...a].slice(0, 4)); setTimeout(() => setAlerts((a) => a.filter((x) => x.id !== id)), 9000); }
           else if (e.type === 'open') { setPanel(e.panel); g.paused = true; }

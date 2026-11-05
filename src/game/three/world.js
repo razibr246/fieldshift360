@@ -280,8 +280,9 @@ export function createWorld(scene, g, { light = false } = {}) {
       sun.position.set(focus.x + dir.x * 60, focus.y + dir.y * 60, focus.z + dir.z * 60); sun.target.position.copy(focus);
       // the place's own air: its haze or fog colours the horizon and closes in the distance
       scene.fog.color.copy(cMid).lerp(airC, day ? 0.6 : 0.12); const fogStorm = storm && g.R.storm.kind === 'fog';
-      scene.fog.near = fogStorm ? 4 : storm ? Math.min(25, air.near) : air.near; scene.fog.far = fogStorm ? 40 : storm ? Math.min(120, air.far) : air.far;
       const morning = phase < 0.16, evening = phase > 0.64 && phase < 0.82;
+      scene.fog.near = fogStorm ? 4 : morning ? Math.min(18, air.near) : storm ? Math.min(25, air.near) : air.near;
+      scene.fog.far = fogStorm ? 40 : morning ? Math.min(160, air.far) : storm ? Math.min(120, air.far) : air.far;
       for (const s of smoke) s.puffs.forEach((sp, k) => {
         const age = (t * (s.hearth ? 0.16 : 0.09) + k / s.puffs.length) % 1, h = s.hearth ? 4 : 14 * s.size;
         sp.position.set(s.base.x + age * age * h * 0.7 * wind0, s.base.y + age * h, s.base.z + Math.sin(k * 1.7 + t * 0.3) * 0.3 * s.size);
@@ -327,13 +328,75 @@ export function createWorld(scene, g, { light = false } = {}) {
       for (const b of bobbing) b.o.position.y = b.y + Math.sin(t * 1.3 + b.ph) * 0.05;
       for (const a of animals) {
         const A = a.userData.animal; A.ph += dt;
-        if (A.kind === 'duck') { a.position.x = A.home[0] + Math.cos(A.ph * 0.25) * 1.6; a.position.z = A.home[1] + Math.sin(A.ph * 0.25) * 1.2; a.rotation.y = -A.ph * 0.25; const w = L.water.find((w2) => (w2.r ? Math.hypot(a.position.x - w2.cx, a.position.z - w2.cz) < w2.r : a.position.x > w2.x0 && a.position.x < w2.x1 && a.position.z > w2.z0 && a.position.z < w2.z1)); a.position.y = w ? w.y + Math.sin(A.ph * 3) * 0.02 : L.ground(a.position.x, a.position.z); continue; }
-        if (A.kind === 'grazer') { A.head.rotation.x = 0.05 + Math.max(0, Math.sin(A.ph * 0.5)) * 1.05 + Math.sin(A.ph * 3.1) * 0.03 /* head up a while, then down to the grass */; A.tail.rotation.z = Math.sin(A.ph * 2.2) * 0.35; }
-        else {
-          if (!A.to || Math.hypot(a.position.x - A.to[0], a.position.z - A.to[1]) < 0.2) A.to = [A.home[0] + (Math.random() - 0.5) * 6, A.home[1] + (Math.random() - 0.5) * 4];
+        const dPlayer = focus ? Math.hypot(a.position.x - focus.x, a.position.z - focus.z) : 99;
+
+        if (A.kind === 'duck') {
+          // Smooth paddling with gentle wake rolling & periodic dabbling
+          a.position.x = A.home[0] + Math.cos(A.ph * 0.25) * 1.6;
+          a.position.z = A.home[1] + Math.sin(A.ph * 0.25) * 1.2;
+          a.rotation.y = -A.ph * 0.25;
+          const w = L.water.find((w2) => (w2.r ? Math.hypot(a.position.x - w2.cx, a.position.z - w2.cz) < w2.r : a.position.x > w2.x0 && a.position.x < w2.x1 && a.position.z > w2.z0 && a.position.z < w2.z1));
+          a.position.y = w ? w.y + Math.sin(A.ph * 3) * 0.02 : L.ground(a.position.x, a.position.z);
+          // Tail dabble dive underwater every ~12s
+          const dabble = Math.sin(A.ph * 0.5);
+          a.rotation.x = dabble > 0.85 ? 0.42 : 0;
+          continue;
+        }
+
+        if (A.kind === 'grazer') {
+          // Grazing head cycle + cud chewing + curious gaze toward player + ear twitches
+          const grazeX = 0.05 + Math.max(0, Math.sin(A.ph * 0.5)) * 1.05 + Math.sin(A.ph * 3.1) * 0.03;
+          A.head.rotation.x = grazeX;
+          // Chewing cud: lateral jaw motion
+          A.head.rotation.z = Math.sin(A.ph * 6.5) * 0.04;
+          // Curious gaze towards player if close
+          if (dPlayer < 4.5 && focus) {
+            const dxP = focus.x - a.position.x, dzP = focus.z - a.position.z;
+            const wantH = Math.atan2(dxP, dzP) - a.rotation.y;
+            const normH = Math.atan2(Math.sin(wantH), Math.cos(wantH));
+            if (Math.abs(normH) < 1.4) {
+              A.head.rotation.y = THREE.MathUtils.lerp(A.head.rotation.y, normH * 0.65, Math.min(1, dt * 4));
+            } else {
+              A.head.rotation.y = Math.sin(A.ph * 0.35) * 0.18;
+            }
+          } else {
+            A.head.rotation.y = Math.sin(A.ph * 0.35) * 0.18;
+          }
+          // Organic tail swishing
+          A.tail.rotation.z = Math.sin(A.ph * 2.2) > 0.3 ? Math.sin(A.ph * 8.5) * 0.45 : Math.sin(A.ph * 1.5) * 0.08;
+          continue;
+        }
+
+        // Chickens and wandering barnyard fowl
+        A.scamper = Math.max(0, (A.scamper ?? 0) - dt);
+        if (dPlayer < 2.4 && (A.scamper ?? 0) <= 0) {
+          A.scamper = 1.6;
+          // Pick escape destination directly away from player
+          const awayX = a.position.x - focus.x, awayZ = a.position.z - focus.z;
+          const awayLen = Math.hypot(awayX, awayZ) || 1;
+          A.to = [a.position.x + (awayX / awayLen) * 3.5, a.position.z + (awayZ / awayLen) * 3.5];
+        }
+
+        const isScampering = A.scamper > 0;
+        if (!A.to || Math.hypot(a.position.x - A.to[0], a.position.z - A.to[1]) < 0.25) {
+          A.to = [A.home[0] + (Math.random() - 0.5) * 7, A.home[1] + (Math.random() - 0.5) * 5];
+          A.peckWait = 1.0 + Math.random() * 2.0;
+        }
+
+        A.peckWait = Math.max(0, (A.peckWait ?? 0) - dt);
+        if (A.peckWait > 0 && !isScampering) {
+          // Pecking the ground for seeds: rapid double-peck
+          const peckCycle = Math.sin(A.ph * 12);
+          a.rotation.x = Math.max(0, peckCycle) * 0.35;
+        } else {
+          a.rotation.x = 0;
           const dx = A.to[0] - a.position.x, dz = A.to[1] - a.position.z, d = Math.hypot(dx, dz) || 1;
-          if (Math.sin(A.ph * 0.9) > -0.3) { a.position.x += (dx / d) * dt * 0.7; a.position.z += (dz / d) * dt * 0.7; a.rotation.y = Math.atan2(dx, dz); }
-          a.position.y = L.ground(a.position.x, a.position.z) + Math.abs(Math.sin(A.ph * 9)) * 0.03;
+          const speed = isScampering ? 2.4 : 0.85;
+          a.position.x += (dx / d) * dt * speed;
+          a.position.z += (dz / d) * dt * speed;
+          a.rotation.y = Math.atan2(dx, dz);
+          // Rhythmic head bobbing while walking / scampering
+          a.position.y = L.ground(a.position.x, a.position.z) + Math.abs(Math.sin(A.ph * (isScampering ? 16 : 8))) * (isScampering ? 0.08 : 0.03);
         }
       }
       return { wind };

@@ -18,7 +18,40 @@ import { createBackdrop } from './backdrop';
 import { createLife } from './life';
 import { update as step, act as simAct, target, plotAt, dayPhase, ripeAt, STATIONS, note } from '../sim';
 import { QUESTS, FIELD_W, FIELD_D, WORLD_R } from '../regions';
+import { inWater } from '../layout';
 import { bakeNav, findPath } from '../nav';
+
+const segDist = (px, pz, [ax, az], [bx, bz]) => {
+  const dx = bx - ax, dz = bz - az, l = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / l));
+  return Math.hypot(px - ax - t * dx, pz - az - t * dz);
+};
+
+function surfaceAt(L, g, x, z) {
+  if (inWater(L, x, z) || (g.ev?.flood > 0.15 && Math.abs(x) < FIELD_W / 2 + 4 && Math.abs(z) < FIELD_D / 2 + 4)) {
+    return 'water';
+  }
+  if (plotAt(x, z) !== null) {
+    return 'mud';
+  }
+  if (L.paths) {
+    for (const p of L.paths) {
+      for (let k = 1; k < p.length; k++) {
+        if (segDist(x, z, p[k - 1], p[k]) < 1.35) return 'path';
+      }
+    }
+  }
+  if (L.props) {
+    for (const pr of L.props) {
+      if ((pr.kind === 'bamboobridge' || pr.kind === 'ghat') && Math.hypot(x - pr.x, z - pr.z) < 2.5) {
+        return 'wood';
+      }
+    }
+  }
+  if (g.S?.shed && Math.hypot(x - g.S.shed.x, z - g.S.shed.z) < 2.6) {
+    return 'wood';
+  }
+  return 'grass';
+}
 
 const ease = (t) => 1 - Math.pow(1 - Math.min(1, Math.max(0, t)), 3);
 const isTouch = () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -466,13 +499,16 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       bank: me.bank ?? 0,
       turnRate: me.turnRate ?? 0,
       lookTarget: nearestNpc,
+      slopeZ: me.slopeZ,
+      slopeX: me.slopeX,
     }, dt);
     if (me.speed > 0.6 && !me.act && me.down <= 0) {
       stepT -= dt;
       if (stepT <= 0) {
         stepT = me.run ? 0.22 : 0.36;
-        onEvent({ type: 'sound', s: 'step' });
-        if (me.run) burst('dust', me.x, me.z);
+        const surf = surfaceAt(L, g, me.x, me.z);
+        onEvent({ type: 'sound', s: 'step', surface: surf, run: me.run });
+        burst(surf === 'water' ? 'water' : 'dust', me.x, me.z);
       }
     } else {
       stepT = 0.08;

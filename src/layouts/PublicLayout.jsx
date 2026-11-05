@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Swords } from 'lucide-react';
+import { Menu, X, Swords, Search } from 'lucide-react';
 import BrandMark from '../components/brand/BrandMark';
 import { LangToggle, PlaceholderBanner, SkipToMain } from '../components/chrome';
 import { useStore } from '../store';
 import { PageOutlet, ScrollProgress, scrollToEl, scrollToTop, useScrollOnNavigate } from '../components/Motion';
+import { openCommandPalette } from '../components/CommandPalette';
 
 export const scrollToId = (id) => scrollToEl(document.getElementById(id), 0); // sections carry their own scroll margin for the header
 
@@ -147,6 +148,18 @@ export default function PublicLayout() {
             </nav>
             <div className="ml-auto hidden items-center gap-2 whitespace-nowrap sm:flex xl:ml-0">
               <span className="xl:hidden">{playLink('inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary-600/10 px-3.5 py-2 text-[15px] font-semibold text-primary-800 ring-1 ring-primary-600/20 transition hover:bg-primary-600/20')}</span>
+              <button
+                type="button"
+                onClick={openCommandPalette}
+                className="glass-pill inline-flex h-11 items-center gap-2 rounded-full px-3 text-[14px] font-semibold text-ink/80 transition-all hover:bg-white/80 hover:text-ink hover:scale-105 active:scale-95 shadow-2xs cursor-pointer"
+                aria-label={T('খুঁজুন (Cmd+K)', 'Search (Cmd+K)')}
+              >
+                <Search size={16} className="text-primary-700" />
+                <span className="hidden md:inline text-muted font-normal text-[13px]">{T('খুঁজুন', 'Search')}</span>
+                <kbd className="hidden lg:inline-flex items-center rounded border border-border/70 bg-black/[0.04] px-1.5 py-0.5 text-[10px] font-bold text-muted">
+                  ⌘K
+                </kbd>
+              </button>
               <LangToggle glass />
               <Link to="/login" className="btn-gloss inline-flex h-11 items-center rounded-full px-5 text-[15px] font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.97] shadow-sm">{T('শুরু করুন', 'Get started')}</Link>
             </div>
