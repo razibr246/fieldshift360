@@ -159,15 +159,15 @@ function sky() {
 
 // Sky colours through the day: [phase, top, mid, low, sun light, sun intensity, hemi intensity]
 const DAYCOL = [
-  [0.0, '#6f8fc0', '#f2b98a', '#e9d2b8', '#ffb07a', 0.9, 0.45],
-  [0.12, '#4f97dc', '#c6e0ee', '#e2ebe2', '#fff0d2', 1.9, 0.65],
-  [0.6, '#4f97dc', '#cbe3ee', '#e2ebe2', '#fff0d2', 1.9, 0.65],
-  [0.73, '#5d78b0', '#f0a070', '#e6b896', '#ff9a5a', 1.0, 0.45],
-  [0.8, '#101a38', '#2a3560', '#1a2238', '#8fa6e0', 0.3, 0.25],
-  [0.95, '#0e1630', '#243058', '#1a2238', '#8fa6e0', 0.3, 0.25],
-  [1.0, '#6f8fc0', '#f2b98a', '#e9d2b8', '#ffb07a', 0.9, 0.45],
+  [0.0, '#5888cc', '#ffbe88', '#fae2c8', '#ffba80', 2.0, 0.85],
+  [0.12, '#3f8ee0', '#bde0f5', '#e4f0e4', '#fff6e2', 2.9, 1.05],
+  [0.6, '#3f8ee0', '#c2e4f6', '#e4f0e4', '#fff6e2', 2.9, 1.05],
+  [0.73, '#4d75be', '#f69e68', '#f0be9c', '#ffa464', 2.0, 0.85],
+  [0.8, '#141e42', '#2c3866', '#1c243c', '#9eb6f0', 0.65, 0.45],
+  [0.95, '#101838', '#25325c', '#1c243c', '#9eb6f0', 0.65, 0.45],
+  [1.0, '#5888cc', '#ffbe88', '#fae2c8', '#ffba80', 2.0, 0.85],
 ];
-const SKYTINT = { hazy: ['#c9c2a6', 0.35], dusty: ['#d8c39a', 0.3], hot: ['#f2e2b8', 0.18], foggy: ['#dfe3e0', 0.45], clear: [null, 0] };
+const SKYTINT = { hazy: ['#d5ceb8', 0.22], dusty: ['#e0cdab', 0.2], hot: ['#f6e7c6', 0.15], foggy: ['#e4ebe6', 0.3], clear: [null, 0] };
 
 export function createWorld(scene, g, { light = false } = {}) {
   const L = g.L;
@@ -199,13 +199,13 @@ export function createWorld(scene, g, { light = false } = {}) {
   for (const a of animals) root.add(a);
 
   // lights
-  const hemi = new THREE.HemisphereLight('#dfefff', '#6b5a3a', 0.9); scene.add(hemi);
-  const sun = new THREE.DirectionalLight('#fff2d8', 2.6);
+  const hemi = new THREE.HemisphereLight('#f0f8ff', '#5a4c32', 1.05); scene.add(hemi);
+  const sun = new THREE.DirectionalLight('#fff5e0', 2.8);
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
   Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 140 });
   scene.add(sun); scene.add(sun.target);
   const lamp = new THREE.PointLight('#ffc070', 0, 18, 1.6); lamp.position.set(L.S.house.x + 1, 2.6, L.S.house.z + 3.2); scene.add(lamp);
-  const air = L.air ?? { fog: '#dfe9ee', near: 70, far: 300 }, airC = C(air.fog);
+  const air = L.air ?? { fog: '#e2ecf2', near: 80, far: 380 }, airC = C(air.fog);
   scene.fog = new THREE.Fog(air.fog, air.near, air.far);
   // smoke: soft puffs that rise, drift with the wind and fade; small ones are a home's cooking fire
   const puffTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'); const gr = x.createRadialGradient(32, 32, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,255,.9)'); gr.addColorStop(0.5, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; })();
@@ -279,10 +279,10 @@ export function createWorld(scene, g, { light = false } = {}) {
       sun.color.copy(cSun); sun.intensity = sunI; hemi.intensity = hemiI; hemi.color.copy(cMid).lerp(C('#ffffff'), 0.3);
       sun.position.set(focus.x + dir.x * 60, focus.y + dir.y * 60, focus.z + dir.z * 60); sun.target.position.copy(focus);
       // the place's own air: its haze or fog colours the horizon and closes in the distance
-      scene.fog.color.copy(cMid).lerp(airC, day ? 0.6 : 0.12); const fogStorm = storm && g.R.storm.kind === 'fog';
+      scene.fog.color.copy(cMid).lerp(airC, day ? 0.45 : 0.12); const fogStorm = storm && g.R.storm.kind === 'fog';
       const morning = phase < 0.16, evening = phase > 0.64 && phase < 0.82;
-      scene.fog.near = fogStorm ? 4 : morning ? Math.min(18, air.near) : storm ? Math.min(25, air.near) : air.near;
-      scene.fog.far = fogStorm ? 40 : morning ? Math.min(160, air.far) : storm ? Math.min(120, air.far) : air.far;
+      scene.fog.near = fogStorm ? 6 : morning ? Math.max(50, air.near) : storm ? Math.min(30, air.near) : Math.max(65, air.near);
+      scene.fog.far = fogStorm ? 55 : morning ? Math.max(300, air.far) : storm ? Math.min(180, air.far) : Math.max(380, air.far);
       for (const s of smoke) s.puffs.forEach((sp, k) => {
         const age = (t * (s.hearth ? 0.16 : 0.09) + k / s.puffs.length) % 1, h = s.hearth ? 4 : 14 * s.size;
         sp.position.set(s.base.x + age * age * h * 0.7 * wind0, s.base.y + age * h, s.base.z + Math.sin(k * 1.7 + t * 0.3) * 0.3 * s.size);

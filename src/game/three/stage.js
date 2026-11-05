@@ -63,8 +63,8 @@ const needWebGL = () => {
   if (!glOK) throw new Error('WebGL is not available');
 };
 
-// The cinematic grade, after tone mapping: stronger saturation boost, a deeper S-curve, warm-light/cool-shadow
-// colour split, a soft vignette that darkens the corners, and a barely-visible film grain for texture.
+// The cinematic grade, after tone mapping: balanced saturation, clean shadow lift,
+// subtle warm highlight wash, gentle corner vignette framing, and film grain for texture.
 const GRADE = {
   uniforms: { tDiffuse: { value: null }, uTime: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -73,16 +73,16 @@ const GRADE = {
     void main() {
       vec3 c = texture2D(tDiffuse, vUv).rgb;
       float l = dot(c, vec3(0.299, 0.587, 0.114));
-      /* saturation +18% */
-      c = mix(vec3(l), c, 1.18);
-      /* S-curve contrast */
-      c = c + (c - 0.5) * 0.12 * (1.0 - abs(c - 0.5) * 2.0);
-      /* warm highlights, cool shadows */
-      c += mix(vec3(-0.016, 0.002, 0.032), vec3(0.038, 0.015, -0.024), smoothstep(0.15, 0.85, l));
-      /* vignette */
-      vec2 d = vUv - 0.5; c *= 1.0 - dot(d, d) * 0.72;
-      /* subtle grain */
-      float g = (hash(vUv + fract(uTime * 0.017)) - 0.5) * 0.022;
+      /* saturation +14% */
+      c = mix(vec3(l), c, 1.14);
+      /* gentle cinematic S-curve */
+      c = c + (c - 0.5) * 0.08 * (1.0 - abs(c - 0.5) * 2.0);
+      /* warm sunbeam highlights, clear open shadows */
+      c += mix(vec3(0.002, 0.006, 0.010), vec3(0.024, 0.012, -0.015), smoothstep(0.2, 0.85, l));
+      /* gentle corner framing */
+      vec2 d = vUv - 0.5; c *= 1.0 - dot(d, d) * 0.20;
+      /* subtle film grain */
+      float g = (hash(vUv + fract(uTime * 0.017)) - 0.5) * 0.014;
       c += g;
       gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
     }`,
@@ -106,7 +106,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !light, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, light ? 1 : touch ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.28;
   renderer.shadowMap.enabled = !light; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.xr.enabled = true;
   const scene = new THREE.Scene();
@@ -118,7 +118,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
       gtao = new GTAOPass(scene, camera, 2, 2);
-      gtao.blendIntensity = 0.9; gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.5, thickness: 1.3, scale: 1 });
+      gtao.blendIntensity = 0.35; gtao.updateGtaoMaterial({ radius: 0.7, distanceExponent: 1.5, thickness: 1.3, scale: 1 });
       composer.addPass(gtao);
       composer.addPass(new UnrealBloomPass(new THREE.Vector2(2, 2), 0.32, 0.52, 0.88));
       composer.addPass(new OutputPass());
@@ -447,214 +447,227 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
 
   function frame(now) {
     if (!alive) return;
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const t = now / 1000;
-    // in AR and VR the head is the camera: walking is relative to where the player looks
-    const xrOn = renderer.xr.isPresenting;
-    if (xrOn) {
-      const xc = renderer.xr.getCamera(); xc.getWorldPosition(xr.eye); xc.getWorldDirection(xr.dir);
-      if (Math.hypot(xr.dir.x, xr.dir.z) > 0.1) cam.yaw = Math.atan2(-xr.dir.x, -xr.dir.z);
-      if (xr.pads) pollPads();
-    }
-    const inp = inputVector();
-    if (cam.intro > 0) { cam.introT += dt; if (cam.introT > 5.2) { cam.intro = 0; onEvent({ type: 'introDone' }); } }
-    if (gradPass) gradPass.uniforms.uTime.value = t;
-    if (!paused && cam.intro === 0) {
-      if (keys.has('Space') || keys.has('KeyE') || keys.has('KeyF')) { keys.delete('Space'); keys.delete('KeyE'); keys.delete('KeyF'); simAct(g); }
-      step(g, dt, inp);
-    }
-    for (const e of g.out.splice(0)) {
-      if (xr.pads) {
-        if (e.type === 'say' || e.type === 'toast') showSign('', T(e.text));
-        else if (e.type === 'alert') showSign(T(e.title), T(e.body));
-        else if (e.type === 'quest') showSign(lang === 'bn' ? `মিশন ${String(e.index + 1).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])}` : `Mission ${e.index + 1}`, T(QUESTS[e.index]));
-        else if (e.type === 'open' || e.type === 'broke') renderer.xr.getSession()?.end();
-      }
-      if (e.type === 'fx') burst(e.kind, e.x, e.z);
-      else if (e.type === 'flash') world.flash();
-      else if (e.type === 'say') { bubble.textContent = T(e.text); bubble.style.display = ''; bubble.classList.remove('g3-pop'); void bubble.offsetWidth; bubble.classList.add('g3-pop'); bubbleT = e.long ? 6.5 : 3.4; }
-      else if (e.type === 'float') { const d = el(`g3-float g3-${e.tone}`); d.textContent = T(e.text); floats.push({ d, x: e.x, z: e.z, t: 0 }); }
-      else if (e.type === 'hint') { const s = g.S[e.what]; if (s) { hint = [s.x, s.z]; hintT = 6; } onEvent(e); }
-      else onEvent(e);
-    }
-    hintT -= dt;
-    // the farmer
-    const me = g.me, gy = L.ground(me.x, me.z) + (g.ev.flood > 0.3 && Math.abs(me.x) < FIELD_W / 2 + 4 && Math.abs(me.z) < FIELD_D / 2 + 4 ? -0.15 : 0);
-    P.root.position.set(me.x, gy, me.z); P.root.rotation.y = me.yaw;
-    if (me.slopeZ !== undefined && me.slopeX !== undefined) {
-      P.root.rotation.x += (me.slopeZ * 0.45 - P.root.rotation.x) * Math.min(1, dt * 8);
-      P.root.rotation.z += (-me.slopeX * 0.45 - P.root.rotation.z) * Math.min(1, dt * 8);
-    }
-    let nearestNpc = null, minNpcD = 4.2;
-    const npcs = life.dots?.() ?? [];
-    for (const [nx, nz] of npcs) {
-      const d = Math.hypot(nx - me.x, nz - me.z);
-      if (d < minNpcD) { minNpcD = d; nearestNpc = { x: nx, y: L.ground(nx, nz) + 1.35, z: nz }; }
-    }
-    animate(P, {
-      speed: me.speed,
-      run: me.run,
-      act: me.act,
-      down: me.down,
-      t,
-      carrying: Object.values(g.basket).reduce((a, b) => a + b, 0) > 0,
-      bank: me.bank ?? 0,
-      turnRate: me.turnRate ?? 0,
-      lookTarget: nearestNpc,
-      slopeZ: me.slopeZ,
-      slopeX: me.slopeX,
-    }, dt);
-    if (me.speed > 0.6 && !me.act && me.down <= 0) {
-      stepT -= dt;
-      if (stepT <= 0) {
-        stepT = me.run ? 0.22 : 0.36;
-        const surf = surfaceAt(L, g, me.x, me.z);
-        onEvent({ type: 'sound', s: 'step', surface: surf, run: me.run });
-      }
-    } else {
-      stepT = 0.08;
-    }
-    // camera: dynamic follow with velocity look-ahead and speed pull-back
-    const runShare = me.run ? Math.min(1, me.speed / 4.8) : 0;
-    const leadX = (me.vx ?? 0) * 0.25, leadZ = (me.vz ?? 0) * 0.25;
-    focus.set(me.x + leadX, gy + 1.45, me.z + leadZ);
-    if (cam.look > 0) cam.look -= dt;
-    else if (me.speed > 1 && !cam.sat) { let d = (me.yaw + Math.PI) - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 2.2) cam.yaw += d * Math.min(1, dt * 1.1); }
-    const dist = (cam.sat ? 46 : cam.dist) * (1 + runShare * 0.16), pitch = cam.sat ? 1.35 : cam.pitch;
-    cam.side += ((cam.sat ? 0 : 0.55) - cam.side) * Math.min(1, dt * 3.5);
-    const rx = Math.cos(cam.yaw) * cam.side, rz = -Math.sin(cam.yaw) * cam.side;
-    focus.x += rx; focus.z += rz;
-    camPos.set(focus.x + Math.sin(cam.yaw) * Math.cos(pitch) * dist, gy + 1.45 + Math.sin(pitch) * dist, focus.z + Math.cos(cam.yaw) * Math.cos(pitch) * dist);
-    if (xrOn) { if (xr.mode === 'vr') placeVR(Math.min(1, dt * 2.5), gy); }
-    else if (cam.intro > 0) {
-      const k = ease((cam.introT - 0.8) / 4.0);
-      const top = tmpV.set(0, 200, 50);
-      camera.position.copy(top).lerp(camPos, k);
-      camera.up.set(0, 1, 0); camera.lookAt(focus.x * k, focus.y * k, focus.z * k);
-      if (scene.fog) scene.fog.far = Math.max(scene.fog.far, 420);
-    } else {
-      camPos.y = Math.max(camPos.y, L.ground(camPos.x, camPos.z) + 0.6);
-      camera.position.lerp(camPos, Math.min(1, dt * (cam.sat ? 4.5 : 12)));
-      camera.lookAt(focus);
-      if (!cam.sat) {
-        const baseFov = touch ? 60 : 52;
-        const targetFov = baseFov + runShare * 4;
-        if (Math.abs(camera.fov - targetFov) > 0.05) {
-          camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 7.5);
-          camera.updateProjectionMatrix();
-        }
-      }
-    }
-    const goalPos = cam.intro ? null : goal();
-    const onIt = goalPos && Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z) < 1.8;
-    world.marker(onIt ? null : goalPos);
-    updateRoute(dt, goalPos, xrOn); drawTrail(t);
-    const eye = xrOn ? xr.eye : camera.position;
-    const ph = dayPhase(g), sunUp = ph < 0.75 ? Math.sin((ph / 0.75) * Math.PI) : 0;
-    personLight.value = 0.35 + 0.65 * Math.min(1, sunUp * 2.5);
-    fill.intensity = 0.15 + 0.4 * Math.min(1, sunUp * 2.5);
-    fill.position.copy(eye).add(tmpV.set(0, 2, 0)); fill.target.position.copy(focus);
-    const { wind } = world.update(t, dt, ph, g.ev, eye, focus);
-    if (xr.mode === 'ar') { scene.fog.near = 1e4; scene.fog.far = 2e4; } // the room is the horizon
-    field.update(t, wind, g.ndvi || cam.sat, g.F.scanner, cam.layer);
-    life.update(t, paused || cam.intro ? 0 : dt, project, eye);
-    if (sign.visible) { signT -= dt; sign.position.set(me.x, gy + (xr.mode === 'ar' ? 8 : 3.3), me.z); if (signT <= 0 || !xrOn) sign.visible = false; }
-    // particles
-    for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vy -= 9 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.life <= 0 || p.y < -1) parts.splice(i, 1); }
-    for (let i = 0; i < parts.length; i++) {
-      const p = parts[i];
-      pPos[i * 3] = p.x; pPos[i * 3 + 1] = p.y; pPos[i * 3 + 2] = p.z;
-      pCol[i * 3] = p.c.r; pCol[i * 3 + 1] = p.c.g; pCol[i * 3 + 2] = p.c.b;
-    }
-    pGeo.setDrawRange(0, parts.length);
-    if (parts.length) { pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true; }
-    if (composer && !xrOn) composer.render(dt); else renderer.render(scene, camera);
-    // overlay
-    for (const l of labels) {
-      const s = g.S[l.id], d = Math.hypot(s.x - me.x, s.z - me.z);
-      const show = !cam.intro && d < 16 && (l.id !== 'safe' || g.ev.zone);
-      if (!show) { l.d.style.display = 'none'; continue; }
-      const [x, y, vis] = project(s.x, L.ground(s.x, s.z) + (l.id === 'safe' ? 7 : 3.6), s.z);
-      l.d.style.display = vis ? '' : 'none'; l.d.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; l.d.style.opacity = String(Math.min(1, (16 - d) / 5));
-    }
-    if (bubbleT > 0) {
-      bubbleT -= dt; const [x, y, vis] = project(me.x, gy + 2.15, me.z);
-      bubble.style.display = vis && !cam.intro ? '' : 'none'; bubble.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
-      if (bubbleT <= 0) bubble.style.display = 'none';
-    }
-    for (let i = floats.length - 1; i >= 0; i--) {
-      const f = floats[i]; f.t += dt;
-      const [x, y, vis] = project(f.x, L.ground(f.x, f.z) + 1.6 + f.t * 0.9, f.z);
-      f.d.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`; f.d.style.opacity = String(Math.max(0, 1 - Math.max(0, f.t - 0.9) / 0.6)); f.d.style.display = vis ? '' : 'none';
-      if (f.t > 1.5) { f.d.remove(); floats.splice(i, 1); }
-    }
-    if (goalPos && !onIt && !cam.sat) {
-      const gyy = L.ground(goalPos[0], goalPos[1]) + 4.6;
-      let [x, y, vis] = project(goalPos[0], gyy, goalPos[1]);
-      const W = canvas.clientWidth, H = canvas.clientHeight, m = 36;
-      if (!vis) { x = W - x; y = H - y; }
-      const off = !vis || x < m || x > W - m || y < m || y > H - m;
-      x = Math.min(W - m, Math.max(m, x)); y = Math.min(H - m, Math.max(m + 40, y));
-      tag.style.display = ''; tag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
-      tag.classList.toggle('g3-edge', off);
-      const dm = Math.round(Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z));
-      tag.textContent = lang === 'bn' ? `${String(dm).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])} মি` : `${dm} m`;
-    } else tag.style.display = 'none';
-
-    // In-world contextual 3D action prompt directly over active target
     try {
-      const curTarget = cam.intro ? null : target(g);
-      if (curTarget && !cam.sat) {
-        let tx, ty, tz, actionTxt;
-        if (curTarget.kind === 'plot' && curTarget.p) {
-          const p = curTarget.p;
-          tx = p.x; tz = p.z;
-          ty = L.ground(tx, tz) + 0.95;
-          const cName = curTarget.crop ? (curTarget.crop[lang] ?? curTarget.crop.bn ?? curTarget.crop.name?.[lang] ?? curTarget.crop.en ?? '') : '';
-          const acts = {
-            spray: lang === 'bn' ? 'বালাই দমন' : 'Treat plot',
-            clear: lang === 'bn' ? 'মরা গাছ সরান' : 'Clear dead',
-            plant: lang === 'bn' ? (cName ? `${cName} বুনুন` : 'বীজ বুনুন') : (cName ? `Sow ${cName}` : 'Sow seeds'),
-            harvest: lang === 'bn' ? (cName ? `${cName} তুলুন` : 'ফসল তুলুন') : (cName ? `Harvest ${cName}` : 'Harvest crop'),
-            water: lang === 'bn' ? 'পানি দিন' : 'Water plot',
-            wet: lang === 'bn' ? 'মাটি ভেজা' : 'Soil wet',
-            nowater: lang === 'bn' ? 'পানি আনুন' : 'Fetch water',
-            noseed: lang === 'bn' ? 'দোকানে যান' : 'Go to shop',
-          };
-          actionTxt = acts[curTarget.what] ?? (lang === 'bn' ? 'কাজ করুন' : 'Act');
-        } else if (curTarget.kind === 'station' && g.S?.[curTarget.id]) {
-          const s = g.S[curTarget.id];
-          tx = s.x; tz = s.z;
-          ty = L.ground(tx, tz) + 1.85;
-          const stActs = {
-            shed: lang === 'bn' ? 'বীজের দোকান' : 'Seed shed',
-            water: lang === 'bn' ? 'সেচ পাম্প' : 'Water pump',
-            market: lang === 'bn' ? (g.basket && Object.values(g.basket).some(Boolean) ? 'ফসল বিক্রি' : 'হাটবাজার') : (g.basket && Object.values(g.basket).some(Boolean) ? 'Sell harvest' : 'Market'),
-            kiosk: lang === 'bn' ? 'FieldShift কিওস্ক' : 'FieldShift Kiosk',
-          };
-          actionTxt = stActs[curTarget.id] ?? (lang === 'bn' ? 'দেখুন' : 'Open');
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      const t = now / 1000;
+      // in AR and VR the head is the camera: walking is relative to where the player looks
+      const xrOn = renderer.xr.isPresenting;
+      if (xrOn) {
+        const xc = renderer.xr.getCamera(); xc.getWorldPosition(xr.eye); xc.getWorldDirection(xr.dir);
+        if (Math.hypot(xr.dir.x, xr.dir.z) > 0.1) cam.yaw = Math.atan2(-xr.dir.x, -xr.dir.z);
+        if (xr.pads) pollPads();
+      }
+      const inp = inputVector();
+      if (cam.intro > 0) { cam.introT += dt; if (cam.introT > 5.2) { cam.intro = 0; onEvent({ type: 'introDone' }); } }
+      if (gradPass) gradPass.uniforms.uTime.value = t;
+      if (!paused && cam.intro === 0) {
+        if (keys.has('Space') || keys.has('KeyE') || keys.has('KeyF')) { keys.delete('Space'); keys.delete('KeyE'); keys.delete('KeyF'); simAct(g); }
+        step(g, dt, inp);
+      }
+      for (const e of g.out.splice(0)) {
+        if (xr.pads) {
+          if (e.type === 'say' || e.type === 'toast') showSign('', T(e.text));
+          else if (e.type === 'alert') showSign(T(e.title), T(e.body));
+          else if (e.type === 'quest') showSign(lang === 'bn' ? `মিশন ${String(e.index + 1).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])}` : `Mission ${e.index + 1}`, T(QUESTS[e.index]));
+          else if (e.type === 'open' || e.type === 'broke') renderer.xr.getSession()?.end();
         }
-        if (tx !== undefined) {
-          const [x, y, vis] = project(tx, ty, tz);
-          if (vis) {
-            actionTag.style.display = '';
-            actionTag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
-            actionTag.innerHTML = `<span class="g3-action-kbd">E</span> <span>${actionTxt}</span>`;
+        if (e.type === 'fx') burst(e.kind, e.x, e.z);
+        else if (e.type === 'flash') world.flash();
+        else if (e.type === 'say') { bubble.textContent = T(e.text); bubble.style.display = ''; bubble.classList.remove('g3-pop'); void bubble.offsetWidth; bubble.classList.add('g3-pop'); bubbleT = e.long ? 6.5 : 3.4; }
+        else if (e.type === 'float') { const d = el(`g3-float g3-${e.tone}`); d.textContent = T(e.text); floats.push({ d, x: e.x, z: e.z, t: 0 }); }
+        else if (e.type === 'hint') { const s = g.S[e.what]; if (s) { hint = [s.x, s.z]; hintT = 6; } onEvent(e); }
+        else onEvent(e);
+      }
+      hintT -= dt;
+      // the farmer
+      const me = g.me, gy = L.ground(me.x, me.z) + (g.ev.flood > 0.3 && Math.abs(me.x) < FIELD_W / 2 + 4 && Math.abs(me.z) < FIELD_D / 2 + 4 ? -0.15 : 0);
+      P.root.position.set(me.x, gy, me.z); P.root.rotation.y = me.yaw;
+      if (me.slopeZ !== undefined && me.slopeX !== undefined) {
+        P.root.rotation.x += (me.slopeZ * 0.45 - P.root.rotation.x) * Math.min(1, dt * 8);
+        P.root.rotation.z += (-me.slopeX * 0.45 - P.root.rotation.z) * Math.min(1, dt * 8);
+      }
+      let nearestNpc = null, minNpcD = 4.2;
+      const npcs = life.dots?.() ?? [];
+      for (const [nx, nz] of npcs) {
+        const d = Math.hypot(nx - me.x, nz - me.z);
+        if (d < minNpcD) { minNpcD = d; nearestNpc = { x: nx, y: L.ground(nx, nz) + 1.35, z: nz }; }
+      }
+      animate(P, {
+        speed: me.speed,
+        run: me.run,
+        act: me.act,
+        down: me.down,
+        t,
+        carrying: Object.values(g.basket).reduce((a, b) => a + b, 0) > 0,
+        bank: me.bank ?? 0,
+        turnRate: me.turnRate ?? 0,
+        lookTarget: nearestNpc,
+        slopeZ: me.slopeZ,
+        slopeX: me.slopeX,
+      }, dt);
+      if (me.speed > 0.6 && !me.act && me.down <= 0) {
+        stepT -= dt;
+        if (stepT <= 0) {
+          stepT = me.run ? 0.22 : 0.36;
+          const surf = surfaceAt(L, g, me.x, me.z);
+          onEvent({ type: 'sound', s: 'step', surface: surf, run: me.run });
+        }
+      } else {
+        stepT = 0.08;
+      }
+      // camera: dynamic follow with velocity look-ahead and speed pull-back
+      const runShare = me.run ? Math.min(1, me.speed / 4.8) : 0;
+      const leadX = (me.vx ?? 0) * 0.25, leadZ = (me.vz ?? 0) * 0.25;
+      focus.set(me.x + leadX, gy + 1.45, me.z + leadZ);
+      if (cam.look > 0) cam.look -= dt;
+      else if (me.speed > 1 && !cam.sat) { let d = (me.yaw + Math.PI) - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 2.2) cam.yaw += d * Math.min(1, dt * 1.1); }
+      const dist = (cam.sat ? 46 : cam.dist) * (1 + runShare * 0.16), pitch = cam.sat ? 1.35 : cam.pitch;
+      cam.side += ((cam.sat ? 0 : 0.55) - cam.side) * Math.min(1, dt * 3.5);
+      const rx = Math.cos(cam.yaw) * cam.side, rz = -Math.sin(cam.yaw) * cam.side;
+      focus.x += rx; focus.z += rz;
+      camPos.set(focus.x + Math.sin(cam.yaw) * Math.cos(pitch) * dist, gy + 1.45 + Math.sin(pitch) * dist, focus.z + Math.cos(cam.yaw) * Math.cos(pitch) * dist);
+      if (xrOn) { if (xr.mode === 'vr') placeVR(Math.min(1, dt * 2.5), gy); }
+      else if (cam.intro > 0) {
+        const k = ease((cam.introT - 0.8) / 4.0);
+        const top = tmpV.set(0, 200, 50);
+        camera.position.copy(top).lerp(camPos, k);
+        camera.up.set(0, 1, 0); camera.lookAt(focus.x * k, focus.y * k, focus.z * k);
+        if (scene.fog) scene.fog.far = Math.max(scene.fog.far, 420);
+      } else {
+        camPos.y = Math.max(camPos.y, L.ground(camPos.x, camPos.z) + 0.6);
+        camera.position.lerp(camPos, Math.min(1, dt * (cam.sat ? 4.5 : 12)));
+        camera.lookAt(focus);
+        if (!cam.sat) {
+          const baseFov = touch ? 60 : 52;
+          const targetFov = baseFov + runShare * 4;
+          if (Math.abs(camera.fov - targetFov) > 0.05) {
+            camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 7.5);
+            camera.updateProjectionMatrix();
+          }
+        }
+      }
+      const goalPos = cam.intro ? null : goal();
+      const onIt = goalPos && Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z) < 1.8;
+      world.marker(onIt ? null : goalPos);
+      updateRoute(dt, goalPos, xrOn); drawTrail(t);
+      const eye = xrOn ? xr.eye : camera.position;
+      const ph = dayPhase(g), sunUp = ph < 0.75 ? Math.sin((ph / 0.75) * Math.PI) : 0;
+      personLight.value = 0.35 + 0.65 * Math.min(1, sunUp * 2.5);
+      fill.intensity = 0.25 + 0.45 * Math.min(1, sunUp * 2.5);
+      fill.position.copy(eye).add(tmpV.set(0, 2, 0)); fill.target.position.copy(focus);
+      const { wind } = world.update(t, dt, ph, g.ev, eye, focus);
+      if (xr.mode === 'ar') { scene.fog.near = 1e4; scene.fog.far = 2e4; } // the room is the horizon
+      field.update(t, wind, g.ndvi || cam.sat, g.F.scanner, cam.layer);
+      life.update(t, paused || cam.intro ? 0 : dt, project, eye);
+      if (sign.visible) { signT -= dt; sign.position.set(me.x, gy + (xr.mode === 'ar' ? 8 : 3.3), me.z); if (signT <= 0 || !xrOn) sign.visible = false; }
+      // particles
+      for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; p.vy -= 9 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; if (p.life <= 0 || p.y < -1) parts.splice(i, 1); }
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        pPos[i * 3] = p.x; pPos[i * 3 + 1] = p.y; pPos[i * 3 + 2] = p.z;
+        pCol[i * 3] = p.c.r; pCol[i * 3 + 1] = p.c.g; pCol[i * 3 + 2] = p.c.b;
+      }
+      pGeo.setDrawRange(0, parts.length);
+      if (parts.length) { pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true; }
+      if (composer && !xrOn) {
+        try {
+          composer.render(dt);
+        } catch {
+          composer = null;
+          renderer.render(scene, camera);
+        }
+      } else {
+        renderer.render(scene, camera);
+      }
+      // overlay
+      for (const l of labels) {
+        const s = g.S[l.id], d = Math.hypot(s.x - me.x, s.z - me.z);
+        const show = !cam.intro && d < 16 && (l.id !== 'safe' || g.ev.zone);
+        if (!show) { l.d.style.display = 'none'; continue; }
+        const [x, y, vis] = project(s.x, L.ground(s.x, s.z) + (l.id === 'safe' ? 7 : 3.6), s.z);
+        l.d.style.display = vis ? '' : 'none'; l.d.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`; l.d.style.opacity = String(Math.min(1, (16 - d) / 5));
+      }
+      if (bubbleT > 0) {
+        bubbleT -= dt; const [x, y, vis] = project(me.x, gy + 2.15, me.z);
+        bubble.style.display = vis && !cam.intro ? '' : 'none'; bubble.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+        if (bubbleT <= 0) bubble.style.display = 'none';
+      }
+      for (let i = floats.length - 1; i >= 0; i--) {
+        const f = floats[i]; f.t += dt;
+        const [x, y, vis] = project(f.x, L.ground(f.x, f.z) + 1.6 + f.t * 0.9, f.z);
+        f.d.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`; f.d.style.opacity = String(Math.max(0, 1 - Math.max(0, f.t - 0.9) / 0.6)); f.d.style.display = vis ? '' : 'none';
+        if (f.t > 1.5) { f.d.remove(); floats.splice(i, 1); }
+      }
+      if (goalPos && !onIt && !cam.sat) {
+        const gyy = L.ground(goalPos[0], goalPos[1]) + 4.6;
+        let [x, y, vis] = project(goalPos[0], gyy, goalPos[1]);
+        const W = canvas.clientWidth, H = canvas.clientHeight, m = 36;
+        if (!vis) { x = W - x; y = H - y; }
+        const off = !vis || x < m || x > W - m || y < m || y > H - m;
+        x = Math.min(W - m, Math.max(m, x)); y = Math.min(H - m, Math.max(m + 40, y));
+        tag.style.display = ''; tag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+        tag.classList.toggle('g3-edge', off);
+        const dm = Math.round(Math.hypot(goalPos[0] - me.x, goalPos[1] - me.z));
+        tag.textContent = lang === 'bn' ? `${String(dm).replace(/\d/g, (n) => '০১২৩৪৫৬৭৮৯'[n])} মি` : `${dm} m`;
+      } else tag.style.display = 'none';
+
+      // In-world contextual 3D action prompt directly over active target
+      try {
+        const curTarget = cam.intro ? null : target(g);
+        if (curTarget && !cam.sat) {
+          let tx, ty, tz, actionTxt;
+          if (curTarget.kind === 'plot' && curTarget.p) {
+            const p = curTarget.p;
+            tx = p.x; tz = p.z;
+            ty = L.ground(tx, tz) + 0.95;
+            const cName = curTarget.crop ? (curTarget.crop[lang] ?? curTarget.crop.bn ?? curTarget.crop.name?.[lang] ?? curTarget.crop.en ?? '') : '';
+            const acts = {
+              spray: lang === 'bn' ? 'বালাই দমন' : 'Treat plot',
+              clear: lang === 'bn' ? 'মরা গাছ সরান' : 'Clear dead',
+              plant: lang === 'bn' ? (cName ? `${cName} বুনুন` : 'বীজ বুনুন') : (cName ? `Sow ${cName}` : 'Sow seeds'),
+              harvest: lang === 'bn' ? (cName ? `${cName} তুলুন` : 'ফসল তুলুন') : (cName ? `Harvest ${cName}` : 'Harvest crop'),
+              water: lang === 'bn' ? 'পানি দিন' : 'Water plot',
+              wet: lang === 'bn' ? 'মাটি ভেজা' : 'Soil wet',
+              nowater: lang === 'bn' ? 'পানি আনুন' : 'Fetch water',
+              noseed: lang === 'bn' ? 'দোকানে যান' : 'Go to shop',
+            };
+            actionTxt = acts[curTarget.what] ?? (lang === 'bn' ? 'কাজ করুন' : 'Act');
+          } else if (curTarget.kind === 'station' && g.S?.[curTarget.id]) {
+            const s = g.S[curTarget.id];
+            tx = s.x; tz = s.z;
+            ty = L.ground(tx, tz) + 1.85;
+            const stActs = {
+              shed: lang === 'bn' ? 'বীজের দোকান' : 'Seed shed',
+              water: lang === 'bn' ? 'সেচ পাম্প' : 'Water pump',
+              market: lang === 'bn' ? (g.basket && Object.values(g.basket).some(Boolean) ? 'ফসল বিক্রি' : 'হাটবাজার') : (g.basket && Object.values(g.basket).some(Boolean) ? 'Sell harvest' : 'Market'),
+              kiosk: lang === 'bn' ? 'FieldShift কিওস্ক' : 'FieldShift Kiosk',
+            };
+            actionTxt = stActs[curTarget.id] ?? (lang === 'bn' ? 'দেখুন' : 'Open');
+          }
+          if (tx !== undefined) {
+            const [x, y, vis] = project(tx, ty, tz);
+            if (vis) {
+              actionTag.style.display = '';
+              actionTag.style.transform = `translate(${x}px, ${y}px) translate(-50%, -100%)`;
+              actionTag.innerHTML = `<span class="g3-action-kbd">E</span> <span>${actionTxt}</span>`;
+            } else {
+              actionTag.style.display = 'none';
+            }
           } else {
             actionTag.style.display = 'none';
           }
         } else {
           actionTag.style.display = 'none';
         }
-      } else {
+      } catch {
         actionTag.style.display = 'none';
       }
-    } catch {
-      actionTag.style.display = 'none';
-    }
 
-    if (compass) compass.style.setProperty('--heading', String((((-cam.yaw * 180) / Math.PI) % 360 + 540) % 360 - 180));
-    mapT -= dt; if (mapT <= 0) { mapT = 0.08; drawMap(t, goalPos); }
+      if (compass) compass.style.setProperty('--heading', String((((-cam.yaw * 180) / Math.PI) % 360 + 540) % 360 - 180));
+      mapT -= dt; if (mapT <= 0) { mapT = 0.08; drawMap(t, goalPos); }
+    } catch (err) {
+      try { renderer.render(scene, camera); } catch {}
+    }
   }
   renderer.setAnimationLoop(frame); // not requestAnimationFrame: an XR session drives its own frames
 
