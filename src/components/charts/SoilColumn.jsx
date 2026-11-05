@@ -152,20 +152,21 @@ export function Plant({ x, look, k }) {
       const ex = px + dir * sz * 1.5, ey = py - sz * 0.9; // the end of the leaf stalk
       return <g key={key}>
         <path d={`M${px} ${py} q${dir * sz * 0.8} ${-sz * 0.2} ${dir * sz * 1.5} ${-sz * 0.9}`} stroke="#4a7a2c" strokeWidth=".6" {...stroke} />
-        {leaflet(ex, ey, dir * 58, sz, 'a')}{leaflet(ex, ey, dir * 12, sz * 1.1, 'b')}{leaflet(ex, ey, dir * -34 + 180 * 0, sz * 0.95, 'c')}
+        {leaflet(ex, ey, dir * 58, sz, 'a')}{leaflet(ex, ey, dir * 12, sz * 1.1, 'b')}{leaflet(ex, ey, dir * -34, sz * 0.95, 'c')}
       </g>;
     };
     const pods = (px, py, dir, key) => <g key={key}>
       <path d={`M${px} ${py} q${dir * 2} -4 ${dir * 3} -7`} stroke="#4a7a2c" strokeWidth=".55" {...stroke} />
-      {[-30, -8, 14, 34].map((a, j) => <path key={j} className="soil-ripen-stroke" style={{ '--ripe': C }} d={`M${px + dir * 3} ${py - 7} q${Math.sin((a * Math.PI) / 180) * 5} 3 ${Math.sin((a * Math.PI) / 180) * 7 + dir * 1.5} 9`} stroke={C} strokeWidth="1.05" {...stroke} />)}
+      {[-22, 4, 26].map((a, j) => { const sx = Math.sin((a * Math.PI) / 180); return <path key={j} className="soil-ripen-stroke" style={{ '--ripe': C }} d={`M${px + dir * 3} ${py - 7} q${sx * 3.5 + dir} 1.5 ${sx * 4.5 + dir * 1.6} 6.5`} stroke={C} strokeWidth=".8" {...stroke} />; })}
     </g>;
     body = <>
       <path d={`M${x} ${b} Q${x - 1.5} ${b - h * 0.5} ${x} ${b - h}`} stroke="#4a7a2c" strokeWidth="1.5" {...stroke} />
       <path d={`M${x} ${b - h * 0.32} q-5 -4 -8 -${h * 0.38}M${x} ${b - h * 0.4} q5 -4 8 -${h * 0.34}`} stroke="#4a7a2c" strokeWidth="1" {...stroke} />
-      {tri(x - 1, b - h * 0.3, -1, 3.2, 't0')}{tri(x + 1, b - h * 0.42, 1, 3.4, 't1')}
-      {tri(x - 7, b - h * 0.62, -1, 3, 't2')}{tri(x + 7, b - h * 0.7, 1, 3, 't3')}
-      {tri(x, b - h * 0.92, -1, 3.3, 't4')}{tri(x + 1, b - h * 0.98, 1, 2.8, 't5')}
-      {pods(x - 7, b - h * 0.76, -1, 'pa')}{pods(x + 8, b - h * 0.8, 1, 'pb')}{pods(x + 1, b - h * 1.02, 1, 'pc')}
+      {pods(x - 6, b - h * 0.5, -1, 'pa')}{pods(x + 6, b - h * 0.58, 1, 'pb')}
+      {tri(x - 1, b - h * 0.3, -1, 4.2, 't0')}{tri(x + 1, b - h * 0.42, 1, 4.4, 't1')}
+      {tri(x - 7, b - h * 0.62, -1, 4, 't2')}{tri(x + 7, b - h * 0.7, 1, 4, 't3')}
+      {tri(x, b - h * 0.9, -1, 4.2, 't4')}{tri(x + 1, b - h * 0.97, 1, 3.6, 't5')}
+      {pods(x + 2, b - h * 0.8, 1, 'pc')}
     </>;
   } else if (look.kind === 'sesame') {
     body = <>
@@ -225,22 +226,29 @@ function Roots({ x, look, k, pan, nodules, density, disease, flooded, nodFill })
     }
   } else {
     // A taproot that thins with depth and wanders a little, laterals that curve down and shorten with depth.
-    const d = look.depth, wob = (rnd(k, 31) - 0.5) * 12;
-    const pts = [0, 0.33, 0.66, 1].map((f, i) => [x + (i ? wob * Math.sin(i * 1.7 + k) : 0), f === 1 ? end(d) : ycm(d * f)]);
-    [2, 1.25, 0.65].forEach((w, i) => root(`t${i}`, `M${pts[i][0]} ${pts[i][1]} Q${pts[i][0] - wob * (i % 2 ? 0.6 : -0.6)} ${(pts[i][1] + pts[i + 1][1]) / 2} ${pts[i + 1][0]} ${pts[i + 1][1]}`, w, 0.9 - i * 0.2));
-    for (let i = 0; i < 7; i++) {
-      const cm = 1.5 + i * (d / 8), sg = (i + k) % 2 ? 1 : -1, len = (6 + rnd(i, k) * 7) * (1 - i / 10);
-      const yy = ycm(cm), xx = x + wob * (cm / d) * 0.6;
-      root(`l${i}`, `M${xx} ${yy} c${sg * len * 0.35} ${len * 0.05} ${sg * len * 0.75} ${len * 0.2} ${sg * len} ${len * 0.75}`, 0.6, 0.75);
+    // The taproot meanders around stones and old root channels: six short segments, each a little thinner.
+    const d = look.depth, wob = (rnd(k, 31) - 0.5) * 9;
+    const N = 6, tx = (cm) => x + wob * Math.sin((cm / d) * 2.6 + k) + 1.6 * Math.sin(cm * 0.9 + k * 2.3);
+    const pts = Array.from({ length: N + 1 }, (_, i) => { const cm = (d * i) / N; return [i ? tx(cm) : x, i === N ? end(d) : ycm(cm)]; });
+    for (let i = 0; i < N; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1], bend = (rnd(i, k + 33) - 0.5) * 3;
+      root(`t${i}`, `M${ax.toFixed(1)} ${ay.toFixed(1)} Q${((ax + bx) / 2 + bend).toFixed(1)} ${((ay + by) / 2).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`, 2.1 * (1 - i / (N + 1.5)), 0.92 - i * 0.07);
+    }
+    for (let i = 0; i < 9; i++) {
+      // Laterals leave the taproot at a shallow angle, arch outwards and bend down; long near the crown, shorter deeper.
+      const cm = 1.2 + i * (d / 10), sg = rnd(i, k + 21) < 0.5 ? 1 : -1, len = (8 + rnd(i, k) * 9) * (1 - i / 12);
+      const yy = ycm(cm), xx = tx(cm);
+      root(`l${i}`, `M${xx.toFixed(1)} ${yy.toFixed(1)} c${(sg * len * 0.45).toFixed(1)} ${(-len * 0.04).toFixed(1)} ${(sg * len * 0.85).toFixed(1)} ${(len * 0.18).toFixed(1)} ${(sg * len).toFixed(1)} ${(len * 0.7).toFixed(1)}`, 0.75 - i * 0.04, 0.78);
       // secondary branches off each lateral, and fine root hairs near its tip where water and nutrients go in
       if (i < 5) root(`ls${i}`, `M${xx + sg * len * 0.55} ${yy + len * 0.18} q${sg * 2} 1 ${sg * 3} 4`, 0.35, 0.55);
       if (i < 5) root(`lt${i}`, `M${xx + sg * len * 0.3} ${yy + len * 0.07} q${sg * 2.4} -0.4 ${sg * 3.6} 2.6`, 0.28, 0.5);
       if (i < 4) for (let hh = 0; hh < 3; hh++) root(`lh${i}${hh}`, `M${xx + sg * len * (0.8 + hh * 0.07)} ${yy + len * (0.45 + hh * 0.09)} l${sg * (1.4 + hh * 0.3)} ${-0.6 + hh * 0.5}`, 0.16, 0.45);
       // Nodules: round, pink-brown, clustered on the upper laterals near the crown (most in the top 10 cm)
-      if (nodules && cm < 14) for (let nd = 0; nd < (cm < 8 ? 3 : 2); nd++) {
-        const f = 0.25 + nd * 0.22;
-        out.push(<circle key={`n${i}${nd}`} cx={xx + sg * len * f} cy={yy + len * (0.05 + f * f * 0.55) + (nd % 2 ? 0.9 : -0.6)} r={1.05 + rnd(i * 3 + nd, k) * 0.75} fill={nodFill} stroke="#8a4f45" strokeWidth=".25" />);
+      if (nodules && cm < 9) for (let nd = 0; nd < (i === 0 ? 2 : 1); nd++) {
+        const f = 0.22 + nd * 0.25;
+        out.push(<circle key={`n${i}${nd}`} cx={xx + sg * len * f} cy={yy + len * (0.02 + f * f * 0.5) + 0.7} r={0.85 + rnd(i * 3 + nd, k) * 0.45} fill={nodFill} stroke="#8a5a4c" strokeWidth=".2" />);
       }
+      if (nodules && i === 0) out.push(<circle key="ncrown" cx={x + 1.4} cy={ycm(1.6)} r="1.15" fill={nodFill} stroke="#8a5a4c" strokeWidth=".2" />);
     }
   }
   // Root disease from a crop family following itself: brown lesions on the upper roots.
@@ -344,7 +352,7 @@ export default function SoilColumn({ row, season, soc0, soil = {}, health, title
               <stop offset=".92" stopColor="#000" stopOpacity="0" /><stop offset="1" stopColor="#000" stopOpacity=".16" />
             </linearGradient>
             <radialGradient id={`nod-${uid}`} cx=".38" cy=".35" r=".7">
-              <stop offset="0" stopColor="#f6c9bd" /><stop offset=".55" stopColor="#d98c80" /><stop offset="1" stopColor="#9c5a4f" />
+              <stop offset="0" stopColor="#f1d2bf" /><stop offset=".6" stopColor="#c99a80" /><stop offset="1" stopColor="#8f6450" />
             </radialGradient>
             <linearGradient id={`worm-${uid}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="#e8a596" /><stop offset=".5" stopColor="#c8746a" /><stop offset="1" stopColor="#a1544d" />
