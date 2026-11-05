@@ -171,7 +171,7 @@ export default function Home() {
       <section id="land" className="scroll-mt-20 py-16 sm:py-20">
         <div className="page-shell">
           <div data-reveal className="relative overflow-hidden rounded-[26px] bg-primary-950 shadow-[0_30px_60px_-30px_rgba(13,38,20,.55)]">
-            <div className="relative aspect-[16/11] sm:aspect-[16/8] lg:aspect-[16/7]">
+            <div className="relative aspect-[16/11] sm:aspect-[16/8] lg:aspect-auto lg:h-[max(600px,50vw)] lg:max-h-[680px]">
               <Photo name="landParcels" fill focus="50% 50%" sizes="(min-width: 1200px) 1200px, 100vw" />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(13,38,20,0)_55%,rgba(13,38,20,.7)_100%)] lg:bg-[linear-gradient(270deg,rgba(13,38,20,0)_45%,rgba(13,38,20,.78)_100%)]" />
               <FieldPinDemo />
@@ -184,7 +184,7 @@ export default function Home() {
                 {[
                   [MapPinned, T('জমিতে পিন বসান', 'Drop a pin on your field'), T('পিন টেনে সরান বা মানচিত্রে চাপ দিন; গ্রামের নাম বা ফোনের লোকেশন দিয়েও খোঁজা যায়।', 'Drag it or tap the map; or search a village, or use your phone’s location.')],
                   [Ruler, T('জমির মাপ দিন', 'Enter the size'), T('শতক বা বিঘায়, যেটা আপনি জানেন।', 'In decimal or bigha, whichever you know.')],
-                  [Layers, T('বাকিটা অ্যাপ বের করে', 'The app works out the rest'), T('কোন ইউনিয়ন, সেখানকার মাটি আর ২৫ বছরের নাসার আবহাওয়া।', 'Your union, its soil and 25 years of NASA weather.')],
+                  [Layers, T('বাকিটা অ্যাপ বের করে', 'The app works out the rest'), <>{T('কোন ইউনিয়ন, সেখানকার মাটি আর ২৫ বছরের নাসার আবহাওয়া।', 'Your union, its soil and 25 years of NASA weather.')} <Tags list={['MODEL']} /></>],
                 ].map(([Icon, head, body], i) => (
                   <li key={i} className="flex gap-3">
                     <span className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/12 text-amber-200 ring-1 ring-white/20"><Icon size={17} /><span className="absolute -right-1 -top-1 grid h-4 w-4 place-items-center rounded-full bg-amber-400 text-[10px] font-bold text-primary-950">{num(i + 1, lang)}</span></span>
@@ -192,10 +192,7 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Button to="/farmer/farm" variant="light" className="px-5 py-3"><MapPinned size={18} />{T('মানচিত্রে জমি বাছাই করুন', 'Mark my field on the map')}</Button>
-                <span className="inline-flex items-center gap-1.5 text-[13px] text-white/65"><Tags list={['SAT', 'MODEL']} /></span>
-              </div>
+              <div className="mt-6"><Button to="/farmer/farm" variant="light" className="px-5 py-3"><MapPinned size={18} />{T('মানচিত্রে জমি বাছাই করুন', 'Mark my field on the map')}</Button></div>
             </div>
           </div>
         </div>

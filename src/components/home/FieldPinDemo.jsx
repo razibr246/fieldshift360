@@ -15,6 +15,16 @@ export default function FieldPinDemo() {
   const ref = useRef(null);
   const [shown, setShown] = useState(false);
   const [still, setStill] = useState(false);
+  // On a phone the photo (and this drawing) is shrunk about four times; the pin and label grow back so the label
+  // stays readable. z = 1 on a desktop-sized photo.
+  const [z, setZ] = useState(1);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => { const k = Math.max(el.clientWidth / W, el.clientHeight / H); setZ(Math.min(2.6, Math.max(1, 0.6 / k))); });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setStill(true); setShown(true); return undefined; }
     const el = ref.current;
@@ -46,14 +56,14 @@ export default function FieldPinDemo() {
       {/* the pin drops in with a small bounce; its shadow grows as it lands */}
       <ellipse cx={PIN[0]} cy={PIN[1] + 4} rx="22" ry="7" fill="#0d2614" style={{ opacity: shown ? 0.35 : 0, transition: t(500, 1250) }} />
       <g style={{ transform: shown ? 'translateY(0)' : 'translateY(-120px)', opacity: shown ? 1 : 0, transition: t(700, 1100, 'cubic-bezier(.34,1.56,.64,1)') }}>
-        <g transform={`translate(${PIN[0]} ${PIN[1]})`} filter="url(#fpd-shadow)">
+        <g transform={`translate(${PIN[0]} ${PIN[1]}) scale(${z})`} filter="url(#fpd-shadow)">
           <path d="M0 0 C -8 -18 -34 -36 -34 -62 A 34 34 0 1 1 34 -62 C 34 -36 8 -18 0 0 Z" fill="#2f6e2f" stroke="#fff" strokeWidth="5" />
           <circle cx="0" cy="-62" r="12" fill="#fff" />
         </g>
       </g>
-      {/* the label beside the pin */}
-      <g transform={`translate(${PIN[0] + 52} ${PIN[1] - 118})`} style={{ opacity: shown ? 1 : 0, transition: t(500, 1800) }}>
-        <rect width="250" height="84" rx="22" fill="#fffdf6" opacity=".96" filter="url(#fpd-shadow)" />
+      {/* the label, centred above the pin */}
+      <g transform={`translate(${PIN[0] - 145 * z} ${PIN[1] - 200 * z}) scale(${z})`} style={{ opacity: shown ? 1 : 0, transition: t(500, 1800) }}>
+        <rect width="290" height="84" rx="22" fill="#fffdf6" opacity=".96" filter="url(#fpd-shadow)" />
         <text x="22" y="36" fontSize="27" fontWeight="700" fill="#13261b">{label}</text>
         <text x="22" y="66" fontSize="20" fontWeight="600" fill="#8a6411">{note}</text>
       </g>
