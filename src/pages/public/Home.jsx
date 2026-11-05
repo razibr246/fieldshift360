@@ -51,7 +51,11 @@ export default function Home() {
                 <span>{T('NASA Space Apps 2026 গ্লোবাল চ্যাম্পিয়নশিপ প্রোফাইল · স্কোর ৪৯.২/৫০', 'NASA Space Apps 2026 Global Challenge Profile · Score 49.2/50')}</span>
               </div>
               <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[12.5px] font-semibold text-primary-800">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary-500 shadow-[0_0_0_3px_rgba(67,134,58,.18)]" />{T('রবি মৌসুম ২০২৬–২৭', 'Rabi season 2026–27')}
+                <span className="telemetry-pulse" />
+                <span>{T('১০ নাসা উপগ্রহ ও ৩৪৫ টেস্ট সিঙ্কড', '10 NASA Missions & 345 Tests Synced')}</span>
+              </p>
+              <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3 py-1 text-[12px] font-semibold text-muted">
+                {T('রবি মৌসুম ২০২৬–২৭', 'Rabi season 2026–27')}
               </p>
             </div>
             {/* Apple-style headline: two short lines, the second in a soft green gradient. */}
@@ -75,7 +79,8 @@ export default function Home() {
               <Link to="/farmer/plan" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Sprout size={13} className="text-primary-600" />{T('পরিকল্পনা', 'Plan')}</Link>
               <Link to="/farmer/doctor" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><ScanLine size={13} className="text-primary-600" />{T('ফসলের ডাক্তার', 'Crop Doctor')}</Link>
               <Link to="/farmer/future" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Layers size={13} className="text-primary-600" />{T('জমির ভবিষ্যৎ', 'Field Future')}</Link>
-              <Link to="/farmer/radar" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><RadarIcon size={13} className="text-primary-600" />{T('রোপণ রাডার', 'Radar')}</Link>
+              <Link to="/officer/radar" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><RadarIcon size={13} className="text-primary-600" />{T('রোপণ রাডার', 'Radar')}</Link>
+              <Link to="/science" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Satellite size={13} className="text-sky-600" />{T('বিজ্ঞান ও ডেটাসেট', 'Science & Orbit')}</Link>
               <Link to="/farm" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Swords size={13} className="text-amber-600" />{T('৩ডি খেলা', '3D Game')}</Link>
             </div>
 
