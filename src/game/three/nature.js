@@ -73,6 +73,32 @@ function shapes(rng) {
   return { grass, flower, wheat, paddy, mustard, sunflower, sesame: bush, groundnut: bush, stubble };
 }
 
+function makeButterflyGeo() {
+  const g = new THREE.BufferGeometry();
+  const pos = [
+    // left wing
+    0, 0, 0,  -0.12, 0.04, 0.09,  -0.14, 0.02, -0.07,
+    0, 0, 0,  -0.14, 0.02, -0.07,  -0.06, 0.01, -0.11,
+    // right wing
+    0, 0, 0,   0.14, 0.02, -0.07,   0.12, 0.04, 0.09,
+    0, 0, 0,   0.06, 0.01, -0.11,   0.14, 0.02, -0.07,
+  ];
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.computeVertexNormals();
+  return g;
+}
+
+function makeBirdGeo() {
+  const body = new THREE.ConeGeometry(0.065, 0.22, 5).rotateX(Math.PI / 2);
+  const head = new THREE.SphereGeometry(0.048, 6, 5).translate(0, 0.035, 0.12);
+  const beak = new THREE.ConeGeometry(0.016, 0.06, 4).rotateX(Math.PI / 2).translate(0, 0.02, 0.175);
+  const tail = new THREE.BufferGeometry();
+  tail.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0.01, -0.1,  -0.05, 0.02, -0.22,  0.05, 0.02, -0.22
+  ], 3));
+  return mergeGeometries([body, head, beak, tail.toNonIndexed()]);
+}
+
 export function createNature(scene, L, { light = false } = {}) {
   const seed = Math.floor(Math.abs((L.patches?.[0]?.[0] ?? 1) * 1e4)) + L.props.length;
   const rng = mulberry(seed);
@@ -196,18 +222,141 @@ export function createNature(scene, L, { light = false } = {}) {
   }
   const cloudCol = new THREE.Color();
   let gustWind = 0.8;
+
+  // ---- ambient butterflies hovering over flowers & crops ----
+  const BFLY_COUNT = light ? 6 : 16;
+  const bflyGeo = makeButterflyGeo();
+  const bflyMat = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1, side: THREE.DoubleSide });
+  const bflyMesh = new THREE.InstancedMesh(bflyGeo, bflyMat, BFLY_COUNT);
+  bflyMesh.castShadow = false; bflyMesh.receiveShadow = false; bflyMesh.frustumCulled = false;
+  scene.add(bflyMesh);
+
+  const bflyDummy = new THREE.Object3D();
+  const bflyPalette = ['#f4a226', '#fcd34d', '#38bdf8', '#4ade80', '#fb7185', '#e879f9'];
+  const butterflies = Array.from({ length: BFLY_COUNT }, (_, i) => {
+    const a = rng() * Math.PI * 2, r = 8 + rng() * 45;
+    const cx = Math.cos(a) * r, cz = Math.sin(a) * r;
+    const col = C(bflyPalette[i % bflyPalette.length]);
+    bflyMesh.setColorAt(i, col);
+    return {
+      cx, cz,
+      rx: 2.5 + rng() * 2.5, rz: 2.5 + rng() * 2.5,
+      speed: 0.8 + rng() * 0.7,
+      offset: rng() * 20,
+      flapSpeed: 16 + rng() * 6,
+    };
+  });
+  if (bflyMesh.instanceColor) bflyMesh.instanceColor.needsUpdate = true;
+
+  // ---- ambient perching & scattering birds ----
+  const BIRD_COUNT = light ? 4 : 9;
+  const birdGeo = makeBirdGeo();
+  const birdMat = new THREE.MeshStandardMaterial({ roughness: 0.7, metalness: 0.1, color: '#4a3828' });
+  const birdMesh = new THREE.InstancedMesh(birdGeo, birdMat, BIRD_COUNT);
+  birdMesh.castShadow = true; birdMesh.receiveShadow = false; birdMesh.frustumCulled = false;
+  scene.add(birdMesh);
+
+  const birdDummy = new THREE.Object3D();
+  const perches = [];
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2, d = 16 + (i % 3) * 12;
+    const px = Math.cos(a) * d, pz = Math.sin(a) * d;
+    if (free(px, pz, 0.4)) perches.push([px, L.ground(px, pz) + 1.25, pz]);
+  }
+  if (!perches.length) perches.push([10, L.ground(10, 10) + 1.25, 10]);
+
+  const birds = Array.from({ length: BIRD_COUNT }, (_, i) => {
+    const p = perches[i % perches.length];
+    return {
+      x: p[0], y: p[1], z: p[2],
+      yaw: rng() * Math.PI * 2,
+      target: [...p],
+      state: 'perch',
+      timer: 2 + rng() * 4,
+      flap: 0,
+    };
+  });
+
   return {
-    // w: the weather's wind (0.8 breeze, 2.4 storm); sky: the sky's middle colour; storm 0–1; day: is the sun up
-    update(t, dt, w, sky, storm, day) {
+    // w: the weather's wind (0.8 breeze, 2.4 storm); sky: the sky's middle colour; storm 0–1; day: is the sun up; focus: player position
+    update(t, dt, w, sky, storm, day, focus) {
       time.value = t;
       gustWind += (w - gustWind) * Math.min(1, dt * 0.8); wind.value = gustWind;
       clouds.rotation.y += dt * 0.002 * gustWind;
       cloudCol.set(day ? '#ffffff' : '#3a4566').lerp(sky, day ? 0.25 : 0.5).lerp(C('#59636e'), storm * 0.85);
       cloudMat.color.copy(cloudCol); cloudMat.opacity = day ? 0.85 + storm * 0.1 : 0.45;
+
+      // Butterflies update
+      if (bflyMesh) {
+        butterflies.forEach((b, i) => {
+          if (storm > 0.4 || !day) {
+            bflyDummy.scale.set(0, 0, 0);
+          } else {
+            const angle = t * b.speed + b.offset;
+            const bx = b.cx + Math.cos(angle) * b.rx + Math.sin(angle * 1.6) * 0.4;
+            const bz = b.cz + Math.sin(angle * 1.2) * b.rz + Math.cos(angle * 0.9) * 0.4;
+            const gy = L.ground(bx, bz);
+            const by = gy + 0.35 + Math.sin(t * 3.2 + b.offset) * 0.22;
+            const flap = Math.sin(t * b.flapSpeed + b.offset);
+            const yaw = Math.atan2(-Math.sin(angle), Math.cos(angle));
+
+            bflyDummy.position.set(bx, by, bz);
+            bflyDummy.rotation.set(Math.sin(t * 2) * 0.2, yaw, 0);
+            bflyDummy.scale.set((0.4 + Math.abs(flap) * 0.6) * 0.8, 0.8, 0.8);
+          }
+          bflyDummy.updateMatrix();
+          bflyMesh.setMatrixAt(i, bflyDummy.matrix);
+        });
+        bflyMesh.instanceMatrix.needsUpdate = true;
+      }
+
+      // Birds update: idle perch with scattering response to player proximity
+      if (birdMesh) {
+        const px = focus ? focus.x : 0, pz = focus ? focus.z : 0;
+        birds.forEach((bd) => {
+          const dPlayer = Math.hypot(bd.x - px, bd.z - pz);
+          if (bd.state === 'perch') {
+            bd.timer -= dt;
+            if (dPlayer < 4.8 || bd.timer <= 0) {
+              bd.state = 'fly';
+              bd.timer = 4 + Math.random() * 4;
+              const nextP = perches[Math.floor(Math.random() * perches.length)];
+              bd.target = [nextP[0], nextP[1] + (dPlayer < 4.8 ? 0.3 : 0), nextP[2]];
+            }
+          } else {
+            const dx = bd.target[0] - bd.x, dz = bd.target[2] - bd.z;
+            const dist = Math.hypot(dx, dz);
+            bd.flap += dt * 18;
+            if (dist < 0.6 || bd.timer <= 0) {
+              bd.state = 'perch';
+              bd.x = bd.target[0]; bd.y = bd.target[1]; bd.z = bd.target[2];
+              bd.timer = 5 + Math.random() * 8;
+            } else {
+              const sp = 4.6;
+              const wantYaw = Math.atan2(dx, dz);
+              let dy = wantYaw - bd.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
+              bd.yaw += dy * Math.min(1, dt * 7);
+              bd.x += Math.sin(bd.yaw) * sp * dt;
+              bd.z += Math.cos(bd.yaw) * sp * dt;
+              const cruiseY = Math.max(bd.target[1], L.ground(bd.x, bd.z)) + 2.4;
+              bd.y += (cruiseY - bd.y) * Math.min(1, dt * 5);
+            }
+          }
+
+          birdDummy.position.set(bd.x, bd.y, bd.z);
+          birdDummy.rotation.set(bd.state === 'fly' ? 0.15 : 0, bd.yaw, bd.state === 'fly' ? Math.sin(bd.flap) * 0.12 : 0);
+          birdDummy.scale.set(0.9, 0.9, 0.9);
+          birdDummy.updateMatrix();
+          birdMesh.setMatrixAt(i, birdDummy.matrix);
+        });
+        birdMesh.instanceMatrix.needsUpdate = true;
+      }
     },
     dispose() {
       group.traverse((o) => { if (o.isInstancedMesh) o.dispose(); });
       Object.values(geos).forEach((g) => g.dispose()); mats.forEach((m) => m.dispose()); cloudMat.dispose(); puff.dispose();
+      if (bflyMesh) { bflyMesh.dispose(); bflyGeo.dispose(); bflyMat.dispose(); scene.remove(bflyMesh); }
+      if (birdMesh) { birdMesh.dispose(); birdGeo.dispose(); birdMat.dispose(); scene.remove(birdMesh); }
       scene.remove(group); scene.remove(clouds);
     },
   };

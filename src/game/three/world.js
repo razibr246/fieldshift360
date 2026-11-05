@@ -172,8 +172,9 @@ const SKYTINT = { hazy: ['#c9c2a6', 0.35], dusty: ['#d8c39a', 0.3], hot: ['#f2e2
 export function createWorld(scene, g, { light = false } = {}) {
   const L = g.L;
   const root = new THREE.Group(); scene.add(root);
-  root.add(terrain(L));
-  const nature = createNature(scene, L, { light }); // grass, wildflowers, the neighbours' crops, clouds
+  const groundMesh = terrain(L);
+  root.add(groundMesh);
+  const nature = createNature(scene, L, { light }); // grass, wildflowers, the neighbours' crops, clouds, butterflies & birds
   const water = waters(L); water.forEach((w) => root.add(w));
   const skyM = sky(); scene.add(skyM);
   const props = new THREE.Group();
@@ -263,7 +264,12 @@ export function createWorld(scene, g, { light = false } = {}) {
       flash = Math.max(0, flash - dt); if (flash > 0) { hemiI += flash * 6; cTop.lerp(C('#ffffff'), flash); }
       const day = phase < 0.75;
       const wet0 = ev.storm > 0, wind0 = wet0 ? 2.4 : ev.zone ? 1.5 : 0.8;
-      nature.update(t, dt, wind0, cMid, storm, day);
+      nature.update(t, dt, wind0, cMid, storm, day, focus);
+
+      // Dynamic wet ground sheen during rain, showers and rising water
+      const wetSheen = ev.storm > 0 ? 0.85 : ev.shower > 0 ? 0.5 : ev.flood > 0.05 ? 0.65 : 0;
+      groundMesh.material.roughness = THREE.MathUtils.lerp(groundMesh.material.roughness, 1.0 - wetSheen * 0.72, Math.min(1, dt * 4));
+      groundMesh.material.metalness = THREE.MathUtils.lerp(groundMesh.material.metalness, wetSheen * 0.35, Math.min(1, dt * 4));
       const ang = day ? (phase / 0.75) * Math.PI : ((phase - 0.75) / 0.25) * Math.PI;
       const dir = new THREE.Vector3(Math.cos(ang) * 0.8, Math.max(0.12, Math.sin(ang)), -0.45).normalize();
       skyM.material.uniforms.top.value.copy(cTop); skyM.material.uniforms.mid.value.copy(cMid); skyM.material.uniforms.low.value.copy(cLow);

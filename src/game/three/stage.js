@@ -450,6 +450,12 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       P.root.rotation.x += (me.slopeZ * 0.45 - P.root.rotation.x) * Math.min(1, dt * 8);
       P.root.rotation.z += (-me.slopeX * 0.45 - P.root.rotation.z) * Math.min(1, dt * 8);
     }
+    let nearestNpc = null, minNpcD = 4.2;
+    const npcs = life.dots?.() ?? [];
+    for (const [nx, nz] of npcs) {
+      const d = Math.hypot(nx - me.x, nz - me.z);
+      if (d < minNpcD) { minNpcD = d; nearestNpc = { x: nx, y: L.ground(nx, nz) + 1.35, z: nz }; }
+    }
     animate(P, {
       speed: me.speed,
       run: me.run,
@@ -459,6 +465,7 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       carrying: Object.values(g.basket).reduce((a, b) => a + b, 0) > 0,
       bank: me.bank ?? 0,
       turnRate: me.turnRate ?? 0,
+      lookTarget: nearestNpc,
     }, dt);
     if (me.speed > 0.6 && !me.act && me.down <= 0) {
       stepT -= dt;

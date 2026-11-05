@@ -1,11 +1,19 @@
 // The village around the farm (from places.js): neighbours in the clothes of the place going about their day —
 // walking the paths, bent over their own plots, waiting at the market — who greet the farmer as they pass and hurry
 // to the safe ground when the storm comes; and signboards on the shop, the market, the kiosk and the shelter,
-// written in the local script.
+// written in the local script. Human intelligence, needs, memory, and reciprocal social interactions are powered
+// by npcMind.js.
 import * as THREE from 'three';
 import { buildFarmer, animate, canvasTex, mat } from './people';
 import { resolve, inWater } from '../layout';
 import { spot } from '../places';
+import {
+  createNpcMind,
+  updateNpcNeeds,
+  recordPlayerInteraction,
+  generateContextualDialogue,
+} from '../npcMind';
+import { dayPhase } from '../sim';
 
 const FONT = '"Hind Siliguri", "Noto Sans Bengali", "Noto Sans Gurmukhi", "Noto Naskh Arabic", "Noto Sans Devanagari", "Noto Sans Myanmar", system-ui, sans-serif';
 const segDist = (px, pz, [ax, az], [bx, bz]) => {
@@ -61,7 +69,31 @@ export function createLife(scene, g, overlay, lang = 'bn') {
     scene.add(P.root);
     const at = f.at && spot(g.S, f.at), route = f.route?.map((p) => spot(g.S, p));
     const [x, z] = at ?? route[0];
-    return { f, at, route, P, x, z, yaw: Math.atan2(-x, -z), seg: 1, dir: 1, wait: 1 + i * 1.3, act: null, next: 1 + Math.random() * 3, cool: 3 + i * 2, hold: 0, away: false, speed: 0, run: false, label: el('g3-label g3-npc'), bubble: el('g3-bubble g3-npc'), bubT: 0 };
+    return {
+      f,
+      at,
+      route,
+      P,
+      x,
+      z,
+      yaw: Math.atan2(-x, -z),
+      seg: 1,
+      dir: 1,
+      wait: 1 + i * 1.3,
+      act: null,
+      next: 1 + Math.random() * 3,
+      cool: 3 + i * 2,
+      hold: 0,
+      away: false,
+      speed: 0,
+      run: false,
+      label: el('g3-label g3-npc'),
+      bubble: el('g3-bubble g3-npc'),
+      bubT: 0,
+      mind: createNpcMind(f),
+      lookTarget: null,
+      npcChatCool: 4 + i * 3,
+    };
   });
   const setNames = () => { for (const n of folk) n.label.textContent = T(n.f.name); };
   setNames();
@@ -98,7 +130,9 @@ export function createLife(scene, g, overlay, lang = 'bn') {
         // the farmer is thrown back a step and loses the run; the villager rocks back
         [me.x, me.z] = resolve(L, me.x - ux * 0.45, me.z - uz * 0.45); me.vx = me.vz = 0;
         [n.x, n.z] = resolve(L, n.x + ux * 0.25, n.z + uz * 0.25, 0.3);
-        n.bubT = 2.4; n.bubble.textContent = T(OUCH[Math.floor(Math.random() * OUCH.length)]); n.bubble.style.display = ''; n.bubble.classList.remove('g3-pop'); void n.bubble.offsetWidth; n.bubble.classList.add('g3-pop');
+        n.mind = recordPlayerInteraction(n.mind, 'bump', g.t ?? 0);
+        const bumpSay = generateContextualDialogue(n.mind, dayPhase ? dayPhase(g) : 0.3, g.ev, OUCH[Math.floor(Math.random() * OUCH.length)]);
+        n.bubT = 2.4; n.bubble.textContent = T(bumpSay); n.bubble.style.display = ''; n.bubble.classList.remove('g3-pop'); void n.bubble.offsetWidth; n.bubble.classList.add('g3-pop');
         g.out.push({ type: 'sound', s: 'bump' });
       }
     }
@@ -112,10 +146,46 @@ export function createLife(scene, g, overlay, lang = 'bn') {
 
   function update(t, dt, project, camPos) {
     const me = g.me, storm = !!(g.ev.zone && (g.ev.zone.left > 0 || g.ev.storm > 0));
+    const ph = dayPhase ? dayPhase(g) : ((t * 0.02) % 1);
     if (dt > 0) bodies(dt);
     folk.forEach((n, i) => {
-      n.cool -= dt; n.hold -= dt; n.speed = 0;
+      n.cool -= dt; n.hold -= dt; n.npcChatCool -= dt; n.speed = 0;
       const dMe = Math.hypot(me.x - n.x, me.z - n.z);
+
+      // Living AI needs and circadian updates
+      n.mind = updateNpcNeeds(n.mind, dt, {
+        isMoving: n.speed > 0.1,
+        isWorking: !!n.act,
+        isSocializing: n.hold > 0 || n.bubT > 0,
+        weather: g.ev,
+      });
+
+      // Find nearest neighboring villager for situational awareness & gaze
+      let nearNeighbor = null, nearDist = 999;
+      for (let j = 0; j < folk.length; j++) {
+        if (i === j) continue;
+        const dN = Math.hypot(folk[j].x - n.x, folk[j].z - n.z);
+        if (dN < nearDist) { nearDist = dN; nearNeighbor = folk[j]; }
+      }
+
+      // Natural Look-at IK targeting: prioritize looking at approaching player or nearby neighbour
+      if (dMe < 5.5) {
+        n.lookTarget = { x: me.x, y: L.ground(me.x, me.z) + 1.4, z: me.z };
+      } else if (nearNeighbor && nearDist < 4.0) {
+        n.lookTarget = { x: nearNeighbor.x, y: L.ground(nearNeighbor.x, nearNeighbor.z) + 1.35, z: nearNeighbor.z };
+      } else {
+        n.lookTarget = null;
+      }
+
+      // NPC-to-NPC natural social greeting when crossing paths
+      if (nearNeighbor && nearDist < 2.0 && n.npcChatCool <= 0 && nearNeighbor.npcChatCool <= 0 && !storm && !n.act) {
+        n.npcChatCool = 25 + Math.random() * 15;
+        nearNeighbor.npcChatCool = 25 + Math.random() * 15;
+        n.act = { type: 'adjust', p: 0, dur: 1.4 };
+        nearNeighbor.act = { type: 'wipe', p: 0, dur: 1.4 };
+        n.mind = updateNpcNeeds(n.mind, dt, { isSocializing: true });
+      }
+
       if (storm) {
         // to the safe ground, each to their own spot inside the circle
         const z = g.ev.zone, a = i * 2.1 + 0.6;
@@ -140,16 +210,25 @@ export function createLife(scene, g, overlay, lang = 'bn') {
         if (!n.act && n.next <= 0) { n.act = { type: n.f.does === 'work' ? (Math.random() < 0.6 ? 'plant' : 'harvest') : Math.random() < 0.5 ? 'wipe' : 'adjust', p: 0, dur: n.f.does === 'work' ? 1.8 : 2.2 }; }
         if (n.act) { n.act.p += dt; if (n.act.p >= n.act.dur) { n.act = null; n.next = n.f.does === 'work' ? 0.6 + Math.random() * 1.6 : 4 + Math.random() * 6; } }
       }
-      // a greeting when the farmer comes close
+      // a greeting when the farmer comes close with context-aware dialogue
       if (!storm && dMe < 3.2 && n.cool <= 0 && !g.won) {
-        n.cool = 40; n.hold = 2.6; n.act = null; n.bubT = 4.2;
-        n.bubble.textContent = T(n.f.hello); n.bubble.style.display = ''; n.bubble.classList.remove('g3-pop'); void n.bubble.offsetWidth; n.bubble.classList.add('g3-pop');
+        n.cool = 36; n.hold = 2.6; n.act = null; n.bubT = 4.2;
+        n.mind = recordPlayerInteraction(n.mind, 'talk', t);
+        const dlg = generateContextualDialogue(n.mind, ph, g.ev, n.f.hello);
+        n.bubble.textContent = T(dlg); n.bubble.style.display = ''; n.bubble.classList.remove('g3-pop'); void n.bubble.offsetWidth; n.bubble.classList.add('g3-pop');
       }
       const gy = L.ground(n.x, n.z);
       n.P.root.position.set(n.x, gy, n.z); n.P.root.rotation.y = n.yaw;
       n.P.root.rotation.x = n.stag > 0 ? -Math.sin((n.stag / 0.6) * Math.PI) * 0.22 : 0; // knocked back a step
       n.P.root.visible = Math.hypot(camPos.x - n.x, camPos.z - n.z) < 70;
-      animate(n.P, { speed: n.speed, run: n.run, act: n.hold > 0 ? null : n.act, t: t + i * 7, down: 0 }, dt);
+      animate(n.P, {
+        speed: n.speed,
+        run: n.run,
+        act: n.hold > 0 ? null : n.act,
+        t: t + i * 7,
+        down: 0,
+        lookTarget: n.lookTarget,
+      }, dt);
       // name when near, words when speaking
       const showName = dMe < 7 && n.bubT <= 0;
       if (showName || n.bubT > 0) {

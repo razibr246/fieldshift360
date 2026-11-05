@@ -737,12 +737,26 @@ function personMat(m) {
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
-// Pose for this frame. st: { speed, run, act: {type,p,dur} | null, down, t, carrying, bank, turnRate }
+// Pose for this frame. st: { speed, run, act: {type,p,dur} | null, down, t, carrying, bank, turnRate, lookTarget }
 export function animate(P, st, dt) {
   const { hips, torso, head, legs, arms, tools } = P;
-  const speed = st.speed ?? 0;
+  const rawSpeed = st.speed ?? 0;
+  P.smoothSpeed = lerp(P.smoothSpeed ?? rawSpeed, rawSpeed, Math.min(1, dt * 9));
+  const speed = P.smoothSpeed;
   const a = Math.min(1, speed / 3.2);
-  P.phase += dt * (st.run ? 7.6 + speed * 0.55 : 4.2 + speed * 1.35);
+
+  // Advance gait phase in direct proportion to real movement speed
+  // When coming to a stop, smoothly settle phase toward natural double-support ground contact
+  if (a > 0.03) {
+    const rate = st.run ? 7.6 + speed * 0.6 : 4.4 + speed * 1.2;
+    P.phase = ((P.phase ?? 0) + dt * rate) % (Math.PI * 2);
+  } else if (P.phase !== undefined) {
+    const targetPh = Math.round(P.phase / Math.PI) * Math.PI;
+    P.phase = lerp(P.phase, targetPh, Math.min(1, dt * 7));
+  } else {
+    P.phase = 0;
+  }
+
   const ph = P.phase, s = Math.sin(ph);
   const sk = P.skirt;
 
@@ -754,7 +768,13 @@ export function animate(P, st, dt) {
   let lean = (st.run ? 0.28 : 0.07) * a;
   const bank = (st.bank ?? 0) * a;
 
-  // Stride amplitude & leg poses
+  // Dynamic deceleration settle & elastic inertia when braking
+  const accel = (rawSpeed - (P.prevSpeed ?? rawSpeed)) / Math.max(0.001, dt);
+  P.prevSpeed = rawSpeed;
+  const decelSettle = Math.max(-0.12, Math.min(0.12, -accel * 0.007));
+  lean += decelSettle;
+
+  // Stride amplitude & leg poses with proportional speed matching
   const stride = (st.run ? 0.88 : 0.58) * a * sk;
   const L = [s * stride, -s * stride];
 
@@ -788,16 +808,43 @@ export function animate(P, st, dt) {
   for (const t of Object.values(tools)) t.visible = false;
   if (st.carrying) tools.sack.visible = true;
 
-  // Breathing and idle micro-movements
+  // Authentic human idle weight-shifting (stance shift) and breathing
+  let idleHipX = 0, idleHipRoll = 0, idleKneeRelax = [0, 0];
   if (a < 0.05 && !st.act) {
     const breathe = Math.sin(st.t * 2.2);
     torso.scale.set(1 + breathe * 0.012, 1 + breathe * 0.018, 1 + breathe * 0.014);
+
+    // Natural weight shift every 7 seconds: pelvis shifts over stance leg, free knee relaxes slightly
+    const shiftCycle = (st.t ?? 0) * 0.22;
+    const shiftSide = Math.sin(shiftCycle);
+    const shiftWeight = (P.reducedMotion ? 0 : 1) * Math.sin(shiftCycle * 2) * 0.024;
+    idleHipX = shiftWeight;
+    idleHipRoll = (shiftSide > 0 ? 0.03 : -0.03) * Math.abs(shiftWeight / 0.024);
+    idleKneeRelax = shiftSide > 0 ? [0, 0.06] : [0.06, 0];
+
     const gaze = idleGaze(st.t, P.reducedMotion);
     headY = gaze.y;
     headX = gaze.x;
   } else {
     const exertion = 1 + (st.run ? 0.025 : 0.012) * Math.sin(st.t * 6);
     torso.scale.set(exertion, 1, exertion);
+  }
+
+  // Procedural Head Look-at IK targeting toward people or points of interest
+  if (st.lookTarget && !P.reducedMotion) {
+    const tx = st.lookTarget.x ?? st.lookTarget[0] ?? 0;
+    const ty = st.lookTarget.y ?? st.lookTarget[1] ?? 1.4;
+    const tz = st.lookTarget.z ?? st.lookTarget[2] ?? 0;
+    const px = P.root.position.x, py = P.root.position.y + 1.4, pz = P.root.position.z;
+    const dx = tx - px, dy = ty - py, dz = tz - pz, dist = Math.hypot(dx, dz) || 1;
+    const targetHeading = Math.atan2(dx, dz) - P.root.rotation.y;
+    const normH = Math.atan2(Math.sin(targetHeading), Math.cos(targetHeading));
+    const targetPitch = -Math.atan2(dy, dist);
+    // Respect biomechanical cervical limits: yaw +/- 60 deg, pitch +/- 25 deg
+    const clampH = Math.max(-1.05, Math.min(1.05, normH));
+    const clampP = Math.max(-0.45, Math.min(0.45, targetPitch));
+    headY = clampH * 0.85;
+    headX = clampP * 0.75;
   }
 
   // 3D Biological Blinking & Expressive Gestures
@@ -864,6 +911,7 @@ export function animate(P, st, dt) {
   lean += (P.ageStoop ?? 0);
   const k = Math.min(1, dt * 14);
   hips.position.y = lerp(hips.position.y, hipY, k);
+  hips.position.x = lerp(hips.position.x, idle ? idleHipX : 0, k);
   P.body.position.y = lerp(P.body.position.y, bodyY, k);
   torso.rotation.x = lerp(torso.rotation.x, lean, k);
   head.rotation.x = lerp(head.rotation.x, headX - lean * 0.5, k);
@@ -872,7 +920,7 @@ export function animate(P, st, dt) {
   // The walk & run: pelvic list and yaw, thoracic counter-rotation, dynamic turn banking
   const still = a < 0.05 && !act;
   const hipYaw = act ? 0 : s * (st.run ? 0.14 : 0.09) * a;
-  const hipRoll = act ? 0 : still ? Math.sin(st.t * 0.5) * 0.025 : Math.cos(ph) * (st.run ? 0.065 : 0.045) * a;
+  const hipRoll = act ? 0 : still ? idleHipRoll : Math.cos(ph) * (st.run ? 0.065 : 0.045) * a;
 
   hips.rotation.y = lerp(hips.rotation.y, hipYaw, k);
   hips.rotation.z = lerp(hips.rotation.z, hipRoll + bank * 0.65, k);
@@ -881,7 +929,7 @@ export function animate(P, st, dt) {
 
   for (let i = 0; i < 2; i++) {
     legs[i].thigh.rotation.x = lerp(legs[i].thigh.rotation.x, -L[i], k);
-    legs[i].knee.rotation.x = lerp(legs[i].knee.rotation.x, K[i], k);
+    legs[i].knee.rotation.x = lerp(legs[i].knee.rotation.x, K[i] + (idle ? idleKneeRelax[i] : 0), k);
     legs[i].foot.rotation.x = lerp(legs[i].foot.rotation.x, footRoll[i], k);
     arms[i].shoulder.rotation.x = lerp(arms[i].shoulder.rotation.x, A[i], k);
     arms[i].shoulder.rotation.z = lerp(arms[i].shoulder.rotation.z, az[i], k);
