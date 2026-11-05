@@ -20,6 +20,8 @@ import { reviewOf } from '../../data/reviews';
 import deltas from '../../data/climate/cmip6_deltas.json';
 import DataCoverage from '../../components/explain/DataCoverage';
 import TrendMap from '../../components/map/TrendMap';
+import SatelliteInspector from '../../components/science/SatelliteInspector';
+import ChallengeDossier from '../../components/science/ChallengeDossier';
 
 const t = (bn, en) => ({ bn, en });
 const TERMS = [
@@ -170,6 +172,8 @@ export default function Science() {
         </div>
       </section>
 
+      <SatelliteInspector />
+
       <section className="mt-12 grid gap-5 lg:grid-cols-2">
         <div className="glass flat rounded-[24px] p-6">
           <h2 className="flex items-center gap-2 text-[22px] font-bold"><Satellite size={20} className="text-sky-700" />{T('উপগ্রহ বনাম মাটির মাপ', 'Satellite versus ground')}</h2>
@@ -228,6 +232,8 @@ export default function Science() {
       <MethodsCompare />
 
       <MachineLearning />
+
+      <ChallengeDossier />
 
       <section id="rules" className="mt-12 scroll-mt-28">
         <h2 className="flex items-center gap-2 text-[24px] font-bold"><ClipboardCheck size={20} className="text-primary-700" />{T('ফসলের নিয়ম আর তাদের যাচাই', 'The crop rules and who has checked them')}</h2>
