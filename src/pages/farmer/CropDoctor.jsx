@@ -578,22 +578,49 @@ export default function CropDoctor() {
 
                 {rep.findings.length > 0 && (
                   <div className="mt-5 space-y-3.5">
-                    <h3 className="text-[14px] font-bold text-muted">{T(st.offlineFallback ? 'লেখা লক্ষণের সঙ্গে কোন নাম মেলে' : 'কী হতে পারে, আর কতটা নিশ্চিত', st.offlineFallback ? 'Which label matches the text' : 'What it could be, and how sure')}</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[14px] font-bold tracking-tight text-ink">
+                        {T(st.offlineFallback ? 'লেখা লক্ষণের সঙ্গে কোন নাম মেলে' : 'কী হতে পারে, আর কতটা নিশ্চিত', st.offlineFallback ? 'Which label matches the text' : 'Likely issues & confidence')}
+                      </h3>
+                      <span className="text-[12px] font-semibold text-muted">
+                        {T(`${num(rep.findings.length, lang)}টি সম্ভাব্য কারণ`, `${rep.findings.length} findings`)}
+                      </span>
+                    </div>
                     {rep.findings.map((f, i) => {
                       const pct = f.likelihood == null ? null : Math.round(f.likelihood * 100);
                       const barGrad = pct >= 80 ? 'bg-gradient-to-r from-emerald-500 to-primary-600' : pct >= 50 ? 'bg-gradient-to-r from-violet-500 to-purple-600' : 'bg-gradient-to-r from-amber-400 to-orange-500';
+                      const badgeBg = pct >= 80 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : pct >= 50 ? 'bg-violet-50 text-violet-800 border-violet-200' : 'bg-amber-50 text-amber-800 border-amber-200';
                       return (
-                        <div key={`${f.key}-${i}`} className="surface-card rounded-xl border border-border/80 bg-white/80 p-3.5 shadow-2xs transition-all duration-200 hover:border-primary-300 hover:shadow-sm">
-                          <div className="flex justify-between gap-3 text-[14.5px]">
-                            <span className={i === 0 ? 'font-bold text-ink' : 'font-medium text-ink/80'}>{lang === 'bn' ? f.name_bn : f.name_en}</span>
-                            {pct == null
-                              ? <b className="text-[12px] font-semibold text-muted">{T('শুধু লেখা মেলেছে', 'Text match only')}</b>
-                              : <b className="font-display tabular text-primary-950 font-bold">{num(pct, lang)}%</b>}
+                        <div key={`${f.key}-${i}`} className="surface-card group relative overflow-hidden rounded-2xl border border-border/80 bg-white/90 p-4 shadow-2xs transition-all duration-300 hover:-translate-y-0.5 hover:border-primary-400 hover:shadow-md">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${badgeBg}`}>
+                                  {i === 0 ? T('শীর্ষ মিল', 'Top Match') : `#${num(i + 1, lang)}`}
+                                </span>
+                                <h4 className={`text-[15.5px] leading-snug ${i === 0 ? 'font-bold text-ink' : 'font-semibold text-ink/90'}`}>
+                                  {lang === 'bn' ? f.name_bn : f.name_en}
+                                </h4>
+                              </div>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              {pct == null ? (
+                                <span className="rounded-md bg-canvas px-2 py-0.5 text-[11.5px] font-semibold text-muted">
+                                  {T('শুধু লেখা মেলেছে', 'Text match only')}
+                                </span>
+                              ) : (
+                                <span className="font-display tabular text-[17px] font-bold text-primary-950">
+                                  {num(pct, lang)}%
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          {pct != null && <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/[.06] shadow-inner">
-                            <div className={`progress-sheen h-full rounded-full transition-all duration-700 ease-[var(--ease-spring)] ${barGrad}`} style={{ width: `${pct}%` }} />
-                          </div>}
-                          <p className="mt-2 text-[13px] leading-5 text-muted">{f.evidence}</p>
+                          {pct != null && (
+                            <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-black/[.06] shadow-inner">
+                              <div className={`progress-sheen h-full rounded-full transition-all duration-700 ease-[var(--ease-spring)] ${barGrad}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          )}
+                          <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted">{f.evidence}</p>
                         </div>
                       );
                     })}
