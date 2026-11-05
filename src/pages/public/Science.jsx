@@ -21,6 +21,7 @@ import deltas from '../../data/climate/cmip6_deltas.json';
 import DataCoverage from '../../components/explain/DataCoverage';
 import TrendMap from '../../components/map/TrendMap';
 import SatelliteInspector from '../../components/science/SatelliteInspector';
+import EarthdataSTAC from '../../components/science/EarthdataSTAC';
 import ChallengeDossier from '../../components/science/ChallengeDossier';
 
 const t = (bn, en) => ({ bn, en });
@@ -173,6 +174,8 @@ export default function Science() {
       </section>
 
       <SatelliteInspector />
+
+      <EarthdataSTAC />
 
       <section className="mt-12 grid gap-5 lg:grid-cols-2">
         <div className="glass flat rounded-[24px] p-6">

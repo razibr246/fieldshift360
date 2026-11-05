@@ -2,7 +2,7 @@
 // to keep the comparison or talk it over: save it on this phone, share it with family, or send it to the officer.
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Footprints, CheckSquare, Square, Share2, Save, UserRoundCheck, Copy, CalendarClock, Compass, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Footprints, CheckSquare, Square, Share2, Save, UserRoundCheck, Copy, CalendarClock, Compass, ShieldCheck, ChevronDown, ChevronUp, Printer, X, Award } from 'lucide-react';
 import { useStore } from '../../store';
 import { Card, Button } from '../ui';
 import { beforeYouAct, seasonColumns, compareText, margin } from '../../engine/explain';
@@ -65,6 +65,7 @@ export default function ActCard() {
   const checks = beforeYouAct({ rec, soilScope: soil.scope, soilTested: soil.tested?.date, risks, irrigation: farmer.irrigation, glutLevel: rec.glut.level });
   const [done, setDone] = useState({});
   const [showSop, setShowSop] = useState(false);
+  const [showPrintSheet, setShowPrintSheet] = useState(false);
   const field = activeParcel ? L(activeParcel.name) : T('আমার জমি', 'My field');
   const text = compareText({ cols: seasonColumns(d, farmer.last_crop), lang, field, firm: margin(d.options).close ? 'close' : 'fair' });
   const saved = (s.savedCompares ?? []).filter((x) => x.farmerId === farmer.id);
@@ -149,9 +150,100 @@ export default function ActCard() {
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button onClick={() => nav('/farmer/help', { state: { ask: text } })}><UserRoundCheck size={16} />{T('কর্মকর্তার সঙ্গে আলোচনা', 'Discuss with my officer')}</Button>
+        <Button variant="secondary" onClick={() => setShowPrintSheet(true)}><Printer size={16} />{T('অফিসিয়াল পরামর্শপত্র', 'Official Advisory')}</Button>
         <Button variant="secondary" onClick={share}>{navigator.share ? <Share2 size={16} /> : <Copy size={16} />}{T('পরিবারকে পাঠান', 'Share with family')}</Button>
         <Button variant="secondary" onClick={save}><Save size={16} />{T('তুলনা রাখুন', 'Save comparison')}</Button>
       </div>
+
+      {/* Printable Official DAE & NASA Space Apps Field Advisory Sheet */}
+      {showPrintSheet && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl border border-border">
+            <div className="flex items-center justify-between border-b border-border/70 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-100 text-primary-800">
+                  <Award size={20} />
+                </span>
+                <div>
+                  <h3 className="text-[17px] font-bold text-ink">
+                    {T('কৃষি সম্প্রসারণ অধিদপ্তর ও নাসা স্পেস অ্যাপস মাঠ পরামর্শপত্র', 'DAE & NASA Space Apps Official Field Advisory')}
+                  </h3>
+                  <p className="text-[12px] text-muted">{T('মাঠে সংরক্ষণের জন্য অফিসিয়াল সিদ্ধান্ত পত্র', 'Official decision document for field execution')}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrintSheet(false)}
+                className="grid h-8 w-8 place-items-center rounded-full bg-canvas text-muted hover:text-ink transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4 text-[13.5px] leading-6 text-ink/90">
+              {/* Official Stamp Banner */}
+              <div className="rounded-2xl border border-primary-200 bg-primary-50/70 p-3.5 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-primary-950">{T('গণপ্রজাতন্ত্রী বাংলাদেশ সরকার · কৃষি সম্প্রসারণ অধিদপ্তর (DAE)', 'Govt. of Bangladesh · Department of Agricultural Extension')}</div>
+                  <div className="text-[12px] text-primary-800/80">{T('প্রকল্প: ফিল্ডশিফ্ট ৩৬০ · নাসা আর্থ অবজারভেশন ডিসিশন সাপোর্ট সিস্টেম', 'FieldShift 360 · NASA Earth Observation Decision Support')}</div>
+                </div>
+                <span className="rounded-lg bg-primary-700 px-2.5 py-1 text-[11px] font-bold text-white uppercase tracking-wider">
+                  VERIFIED
+                </span>
+              </div>
+
+              {/* Field Identity Info */}
+              <div className="grid grid-cols-2 gap-3 rounded-2xl bg-canvas p-3.5 border border-border/60 text-[13px]">
+                <div><b>{T('কৃষকের নাম:', 'Farmer Name:')}</b> {farmer.nameBn} ({farmer.name})</div>
+                <div><b>{T('জমি ও এলাকা:', 'Field & Parcel:')}</b> {field}, {farmer.area_dec} {T('শতক', 'dec')}</div>
+                <div><b>{T('উপজেলা ও গ্রাম:', 'Location:')}</b> {farmer.villageBn}, {L(upazila.name)}</div>
+                <div><b>{T('মাটির অম্লতা (pH):', 'Soil pH / OM%:')}</b> pH {num(soil.ph, lang, { dp: 1 })}, OM {num(soil.om_pct, lang, { dp: 1 })}%</div>
+              </div>
+
+              {/* Seasonal Recommendation */}
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+                <div className="text-[12px] font-bold uppercase tracking-wider text-emerald-800">{T('অনুমোদিত রবি ফসল ও বোনার সময়:', 'Prescribed Seasonal Decision:')}</div>
+                <div className="mt-1 text-[18px] font-bold text-emerald-950">
+                  {L(rec.crop.name)} — {fmtRange(rec.t0 - 7 * DAY, rec.t0 + 7 * DAY, lang)}
+                </div>
+                <div className="text-[12.5px] text-emerald-900/80 mt-1">
+                  {T(`ফসল তোলার সম্ভাব্য তারিখ: ${fmtRange(rec.hw.start, rec.hw.end, lang)}। সেচের পানি: প্রায় ${num(rec.water?.m3PerBigha || 0, lang)} ঘনমিটার/বিঘা।`, `Harvest window: ${fmtRange(rec.hw.start, rec.hw.end, lang)}. Water requirement: ~${rec.water?.m3PerBigha || 0} m³/bigha.`)}
+                </div>
+              </div>
+
+              {/* 5-Phase SOP Summary */}
+              <div>
+                <h4 className="font-bold text-ink mb-1.5">{T('মাঠের ৫ ধাপের করণীয় সূচি (SOP):', '5-Phase Field Execution Milestones:')}</h4>
+                <ol className="space-y-1.5 text-[12.5px]">
+                  {SOP_PHASES.map((p, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="font-bold text-primary-800 shrink-0">• {T(p.phaseBn, p.phaseEn)}:</span>
+                      <span className="text-ink/80">{T(p.actionBn, p.actionEn)}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Signature Blocks */}
+              <div className="mt-6 pt-4 border-t border-border grid grid-cols-2 gap-8 text-center text-[12px] text-muted">
+                <div>
+                  <div className="h-10 border-b border-dashed border-border" />
+                  <div className="mt-1 font-semibold">{T('কৃষকের স্বাক্ষর / সম্মতি', 'Farmer Acceptance')}</div>
+                </div>
+                <div>
+                  <div className="h-10 border-b border-dashed border-border" />
+                  <div className="mt-1 font-semibold">{T('উপসহকারী কৃষি কর্মকর্তা (SAAO) স্বাক্ষর', 'SAAO Officer Verification & Seal')}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-border/70 pt-4">
+              <Button variant="secondary" onClick={() => setShowPrintSheet(false)}>{T('বন্ধ করুন', 'Close')}</Button>
+              <Button onClick={() => window.print()}><Printer size={15} />{T('প্রিন্ট বা PDF হিসেবে সংরক্ষণ', 'Print or Save PDF')}</Button>
+            </div>
+          </div>
+        </div>
+      )}
       {saved.length > 0 && (
         <details className="mt-3 text-[13px]">
           <summary className="cursor-pointer font-semibold text-primary-800">{T(`রাখা তুলনা (${num(saved.length, 'bn')}টি)`, `Saved comparisons (${saved.length})`)}</summary>

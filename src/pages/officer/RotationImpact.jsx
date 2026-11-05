@@ -114,7 +114,38 @@ export default function RotationImpact() {
       </div>
 
       {g?.trend && g.trend.perDecade < 0 && (
-        <Note tone="gold" className="mt-4"><span className="inline-flex items-start gap-1.5"><Waves size={16} className="mt-1 shrink-0" />{T(`GRACE উপগ্রহে এ অঞ্চলের মাটির ওপরে-নিচে জমা পানি কমছে দশকে প্রায় ${num(Math.abs(g.trend.perDecade), 'bn', { dp: 1 })} সেমি, অর্থাৎ বছরে প্রায় ${num(Math.abs(g.trend.perDecade), 'bn', { dp: 1 })} মিমি। ${num(adopt, 'bn')}% বোরো চাষি বদলালে সেচে যা বাঁচে, তা উপজেলার ফসলি জমিতে বছরে প্রায় ${num(mmOverLand, 'bn', { dp: 0 })} মিমি। GRACE-এর হিসাব ৩০০ কিমির অঞ্চলের, তাই এটা মোটা দাগের তুলনা, সমান হিসাব নয়।`, `GRACE shows the water stored on and under this region falling about ${num(Math.abs(g.trend.perDecade), 'en', { dp: 1 })} cm a decade, about ${num(Math.abs(g.trend.perDecade), 'en', { dp: 1 })} mm a year. If ${adopt}% of Boro farmers switch, the irrigation saved comes to about ${num(mmOverLand, 'en', { dp: 0 })} mm a year over the upazila's cropland. GRACE covers a 300 km region, so this is a rough comparison, not a balance.`)}</span></Note>
+        <>
+          <Note tone="gold" className="mt-4"><span className="inline-flex items-start gap-1.5"><Waves size={16} className="mt-1 shrink-0" />{T(`GRACE উপগ্রহে এ অঞ্চলের মাটির ওপরে-নিচে জমা পানি কমছে দশকে প্রায় ${num(Math.abs(g.trend.perDecade), 'bn', { dp: 1 })} সেমি, অর্থাৎ বছরে প্রায় ${num(Math.abs(g.trend.perDecade), 'bn', { dp: 1 })} মিমি। ${num(adopt, 'bn')}% বোরো চাষি বদলালে সেচে যা বাঁচে, তা উপজেলার ফসলি জমিতে বছরে প্রায় ${num(mmOverLand, 'bn', { dp: 0 })} মিমি। GRACE-এর হিসাব ৩০০ কিমির অঞ্চলের, তাই এটা মোটা দাগের তুলনা, সমান হিসাব নয়।`, `GRACE shows the water stored on and under this region falling about ${num(Math.abs(g.trend.perDecade), 'en', { dp: 1 })} cm a decade, about ${num(Math.abs(g.trend.perDecade), 'en', { dp: 1 })} mm a year. If ${adopt}% of Boro farmers switch, the irrigation saved comes to about ${num(mmOverLand, 'en', { dp: 0 })} mm a year over the upazila's cropland. GRACE covers a 300 km region, so this is a rough comparison, not a balance.`)}</span></Note>
+
+          {/* Aquifer Recovery & Stability Projection Gauge */}
+          <div className="mt-3 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[13px] font-bold text-sky-950 flex items-center gap-1.5">
+                <Waves size={16} className="text-sky-700" />
+                {T('ভূগর্ভস্থ পানির রিচার্জ ও স্থিতিশীলতা প্রক্ষেপণ', 'Regional Aquifer Deficit Recovery Projection')}
+              </span>
+              <span className={`rounded-full px-2.5 py-0.5 text-[11.5px] font-bold ${
+                mmOverLand >= Math.abs(g.trend.perDecade)
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-amber-100 text-amber-900'
+              }`}>
+                {mmOverLand >= Math.abs(g.trend.perDecade)
+                  ? T('পতন সম্পূর্ণ রোধ সম্ভব (Stabilized)', 'Deficit Fully Offset')
+                  : T(`পতন ${num(Math.round((mmOverLand / Math.abs(g.trend.perDecade)) * 100), lang)}% হ্রাস`, `${Math.round((mmOverLand / Math.abs(g.trend.perDecade)) * 100)}% Deficit Offset`)}
+              </span>
+            </div>
+            <div className="mt-2.5 h-3 w-full rounded-full bg-sky-200/80 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-sky-600 transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((mmOverLand / Math.abs(g.trend.perDecade)) * 100))}%` }}
+              />
+            </div>
+            <div className="mt-2 flex justify-between text-[11.5px] text-sky-900/80">
+              <span>{T('বর্তমান পতন: বছরে প্রায় ', 'Current Depletion: ~')}{num(Math.abs(g.trend.perDecade), lang, { dp: 1 })} {T('মিমি', 'mm/yr')}</span>
+              <span>{T('সেচ সাশ্রয়: বছরে প্রায় ', 'Adoption Offset: ~')}{num(mmOverLand, lang, { dp: 1 })} {T('মিমি', 'mm/yr')}</span>
+            </div>
+          </div>
+        </>
       )}
       <p className="mt-3 text-[12.5px] leading-5 text-muted">{T(`প্রতি হেক্টরে: সেচ ${num((f.habit.sNow.waterMm - f.best.sNow.waterMm) * 10, 'bn')} ঘনমিটার কম, নিট গ্রিনহাউস গ্যাস ${num(lh.net - lb.net, 'bn', { dp: 2 })} টন CO₂e কম। মাটি: উপজেলার মাঝামাঝি ইউনিয়নের SoilGrids মান; সেচের উৎস অগভীর নলকূপ ধরা। জমি আর চাষির ভাগ বাস্তবে আলাদা হবে; এটা পরিকল্পনার হিসাব।`, `Per hectare: ${num((f.habit.sNow.waterMm - f.best.sNow.waterMm) * 10, 'en')} m³ less irrigation, ${num(lh.net - lb.net, 'en', { dp: 2 })} t CO₂e less net greenhouse gas. Soil: the upazila's middle union's SoilGrids values; irrigation from shallow tube wells assumed. Real land and uptake will differ; this is a planning estimate.`)}</p>
     </Card>
