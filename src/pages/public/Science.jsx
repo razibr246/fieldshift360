@@ -25,6 +25,7 @@ import OrbitConstellation from '../../components/science/OrbitConstellation';
 import EarthdataSTAC from '../../components/science/EarthdataSTAC';
 import ChallengeDossier from '../../components/science/ChallengeDossier';
 import GlobalAwardMatrix from '../../components/science/GlobalAwardMatrix';
+import SoilGeochemistryExplorer from '../../components/science/SoilGeochemistryExplorer';
 
 const t = (bn, en) => ({ bn, en });
 const TERMS = [
@@ -239,6 +240,8 @@ export default function Science() {
       <MethodsCompare />
 
       <MachineLearning />
+
+      <SoilGeochemistryExplorer />
 
       <ChallengeDossier />
 

@@ -401,6 +401,8 @@ export function SoilLegend() {
     [<g key="e"><path d="M9 1 V13 M9 5 q4 1 6 4" stroke="#d9c6a4" strokeWidth="1.2" fill="none" /><circle cx="14" cy="8" r="1.7" fill="#e0828a" /></g>, T('ডালের শিকড়ে গুটি: বাতাসের নাইট্রোজেন', 'Legume nodules: nitrogen from the air')],
     [<path key="f" d="M1 9 l6 -1 M6 10 l7 0 M11 8 l6 1" stroke="#d6b467" strokeWidth="1.6" strokeLinecap="round" />, T('খড়ের আবরণ: খড়-নাড়া রেখে দিলে', 'Straw cover: when straw is kept')],
     [<g key="g"><ellipse cx="9" cy="7" rx="4.2" ry="2.8" fill="#a3261d" /><circle cx="4.6" cy="7" r="1.7" fill="#3b0f0c" /></g>, T('পোকা ও শিকড়ের রোগ: একই গোত্রের ফসল পরপর', 'Pests and root disease: one crop family after itself')],
+    [<g key="paleo"><rect x="1" y="2" width="16" height="10" rx="1.5" fill="#7a2e1d" opacity=".85" /><circle cx="5" cy="7" r="1.5" fill="#f8d488" /><circle cx="12" cy="7" r="1.5" fill="#f8d488" /></g>, T('জীবাশ্ম কার্বন স্তর: মাটির খনিজ কণার সাথে শতাব্দীর প্রাচীন কার্বন সঞ্চয়', 'Paleosol fossil carbon: mineral-bound century-old carbon')],
+    [<g key="diesel"><path d="M4 12 h10 v-7 l-3 -3 h-4 l-3 3 z" fill="#1e3a8a" /><circle cx="9" cy="7" r="1.8" fill="#38bdf8" /></g>, T('জীবাশ্ম ডিজেল সাশ্রয়: কম সেচের রবি ফসলে পাম্পিং ধোঁয়া ও ভূগর্ভস্থ পানি সাশ্রয়', 'Fossil diesel offset: avoided pumping fuel emissions')],
   ];
   return (
     <ul className="mt-3 grid gap-x-4 gap-y-1.5 text-[12.5px] leading-5 text-muted sm:grid-cols-2 lg:grid-cols-3">

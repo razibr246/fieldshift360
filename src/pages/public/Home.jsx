@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy, Clapperboard, Award, Sparkles, Activity } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play, MapPinned, Sprout, ShieldCheck, CloudSun, Layers, SlidersHorizontal, RefreshCw, TrendingDown, Droplets, Wheat, Satellite, Mic, Radar as RadarIcon, Swords, ScanLine, LifeBuoy, Clapperboard, Sparkles, Activity, Volume2, VolumeX } from 'lucide-react';
 import { Button, Tags, LABEL_STYLE, ScoreRing, climateTag } from '../../components/ui';
 import BrandMark from '../../components/brand/BrandMark';
 import { IMAGES } from '../../assets/images';
@@ -11,6 +11,8 @@ import LiveWeather from '../../components/charts/LiveWeather';
 import LiveSatellitePassTracker from '../../components/home/LiveSatellitePassTracker';
 import DecisionSandbox from '../../components/home/DecisionSandbox';
 import AgroAtmosphereCanvas from '../../components/home/AgroAtmosphereCanvas';
+import RiverWater, { hasWater } from '../../components/home/RiverWater';
+import { startRiver, stopRiver, closeRiver, setRiverLevel, riverSoundSupported } from '../../components/home/riverSound';
 import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
@@ -49,17 +51,10 @@ export default function Home() {
         <div className="page-shell pb-10 pt-[120px] sm:pt-[140px]">
           <div className="hero-rise max-w-[640px]">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-300/70 bg-gradient-to-r from-amber-500/15 via-emerald-500/10 to-amber-500/15 px-3.5 py-1 text-[12.5px] font-semibold tracking-wide text-amber-900 shadow-xs backdrop-blur-md">
-                <Award size={14} className="text-amber-600 shrink-0" />
-                <span>{T('NASA Space Apps 2026 গ্লোবাল চ্যাম্পিয়নশিপ প্রোফাইল · স্কোর ৪৯.২/৫০', 'NASA Space Apps 2026 Global Challenge Profile · Score 49.2/50')}</span>
-              </div>
-              <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-[12.5px] font-semibold text-primary-800">
-                <span className="telemetry-pulse" />
-                <span>{T('১০ নাসা উপগ্রহ ও ৩৪৫ টেস্ট সিঙ্কড', '10 NASA Missions & 345 Tests Synced')}</span>
-              </p>
               <p className="glass-pill inline-flex items-center gap-2 rounded-full px-3 py-1 text-[12px] font-semibold text-muted">
                 {T('রবি মৌসুম ২০২৬–২৭', 'Rabi season 2026–27')}
               </p>
+              <RiverSoundToggle water={hasWater(SLIDES[gallery.i].name)} />
             </div>
             {/* Apple-style headline: two short lines, the second in a soft green gradient. */}
             <h1 className="mt-4 text-[46px] font-semibold leading-[1.12] tracking-[-0.03em] text-primary-950 sm:text-[62px] lg:text-[76px]">
@@ -83,8 +78,9 @@ export default function Home() {
               <Link to="/farmer/doctor" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><ScanLine size={13} className="text-primary-600" />{T('ফসলের ডাক্তার', 'Crop Doctor')}</Link>
               <Link to="/farmer/future" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Layers size={13} className="text-primary-600" />{T('জমির ভবিষ্যৎ', 'Field Future')}</Link>
               <Link to="/officer/radar" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><RadarIcon size={13} className="text-primary-600" />{T('রোপণ রাডার', 'Radar')}</Link>
-              <Link to="/science" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Satellite size={13} className="text-sky-600" />{T('বিজ্ঞান ও ডেটাসেট', 'Science & Orbit')}</Link>
-              <Link to="/farm" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Swords size={13} className="text-amber-600" />{T('৩ডি খেলা', '3D Game')}</Link>
+              <Link to="/science" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Satellite size={13} className="text-sky-600" />{T('বিজ্ঞান ও ভূ-রসায়ন', 'Science & Geochem')}</Link>
+              <Link to="/games" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Activity size={13} className="text-amber-600" />{T('বায়োমেকানিক্স', 'Biomechanics')}</Link>
+              <Link to="/farm" className="glass-pill rounded-full px-3 py-1 text-ink hover:text-primary-800 transition-colors flex items-center gap-1.5"><Swords size={13} className="text-emerald-600" />{T('৩ডি খেলা', '3D Game')}</Link>
             </div>
 
             {/* 4-Metric Verified Telemetry Grid */}
@@ -417,6 +413,26 @@ function swipe(gallery) {
   };
 }
 
+// The river's sound, off until asked for: louder while a photo with water is on, quieter over the others.
+function RiverSoundToggle({ water }) {
+  const { T } = useStore();
+  const [on, setOn] = useState(false);
+  useEffect(() => () => closeRiver(), []);
+  useEffect(() => { if (on) setRiverLevel(water ? 1 : 0.35); }, [on, water]);
+  if (!riverSoundSupported()) return null;
+  const toggle = async () => {
+    if (on) { stopRiver(); setOn(false); return; }
+    if (await startRiver()) setOn(true);
+  };
+  const Icon = on ? Volume2 : VolumeX;
+  return (
+    <button type="button" onClick={toggle} aria-pressed={on} title={T('নদীর হালকা শব্দ', 'Soft river sound')}
+      className={`glass-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold transition-colors ${on ? 'text-primary-800' : 'text-muted hover:text-primary-800'}`}>
+      <Icon size={14} className={on ? 'text-sky-600' : ''} />{on ? T('নদীর শব্দ চলছে', 'River sound on') : T('নদীর শব্দ', 'River sound')}
+    </button>
+  );
+}
+
 function HeroBackdrop({ gallery }) {
   const layer = useRef(null);
   useEffect(() => {
@@ -439,6 +455,7 @@ function HeroBackdrop({ gallery }) {
             <div key={sl.name} className={`hero-slide absolute inset-0 ${on ? 'is-on' : ''}`} style={{ zIndex: on ? 2 : fading ? 1 : 0 }}>
               <div className={`absolute ${sl.screen ? 'inset-x-0 top-0 h-[100svh] min-h-[620px] [mask-image:linear-gradient(to_bottom,#000_78%,transparent)]' : 'inset-0'} ${on || fading ? 'kenburns' : ''}`} style={{ '--kb-from': sl.from, '--kb-to': sl.to }}>
                 <Photo name={sl.name} fill priority={k === gallery.i && !gallery.loaded} sizes="100vw" />
+                {(on || fading) && hasWater(sl.name) && <RiverWater name={sl.name} />}
               </div>
             </div>
           );

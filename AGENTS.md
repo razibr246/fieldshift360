@@ -48,7 +48,8 @@ added there.
   too: `npm run train:stress` (`scripts/build/train_stress_model.mjs`) writes `src/data/models/stress_model.json`,
   which `src/engine/stressModel.js` reads for `/science#ml`. Its skill is reported per place, as measured.
 - `api/`: Vercel functions (`plans`, `messages`, `abroad`, `doctor` with `GEMINI_API_KEY`, or `ANTHROPIC_API_KEY`, `agent` with
-  `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`, `tts` (natural Bangla / British English voice) with `GEMINI_API_KEY`); `vite.config.js`
+  `GEMINI_API_KEY` or `ANTHROPIC_API_KEY`, `tts` (natural Bangla / British English voice) with `GEMINI_API_KEY`, `transcribe` (call notes) with `GEMINI_API_KEY`
+  and/or `GROQ_API_KEY`); `vite.config.js`
   serves in-memory versions in dev, and without a store or key they answer 503 and the app says so.
 - চক্র এজেন্ট (Chakra Agent), in the farmer and officer headers: rules, permission policy and hash-chained audit log in
   `src/engine/chakra.js` (pure, tested), UI and agent loop in `src/components/chakra/`, conversation through `api/agent.js`
@@ -61,6 +62,11 @@ added there.
   to the farmer's land, crops, water and place by `src/engine/support.js`. A pilot, announced or ended programme is never
   shown as a plain yes. The question box's score on `src/data/support/ask_eval.js` is a floor in the tests: add a
   question it fails rather than tuning keywords to that list.
+- Call notes (`/officer/calls`, adapted from the Recordio app): the officer logs the farmer's consent first (no
+  recording without it, `canRecord`), records or loads up to 5 minutes of audio, `api/transcribe.js` returns a transcript
+  and note (inline audio only, never a URL), and `src/engine/callnote.js` keeps an amount only when its quoted words are
+  in the transcript (`CN1_`–`CN3_` rules), then seals the record with SHA-256 (`verifyCallNote`). The audio is never
+  stored, only its hash; a sealed note's `requestId` sits outside the seal. Keep checks in the engine, with a test.
 - A farmer's own soil test (`soilTests` in the store, `engine/soiltest.js`, entered on My field) is laid over the
   SoilGrids soil, so `soil.tested` is set and pH / organic matter / N are measured; code that says "estimate, not a
   soil test" must check `soil.tested`. The spray check (`engine/spray.js`, `components/fields/SprayCheck.jsx`) reads
