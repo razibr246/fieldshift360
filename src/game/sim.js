@@ -322,20 +322,22 @@ function stepFarmer(g, dt, input) {
   const ix = input?.mx ?? 0, iz = input?.mz ?? 0, l = Math.min(1, Math.hypot(ix, iz));
   const wantRun = !!input?.run && l > 0.3;
   me.run = wantRun && me.stamina > 0.04;
-  me.stamina = Math.max(0, Math.min(1, me.stamina + (me.run ? -0.16 : 0.1) * dt));
+  me.stamina = Math.max(0, Math.min(1, me.stamina + (me.run ? -0.15 : 0.18) * dt));
   // the storm wind slows anyone still out in it
   const z = g.ev.zone, outside = g.ev.storm > 0 && z && Math.hypot(me.x - z.x, me.z - z.z) > z.r;
-  const top = (me.run ? F.run : F.speed) * (outside ? 0.65 : 1) * (g.ev.flood > 0.3 && Math.abs(me.x) < 16 && Math.abs(me.z) < 10 ? 0.55 : 1);
+  const baseSp = (F.speed ?? 4) * 1.08;
+  const baseRun = (F.run ?? 6.8) * 1.12;
+  const top = (me.run ? baseRun : baseSp) * (outside ? 0.68 : 1) * (g.ev.flood > 0.3 && Math.abs(me.x) < 16 && Math.abs(me.z) < 10 ? 0.58 : 1);
   const tx = l > 0.05 ? (ix / Math.max(l, 1e-6)) * top * l : 0, tz = l > 0.05 ? (iz / Math.max(l, 1e-6)) * top * l : 0;
-  const k = Math.min(1, dt * (l > 0.05 ? 13 : 16));
+  const k = Math.min(1, dt * (l > 0.05 ? 18 : 22));
   me.vx += (tx - me.vx) * k; me.vz += (tz - me.vz) * k;
   me.speed = Math.hypot(me.vx, me.vz);
-  if (me.speed > 0.15) {
+  if (me.speed > 0.12) {
     const want = Math.atan2(me.vx, me.vz);
     let d = want - me.yaw; d = Math.atan2(Math.sin(d), Math.cos(d));
-    me.yaw += d * Math.min(1, dt * 15);
+    me.yaw += d * Math.min(1, dt * 19);
     me.turnRate = d / Math.max(1e-4, dt);
-    me.bank = Math.max(-0.25, Math.min(0.25, -d * Math.min(1, me.speed / 3.5) * 0.4));
+    me.bank = Math.max(-0.28, Math.min(0.28, -d * Math.min(1, me.speed / 3.6) * 0.45));
     me.idle = 0;
     let nx = me.x + me.vx * dt, nz = me.z + me.vz * dt;
     if (inWater(g.L, nx, nz)) { if (!inWater(g.L, nx, me.z)) nz = me.z; else if (!inWater(g.L, me.x, nz)) nx = me.x; else { nx = me.x; nz = me.z; } }
@@ -354,7 +356,7 @@ function stepFarmer(g, dt, input) {
   me.bank = 0; me.turnRate = 0;
   // a habit of their own when left alone
   me.idle += dt;
-  if (me.idle > 8) { me.idle = -10; startAct(g, F.idle); if (Math.random() < 0.6) say(g, 'idle'); }
+  if (me.idle > 7) { me.idle = -9; startAct(g, F.idle); if (Math.random() < 0.6) say(g, 'idle'); }
 }
 
 const STORM_LOSS = {

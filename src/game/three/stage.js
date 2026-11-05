@@ -517,12 +517,12 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
     }
     // camera: dynamic follow with velocity look-ahead and speed pull-back
     const runShare = me.run ? Math.min(1, me.speed / 4.8) : 0;
-    const leadX = (me.vx ?? 0) * 0.22, leadZ = (me.vz ?? 0) * 0.22;
+    const leadX = (me.vx ?? 0) * 0.25, leadZ = (me.vz ?? 0) * 0.25;
     focus.set(me.x + leadX, gy + 1.45, me.z + leadZ);
     if (cam.look > 0) cam.look -= dt;
-    else if (me.speed > 1 && !cam.sat) { let d = (me.yaw + Math.PI) - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 2.2) cam.yaw += d * Math.min(1, dt * 0.9); }
-    const dist = (cam.sat ? 46 : cam.dist) * (1 + runShare * 0.15), pitch = cam.sat ? 1.35 : cam.pitch;
-    cam.side += ((cam.sat ? 0 : 0.55) - cam.side) * Math.min(1, dt * 3);
+    else if (me.speed > 1 && !cam.sat) { let d = (me.yaw + Math.PI) - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); if (Math.abs(d) < 2.2) cam.yaw += d * Math.min(1, dt * 1.1); }
+    const dist = (cam.sat ? 46 : cam.dist) * (1 + runShare * 0.16), pitch = cam.sat ? 1.35 : cam.pitch;
+    cam.side += ((cam.sat ? 0 : 0.55) - cam.side) * Math.min(1, dt * 3.5);
     const rx = Math.cos(cam.yaw) * cam.side, rz = -Math.sin(cam.yaw) * cam.side;
     focus.x += rx; focus.z += rz;
     camPos.set(focus.x + Math.sin(cam.yaw) * Math.cos(pitch) * dist, gy + 1.45 + Math.sin(pitch) * dist, focus.z + Math.cos(cam.yaw) * Math.cos(pitch) * dist);
@@ -535,13 +535,13 @@ export function createStage({ canvas, overlay, minimap, compass, g, lang, onEven
       if (scene.fog) scene.fog.far = Math.max(scene.fog.far, 420);
     } else {
       camPos.y = Math.max(camPos.y, L.ground(camPos.x, camPos.z) + 0.6);
-      camera.position.lerp(camPos, Math.min(1, dt * (cam.sat ? 4 : 10)));
+      camera.position.lerp(camPos, Math.min(1, dt * (cam.sat ? 4.5 : 12)));
       camera.lookAt(focus);
       if (!cam.sat) {
         const baseFov = touch ? 60 : 52;
         const targetFov = baseFov + runShare * 4;
         if (Math.abs(camera.fov - targetFov) > 0.05) {
-          camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 6);
+          camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 7.5);
           camera.updateProjectionMatrix();
         }
       }

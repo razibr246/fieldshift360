@@ -741,18 +741,18 @@ const lerp = (a, b, t) => a + (b - a) * t;
 export function animate(P, st, dt) {
   const { hips, torso, head, legs, arms, tools } = P;
   const rawSpeed = st.speed ?? 0;
-  P.smoothSpeed = lerp(P.smoothSpeed ?? rawSpeed, rawSpeed, Math.min(1, dt * 9));
+  P.smoothSpeed = lerp(P.smoothSpeed ?? rawSpeed, rawSpeed, Math.min(1, dt * 16));
   const speed = P.smoothSpeed;
-  const a = Math.min(1, speed / 3.2);
+  const a = Math.min(1, speed / 3.0);
 
   // Advance gait phase in direct proportion to real movement speed
   // When coming to a stop, smoothly settle phase toward natural double-support ground contact
-  if (a > 0.03) {
-    const rate = st.run ? 7.6 + speed * 0.6 : 4.4 + speed * 1.2;
+  if (a > 0.02) {
+    const rate = st.run ? 8.4 + speed * 0.72 : 5.0 + speed * 1.32;
     P.phase = ((P.phase ?? 0) + dt * rate) % (Math.PI * 2);
   } else if (P.phase !== undefined) {
     const targetPh = Math.round(P.phase / Math.PI) * Math.PI;
-    P.phase = lerp(P.phase, targetPh, Math.min(1, dt * 7));
+    P.phase = lerp(P.phase, targetPh, Math.min(1, dt * 9));
   } else {
     P.phase = 0;
   }
@@ -761,47 +761,48 @@ export function animate(P, st, dt) {
   const sk = P.skirt;
 
   // Stride kinematics: double-sinusoidal pelvic bounce
-  const bounce = (st.run ? 0.075 : 0.038) * Math.sin(ph * 2 - Math.PI * 0.5) * a;
+  const bounce = (st.run ? 0.082 : 0.044) * Math.sin(ph * 2 - Math.PI * 0.5) * a;
   let hipY = HIP_Y + bounce;
 
   // Aerodynamic forward lean and dynamic turn banking
-  let lean = (st.run ? 0.28 : 0.07) * a;
+  let lean = (st.run ? 0.30 : 0.08) * a;
   const bank = (st.bank ?? 0) * a;
 
   // Dynamic deceleration settle & elastic inertia when braking
   const accel = (rawSpeed - (P.prevSpeed ?? rawSpeed)) / Math.max(0.001, dt);
   P.prevSpeed = rawSpeed;
-  const decelSettle = Math.max(-0.12, Math.min(0.12, -accel * 0.007));
+  const decelSettle = Math.max(-0.14, Math.min(0.14, -accel * 0.008));
   lean += decelSettle;
 
   // Stride amplitude & leg poses with proportional speed matching
-  const stride = (st.run ? 0.88 : 0.58) * a * sk;
+  const stride = (st.run ? 0.92 : 0.62) * a * sk;
   const L = [s * stride, -s * stride];
 
   // Knee shock-absorption during stance + dynamic swing lift
   const swing0 = Math.max(0, -Math.cos(ph));
   const swing1 = Math.max(0, Math.cos(ph));
+  const stance0 = 1 - swing0, stance1 = 1 - swing1;
   const K = [
-    (st.run ? 1.15 : 0.58) * swing0 * a + (1 - swing0) * 0.12 * a,
-    (st.run ? 1.15 : 0.58) * swing1 * a + (1 - swing1) * 0.12 * a,
+    (st.run ? 1.22 : 0.64) * swing0 * a + stance0 * 0.16 * a,
+    (st.run ? 1.22 : 0.64) * swing1 * a + stance1 * 0.16 * a,
   ];
 
   // Heel-strike dorsiflexion, flat mid-stance, and toe-off plantarflexion
   const footRoll = [
-    -L[0] * 0.65 - K[0] * 0.22,
-    -L[1] * 0.65 - K[1] * 0.22,
+    -L[0] * 0.72 - K[0] * 0.25,
+    -L[1] * 0.72 - K[1] * 0.25,
   ];
 
   // Athletic contralateral arm swing
-  const armSwing = (st.run ? 0.96 : 0.54) * a;
+  const armSwing = (st.run ? 1.05 : 0.58) * a;
   const A = [-s * armSwing, s * armSwing];
   const E = [
-    -(st.run ? 1.25 : 0.35) - Math.max(0, -A[0]) * (st.run ? 0.55 : 0.42),
-    -(st.run ? 1.25 : 0.35) - Math.max(0, -A[1]) * (st.run ? 0.55 : 0.42),
+    -(st.run ? 1.38 : 0.38) - Math.max(0, -A[0]) * (st.run ? 0.58 : 0.44),
+    -(st.run ? 1.38 : 0.38) - Math.max(0, -A[1]) * (st.run ? 0.58 : 0.44),
   ];
   let az = [
-    0.08 + (st.run ? 0.14 : 0.04) * a,
-    -0.08 - (st.run ? 0.14 : 0.04) * a,
+    0.08 + (st.run ? 0.16 : 0.04) * a,
+    -0.08 - (st.run ? 0.16 : 0.04) * a,
   ];
 
   let headX = 0, headY = 0, bodyY = 0;
@@ -810,23 +811,23 @@ export function animate(P, st, dt) {
 
   // Authentic human idle weight-shifting (stance shift) and breathing
   let idleHipX = 0, idleHipRoll = 0, idleKneeRelax = [0, 0];
-  if (a < 0.05 && !st.act) {
-    const breathe = Math.sin(st.t * 2.2);
-    torso.scale.set(1 + breathe * 0.012, 1 + breathe * 0.018, 1 + breathe * 0.014);
+  if (a < 0.04 && !st.act) {
+    const breathe = Math.sin(st.t * 2.4);
+    torso.scale.set(1 + breathe * 0.014, 1 + breathe * 0.022, 1 + breathe * 0.016);
 
-    // Natural weight shift every 7 seconds: pelvis shifts over stance leg, free knee relaxes slightly
-    const shiftCycle = (st.t ?? 0) * 0.22;
+    // Natural weight shift every 6-7 seconds: pelvis shifts over stance leg, free knee relaxes slightly
+    const shiftCycle = (st.t ?? 0) * 0.24;
     const shiftSide = Math.sin(shiftCycle);
-    const shiftWeight = (P.reducedMotion ? 0 : 1) * Math.sin(shiftCycle * 2) * 0.024;
+    const shiftWeight = (P.reducedMotion ? 0 : 1) * Math.sin(shiftCycle * 2) * 0.026;
     idleHipX = shiftWeight;
-    idleHipRoll = (shiftSide > 0 ? 0.03 : -0.03) * Math.abs(shiftWeight / 0.024);
-    idleKneeRelax = shiftSide > 0 ? [0, 0.06] : [0.06, 0];
+    idleHipRoll = (shiftSide > 0 ? 0.035 : -0.035) * Math.abs(shiftWeight / 0.026);
+    idleKneeRelax = shiftSide > 0 ? [0, 0.07] : [0.07, 0];
 
     const gaze = idleGaze(st.t, P.reducedMotion);
     headY = gaze.y;
     headX = gaze.x;
   } else {
-    const exertion = 1 + (st.run ? 0.025 : 0.012) * Math.sin(st.t * 6);
+    const exertion = 1 + (st.run ? 0.028 : 0.014) * Math.sin(st.t * 6.5);
     torso.scale.set(exertion, 1, exertion);
   }
 
@@ -843,8 +844,8 @@ export function animate(P, st, dt) {
     // Respect biomechanical cervical limits: yaw +/- 60 deg, pitch +/- 25 deg
     const clampH = Math.max(-1.05, Math.min(1.05, normH));
     const clampP = Math.max(-0.45, Math.min(0.45, targetPitch));
-    headY = clampH * 0.85;
-    headX = clampP * 0.75;
+    headY = clampH * 0.88;
+    headX = clampP * 0.78;
   }
 
   // 3D Biological Blinking & Expressive Gestures
@@ -859,7 +860,7 @@ export function animate(P, st, dt) {
     }
   }
   if (P.brows) {
-    const browLerp = Math.min(1, dt * 10);
+    const browLerp = Math.min(1, dt * 12);
     for (const b of P.brows) {
       b.pivot.position.y = lerp(b.pivot.position.y, 0.052 + expr.browY, browLerp);
       b.pivot.rotation.z = lerp(b.pivot.rotation.z, b.baseRotZ + b.side * expr.browTilt, browLerp);
@@ -899,9 +900,9 @@ export function animate(P, st, dt) {
     }
   }
   // Let the head anticipate a turn slightly, rather than rotating as one rigid block.
-  headY += Math.max(-0.2, Math.min(0.2, (st.turnRate ?? 0) * 0.035));
+  headY += Math.max(-0.2, Math.min(0.2, (st.turnRate ?? 0) * 0.04));
   // Standing still: hands in the pockets (or tucked in the lungi's fold), feet a little apart.
-  const idle = a < 0.05 && !act && !(st.down > 0);
+  const idle = a < 0.04 && !act && !(st.down > 0);
   const pocket = idle && P.pockets;
   if (pocket) {
     A[0] = A[1] = POCKET.shoulderX; E[0] = E[1] = POCKET.elbowX;
@@ -909,23 +910,23 @@ export function animate(P, st, dt) {
   }
   if (st.down > 0) { hipY = DOWN_HIP_Y; L[0] = L[1] = -1.45; K[0] = K[1] = 1.5; lean = 0.25; A[1] = -2.4; E[1] = -1.8; A[0] = -0.5; headX = 0.35; }
   lean += (P.ageStoop ?? 0);
-  const k = Math.min(1, dt * 14);
+  const k = Math.min(1, dt * 18);
   hips.position.y = lerp(hips.position.y, hipY, k);
   hips.position.x = lerp(hips.position.x, idle ? idleHipX : 0, k);
   P.body.position.y = lerp(P.body.position.y, bodyY, k);
   torso.rotation.x = lerp(torso.rotation.x, lean, k);
   head.rotation.x = lerp(head.rotation.x, headX - lean * 0.5, k);
-  head.rotation.y = lerp(head.rotation.y, headY, k * 0.5);
+  head.rotation.y = lerp(head.rotation.y, headY, k * 0.6);
 
   // The walk & run: pelvic list and yaw, thoracic counter-rotation, dynamic turn banking
-  const still = a < 0.05 && !act;
-  const hipYaw = act ? 0 : s * (st.run ? 0.14 : 0.09) * a;
-  const hipRoll = act ? 0 : still ? idleHipRoll : Math.cos(ph) * (st.run ? 0.065 : 0.045) * a;
+  const still = a < 0.04 && !act;
+  const hipYaw = act ? 0 : s * (st.run ? 0.16 : 0.10) * a;
+  const hipRoll = act ? 0 : still ? idleHipRoll : Math.cos(ph) * (st.run ? 0.072 : 0.050) * a;
 
   hips.rotation.y = lerp(hips.rotation.y, hipYaw, k);
-  hips.rotation.z = lerp(hips.rotation.z, hipRoll + bank * 0.65, k);
-  torso.rotation.y = lerp(torso.rotation.y, act ? 0 : -hipYaw * 1.35, k);
-  torso.rotation.z = lerp(torso.rotation.z, act ? 0 : -hipRoll * 0.8 + bank * 0.45, k);
+  hips.rotation.z = lerp(hips.rotation.z, hipRoll + bank * 0.75, k);
+  torso.rotation.y = lerp(torso.rotation.y, act ? 0 : -hipYaw * 1.45, k);
+  torso.rotation.z = lerp(torso.rotation.z, act ? 0 : -hipRoll * 0.85 + bank * 0.55, k);
 
   const slopePitch = (st.slopeZ ?? 0) * 0.45;
 
