@@ -9,7 +9,7 @@ import { PageHeader, Card, Button, Tags, Note, Badge, Input } from '../../compon
 import { CROP_PROBLEMS } from '../../data/crop_problems';
 import { CROP_SAMPLES } from '../../data/crop_samples';
 import { localCropAssessment } from '../../engine/cropDoctor';
-import { extractLeafMetrics, classifyLeafPixels } from '../../engine/offlineVision';
+import { extractLeafMetrics, classifyLeafPixels, generateFalseColorSpectralMap } from '../../engine/offlineVision';
 import { RABI_CROPS } from '../../engine/crops';
 import { requestSeason } from '../../data/demo';
 import { useFieldWatch } from '../../components/fields/useFieldWatch';
@@ -43,6 +43,9 @@ export default function CropDoctor() {
   const amanNow = daysAfter < 0 && requestSeason(today) === 'aman';
   const [crop, setCrop] = useState(amanNow ? 'aman' : chosen.crop.id);
   const [img, setImg] = useState(null);
+  const [spectralMode, setSpectralMode] = useState(false);
+  const [spectralStats, setSpectralStats] = useState(null);
+  const spectralCanvasRef = useRef(null);
   const [selectedSample, setSelectedSample] = useState(null);
   const [cloudConsent, setCloudConsent] = useState(false);
   const [note, setNote] = useState('');
@@ -75,6 +78,32 @@ export default function CropDoctor() {
     clearTimeout(timerRef.current);
     requestRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+    if (!img || !spectralMode || !spectralCanvasRef.current) return undefined;
+    const canvas = spectralCanvasRef.current;
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      const maxW = 440;
+      const scale = Math.min(1, maxW / image.naturalWidth);
+      const w = Math.round(image.naturalWidth * scale);
+      const h = Math.round(image.naturalHeight * scale);
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(image, 0, 0, w, h);
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const { falseColorData, stats } = generateFalseColorSpectralMap({ data: imgData.data, width: w, height: h });
+      if (falseColorData) {
+        const outImg = new ImageData(falseColorData, w, h);
+        ctx.putImageData(outImg, 0, 0);
+        setSpectralStats(stats);
+      }
+    };
+    image.src = img;
+  }, [img, spectralMode]);
 
   const invalidateWork = () => {
     workRef.current += 1;
@@ -282,7 +311,7 @@ export default function CropDoctor() {
     setSentId(id);
     toast('ছবি কৃষি কর্মকর্তার কাছে পাঠানো হয়েছে', 'Photo sent to your officer');
   };
-  const reset = () => { invalidateWork(); setImg(null); setSelectedSample(null); setCloudConsent(false); setSt({ phase: 'idle' }); setSentId(null); setNote(''); setErr(null); };
+  const reset = () => { invalidateWork(); setImg(null); setSelectedSample(null); setCloudConsent(false); setSpectralMode(false); setSpectralStats(null); setSt({ phase: 'idle' }); setSentId(null); setNote(''); setErr(null); };
 
   return (
     <div>
@@ -333,8 +362,44 @@ export default function CropDoctor() {
 
             {img ? (
               <div className="w-full">
+                {/* View Mode Toggle Pill */}
+                <div className="mb-2.5 flex items-center justify-center gap-2">
+                  <div className="inline-flex rounded-full border border-border bg-white/90 p-1 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setSpectralMode(false)}
+                      className={`rounded-full px-3 py-1 text-[12px] font-semibold transition-all ${
+                        !spectralMode
+                          ? 'border border-primary-600 bg-primary-700 text-white shadow-xs'
+                          : 'text-muted hover:text-ink'
+                      }`}
+                    >
+                      {T('📷 সাধারণ ছবি', 'Normal Photo')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpectralMode(true)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold transition-all ${
+                        spectralMode
+                          ? 'border border-emerald-600 bg-gradient-to-r from-emerald-600 to-sky-600 text-white shadow-xs'
+                          : 'text-muted hover:text-ink'
+                      }`}
+                    >
+                      <Sparkles size={12} className={spectralMode ? 'text-amber-300' : ''} />
+                      <span>{T('🔬 ফলস-কালার NDVI ভিউ', 'False-Color NDVI')}</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="relative mx-auto max-h-76 w-max overflow-hidden rounded-xl shadow-md">
-                  <img src={img} alt={T('আপনার তোলা ফসলের ছবি', 'Your crop photo')} className="mx-auto max-h-76 rounded-xl object-contain" />
+                  {spectralMode ? (
+                    <div className="relative">
+                      <canvas ref={spectralCanvasRef} className="mx-auto max-h-76 rounded-xl object-contain shadow-md" />
+                      <div className="spectral-laser-line" />
+                    </div>
+                  ) : (
+                    <img src={img} alt={T('আপনার তোলা ফসলের ছবি', 'Your crop photo')} className="mx-auto max-h-76 rounded-xl object-contain" />
+                  )}
                   {st.phase === 'checking' && (
                     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
                       <div className="scan-laser-beam" />
@@ -342,6 +407,29 @@ export default function CropDoctor() {
                     </div>
                   )}
                 </div>
+
+                {spectralMode && spectralStats && (
+                  <div className="mx-auto mt-2.5 max-w-md rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-2.5 text-center text-[12px] font-medium text-emerald-950 shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs" />
+                        <span>{T('সুস্থ ক্লোরোফিল:', 'Healthy Chlorophyll:')} <b>{num(spectralStats.greenPct, lang)}%</b></span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="h-2.5 w-2.5 rounded-full bg-amber-500 shadow-xs" />
+                        <span>{T('হলুদ টান (চাপ):', 'Chlorosis (Stress):')} <b>{num(spectralStats.chlorosisPct, lang)}%</b></span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-xs" />
+                        <span>{T('ক্ষত/নেক্রোটিক দাগ:', 'Necrotic Spots:')} <b>{num(spectralStats.necroticPct, lang)}%</b></span>
+                      </span>
+                    </div>
+                    <div className="mt-1 text-[11px] text-muted">
+                      {T('সেন্টিনেল-২ এমএসআই ও নাসা এগ্রো-স্পেকট্রোমিটার ফলস-কালার ক্যালিব্রেশন', 'Sentinel-2 MSI & NASA agro-spectrometer false-color calibration')}
+                    </div>
+                  </div>
+                )}
+
                 {st.phase !== 'done' && (
                   <label className="mx-auto mt-3 flex min-h-11 max-w-xl cursor-pointer items-start gap-2 rounded-xl border border-border bg-white/80 p-3 text-left text-[12.5px] leading-5 text-ink/80">
                     <input

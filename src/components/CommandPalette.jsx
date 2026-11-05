@@ -230,6 +230,33 @@ export default function CommandPalette() {
         action: () => navigate('/officer/map'),
         keywords: ['map', 'area', 'satellite', 'gis', 'union', 'risk'],
       },
+      {
+        id: 'officer-cyclone',
+        category: T('কর্মকর্তা সেবা', 'Officer Tools'),
+        icon: Radar,
+        title: T('বঙ্গোপসাগর ঘূর্ণিঝড় ও জলোচ্ছ্বাস রাডার', 'Cyclone & Storm Surge Trajectory Radar'),
+        sub: T('নাসা জিপিএম ও সেন্টিনেল-১ থেকে জরুরি ফসল কর্তন ও পোল্ডার লকডাউন', 'NASA GPM & Sentinel-1 emergency harvest and polder gate lockdown protocols'),
+        action: () => navigate('/officer/radar'),
+        keywords: ['cyclone', 'surge', 'jholochhas', 'ghurnijhor', 'radar', 'gpm', 'polder'],
+      },
+      {
+        id: 'officer-loss-damage',
+        category: T('কর্মকর্তা সেবা', 'Officer Tools'),
+        icon: ShieldCheck,
+        title: T('ইউএনএফসিসিসি ধারা ৮: জলবায়ু ক্ষতিপূরণ লেজার', 'UNFCCC Article 8 Loss & Damage Ledger'),
+        sub: T('উপগ্রহ-যাচাইকৃত চরম আবহাওয়ার আর্থিক ক্ষতি নিরূপণ ও ক্ষতিপূরণ সনদ', 'Satellite-verified extreme climate disaster valuation and sovereign reparations claim dossier'),
+        action: () => navigate('/officer/upazila'),
+        keywords: ['unfccc', 'loss', 'damage', 'reparations', 'cop28', 'santiago', 'khotipuron'],
+      },
+      {
+        id: 'officer-calls',
+        category: T('কর্মকর্তা সেবা', 'Officer Tools'),
+        icon: Mic,
+        title: T('কৃষকের কথার নোট ও এআই প্রতিলিপি', 'Farmer Call Notes & AI Transcription'),
+        sub: T('সম্মতিভিত্তিক অডিও রেকর্ড, জেমিনি প্রতিলিপি ও এসএইচএ-২৫৬ প্রমাণ সিল', 'Consent-first call recording, Gemini audio transcription, and SHA-256 evidence seal'),
+        action: () => navigate('/officer/calls'),
+        keywords: ['call', 'audio', 'transcribe', 'kothar note', 'gemini', 'sha256', 'evidence'],
+      },
 
       // ---- Regional Abroad Hubs ----
       {

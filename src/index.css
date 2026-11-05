@@ -284,6 +284,30 @@ html { zoom: var(--ui-zoom); }
   animation: badge-pop 0.3s var(--ease-spring) both;
 }
 
+@keyframes radar-sweep-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.radar-sweep-spin {
+  animation: radar-sweep-spin 6s linear infinite;
+}
+
+@keyframes laser-sweep-vertical {
+  0% { transform: translateY(-100%); opacity: 0.2; }
+  50% { opacity: 0.9; }
+  100% { transform: translateY(350%); opacity: 0.2; }
+}
+.spectral-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #10b981, #38bdf8, #10b981, transparent);
+  box-shadow: 0 0 14px 2px rgba(16, 185, 129, 0.85);
+  animation: laser-sweep-vertical 2.4s ease-in-out infinite;
+}
+
+
 .page-header-eyebrow {
   width: fit-content;
   max-width: 100%;

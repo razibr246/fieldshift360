@@ -9,6 +9,8 @@ import { onScroll } from '../../components/Motion';
 import SeasonRibbon from '../../components/charts/SeasonRibbon';
 import LiveWeather from '../../components/charts/LiveWeather';
 import LiveSatellitePassTracker from '../../components/home/LiveSatellitePassTracker';
+import DecisionSandbox from '../../components/home/DecisionSandbox';
+import AgroAtmosphereCanvas from '../../components/home/AgroAtmosphereCanvas';
 import RainCheck from '../../components/charts/RainCheck';
 // The whole-country section carries 250 KB of district data; it loads on its own, after the top of the page.
 const CountryCrops = lazy(() => import('../../components/charts/CountryCrops'));
@@ -110,35 +112,7 @@ export default function Home() {
 
           <LiveWeather className="mt-12 lg:mt-16" />
           <LiveSatellitePassTracker />
-
-          <div className="surface-card lift mt-5 rounded-[28px] border border-primary-200/70 bg-white/90 p-5 sm:p-7 shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-xl" style={{ animation: 'rise 1.2s var(--ease-smooth) .65s both' }}>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="rounded-2xl p-1 shadow-2xs">
-                    <ScoreRing value={d.rec.score} size={58} />
-                  </div>
-                  <span className="mt-1 whitespace-nowrap text-[11px] font-semibold text-muted">{T('১০০-এর মধ্যে', 'out of 100')}</span>
-                </div>
-                <div>
-                  <p className="font-display text-[22px] font-bold leading-tight sm:text-[26px]"><span className={st.text}>{L(st)}</span>: {L(d.rec.crop.name)}</p>
-                  <p className="mt-1 text-[15px] font-semibold text-ink/85">{(() => {
-                    const left = daysBetween(today, d.rec.t0), y = banglaDate(d.rec.t0).year;
-                    const when = T(`লাগানোর দিন ${fmtBangla(d.rec.t0, 'bn')} ${bnDigits(y)} (${fmtDate(d.rec.t0, 'bn')})`, `Plant on ${fmtDate(d.rec.t0, 'en')} (${fmtBangla(d.rec.t0, 'en')} ${y})`);
-                    const cd = left > 0 ? T(`আর ${num(left, 'bn')} দিন`, `${left} days to go`) : left === 0 ? T('আজই', 'today') : T(`${num(-left, 'bn')} দিন আগে পেরিয়েছে`, `${-left} days ago`);
-                    return <>{when} · <span className={`font-bold tabular ${left < 0 ? 'text-clay-700' : 'text-paddy-700'}`}>{cd}</span></>;
-                  })()}</p>
-                  <p className="mt-1 text-[13.5px] leading-relaxed text-muted">{(() => {
-                    const r = (a) => `${a[0]}–${a[a.length - 1]}`, { then, now } = d.rec.bt;
-                    return T(`এই দিনে লাগালে আবহাওয়া ঠিক ছিল: এখন (${bnDigits(r(NOW))}) ${num(now.n, 'bn')} মৌসুমের ${num(now.safe, 'bn')}টিতে, আগে (${bnDigits(r(THEN))}) ${num(then.n, 'bn')}টির ${num(then.safe, 'bn')}টিতে`,
-                      `Planted on this day, the weather was fine in ${now.safe} of ${now.n} seasons now (${r(NOW)}) and ${then.safe} of ${then.n} before (${r(THEN)})`);
-                  })()}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5"><Tags list={[climateTag(), 'RULE']} /><Link to="/farmer/plan" className="inline-flex items-center gap-1 text-[14.5px] font-semibold text-primary-700 underline-offset-4 hover:underline transition-colors hover:text-paddy-700">{T('পুরো হিসাব দেখুন', 'See the full working')}<ChevronRight size={15} /></Link></div>
-            </div>
-            <div className="mt-5"><SeasonRibbon /></div>
-          </div>
+          <DecisionSandbox />
         </div>
       </section>
 
@@ -470,6 +444,7 @@ function HeroBackdrop({ gallery }) {
           );
         })}
       </div>
+      <AgroAtmosphereCanvas />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_78%_12%,rgba(255,206,120,.16),rgba(255,206,120,0)_55%)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(243,246,240,.82)_0%,rgba(243,246,240,.68)_58%,rgba(243,246,240,.38)_100%)] sm:hidden" />
       <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(243,246,240,.93)_0%,rgba(243,246,240,.84)_36%,rgba(243,246,240,.18)_58%,rgba(243,246,240,0)_72%)] sm:block" />

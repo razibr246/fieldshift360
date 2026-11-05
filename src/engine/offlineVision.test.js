@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extractLeafMetrics, classifyLeafPixels } from './offlineVision.js';
+import { extractLeafMetrics, classifyLeafPixels, generateFalseColorSpectralMap } from './offlineVision.js';
 
 test('offline colour check: neutral pixels do not produce a green signal or a diagnosis', () => {
   const width = 10, height = 10;
@@ -105,3 +105,55 @@ test('offline colour check: yellow pixels are measured but never diagnosed as pe
   assert.equal(res.urgency, 'low');
   assert.match(res.summary, /রোগ শনাক্ত করে না/);
 });
+
+test('generateFalseColorSpectralMap categorises healthy foliage, chlorosis, and necrotic pixels accurately', () => {
+  const width = 10, height = 10;
+  const total = width * height;
+  const data = new Uint8ClampedArray(total * 4);
+
+  // Fill 40 pixels green, 30 pixels chlorotic yellow, 20 pixels necrotic, 10 pixels grey background
+  for (let i = 0; i < total; i++) {
+    const idx = i * 4;
+    data[idx + 3] = 255;
+    if (i < 40) {
+      // Green
+      data[idx] = 40;
+      data[idx + 1] = 180;
+      data[idx + 2] = 50;
+    } else if (i < 70) {
+      // Chlorotic
+      data[idx] = 180;
+      data[idx + 1] = 175;
+      data[idx + 2] = 30;
+    } else if (i < 90) {
+      // Necrotic
+      data[idx] = 90;
+      data[idx + 1] = 30;
+      data[idx + 2] = 20;
+    } else {
+      // Grey background
+      data[idx] = 120;
+      data[idx + 1] = 120;
+      data[idx + 2] = 120;
+    }
+  }
+
+  const { falseColorData, stats } = generateFalseColorSpectralMap({ data, width, height });
+  assert.ok(falseColorData instanceof Uint8ClampedArray);
+  assert.equal(stats.greenPct, 40);
+  assert.equal(stats.chlorosisPct, 30);
+  assert.equal(stats.necroticPct, 20);
+  assert.equal(stats.otherPct, 10);
+
+  // Check green pixel false colour is emerald (R=16, G=185, B=129)
+  assert.equal(falseColorData[0], 16);
+  assert.equal(falseColorData[1], 185);
+  assert.equal(falseColorData[2], 129);
+
+  // Check necrotic pixel false colour is crimson (R=239, G=68, B=68)
+  const necIdx = 75 * 4;
+  assert.equal(falseColorData[necIdx], 239);
+  assert.equal(falseColorData[necIdx + 1], 68);
+  assert.equal(falseColorData[necIdx + 2], 68);
+});
+
