@@ -21,6 +21,7 @@ import deltas from '../../data/climate/cmip6_deltas.json';
 import DataCoverage from '../../components/explain/DataCoverage';
 import TrendMap from '../../components/map/TrendMap';
 import SatelliteInspector from '../../components/science/SatelliteInspector';
+import OrbitConstellation from '../../components/science/OrbitConstellation';
 import EarthdataSTAC from '../../components/science/EarthdataSTAC';
 import ChallengeDossier from '../../components/science/ChallengeDossier';
 import GlobalAwardMatrix from '../../components/science/GlobalAwardMatrix';
@@ -175,6 +176,8 @@ export default function Science() {
       </section>
 
       <SatelliteInspector />
+
+      <OrbitConstellation />
 
       <EarthdataSTAC />
 
